@@ -71,3 +71,8 @@ Contains:
 * Recommendation logic (or integration point)
 
 Database: recipe_db
+
+# KUBERNETES:
+Docker Compose is suitable for local development, while Kubernetes provides orchestration, scalability, and resilience required for a microservices-based architecture. Therefore, the project is deployed using Kubernetes (Minikube).
+Кубернетес может перезапустить отказавшие контейнеры, завершить работу тех, которые не прошли определенную вами проверку работоспособности и заменить их.
+
