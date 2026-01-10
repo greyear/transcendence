@@ -1,0 +1,39 @@
+instead of (in guide) / i should do
+
+1. Create cluster Kubernetes in Docker
+minikube start --vm-driver=hyperkit / 
+minikube start --driver=docker
+
+2. Check cluster status
+kubectl get nodes
+
+NAME       STATUS   ROLES           AGE   VERSION
+minikube   Ready    control-plane   33m   v1.34.0
+
+3. Check minikube status
+minikube status
+
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
+
+4.Check kubectl version
+kubectl version
+
+Client Version: v1.35.0
+Kustomize Version: v5.7.1
+Server Version: v1.34.0
+
+5. Create a pod (for testing, not for transcendence yet)
+kubectl create deployment nginx-depl --image=nginx
+
+check:
+kubectl get deployment
+kubectl get pods
+kubectl get replicaset
+
+
+
