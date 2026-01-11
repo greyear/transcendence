@@ -1,0 +1,278 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+// USERS (local profile data, authentication handled by a separate service)
+Table users {
+  id varchar [primary key, note: 'User ID from auth service (UUID, for example)']
+  username varchar [not null]
+  avatar bytea [note: 'Original pic is stored in the DB, we need to set the limit for the size']
+  status varchar [note: 'online | offline (visible only to mutual followers)']
+  role varchar [not null, note: 'admin | user | guest']
+  created_at timestamp
+  updated_at timestamp [note: 'Used to detect profile changes or reset cache']
+}
+
+// FOLLOWERS
+Table followers {
+  user_id varchar [not null, note: 'User who follows']
+  followed_id varchar [not null, note: 'User being followed']
+  created_at timestamp
+
+  indexes {
+    (user_id, followed_id) [unique]
+  }
+
+  /*
+  -- 1. Duplicates restriction
+CREATE UNIQUE INDEX uniq_follow
+ON followers (user_id, followed_id);
+
+-- 2. Indexes for fast search
+CREATE INDEX idx_following
+ON followers (user_id);
+
+-- 3. -||- as 2nd
+CREATE INDEX idx_followers
+ON followers (followed_id);
+  */
+  
+  // Note: mutual following is treated as a "friend" relationship
+}
+
+// RECIPES
+Table recipes {
+  id integer [primary key]
+  title varchar [not null]
+  description text [note: 'Short recipe summary or preview text']
+  instructions text [not null, note: 'Full step-by-step cooking instructions']
+  spiciness smallint [note: '0 = none, 1 = mild, 2 = medium, 3 = hot']
+  author_id varchar [not null, note: 'Reference to users.id (auth service user ID)']
+  status varchar [note: 'draft | published | archived']
+  
+  rating_avg numeric(2,1) [note: 'Average rating (1.0–5.0)']
+  rating_count integer [note: 'Total number of ratings']
+  
+  created_at timestamp
+  updated_at timestamp
+}
+
+// INGREDIENTS
+Table ingredients {
+  id integer [primary key]
+  name varchar [not null, unique]
+  created_at timestamp
+}
+
+// RECIPE ↔ INGREDIENTS (join table)
+Table recipe_ingredients {
+  recipe_id integer [not null]
+  ingredient_id integer [not null]
+  amount numeric [note: 'Ingredient amount']
+  unit varchar [note: 'g, ml, pcs, etc.']
+
+  indexes {
+    (recipe_id, ingredient_id) [unique]
+  }
+}
+
+// RECIPE CATEGORY TYPES
+Table recipe_category_types {
+  id integer [primary key]
+  code varchar [not null, unique, note: 'meal_time, dish_type, main_ingredient, cuisine']
+  name varchar [not null]
+  created_at timestamp
+}
+
+/*
+meal_time → Breakfast / Lunch / Dinner
+dish_type → Dessert / Soup / Beverage
+main_ingredient → Poultry / Beef / Fish
+cuisine → Italian / Asian
+*/
+
+// RECIPE CATEGORIES (OF PARTICULAR TYPE)
+Table recipe_categories {
+  id integer [primary key]
+  category_type_id integer [not null]
+  code varchar [not null]
+  created_at timestamp
+
+  indexes {
+    (category_type_id, code) [unique]
+  }
+}
+
+// RECIPE ↔ CATEGORY (many-to-many)
+Table recipe_category_map {
+  recipe_id integer [not null]
+  category_id integer [not null]
+
+  indexes {
+    (recipe_id, category_id) [unique]
+  }
+}
+
+
+// INGREDIENT CATEGORIES
+Table ingredient_categories {
+  id integer [primary key]
+  code varchar [not null, unique, note: 'nuts, dairy, meat, fish, grains, spices']
+  //think about enums
+  created_at timestamp
+}
+
+//INGREDIENT ↔ CATEGORY (many-to-many, e.g. peanut is a nut and legumes)
+Table ingredient_category_correspondence { //mapping
+  ingredient_id integer [not null]
+  category_id integer [not null]
+
+  indexes {
+    (ingredient_id, category_id) [unique]
+  }
+}
+
+//ALLERGENS
+Table allergens {
+  id integer [primary key]
+  code varchar [not null, unique, note: 'nuts, lactose, gluten, eggs']
+  created_at timestamp
+}
+
+//ALLERGEN ↔ CATEGORIES OF INGREDIENTS
+Table allergen_categories {
+  allergen_id integer [not null]
+  category_id integer [not null]
+
+  indexes {
+    (allergen_id, category_id) [unique]
+  }
+}
+
+//DIETS
+Table diets {
+  id integer [primary key]
+  code varchar [not null, unique, note: 'vegan, vegetarian']
+  name varchar [not null]
+  created_at timestamp
+}
+
+//DIET ↔ CATEGORY OF INGREDIENTS
+Table diet_restricted_categories {
+  diet_id integer [not null]
+  category_id integer [not null]
+
+  indexes {
+    (diet_id, category_id) [unique]
+  }
+}
+
+
+// FAVORITE RECIPES
+Table favorites {
+  user_id varchar [not null]
+  recipe_id integer [not null]
+  created_at timestamp
+
+  indexes {
+    (user_id, recipe_id) [unique] // a recipe can be favorited only once per user
+  }
+}
+
+// RECIPE SHARES (reposts)
+Table recipe_shares {
+  user_id varchar [not null, note: 'User who shared the recipe']
+  recipe_id integer [not null]
+  created_at timestamp
+
+  indexes {
+    (user_id, recipe_id) [unique]
+  }
+}
+
+
+//URL of the pic/video
+
+// MEDIA RESOURCES
+Table recipe_media {
+  id integer [primary key]
+  recipe_id integer [not null]
+  type varchar [not null, note: 'image | video']
+  url varchar [not null]
+  position integer //order of pics in one recipe
+  created_at timestamp
+}
+
+/*
+CDN!
+
+user chooses file, 
+frontend 
+POST /media/upload-url
+PUT https://s3.amazonaws.com/...
+backend saves
+{
+  "recipe_id": 42,
+  "type": "image",
+  "url": "https://cdn.example.com/recipes/42/main.webp"
+}
+page has
+<img src="https://cdn.example.com/recipes/42/main.webp" />
+
+*/
+
+// COMMENTS
+Table recipe_comments {
+  id integer [primary key]
+  recipe_id integer [not null]
+  author_id varchar [not null, note: 'users.id']
+  parent_comment_id integer
+  body text [not null]
+  created_at timestamp
+  updated_at timestamp
+  
+  indexes {
+  (recipe_id, created_at)
+  (parent_comment_id)
+  }
+}
+
+// RECIPE RATINGS (user → recipe)
+Table recipe_ratings {
+  user_id varchar [not null, note: 'User who rated the recipe']
+  recipe_id integer [not null]
+  rating smallint [not null, note: '1–5 stars']
+
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (user_id, recipe_id) [unique] // one rating per user per recipe
+  }
+}
+
+// RELATIONS
+Ref: recipes.author_id > users.id
+Ref: recipe_ingredients.recipe_id > recipes.id
+Ref: recipe_ingredients.ingredient_id > ingredients.id
+Ref: followers.user_id > users.id
+Ref: followers.followed_id > users.id
+Ref: recipe_categories.category_type_id > recipe_category_types.id
+Ref: recipe_category_map.recipe_id > recipes.id
+Ref: recipe_category_map.category_id > recipe_categories.id
+Ref: ingredient_category_correspondence.ingredient_id > ingredients.id
+Ref: ingredient_category_correspondence.category_id > ingredient_categories.id
+Ref: allergen_categories.allergen_id > allergens.id
+Ref: allergen_categories.category_id > ingredient_categories.id
+Ref: diet_restricted_categories.diet_id > diets.id
+Ref: diet_restricted_categories.category_id > ingredient_categories.id
+Ref: favorites.user_id > users.id
+Ref: favorites.recipe_id > recipes.id
+Ref: recipe_shares.user_id > users.id
+Ref: recipe_shares.recipe_id > recipes.id
+Ref: recipe_media.recipe_id > recipes.id
+Ref: recipe_comments.recipe_id > recipes.id
+Ref: recipe_comments.author_id > users.id
+Ref: recipe_comments.parent_comment_id > recipe_comments.id
+Ref: recipe_ratings.user_id > users.id
+Ref: recipe_ratings.recipe_id > recipes.id
+
