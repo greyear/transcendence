@@ -13,6 +13,7 @@ CREATE TABLE "users" (
 CREATE TABLE "followers" (
   "user_id" varchar NOT NULL,
   "followed_id" varchar NOT NULL,
+    CHECK (user_id <> followed_id),
   "created_at" timestamptz DEFAULT now()
 );
 
@@ -21,6 +22,7 @@ CREATE TABLE "recipes" (
   "title" varchar(256) NOT NULL,
   "description" text,
   "instructions" text NOT NULL,
+  "servings" integer NOT NULL DEFAULT 1,
   "spiciness" smallint CHECK (spiciness BETWEEN 0 AND 3),
   "author_id" varchar NOT NULL,
   "status" varchar(16) NOT NULL
@@ -44,8 +46,7 @@ CREATE TABLE "recipe_ingredients" (
   "ingredient_id" integer NOT NULL,
   "amount" numeric
     CHECK (amount > 0),
-  "unit" varchar(16)
-    CHECK (unit IN ('g','kg','ml','l','tsp','tbsp','cup','oz','lb'))
+  "unit" varchar(16) NOT NULL
 );
 
 CREATE TABLE "recipe_category_types" (
@@ -99,6 +100,45 @@ CREATE TABLE "diets" (
 CREATE TABLE "diet_restricted_categories" (
   "diet_id" integer NOT NULL,
   "category_id" integer NOT NULL
+);
+
+CREATE TABLE "units" (
+  "code" varchar PRIMARY KEY,
+  "kind" varchar NOT NULL
+    CHECK (kind IN ('mass', 'volume', 'portion'))
+);
+
+CREATE TABLE "ingredient_unit_conversions" (
+  "ingredient_id" integer NOT NULL,
+  "unit" varchar NOT NULL,
+  "grams" numeric NOT NULL
+    CHECK (grams > 0),
+  "created_at" timestamptz DEFAULT now()
+);
+
+CREATE TABLE "nutrition_facts" (
+  "ingredient_id" integer PRIMARY KEY,
+  "calories" numeric NOT NULL
+    CHECK (calories >= 0),
+  "protein" numeric NOT NULL
+    CHECK (protein >= 0),
+  "fat" numeric NOT NULL
+    CHECK (fat >= 0),
+  "carbs" numeric NOT NULL
+    CHECK (carbs >= 0),
+  "base_unit" varchar NOT NULL,
+  "created_at" timestamptz DEFAULT now()
+);
+
+
+CREATE TABLE "ingredient_portions" (
+  "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  "ingredient_id" integer NOT NULL,
+
+  "name" varchar NOT NULL,
+  "weight_in_grams" numeric NOT NULL
+    CHECK (weight_in_grams > 0),
+  "created_at" timestamptz DEFAULT now()
 );
 
 CREATE TABLE "favorites" (
@@ -155,6 +195,8 @@ CREATE UNIQUE INDEX ON "ingredient_category_correspondence" ("ingredient_id", "c
 CREATE UNIQUE INDEX ON "allergen_categories" ("allergen_id", "category_id");
 
 CREATE UNIQUE INDEX ON "diet_restricted_categories" ("diet_id", "category_id");
+
+CREATE UNIQUE INDEX ON "ingredient_unit_conversions" ("ingredient_id", "unit");
 
 CREATE UNIQUE INDEX ON "favorites" ("user_id", "recipe_id");
 
@@ -222,6 +264,8 @@ ALTER TABLE "recipe_ingredients" ADD FOREIGN KEY ("recipe_id") REFERENCES "recip
 
 ALTER TABLE "recipe_ingredients" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id");
 
+ALTER TABLE "recipe_ingredients" ADD FOREIGN KEY ("unit") REFERENCES "units" ("code");
+
 ALTER TABLE "followers" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 
 ALTER TABLE "followers" ADD FOREIGN KEY ("followed_id") REFERENCES "users" ("id");
@@ -243,6 +287,16 @@ ALTER TABLE "allergen_categories" ADD FOREIGN KEY ("category_id") REFERENCES "in
 ALTER TABLE "diet_restricted_categories" ADD FOREIGN KEY ("diet_id") REFERENCES "diets" ("id");
 
 ALTER TABLE "diet_restricted_categories" ADD FOREIGN KEY ("category_id") REFERENCES "ingredient_categories" ("id");
+
+ALTER TABLE "ingredient_unit_conversions" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id");
+
+ALTER TABLE "ingredient_unit_conversions" ADD FOREIGN KEY ("unit") REFERENCES "units" ("code");
+
+ALTER TABLE "nutrition_facts" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id");
+
+ALTER TABLE "nutrition_facts" ADD FOREIGN KEY ("base_unit") REFERENCES "units" ("code");
+
+ALTER TABLE "ingredient_portions" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id");
 
 ALTER TABLE "favorites" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
 

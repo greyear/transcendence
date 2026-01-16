@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+
+  auth-db:
+    image: mongo:6
+    container_name: auth-mongo
+    restart: unless-stopped
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+
+    ports:
+      - "27017:27017"
+
+    volumes:
+      - ./backend/infrastructure/mongo/auth/init-auth.js:/docker-entrypoint-initdb.d/init-auth.js:ro
+
+  core-db:
+    image: postgres:15
+    container_name: core-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: core_db
+      POSTGRES_USER: core_user
+      POSTGRES_PASSWORD: core_password
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - core_pg_data:/var/lib/postgresql/data
+      - ./backend/infrastructure/postgres/core/init-core.sql:/docker-entrypoint-initdb.d/init-core.sql
+
+volumes:
+  core_pg_data:

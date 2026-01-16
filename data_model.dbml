@@ -45,11 +45,12 @@ Table recipes {
   title varchar [not null]
   description text [note: 'Short recipe summary or preview text']
   instructions text [not null, note: 'Full step-by-step cooking instructions']
+  servings integer [not null, default: 1, note: 'Number of servings']
   spiciness smallint [note: '0 = none, 1 = mild, 2 = medium, 3 = hot']
   author_id varchar [not null, note: 'Reference to users.id (auth service user ID)']
   status varchar [note: 'draft | published | archived']
   
-  rating_avg numeric(2,1) [note: 'Average rating (1.0–5.0)']
+  rating_avg numeric(3,2) [note: 'Average rating (1.0–5.0)']
   rating_count integer [note: 'Total number of ratings']
   
   created_at timestamp
@@ -68,12 +69,13 @@ Table recipe_ingredients {
   recipe_id integer [not null]
   ingredient_id integer [not null]
   amount numeric [note: 'Ingredient amount']
-  unit varchar [note: 'g, ml, pcs, etc.']
+  unit varchar [not null]
 
   indexes {
     (recipe_id, ingredient_id) [unique]
   }
 }
+
 
 // RECIPE CATEGORY TYPES
 Table recipe_category_types {
@@ -166,6 +168,49 @@ Table diet_restricted_categories {
   }
 }
 
+//ALL UNITS (FROM PHYSICS AND PORTION UNITS)
+Table units {
+  code varchar [primary key, note: 'g, ml, tbsp, pcs, slice']
+  kind varchar [not null, note: 'mass | volume | portion']
+}
+
+//UNITS TO GRAMS (only units.kind = 'portion' are allowed)
+Table ingredient_unit_conversions {
+  ingredient_id integer [not null]
+  unit varchar [not null]
+  
+  grams numeric [not null, note: 'Weight of 1 unit for this ingredient']
+
+  indexes {
+    (ingredient_id, unit) [unique]
+  }
+}
+
+//NUTRITION
+Table nutrition_facts {
+  ingredient_id integer [primary key, note: 'FK → ingredients.id']
+
+  calories numeric [not null, note: 'kcal per 100g or 100ml']
+  protein  numeric [not null, note: 'grams per 100g/ml']
+  fat      numeric [not null]
+  carbs    numeric [not null]
+
+  base_unit varchar [not null]
+
+  created_at timestamp
+}
+
+//WEIGHTS
+Table ingredient_portions {
+  id integer [primary key]
+  ingredient_id integer [not null]
+
+  name varchar [not null, note: '1 avocado | 1 piece of rye bread']
+  weight_in_grams numeric [not null, note: 'Approximate weight']
+
+  created_at timestamp
+}
+
 
 // FAVORITE RECIPES
 Table favorites {
@@ -254,6 +299,7 @@ Table recipe_ratings {
 Ref: recipes.author_id > users.id
 Ref: recipe_ingredients.recipe_id > recipes.id
 Ref: recipe_ingredients.ingredient_id > ingredients.id
+Ref: recipe_ingredients.unit > units.code
 Ref: followers.user_id > users.id
 Ref: followers.followed_id > users.id
 Ref: recipe_categories.category_type_id > recipe_category_types.id
@@ -265,6 +311,11 @@ Ref: allergen_categories.allergen_id > allergens.id
 Ref: allergen_categories.category_id > ingredient_categories.id
 Ref: diet_restricted_categories.diet_id > diets.id
 Ref: diet_restricted_categories.category_id > ingredient_categories.id
+Ref: ingredient_unit_conversions.ingredient_id > ingredients.id
+Ref: ingredient_unit_conversions.unit > units.code
+Ref: nutrition_facts.ingredient_id > ingredients.id
+Ref: nutrition_facts.base_unit > units.code
+Ref: ingredient_portions.ingredient_id > ingredients.id
 Ref: favorites.user_id > users.id
 Ref: favorites.recipe_id > recipes.id
 Ref: recipe_shares.user_id > users.id
@@ -275,4 +326,3 @@ Ref: recipe_comments.author_id > users.id
 Ref: recipe_comments.parent_comment_id > recipe_comments.id
 Ref: recipe_ratings.user_id > users.id
 Ref: recipe_ratings.recipe_id > recipes.id
-
