@@ -4,23 +4,21 @@
 // USERS (local profile data, authentication handled by a separate service)
 Table users {
   id varchar [primary key, note: 'User ID from auth service (UUID, for example)']
-  username varchar [not null]
+  username varchar(32) [not null, unique]
   avatar bytea [note: 'Original pic is stored in the DB, we need to set the limit for the size']
-  status varchar [note: 'online | offline (visible only to mutual followers)']
-  role varchar [not null, note: 'admin | user | guest']
-  created_at timestamp
-  updated_at timestamp [note: 'Used to detect profile changes or reset cache']
+  status varchar(16) [note: 'online | offline (visible only to mutual followers)']
+  role varchar(16) [not null, note: 'admin | user | guest']
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`, note: 'Used to detect profile changes or reset cache']
 }
 
 // FOLLOWERS
 Table followers {
   user_id varchar [not null, note: 'User who follows']
   followed_id varchar [not null, note: 'User being followed']
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 
-  indexes {
-    (user_id, followed_id) [unique]
-  }
+  primary key (user_id, followed_id)
 
   /*
   -- 1. Duplicates restriction
@@ -48,20 +46,20 @@ Table recipes {
   servings integer [not null, default: 1, note: 'Number of servings']
   spiciness smallint [note: '0 = none, 1 = mild, 2 = medium, 3 = hot']
   author_id varchar [null, note: 'Reference to users.id (auth service user ID)']
-  status varchar [note: 'draft | published | archived']
-  
+  status varchar(16) [note: 'draft | published | archived']
+
   rating_avg numeric(3,2) [note: 'Average rating (1.0–5.0)']
-  rating_count integer [note: 'Total number of ratings']
-  
-  created_at timestamp
-  updated_at timestamp
+  rating_count integer [default: 0, note: 'Total number of ratings']
+
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
 }
 
 // INGREDIENTS
 Table ingredients {
   id integer [primary key]
   name varchar [not null, unique]
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 }
 
 // RECIPE ↔ INGREDIENTS (join table)
@@ -69,11 +67,9 @@ Table recipe_ingredients {
   recipe_id integer [not null]
   ingredient_id integer [not null]
   amount numeric [note: 'Ingredient amount']
-  unit varchar [not null]
+  unit varchar(16) [not null]
 
-  indexes {
-    (recipe_id, ingredient_id) [unique]
-  }
+  primary key (recipe_id, ingredient_id)
 }
 
 
@@ -82,7 +78,7 @@ Table recipe_category_types {
   id integer [primary key]
   code varchar [not null, unique, note: 'meal_time, dish_type, main_ingredient, cuisine']
   name varchar [not null]
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 }
 
 /*
@@ -97,7 +93,7 @@ Table recipe_categories {
   id integer [primary key]
   category_type_id integer [not null]
   code varchar [not null]
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 
   indexes {
     (category_type_id, code) [unique]
@@ -109,9 +105,7 @@ Table recipe_category_map {
   recipe_id integer [not null]
   category_id integer [not null]
 
-  indexes {
-    (recipe_id, category_id) [unique]
-  }
+  primary key (recipe_id, category_id)
 }
 
 
@@ -120,7 +114,7 @@ Table ingredient_categories {
   id integer [primary key]
   code varchar [not null, unique, note: 'nuts, dairy, meat, fish, grains, spices']
   //think about enums
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 }
 
 //INGREDIENT ↔ CATEGORY (many-to-many, e.g. peanut is a nut and legumes)
@@ -128,16 +122,14 @@ Table ingredient_category_correspondence { //mapping
   ingredient_id integer [not null]
   category_id integer [not null]
 
-  indexes {
-    (ingredient_id, category_id) [unique]
-  }
+  primary key (ingredient_id, category_id)
 }
 
 //ALLERGENS
 Table allergens {
   id integer [primary key]
   code varchar [not null, unique, note: 'nuts, lactose, gluten, eggs']
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 }
 
 //ALLERGEN ↔ CATEGORIES OF INGREDIENTS
@@ -145,20 +137,16 @@ Table allergen_categories {
   allergen_id integer [not null]
   category_id integer [not null]
 
-  indexes {
-    (allergen_id, category_id) [unique]
-  }
+  primary key (allergen_id, category_id)
 }
 
 //USER ↔ ALLERGIES
 Table user_allergens {
   user_id varchar [not null]
   allergen_id integer [not null]
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 
-  indexes {
-    (user_id, allergen_id) [unique]
-  }
+  primary key (user_id, allergen_id)
 }
 
 //DIETS
@@ -166,7 +154,7 @@ Table diets {
   id integer [primary key]
   code varchar [not null, unique, note: 'vegan, vegetarian']
   name varchar [not null]
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 }
 
 //DIET ↔ CATEGORY OF INGREDIENTS
@@ -174,38 +162,32 @@ Table diet_restricted_categories {
   diet_id integer [not null]
   category_id integer [not null]
 
-  indexes {
-    (diet_id, category_id) [unique]
-  }
+  primary key (diet_id, category_id)
 }
 
 //USER ↔ DIETS
 Table user_diets {
   user_id varchar [not null]
   diet_id integer [not null]
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 
-  indexes {
-    (user_id, diet_id) [unique]
-  }
+  primary key (user_id, diet_id)
 }
 
 //ALL UNITS (FROM PHYSICS AND PORTION UNITS)
 Table units {
-  code varchar [primary key, note: 'g, ml, tbsp, pcs, slice']
-  kind varchar [not null, note: 'mass | volume | portion']
+  code varchar(16) [primary key, note: 'g, ml, tbsp, pcs, slice']
+  kind varchar(16) [not null, note: 'mass | volume | portion']
 }
 
 //UNITS TO GRAMS (only units.kind = 'portion' are allowed)
 Table ingredient_unit_conversions {
   ingredient_id integer [not null]
-  unit varchar [not null]
+  unit varchar(16) [not null]
   
   grams numeric [not null, note: 'Weight of 1 unit for this ingredient']
 
-  indexes {
-    (ingredient_id, unit) [unique]
-  }
+  primary key (ingredient_id, unit)
 }
 
 //NUTRITION
@@ -217,9 +199,9 @@ Table nutrition_facts {
   fat      numeric [not null]
   carbs    numeric [not null]
 
-  base_unit varchar [not null]
+  base_unit varchar(16) [not null]
 
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 }
 
 //WEIGHTS
@@ -230,7 +212,11 @@ Table ingredient_portions {
   name varchar [not null, note: '1 avocado | 1 piece of rye bread']
   weight_in_grams numeric [not null, note: 'Approximate weight']
 
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
+
+  indexes {
+    (ingredient_id, name) [unique]
+  }
 }
 
 
@@ -238,22 +224,18 @@ Table ingredient_portions {
 Table favorites {
   user_id varchar [not null]
   recipe_id integer [not null]
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 
-  indexes {
-    (user_id, recipe_id) [unique] // a recipe can be favorited only once per user
-  }
+  primary key (user_id, recipe_id)
 }
 
 // RECIPE SHARES (reposts)
 Table recipe_shares {
   user_id varchar [not null, note: 'User who shared the recipe']
   recipe_id integer [not null]
-  created_at timestamp
+  created_at timestamptz [default: `now()`]
 
-  indexes {
-    (user_id, recipe_id) [unique]
-  }
+  primary key (user_id, recipe_id)
 }
 
 
@@ -265,8 +247,12 @@ Table recipe_media {
   recipe_id integer [not null]
   type varchar [not null, note: 'image | video']
   url varchar [not null]
-  position integer //order of pics in one recipe
-  created_at timestamp
+  position integer [not null, note: 'order of pics in one recipe']
+  created_at timestamptz [default: `now()`]
+
+  indexes {
+    (recipe_id, position) [unique]
+  }
 }
 
 /*
@@ -294,9 +280,9 @@ Table recipe_comments {
   author_id varchar [null, note: 'users.id']
   parent_comment_id integer
   body text [not null]
-  is_deleted boolean [not null, note: 'Soft delete flag for comments']
-  created_at timestamp
-  updated_at timestamp
+  is_deleted boolean [not null, default: false, note: 'Soft delete flag for comments']
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
   
   indexes {
   (recipe_id, created_at)
@@ -310,12 +296,10 @@ Table recipe_ratings {
   recipe_id integer [not null]
   rating smallint [not null, note: '1–5 stars']
 
-  created_at timestamp
-  updated_at timestamp
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
 
-  indexes {
-    (user_id, recipe_id) [unique] // one rating per user per recipe
-  }
+  primary key (user_id, recipe_id)
 }
 
 // RELATIONS
@@ -326,7 +310,7 @@ Ref: recipe_ingredients.unit > units.code
 Ref: followers.user_id > users.id [delete: cascade]
 Ref: followers.followed_id > users.id [delete: cascade]
 Ref: recipe_categories.category_type_id > recipe_category_types.id
-Ref: recipe_category_map.recipe_id > recipes.id
+Ref: recipe_category_map.recipe_id > recipes.id [delete: cascade]
 Ref: recipe_category_map.category_id > recipe_categories.id
 Ref: ingredient_category_correspondence.ingredient_id > ingredients.id
 Ref: ingredient_category_correspondence.category_id > ingredient_categories.id

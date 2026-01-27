@@ -1,6 +1,6 @@
 CREATE TABLE "users" (
   "id" varchar PRIMARY KEY,
-  "username" varchar(32) NOT NULL,
+  "username" varchar(32) UNIQUE NOT NULL,
   "avatar" bytea,
   "status" varchar(16)
     CHECK (status IN ('online', 'offline')),
@@ -15,6 +15,8 @@ CREATE TABLE "followers" (
   "followed_id" varchar NOT NULL,
     CHECK (user_id <> followed_id),
   "created_at" timestamptz DEFAULT now(),
+
+  PRIMARY KEY ("user_id", "followed_id"),
 
   CONSTRAINT "followers_user_id_fkey"
     FOREIGN KEY ("user_id")
@@ -56,17 +58,33 @@ CREATE TABLE "ingredients" (
   "created_at" timestamptz DEFAULT now()
 );
 
+CREATE TABLE "units" (
+  "code" varchar PRIMARY KEY,
+  "kind" varchar NOT NULL
+    CHECK (kind IN ('mass', 'volume', 'portion'))
+);
+
 CREATE TABLE "recipe_ingredients" (
   "recipe_id" integer NOT NULL,
   "ingredient_id" integer NOT NULL,
   "amount" numeric
     CHECK (amount > 0),
-  "unit" varchar(16) NOT NULL
+  "unit" varchar(16) NOT NULL,
+
+  PRIMARY KEY ("recipe_id", "ingredient_id"),
 
   CONSTRAINT "recipe_ingredients_recipe_id_fkey"
     FOREIGN KEY ("recipe_id")
     REFERENCES "recipes" ("id")
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+
+  CONSTRAINT "recipe_ingredients_ingredient_id_fkey"
+    FOREIGN KEY ("ingredient_id")
+    REFERENCES "ingredients" ("id"),
+
+  CONSTRAINT "recipe_ingredients_unit_fkey"
+    FOREIGN KEY ("unit")
+    REFERENCES "units" ("code")
 );
 
 CREATE TABLE "recipe_category_types" (
@@ -80,12 +98,27 @@ CREATE TABLE "recipe_categories" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "category_type_id" integer NOT NULL,
   "code" varchar(32) NOT NULL,
-  "created_at" timestamptz DEFAULT now()
+  "created_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "recipe_categories_category_type_id_fkey"
+    FOREIGN KEY ("category_type_id")
+    REFERENCES "recipe_category_types" ("id")
 );
 
 CREATE TABLE "recipe_category_map" (
   "recipe_id" integer NOT NULL,
-  "category_id" integer NOT NULL
+  "category_id" integer NOT NULL,
+
+  PRIMARY KEY ("recipe_id", "category_id"),
+
+  CONSTRAINT "recipe_category_map_recipe_id_fkey"
+    FOREIGN KEY ("recipe_id")
+    REFERENCES "recipes" ("id")
+    ON DELETE CASCADE,
+
+  CONSTRAINT "recipe_category_map_category_id_fkey"
+    FOREIGN KEY ("category_id")
+    REFERENCES "recipe_categories" ("id")
 );
 
 CREATE TABLE "ingredient_categories" (
@@ -96,7 +129,17 @@ CREATE TABLE "ingredient_categories" (
 
 CREATE TABLE "ingredient_category_correspondence" (
   "ingredient_id" integer NOT NULL,
-  "category_id" integer NOT NULL
+  "category_id" integer NOT NULL,
+
+  PRIMARY KEY ("ingredient_id", "category_id"),
+
+  CONSTRAINT "ingredient_category_correspondence_ingredient_id_fkey"
+    FOREIGN KEY ("ingredient_id")
+    REFERENCES "ingredients" ("id"),
+
+  CONSTRAINT "ingredient_category_correspondence_category_id_fkey"
+    FOREIGN KEY ("category_id")
+    REFERENCES "ingredient_categories" ("id")
 );
 
 CREATE TABLE "allergens" (
@@ -107,7 +150,17 @@ CREATE TABLE "allergens" (
 
 CREATE TABLE "allergen_categories" (
   "allergen_id" integer NOT NULL,
-  "category_id" integer NOT NULL
+  "category_id" integer NOT NULL,
+
+  PRIMARY KEY ("allergen_id", "category_id"),
+
+  CONSTRAINT "allergen_categories_allergen_id_fkey"
+    FOREIGN KEY ("allergen_id")
+    REFERENCES "allergens" ("id"),
+
+  CONSTRAINT "allergen_categories_category_id_fkey"
+    FOREIGN KEY ("category_id")
+    REFERENCES "ingredient_categories" ("id")
 );
 
 CREATE TABLE "user_allergens" (
@@ -115,14 +168,16 @@ CREATE TABLE "user_allergens" (
   "allergen_id" integer NOT NULL,
   "created_at" timestamptz DEFAULT now(),
 
+  PRIMARY KEY ("user_id", "allergen_id"),
+
   CONSTRAINT "user_allergens_user_id_fkey"
     FOREIGN KEY ("user_id")
     REFERENCES "users" ("id")
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
 
   CONSTRAINT "user_allergens_allergen_id_fkey"
     FOREIGN KEY ("allergen_id")
-    REFERENCES "allergens" ("id");
+    REFERENCES "allergens" ("id")
 );
 
 CREATE TABLE "diets" (
@@ -134,13 +189,25 @@ CREATE TABLE "diets" (
 
 CREATE TABLE "diet_restricted_categories" (
   "diet_id" integer NOT NULL,
-  "category_id" integer NOT NULL
+  "category_id" integer NOT NULL,
+
+  PRIMARY KEY ("diet_id", "category_id"),
+
+  CONSTRAINT "diet_restricted_categories_diet_id_fkey"
+    FOREIGN KEY ("diet_id")
+    REFERENCES "diets" ("id"),
+
+  CONSTRAINT "diet_restricted_categories_category_id_fkey"
+    FOREIGN KEY ("category_id")
+    REFERENCES "ingredient_categories" ("id")
 );
 
 CREATE TABLE "user_diets" (
   "user_id" varchar NOT NULL,
   "diet_id" integer NOT NULL,
   "created_at" timestamptz DEFAULT now(),
+
+  PRIMARY KEY ("user_id", "diet_id"),
 
   CONSTRAINT "user_diets_user_id_fkey"
     FOREIGN KEY ("user_id")
@@ -152,18 +219,22 @@ CREATE TABLE "user_diets" (
     REFERENCES "diets" ("id")
 );
 
-CREATE TABLE "units" (
-  "code" varchar PRIMARY KEY,
-  "kind" varchar NOT NULL
-    CHECK (kind IN ('mass', 'volume', 'portion'))
-);
-
 CREATE TABLE "ingredient_unit_conversions" (
   "ingredient_id" integer NOT NULL,
-  "unit" varchar NOT NULL,
+  "unit" varchar(16) NOT NULL,
   "grams" numeric NOT NULL
     CHECK (grams > 0),
-  "created_at" timestamptz DEFAULT now()
+  "created_at" timestamptz DEFAULT now(),
+
+  PRIMARY KEY ("ingredient_id", "unit"),
+
+  CONSTRAINT "ingredient_unit_conversions_ingredient_id_fkey"
+    FOREIGN KEY ("ingredient_id")
+    REFERENCES "ingredients" ("id"),
+
+  CONSTRAINT "ingredient_unit_conversions_unit_fkey"
+    FOREIGN KEY ("unit")
+    REFERENCES "units" ("code")
 );
 
 CREATE TABLE "nutrition_facts" (
@@ -176,8 +247,16 @@ CREATE TABLE "nutrition_facts" (
     CHECK (fat >= 0),
   "carbs" numeric NOT NULL
     CHECK (carbs >= 0),
-  "base_unit" varchar NOT NULL,
-  "created_at" timestamptz DEFAULT now()
+  "base_unit" varchar(16) NOT NULL,
+  "created_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "nutrition_facts_ingredient_id_fkey"
+    FOREIGN KEY ("ingredient_id")
+    REFERENCES "ingredients" ("id"),
+
+  CONSTRAINT "nutrition_facts_base_unit_fkey"
+    FOREIGN KEY ("base_unit")
+    REFERENCES "units" ("code")
 );
 
 
@@ -188,13 +267,19 @@ CREATE TABLE "ingredient_portions" (
   "name" varchar NOT NULL,
   "weight_in_grams" numeric NOT NULL
     CHECK (weight_in_grams > 0),
-  "created_at" timestamptz DEFAULT now()
+  "created_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "ingredient_portions_ingredient_id_fkey"
+    FOREIGN KEY ("ingredient_id")
+    REFERENCES "ingredients" ("id")
 );
 
 CREATE TABLE "favorites" (
   "user_id" varchar NOT NULL,
   "recipe_id" integer NOT NULL,
   "created_at" timestamptz DEFAULT now(),
+
+  PRIMARY KEY ("user_id", "recipe_id"),
 
   CONSTRAINT "favorites_user_id_fkey"
     FOREIGN KEY ("user_id")
@@ -211,6 +296,8 @@ CREATE TABLE "recipe_shares" (
   "user_id" varchar NOT NULL,
   "recipe_id" integer NOT NULL,
   "created_at" timestamptz DEFAULT now(),
+
+  PRIMARY KEY ("user_id", "recipe_id"),
 
   CONSTRAINT "recipe_shares_user_id_fkey"
     FOREIGN KEY ("user_id")
@@ -229,7 +316,7 @@ CREATE TABLE "recipe_media" (
   "type" varchar(16) NOT NULL
     CHECK (type IN ('image', 'video')),
   "url" varchar(2048) NOT NULL,
-  "position" integer
+  "position" integer NOT NULL
     CHECK (position >= 0),
   "created_at" timestamptz DEFAULT now(),
 
@@ -262,6 +349,7 @@ CREATE TABLE "recipe_comments" (
   CONSTRAINT "recipe_comments_parent_comment_id_fkey"
     FOREIGN KEY ("parent_comment_id")
     REFERENCES "recipe_comments" ("id")
+    ON DELETE SET NULL
 );
 
 
@@ -271,6 +359,8 @@ CREATE TABLE "recipe_ratings" (
   "rating" smallint NOT NULL CHECK (rating BETWEEN 1 AND 5),
   "created_at" timestamptz DEFAULT now(),
   "updated_at" timestamptz DEFAULT now(),
+
+  PRIMARY KEY ("user_id", "recipe_id"),
 
   CONSTRAINT "recipe_ratings_user_id_fkey"
     FOREIGN KEY ("user_id")
@@ -283,35 +373,15 @@ CREATE TABLE "recipe_ratings" (
     ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX ON "followers" ("user_id", "followed_id");
-
-CREATE UNIQUE INDEX ON "recipe_ingredients" ("recipe_id", "ingredient_id");
-
 CREATE UNIQUE INDEX ON "recipe_categories" ("category_type_id", "code");
 
-CREATE UNIQUE INDEX ON "recipe_category_map" ("recipe_id", "category_id");
+CREATE UNIQUE INDEX ON "ingredient_portions" ("ingredient_id", "name");
 
-CREATE UNIQUE INDEX ON "ingredient_category_correspondence" ("ingredient_id", "category_id");
-
-CREATE UNIQUE INDEX ON "allergen_categories" ("allergen_id", "category_id");
-
-CREATE UNIQUE INDEX ON "user_allergens" ("user_id", "allergen_id");
-
-CREATE UNIQUE INDEX ON "diet_restricted_categories" ("diet_id", "category_id");
-
-CREATE UNIQUE INDEX ON "user_diets" ("user_id", "diet_id");
-
-CREATE UNIQUE INDEX ON "ingredient_unit_conversions" ("ingredient_id", "unit");
-
-CREATE UNIQUE INDEX ON "favorites" ("user_id", "recipe_id");
-
-CREATE UNIQUE INDEX ON "recipe_shares" ("user_id", "recipe_id");
+CREATE UNIQUE INDEX ON "recipe_media" ("recipe_id", "position");
 
 CREATE INDEX ON "recipe_comments" ("recipe_id", "created_at");
 
 CREATE INDEX ON "recipe_comments" ("parent_comment_id");
-
-CREATE UNIQUE INDEX ON "recipe_ratings" ("user_id", "recipe_id");
 
 COMMENT ON COLUMN "users"."id" IS 'User ID from auth service (UUID, for example)';
 
@@ -362,35 +432,3 @@ COMMENT ON COLUMN "recipe_comments"."author_id" IS 'users.id';
 COMMENT ON COLUMN "recipe_ratings"."user_id" IS 'User who rated the recipe';
 
 COMMENT ON COLUMN "recipe_ratings"."rating" IS '1–5 stars';
-
-ALTER TABLE "recipe_ingredients" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id");
-
-ALTER TABLE "recipe_ingredients" ADD FOREIGN KEY ("unit") REFERENCES "units" ("code");
-
-ALTER TABLE "recipe_categories" ADD FOREIGN KEY ("category_type_id") REFERENCES "recipe_category_types" ("id");
-
-ALTER TABLE "recipe_category_map" ADD FOREIGN KEY ("recipe_id") REFERENCES "recipes" ("id");
-
-ALTER TABLE "recipe_category_map" ADD FOREIGN KEY ("category_id") REFERENCES "recipe_categories" ("id");
-
-ALTER TABLE "ingredient_category_correspondence" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id");
-
-ALTER TABLE "ingredient_category_correspondence" ADD FOREIGN KEY ("category_id") REFERENCES "ingredient_categories" ("id");
-
-ALTER TABLE "allergen_categories" ADD FOREIGN KEY ("allergen_id") REFERENCES "allergens" ("id");
-
-ALTER TABLE "allergen_categories" ADD FOREIGN KEY ("category_id") REFERENCES "ingredient_categories" ("id");
-
-ALTER TABLE "diet_restricted_categories" ADD FOREIGN KEY ("diet_id") REFERENCES "diets" ("id");
-
-ALTER TABLE "diet_restricted_categories" ADD FOREIGN KEY ("category_id") REFERENCES "ingredient_categories" ("id");
-
-ALTER TABLE "ingredient_unit_conversions" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id");
-
-ALTER TABLE "ingredient_unit_conversions" ADD FOREIGN KEY ("unit") REFERENCES "units" ("code");
-
-ALTER TABLE "nutrition_facts" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id");
-
-ALTER TABLE "nutrition_facts" ADD FOREIGN KEY ("base_unit") REFERENCES "units" ("code");
-
-ALTER TABLE "ingredient_portions" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id");
