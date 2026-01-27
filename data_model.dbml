@@ -47,7 +47,7 @@ Table recipes {
   instructions text [not null, note: 'Full step-by-step cooking instructions']
   servings integer [not null, default: 1, note: 'Number of servings']
   spiciness smallint [note: '0 = none, 1 = mild, 2 = medium, 3 = hot']
-  author_id varchar [not null, note: 'Reference to users.id (auth service user ID)']
+  author_id varchar [null, note: 'Reference to users.id (auth service user ID)']
   status varchar [note: 'draft | published | archived']
   
   rating_avg numeric(3,2) [note: 'Average rating (1.0–5.0)']
@@ -150,6 +150,17 @@ Table allergen_categories {
   }
 }
 
+//USER ↔ ALLERGIES
+Table user_allergens {
+  user_id varchar [not null]
+  allergen_id integer [not null]
+  created_at timestamp
+
+  indexes {
+    (user_id, allergen_id) [unique]
+  }
+}
+
 //DIETS
 Table diets {
   id integer [primary key]
@@ -165,6 +176,17 @@ Table diet_restricted_categories {
 
   indexes {
     (diet_id, category_id) [unique]
+  }
+}
+
+//USER ↔ DIETS
+Table user_diets {
+  user_id varchar [not null]
+  diet_id integer [not null]
+  created_at timestamp
+
+  indexes {
+    (user_id, diet_id) [unique]
   }
 }
 
@@ -269,9 +291,10 @@ page has
 Table recipe_comments {
   id integer [primary key]
   recipe_id integer [not null]
-  author_id varchar [not null, note: 'users.id']
+  author_id varchar [null, note: 'users.id']
   parent_comment_id integer
   body text [not null]
+  is_deleted boolean [not null, note: 'Soft delete flag for comments']
   created_at timestamp
   updated_at timestamp
   
@@ -296,12 +319,12 @@ Table recipe_ratings {
 }
 
 // RELATIONS
-Ref: recipes.author_id > users.id
-Ref: recipe_ingredients.recipe_id > recipes.id
+Ref: recipes.author_id > users.id [delete: set null]
+Ref: recipe_ingredients.recipe_id > recipes.id [delete: cascade]
 Ref: recipe_ingredients.ingredient_id > ingredients.id
 Ref: recipe_ingredients.unit > units.code
-Ref: followers.user_id > users.id
-Ref: followers.followed_id > users.id
+Ref: followers.user_id > users.id [delete: cascade]
+Ref: followers.followed_id > users.id [delete: cascade]
 Ref: recipe_categories.category_type_id > recipe_category_types.id
 Ref: recipe_category_map.recipe_id > recipes.id
 Ref: recipe_category_map.category_id > recipe_categories.id
@@ -309,20 +332,24 @@ Ref: ingredient_category_correspondence.ingredient_id > ingredients.id
 Ref: ingredient_category_correspondence.category_id > ingredient_categories.id
 Ref: allergen_categories.allergen_id > allergens.id
 Ref: allergen_categories.category_id > ingredient_categories.id
+Ref: user_allergens.user_id > users.id [delete: cascade]
+Ref: user_allergens.allergen_id > allergens.id
 Ref: diet_restricted_categories.diet_id > diets.id
 Ref: diet_restricted_categories.category_id > ingredient_categories.id
+Ref: user_diets.user_id > users.id [delete: cascade]
+Ref: user_diets.diet_id > diets.id
 Ref: ingredient_unit_conversions.ingredient_id > ingredients.id
 Ref: ingredient_unit_conversions.unit > units.code
 Ref: nutrition_facts.ingredient_id > ingredients.id
 Ref: nutrition_facts.base_unit > units.code
 Ref: ingredient_portions.ingredient_id > ingredients.id
-Ref: favorites.user_id > users.id
-Ref: favorites.recipe_id > recipes.id
-Ref: recipe_shares.user_id > users.id
-Ref: recipe_shares.recipe_id > recipes.id
-Ref: recipe_media.recipe_id > recipes.id
-Ref: recipe_comments.recipe_id > recipes.id
-Ref: recipe_comments.author_id > users.id
+Ref: favorites.user_id > users.id [delete: cascade]
+Ref: favorites.recipe_id > recipes.id [delete: cascade]
+Ref: recipe_shares.user_id > users.id [delete: cascade]
+Ref: recipe_shares.recipe_id > recipes.id [delete: cascade]
+Ref: recipe_media.recipe_id > recipes.id [delete: cascade]
+Ref: recipe_comments.recipe_id > recipes.id [delete: cascade]
+Ref: recipe_comments.author_id > users.id [delete: set null]
 Ref: recipe_comments.parent_comment_id > recipe_comments.id
-Ref: recipe_ratings.user_id > users.id
-Ref: recipe_ratings.recipe_id > recipes.id
+Ref: recipe_ratings.user_id > users.id [delete: cascade]
+Ref: recipe_ratings.recipe_id > recipes.id [delete: cascade]

@@ -14,7 +14,17 @@ CREATE TABLE "followers" (
   "user_id" varchar NOT NULL,
   "followed_id" varchar NOT NULL,
     CHECK (user_id <> followed_id),
-  "created_at" timestamptz DEFAULT now()
+  "created_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "followers_user_id_fkey"
+    FOREIGN KEY ("user_id")
+    REFERENCES "users" ("id")
+    ON DELETE CASCADE,
+
+  CONSTRAINT "followers_followed_id_fkey"
+    FOREIGN KEY ("followed_id")
+    REFERENCES "users" ("id")
+    ON DELETE CASCADE
 );
 
 CREATE TABLE "recipes" (
@@ -24,7 +34,7 @@ CREATE TABLE "recipes" (
   "instructions" text NOT NULL,
   "servings" integer NOT NULL DEFAULT 1,
   "spiciness" smallint CHECK (spiciness BETWEEN 0 AND 3),
-  "author_id" varchar NOT NULL,
+  "author_id" varchar NULL,
   "status" varchar(16) NOT NULL
     CHECK (status IN ('draft', 'published', 'archived')),
   "rating_avg" numeric(3,2)
@@ -32,7 +42,12 @@ CREATE TABLE "recipes" (
   "rating_count" integer NOT NULL DEFAULT 0
     CHECK (rating_count >= 0),
   "created_at" timestamptz DEFAULT now(),
-  "updated_at" timestamptz DEFAULT now()
+  "updated_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "recipes_author_id_fkey"
+    FOREIGN KEY ("author_id")
+    REFERENCES "users" ("id")
+    ON DELETE SET NULL
 );
 
 CREATE TABLE "ingredients" (
@@ -47,6 +62,11 @@ CREATE TABLE "recipe_ingredients" (
   "amount" numeric
     CHECK (amount > 0),
   "unit" varchar(16) NOT NULL
+
+  CONSTRAINT "recipe_ingredients_recipe_id_fkey"
+    FOREIGN KEY ("recipe_id")
+    REFERENCES "recipes" ("id")
+    ON DELETE CASCADE
 );
 
 CREATE TABLE "recipe_category_types" (
@@ -90,6 +110,21 @@ CREATE TABLE "allergen_categories" (
   "category_id" integer NOT NULL
 );
 
+CREATE TABLE "user_allergens" (
+  "user_id" varchar NOT NULL,
+  "allergen_id" integer NOT NULL,
+  "created_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "user_allergens_user_id_fkey"
+    FOREIGN KEY ("user_id")
+    REFERENCES "users" ("id")
+    ON DELETE CASCADE
+
+  CONSTRAINT "user_allergens_allergen_id_fkey"
+    FOREIGN KEY ("allergen_id")
+    REFERENCES "allergens" ("id");
+);
+
 CREATE TABLE "diets" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "code" varchar(32) UNIQUE NOT NULL,
@@ -100,6 +135,21 @@ CREATE TABLE "diets" (
 CREATE TABLE "diet_restricted_categories" (
   "diet_id" integer NOT NULL,
   "category_id" integer NOT NULL
+);
+
+CREATE TABLE "user_diets" (
+  "user_id" varchar NOT NULL,
+  "diet_id" integer NOT NULL,
+  "created_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "user_diets_user_id_fkey"
+    FOREIGN KEY ("user_id")
+    REFERENCES "users" ("id")
+    ON DELETE CASCADE,
+
+  CONSTRAINT "user_diets_diet_id_fkey"
+    FOREIGN KEY ("diet_id")
+    REFERENCES "diets" ("id")
 );
 
 CREATE TABLE "units" (
@@ -144,13 +194,33 @@ CREATE TABLE "ingredient_portions" (
 CREATE TABLE "favorites" (
   "user_id" varchar NOT NULL,
   "recipe_id" integer NOT NULL,
-  "created_at" timestamptz DEFAULT now()
+  "created_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "favorites_user_id_fkey"
+    FOREIGN KEY ("user_id")
+    REFERENCES "users" ("id")
+    ON DELETE CASCADE,
+
+  CONSTRAINT "favorites_recipe_id_fkey"
+    FOREIGN KEY ("recipe_id")
+    REFERENCES "recipes" ("id")
+    ON DELETE CASCADE
 );
 
 CREATE TABLE "recipe_shares" (
   "user_id" varchar NOT NULL,
   "recipe_id" integer NOT NULL,
-  "created_at" timestamptz DEFAULT now()
+  "created_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "recipe_shares_user_id_fkey"
+    FOREIGN KEY ("user_id")
+    REFERENCES "users" ("id")
+    ON DELETE CASCADE,
+
+  CONSTRAINT "recipe_shares_recipe_id_fkey"
+    FOREIGN KEY ("recipe_id")
+    REFERENCES "recipes" ("id")
+    ON DELETE CASCADE
 );
 
 CREATE TABLE "recipe_media" (
@@ -161,25 +231,56 @@ CREATE TABLE "recipe_media" (
   "url" varchar(2048) NOT NULL,
   "position" integer
     CHECK (position >= 0),
-  "created_at" timestamptz DEFAULT now()
+  "created_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "recipe_media_recipe_id_fkey"
+    FOREIGN KEY ("recipe_id")
+    REFERENCES "recipes" ("id")
+    ON DELETE CASCADE
 );
 
 CREATE TABLE "recipe_comments" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "recipe_id" integer NOT NULL,
-  "author_id" varchar NOT NULL,
+  "author_id" varchar NULL,
   "parent_comment_id" integer,
   "body" text NOT NULL,
+  "is_deleted" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz DEFAULT now(),
-  "updated_at" timestamptz DEFAULT now()
+  "updated_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "recipe_comments_recipe_id_fkey"
+    FOREIGN KEY ("recipe_id")
+    REFERENCES "recipes" ("id")
+    ON DELETE CASCADE,
+
+  CONSTRAINT "recipe_comments_author_id_fkey"
+    FOREIGN KEY ("author_id")
+    REFERENCES "users" ("id")
+    ON DELETE SET NULL,
+
+  CONSTRAINT "recipe_comments_parent_comment_id_fkey"
+    FOREIGN KEY ("parent_comment_id")
+    REFERENCES "recipe_comments" ("id")
 );
+
 
 CREATE TABLE "recipe_ratings" (
   "user_id" varchar NOT NULL,
   "recipe_id" integer NOT NULL,
   "rating" smallint NOT NULL CHECK (rating BETWEEN 1 AND 5),
   "created_at" timestamptz DEFAULT now(),
-  "updated_at" timestamptz DEFAULT now()
+  "updated_at" timestamptz DEFAULT now(),
+
+  CONSTRAINT "recipe_ratings_user_id_fkey"
+    FOREIGN KEY ("user_id")
+    REFERENCES "users" ("id")
+    ON DELETE CASCADE,
+
+  CONSTRAINT "recipe_ratings_recipe_id_fkey"
+    FOREIGN KEY ("recipe_id")
+    REFERENCES "recipes" ("id")
+    ON DELETE CASCADE
 );
 
 CREATE UNIQUE INDEX ON "followers" ("user_id", "followed_id");
@@ -194,7 +295,11 @@ CREATE UNIQUE INDEX ON "ingredient_category_correspondence" ("ingredient_id", "c
 
 CREATE UNIQUE INDEX ON "allergen_categories" ("allergen_id", "category_id");
 
+CREATE UNIQUE INDEX ON "user_allergens" ("user_id", "allergen_id");
+
 CREATE UNIQUE INDEX ON "diet_restricted_categories" ("diet_id", "category_id");
+
+CREATE UNIQUE INDEX ON "user_diets" ("user_id", "diet_id");
 
 CREATE UNIQUE INDEX ON "ingredient_unit_conversions" ("ingredient_id", "unit");
 
@@ -258,17 +363,9 @@ COMMENT ON COLUMN "recipe_ratings"."user_id" IS 'User who rated the recipe';
 
 COMMENT ON COLUMN "recipe_ratings"."rating" IS '1–5 stars';
 
-ALTER TABLE "recipes" ADD FOREIGN KEY ("author_id") REFERENCES "users" ("id");
-
-ALTER TABLE "recipe_ingredients" ADD FOREIGN KEY ("recipe_id") REFERENCES "recipes" ("id");
-
 ALTER TABLE "recipe_ingredients" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id");
 
 ALTER TABLE "recipe_ingredients" ADD FOREIGN KEY ("unit") REFERENCES "units" ("code");
-
-ALTER TABLE "followers" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-
-ALTER TABLE "followers" ADD FOREIGN KEY ("followed_id") REFERENCES "users" ("id");
 
 ALTER TABLE "recipe_categories" ADD FOREIGN KEY ("category_type_id") REFERENCES "recipe_category_types" ("id");
 
@@ -297,23 +394,3 @@ ALTER TABLE "nutrition_facts" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingr
 ALTER TABLE "nutrition_facts" ADD FOREIGN KEY ("base_unit") REFERENCES "units" ("code");
 
 ALTER TABLE "ingredient_portions" ADD FOREIGN KEY ("ingredient_id") REFERENCES "ingredients" ("id");
-
-ALTER TABLE "favorites" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-
-ALTER TABLE "favorites" ADD FOREIGN KEY ("recipe_id") REFERENCES "recipes" ("id");
-
-ALTER TABLE "recipe_shares" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-
-ALTER TABLE "recipe_shares" ADD FOREIGN KEY ("recipe_id") REFERENCES "recipes" ("id");
-
-ALTER TABLE "recipe_media" ADD FOREIGN KEY ("recipe_id") REFERENCES "recipes" ("id");
-
-ALTER TABLE "recipe_comments" ADD FOREIGN KEY ("recipe_id") REFERENCES "recipes" ("id");
-
-ALTER TABLE "recipe_comments" ADD FOREIGN KEY ("author_id") REFERENCES "users" ("id");
-
-ALTER TABLE "recipe_comments" ADD FOREIGN KEY ("parent_comment_id") REFERENCES "recipe_comments" ("id");
-
-ALTER TABLE "recipe_ratings" ADD FOREIGN KEY ("user_id") REFERENCES "users" ("id");
-
-ALTER TABLE "recipe_ratings" ADD FOREIGN KEY ("recipe_id") REFERENCES "recipes" ("id");
