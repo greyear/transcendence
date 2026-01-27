@@ -326,29 +326,23 @@ CREATE TABLE "recipe_media" (
     ON DELETE CASCADE
 );
 
-CREATE TABLE "recipe_comments" (
+CREATE TABLE "recipe_reviews" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "recipe_id" integer NOT NULL,
   "author_id" varchar NULL,
-  "parent_comment_id" integer,
   "body" text NOT NULL,
   "is_deleted" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz DEFAULT now(),
   "updated_at" timestamptz DEFAULT now(),
 
-  CONSTRAINT "recipe_comments_recipe_id_fkey"
+  CONSTRAINT "recipe_reviews_recipe_id_fkey"
     FOREIGN KEY ("recipe_id")
     REFERENCES "recipes" ("id")
     ON DELETE CASCADE,
 
-  CONSTRAINT "recipe_comments_author_id_fkey"
+  CONSTRAINT "recipe_reviews_author_id_fkey"
     FOREIGN KEY ("author_id")
     REFERENCES "users" ("id")
-    ON DELETE SET NULL,
-
-  CONSTRAINT "recipe_comments_parent_comment_id_fkey"
-    FOREIGN KEY ("parent_comment_id")
-    REFERENCES "recipe_comments" ("id")
     ON DELETE SET NULL
 );
 
@@ -379,9 +373,7 @@ CREATE UNIQUE INDEX ON "ingredient_portions" ("ingredient_id", "name");
 
 CREATE UNIQUE INDEX ON "recipe_media" ("recipe_id", "position");
 
-CREATE INDEX ON "recipe_comments" ("recipe_id", "created_at");
-
-CREATE INDEX ON "recipe_comments" ("parent_comment_id");
+CREATE INDEX ON "recipe_reviews" ("recipe_id", "created_at");
 
 COMMENT ON COLUMN "users"."id" IS 'User ID from auth service (UUID, for example)';
 
@@ -427,7 +419,7 @@ COMMENT ON COLUMN "recipe_shares"."user_id" IS 'User who shared the recipe';
 
 COMMENT ON COLUMN "recipe_media"."type" IS 'image | video';
 
-COMMENT ON COLUMN "recipe_comments"."author_id" IS 'users.id';
+COMMENT ON COLUMN "recipe_reviews"."author_id" IS 'users.id';
 
 COMMENT ON COLUMN "recipe_ratings"."user_id" IS 'User who rated the recipe';
 

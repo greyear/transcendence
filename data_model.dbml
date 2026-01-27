@@ -39,17 +39,17 @@ ON followers (followed_id);
 
 // RECIPES
 Table recipes {
-  id integer [primary key]
+  id integer [primary key, increment]
   title varchar [not null]
   description text [note: 'Short recipe summary or preview text']
   instructions text [not null, note: 'Full step-by-step cooking instructions']
   servings integer [not null, default: 1, note: 'Number of servings']
-  spiciness smallint [note: '0 = none, 1 = mild, 2 = medium, 3 = hot']
+  spiciness smallint [note: '0 = none, 1 = mild, 2 = medium, 3 = hot; CHECK 0..3']
   author_id varchar [null, note: 'Reference to users.id (auth service user ID)']
-  status varchar(16) [note: 'draft | published | archived']
+  status varchar(16) [note: 'draft | published | archived; CHECK']
 
-  rating_avg numeric(3,2) [note: 'Average rating (1.0–5.0)']
-  rating_count integer [default: 0, note: 'Total number of ratings']
+  rating_avg numeric(3,2) [note: 'Average rating (1.0–5.0); CHECK 1.00–5.00']
+  rating_count integer [default: 0, note: 'Total number of ratings; CHECK >= 0']
 
   created_at timestamptz [default: `now()`]
   updated_at timestamptz [default: `now()`]
@@ -57,7 +57,7 @@ Table recipes {
 
 // INGREDIENTS
 Table ingredients {
-  id integer [primary key]
+  id integer [primary key, increment]
   name varchar [not null, unique]
   created_at timestamptz [default: `now()`]
 }
@@ -75,7 +75,7 @@ Table recipe_ingredients {
 
 // RECIPE CATEGORY TYPES
 Table recipe_category_types {
-  id integer [primary key]
+  id integer [primary key, increment]
   code varchar [not null, unique, note: 'meal_time, dish_type, main_ingredient, cuisine']
   name varchar [not null]
   created_at timestamptz [default: `now()`]
@@ -90,7 +90,7 @@ cuisine → Italian / Asian
 
 // RECIPE CATEGORIES (OF PARTICULAR TYPE)
 Table recipe_categories {
-  id integer [primary key]
+  id integer [primary key, increment]
   category_type_id integer [not null]
   code varchar [not null]
   created_at timestamptz [default: `now()`]
@@ -111,7 +111,7 @@ Table recipe_category_map {
 
 // INGREDIENT CATEGORIES
 Table ingredient_categories {
-  id integer [primary key]
+  id integer [primary key, increment]
   code varchar [not null, unique, note: 'nuts, dairy, meat, fish, grains, spices']
   //think about enums
   created_at timestamptz [default: `now()`]
@@ -127,7 +127,7 @@ Table ingredient_category_correspondence { //mapping
 
 //ALLERGENS
 Table allergens {
-  id integer [primary key]
+  id integer [primary key, increment]
   code varchar [not null, unique, note: 'nuts, lactose, gluten, eggs']
   created_at timestamptz [default: `now()`]
 }
@@ -151,7 +151,7 @@ Table user_allergens {
 
 //DIETS
 Table diets {
-  id integer [primary key]
+  id integer [primary key, increment]
   code varchar [not null, unique, note: 'vegan, vegetarian']
   name varchar [not null]
   created_at timestamptz [default: `now()`]
@@ -185,7 +185,7 @@ Table ingredient_unit_conversions {
   ingredient_id integer [not null]
   unit varchar(16) [not null]
   
-  grams numeric [not null, note: 'Weight of 1 unit for this ingredient']
+  grams numeric [not null, note: 'Weight of 1 unit for this ingredient; CHECK > 0']
 
   primary key (ingredient_id, unit)
 }
@@ -243,11 +243,11 @@ Table recipe_shares {
 
 // MEDIA RESOURCES
 Table recipe_media {
-  id integer [primary key]
+  id integer [primary key, increment]
   recipe_id integer [not null]
   type varchar [not null, note: 'image | video']
   url varchar [not null]
-  position integer [not null, note: 'order of pics in one recipe']
+  position integer [not null, note: 'order of pics in one recipe; CHECK >= 0']
   created_at timestamptz [default: `now()`]
 
   indexes {
@@ -273,20 +273,18 @@ page has
 
 */
 
-// COMMENTS
-Table recipe_comments {
-  id integer [primary key]
+// REVIEWS (flat, no replies)
+Table recipe_reviews {
+  id integer [primary key, increment]
   recipe_id integer [not null]
   author_id varchar [null, note: 'users.id']
-  parent_comment_id integer
   body text [not null]
-  is_deleted boolean [not null, default: false, note: 'Soft delete flag for comments']
+  is_deleted boolean [not null, default: false, note: 'Soft delete flag for reviews']
   created_at timestamptz [default: `now()`]
   updated_at timestamptz [default: `now()`]
   
   indexes {
-  (recipe_id, created_at)
-  (parent_comment_id)
+    (recipe_id, created_at)
   }
 }
 
@@ -294,7 +292,7 @@ Table recipe_comments {
 Table recipe_ratings {
   user_id varchar [not null, note: 'User who rated the recipe']
   recipe_id integer [not null]
-  rating smallint [not null, note: '1–5 stars']
+  rating smallint [not null, note: '1–5 stars; CHECK 1..5']
 
   created_at timestamptz [default: `now()`]
   updated_at timestamptz [default: `now()`]
@@ -332,8 +330,7 @@ Ref: favorites.recipe_id > recipes.id [delete: cascade]
 Ref: recipe_shares.user_id > users.id [delete: cascade]
 Ref: recipe_shares.recipe_id > recipes.id [delete: cascade]
 Ref: recipe_media.recipe_id > recipes.id [delete: cascade]
-Ref: recipe_comments.recipe_id > recipes.id [delete: cascade]
-Ref: recipe_comments.author_id > users.id [delete: set null]
-Ref: recipe_comments.parent_comment_id > recipe_comments.id
+Ref: recipe_reviews.recipe_id > recipes.id [delete: cascade]
+Ref: recipe_reviews.author_id > users.id [delete: set null]
 Ref: recipe_ratings.user_id > users.id [delete: cascade]
 Ref: recipe_ratings.recipe_id > recipes.id [delete: cascade]
