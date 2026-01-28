@@ -32,7 +32,8 @@ services:
 
     volumes:
       - core_pg_data:/var/lib/postgresql/data
-      - ./backend/infrastructure/postgres/core/init-core.sql:/docker-entrypoint-initdb.d/init-core.sql
+      - ./backend/infrastructure/postgres/core/01-init-core.sql:/docker-entrypoint-initdb.d/01-init-core.sql
+      - ./backend/infrastructure/postgres/core/02-seed-core.sql:/docker-entrypoint-initdb.d/02-seed-core.sql
 
 volumes:
   core_pg_data:
