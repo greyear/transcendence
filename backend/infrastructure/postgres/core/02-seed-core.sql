@@ -387,141 +387,70 @@ ON CONFLICT (ingredient_id) DO NOTHING;
 -- ============================================
 -- INGREDIENT UNIT CONVERSIONS (portion → grams)
 -- ============================================
--- Garlic
+-- Garlic, Eggs, Bread, Butter, Oils, Honey, Nuts, Vegetables, Fruits
 INSERT INTO ingredient_unit_conversions (ingredient_id, unit, grams)
 SELECT id, 'clove', 3 FROM ingredients WHERE name = 'Garlic' UNION ALL
 SELECT id, 'tbsp', 9 FROM ingredients WHERE name = 'Garlic' UNION ALL
 
--- Eggs
 SELECT id, 'pcs', 50 FROM ingredients WHERE name = 'Eggs' UNION ALL
-
--- Bread
 SELECT id, 'slice', 30 FROM ingredients WHERE name = 'Bread' UNION ALL
-
--- Butter
 SELECT id, 'tbsp', 15 FROM ingredients WHERE name = 'Butter' UNION ALL
-
--- Olive Oil
 SELECT id, 'tbsp', 15 FROM ingredients WHERE name = 'Olive Oil' UNION ALL
 SELECT id, 'tsp', 5 FROM ingredients WHERE name = 'Olive Oil' UNION ALL
-
--- Honey
 SELECT id, 'tbsp', 20 FROM ingredients WHERE name = 'Honey' UNION ALL
 SELECT id, 'tsp', 7 FROM ingredients WHERE name = 'Honey' UNION ALL
-
--- Peanut Butter
 SELECT id, 'tbsp', 16 FROM ingredients WHERE name = 'Peanut Butter' UNION ALL
-
--- Almonds
 SELECT id, 'tbsp', 9 FROM ingredients WHERE name = 'Almonds' UNION ALL
-
--- Walnuts
 SELECT id, 'tbsp', 7 FROM ingredients WHERE name = 'Walnuts' UNION ALL
-
--- Onion
 SELECT id, 'tbsp', 10 FROM ingredients WHERE name = 'Onion' UNION ALL
-
--- Apple
 SELECT id, 'pcs', 182 FROM ingredients WHERE name = 'Apple' UNION ALL
-
--- Banana
 SELECT id, 'pcs', 118 FROM ingredients WHERE name = 'Banana' UNION ALL
-
--- Avocado
 SELECT id, 'pcs', 150 FROM ingredients WHERE name = 'Avocado' UNION ALL
-
--- Tomato
 SELECT id, 'pcs', 123 FROM ingredients WHERE name = 'Tomato' UNION ALL
-
--- Bell Pepper
 SELECT id, 'pcs', 149 FROM ingredients WHERE name = 'Bell Pepper' UNION ALL
-
--- Cucumber
 SELECT id, 'pcs', 301 FROM ingredients WHERE name = 'Cucumber' UNION ALL
-
--- Carrot
 SELECT id, 'pcs', 61 FROM ingredients WHERE name = 'Carrots' UNION ALL
-
--- Potato
 SELECT id, 'pcs', 173 FROM ingredients WHERE name = 'Potato'
 ON CONFLICT (ingredient_id, unit) DO NOTHING;
 
 -- ============================================
 -- INGREDIENT PORTIONS (named portions with weights)
 -- ============================================
--- Chicken Breast
+-- All ingredient portions
 INSERT INTO ingredient_portions (ingredient_id, name, weight_in_grams)
 SELECT id, '1 medium fillet', 175 FROM ingredients WHERE name = 'Chicken Breast' UNION ALL
 SELECT id, '1 large fillet', 225 FROM ingredients WHERE name = 'Chicken Breast' UNION ALL
-
--- Salmon
 SELECT id, '1 fillet', 180 FROM ingredients WHERE name = 'Salmon' UNION ALL
 SELECT id, '100g fillet', 100 FROM ingredients WHERE name = 'Salmon' UNION ALL
-
--- Eggs
 SELECT id, '1 large egg', 50 FROM ingredients WHERE name = 'Eggs' UNION ALL
 SELECT id, '1 egg white', 33 FROM ingredients WHERE name = 'Eggs' UNION ALL
 SELECT id, '1 egg yolk', 17 FROM ingredients WHERE name = 'Eggs' UNION ALL
-
--- Avocado
 SELECT id, '1 medium avocado', 150 FROM ingredients WHERE name = 'Avocado' UNION ALL
 SELECT id, '1/2 avocado', 75 FROM ingredients WHERE name = 'Avocado' UNION ALL
-
--- Apple
 SELECT id, '1 medium apple', 182 FROM ingredients WHERE name = 'Apple' UNION ALL
 SELECT id, '1 small apple', 149 FROM ingredients WHERE name = 'Apple' UNION ALL
-
--- Banana
 SELECT id, '1 medium banana', 118 FROM ingredients WHERE name = 'Banana' UNION ALL
 SELECT id, '1 large banana', 136 FROM ingredients WHERE name = 'Banana' UNION ALL
-
--- Tomato
 SELECT id, '1 medium tomato', 123 FROM ingredients WHERE name = 'Tomato' UNION ALL
 SELECT id, '1 large tomato', 182 FROM ingredients WHERE name = 'Tomato' UNION ALL
-
--- Bell Pepper
 SELECT id, '1 medium pepper', 149 FROM ingredients WHERE name = 'Bell Pepper' UNION ALL
-
--- Cucumber
 SELECT id, '1 whole cucumber', 301 FROM ingredients WHERE name = 'Cucumber' UNION ALL
 SELECT id, '1 cup sliced', 104 FROM ingredients WHERE name = 'Cucumber' UNION ALL
-
--- Carrot
 SELECT id, '1 medium carrot', 61 FROM ingredients WHERE name = 'Carrots' UNION ALL
 SELECT id, '1 cup chopped', 128 FROM ingredients WHERE name = 'Carrots' UNION ALL
-
--- Potato
 SELECT id, '1 medium potato', 173 FROM ingredients WHERE name = 'Potato' UNION ALL
 SELECT id, '1 large potato', 299 FROM ingredients WHERE name = 'Potato' UNION ALL
-
--- Broccoli
 SELECT id, '1 cup chopped', 91 FROM ingredients WHERE name = 'Broccoli' UNION ALL
 SELECT id, '1 head', 588 FROM ingredients WHERE name = 'Broccoli' UNION ALL
-
--- Spinach
 SELECT id, '1 cup raw', 30 FROM ingredients WHERE name = 'Spinach' UNION ALL
 SELECT id, '1 cup cooked', 180 FROM ingredients WHERE name = 'Spinach' UNION ALL
-
--- Almonds
 SELECT id, '23 almonds', 23 FROM ingredients WHERE name = 'Almonds' UNION ALL
 SELECT id, '1 ounce (oz)', 28 FROM ingredients WHERE name = 'Almonds' UNION ALL
-
--- Walnuts
 SELECT id, '14 halves', 28 FROM ingredients WHERE name = 'Walnuts' UNION ALL
-
--- Peanut Butter
 SELECT id, '2 tbsp', 32 FROM ingredients WHERE name = 'Peanut Butter' UNION ALL
-
--- Rice
 SELECT id, '1 cup cooked', 195 FROM ingredients WHERE name = 'Rice' UNION ALL
-
--- Pasta
 SELECT id, '1 cup cooked', 220 FROM ingredients WHERE name = 'Pasta' UNION ALL
-
--- Bread
 SELECT id, '1 slice', 30 FROM ingredients WHERE name = 'Bread' UNION ALL
-
--- Oats
 SELECT id, '1 cup cooked', 234 FROM ingredients WHERE name = 'Oats' UNION ALL
 SELECT id, '1/2 cup dry', 40 FROM ingredients WHERE name = 'Oats'
 ON CONFLICT (ingredient_id, name) DO NOTHING;
