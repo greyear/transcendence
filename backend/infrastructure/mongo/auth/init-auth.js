@@ -1,6 +1,8 @@
 //This is a very default initialisation script, but seems like it should#
 //at least do the job. 
 
+//THIS IS WRONG, FIX LATER
+
 //Unless it is required elsewhere I do not think we should store anything but
 //username and password hashes in this database, maybe a date of creation....
 use auth_db; // create auth_db
@@ -25,10 +27,8 @@ db.createCollection("users");
 //_id is given a unique ObjectId
 //createdAt is given a date and time in ISO format at UTC
 db.users.insertOne({
-  _id: ObjectId(),
-  username: "Alice",
+  username: "Alice_who_the_fuck_is_Alice",
   passwordHash: "hashed_password_example",
-  createdAt: new Date()
 });
 
 print("✅ Auth DB initialized successfully!");
