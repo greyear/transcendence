@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import healthRoutes from "./routes/health.routes.js";
+import recipesRoutes from "./routes/recipes.routes.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 // Create Express app instance
@@ -13,6 +14,7 @@ app.use(express.json());
 
 // Routes
 app.use("/health", healthRoutes);
+app.use("/recipes", recipesRoutes);
 
 // Error handling
 app.use(notFoundHandler);

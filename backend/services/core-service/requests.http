@@ -1,0 +1,98 @@
+### API Base URL
+@baseUrl = http://localhost:3000
+
+### ========================================
+### HEALTH CHECKS
+### ========================================
+
+### Health check - core-service
+GET {{baseUrl}}/health
+
+### Health check with database
+GET {{baseUrl}}/health/db
+
+### ========================================
+### RECIPES - GET ALL
+### ========================================
+
+### Get all recipes (empty initially)
+GET {{baseUrl}}/recipes
+
+### ========================================
+### RECIPES - GET BY ID - VALID CASES
+### ========================================
+
+### Get recipe by valid ID (1)
+GET {{baseUrl}}/recipes/1
+
+### Get recipe by valid ID (2)
+GET {{baseUrl}}/recipes/2
+
+### ========================================
+### RECIPES - GET BY ID - INVALID FORMAT
+### ========================================
+
+### Invalid: non-numeric ID (abc)
+GET {{baseUrl}}/recipes/abc
+
+### Invalid: decimal ID (12.4)
+GET {{baseUrl}}/recipes/12.4
+
+### Invalid: decimal with comma (12,5)
+GET {{baseUrl}}/recipes/12,5
+
+### Invalid: negative ID (-5)
+GET {{baseUrl}}/recipes/-5
+
+### Invalid: leading dot (.1)
+GET {{baseUrl}}/recipes/.1
+
+### Invalid: trailing minus (50-)
+GET {{baseUrl}}/recipes/50-
+
+### Invalid: dot only (.)
+GET {{baseUrl}}/recipes/.
+
+### Invalid: alphanumeric (40a)
+GET {{baseUrl}}/recipes/40a
+
+### ========================================
+### RECIPES - GET BY ID - NON-EXISTENT
+### ========================================
+
+### Non-existent recipe (999)
+GET {{baseUrl}}/recipes/999
+
+### Non-existent recipe (1000)
+GET {{baseUrl}}/recipes/1000
+
+### ========================================
+### REGRESSION TEST SUMMARY
+### ========================================
+### 
+### Expected Results:
+###
+### Health checks:
+###   - GET /health → 200 OK, proxied from core-service
+###   - GET /health/db → 200 OK, proxied from core-service
+###
+### Get all recipes:
+###   - GET /recipes → 200 OK, {"data":[],"count":0} (when empty)
+###
+### Valid IDs:
+###   - GET /recipes/1 → 404 Not Found (recipe doesn't exist yet)
+###   - GET /recipes/2 → 404 Not Found (recipe doesn't exist yet)
+###
+### Invalid formats (should all return 400):
+###   - GET /recipes/abc → 400 Bad Request
+###   - GET /recipes/12.4 → 400 Bad Request
+###   - GET /recipes/12,5 → 400 Bad Request
+###   - GET /recipes/-5 → 400 Bad Request
+###   - GET /recipes/.1 → 400 Bad Request
+###   - GET /recipes/50- → 400 Bad Request
+###   - GET /recipes/. → 400 Bad Request
+###   - GET /recipes/40a → 400 Bad Request
+###
+### Non-existent but valid format (should return 404):
+###   - GET /recipes/999 → 404 Not Found
+###   - GET /recipes/1000 → 404 Not Found
