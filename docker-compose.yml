@@ -35,5 +35,112 @@ services:
       - ./backend/infrastructure/postgres/core/01-init-core.sql:/docker-entrypoint-initdb.d/01-init-core.sql
       - ./backend/infrastructure/postgres/core/02-seed-core.sql:/docker-entrypoint-initdb.d/02-seed-core.sql
 
+    networks:
+      - transcendence-network
+
+  notification-db:
+    image: postgres:15
+    container_name: notification-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: notification_user
+      POSTGRES_PASSWORD: notification_password
+
+    ports:
+      - "5434:5432"
+
+    volumes:
+      - notification_pg_data:/var/lib/postgresql/data
+
+    networks:
+      - transcendence-network
+
+  api-gateway:
+    build:
+      context: ./backend/services/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      AUTH_SERVICE_URL: http://auth-service:3001
+      CORE_SERVICE_URL: http://core-service:3002
+      NOTIFICATION_SERVICE_URL: http://notification-service:3003
+
+    depends_on:
+      - auth-service
+      - core-service
+      - notification-service
+
+    networks:
+      - transcendence-network
+
+  auth-service:
+    build:
+      context: ./backend/services/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      MONGODB_URI: mongodb://root:rootpassword@auth-db:27017/auth_db?authSource=admin
+      JWT_SECRET: your-jwt-secret-key
+
+    depends_on:
+      - auth-db
+
+    networks:
+      - transcendence-network
+
+  core-service:
+    build:
+      context: ./backend/services/core-service
+      dockerfile: Dockerfile
+    container_name: core-service
+    restart: unless-stopped
+
+    environment:
+      NODE_ENV: development
+      PORT: 3002
+      DATABASE_URL: postgresql://core_user:core_password@core-db:5432/core_db
+
+    depends_on:
+      - core-db
+
+    networks:
+      - transcendence-network
+
+  notification-service:
+    build:
+      context: ./backend/services/notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    restart: unless-stopped
+
+    environment:
+      NODE_ENV: development
+      PORT: 3003
+      DATABASE_URL: postgresql://notification_user:notification_password@notification-db:5432/notification_db
+
+    depends_on:
+      - notification-db
+
+    networks:
+      - transcendence-network
+
 volumes:
   core_pg_data:
+  notification_pg_data:
+
+networks:
+  transcendence-network:
+    driver: bridge

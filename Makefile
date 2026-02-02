@@ -1,14 +1,15 @@
-.PHONY: help up down restart clean logs
+.PHONY: help up down restart clean logs logs-db db-status db-reset
 
 help:
 	@echo "Transcendence Development Commands:"
-	@echo "  make up        - Start all services (PostgreSQL, MongoDB)"
-	@echo "  make down      - Stop all services (keep data)"
-	@echo "  make restart   - Restart services (keep data)"
-	@echo "  make clean     - Clean volumes and restart (fresh database)"
-	@echo "  make logs      - View logs from all services"
-	@echo "  make logs-db   - View PostgreSQL logs"
-	@echo "  make logs-auth - View MongoDB logs"
+	@echo "  make up         - Start all services (databases and microservices)"
+	@echo "  make down       - Stop all services (keep data)"
+	@echo "  make restart    - Restart all services (keep data)"
+	@echo "  make clean      - Full reset (all services, all volumes)"
+	@echo "  make logs       - View logs from all services"
+	@echo "  make logs-db    - View database logs (core-db and auth-db)"
+	@echo "  make db-status  - Check running containers and their health status"
+	@echo "  make db-reset   - Reset only databases (keep app containers)"
 
 up:
 	docker compose up -d
@@ -32,7 +33,18 @@ logs:
 	docker compose logs -f
 
 logs-db:
-	docker compose logs -f core-db
+	docker compose logs -f core-db auth-db
 
-logs-auth:
-	docker compose logs -f auth-db
+db-status:
+	@echo "Container Status:"
+	docker compose ps
+	@echo ""
+	@echo "Health Status:"
+	docker compose ps --format "table {{.Service}}\t{{.Status}}"
+
+db-reset:
+	@echo "Resetting only database containers and volumes..."
+	docker compose stop auth-db core-db notification-db
+	docker compose rm -f -v auth-db core-db notification-db
+	docker compose up -d auth-db core-db notification-db
+	@echo "✓ Database reset completed (apps untouched)"
