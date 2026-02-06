@@ -9,7 +9,7 @@ const userModel = require('./auth_schema'); // Importing userModel from schema
 //maybe they will not need to take in req, res, depending on further up
 
 // create user
-auth_create(async (req, res) =>
+create(async (req, res) =>
 {
 	//userModel({username: name}, {passwordHash: hash});
 	const newUser = new userModel(req.body);
@@ -17,8 +17,21 @@ auth_create(async (req, res) =>
 	res.status(201).json(retPromise);
 });
 
+//read
+read(async (req, res) => 
+{
+	const document = await userModel.find({username: req.params.username});
+	if (!document)
+	{
+		return res.status(404).json({error: 'Username not found'});
+	}
+
+	res.status(200).json(document);
+	return 
+});
+
 //delete user
-auth_delete(async (req, res) =>
+del(async (req, res) =>
 {
 	const document = await userModel.find({username: req.params.username});
 	if (!document)
@@ -30,7 +43,7 @@ auth_delete(async (req, res) =>
 });
 
 //update user
-auth_update(async (req, res) =>
+update(async (req, res) =>
 {
 	const document = await userModel.find({username: req.params.username});
 	if (!document)

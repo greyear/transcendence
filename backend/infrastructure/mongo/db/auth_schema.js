@@ -1,13 +1,12 @@
 //Everyone seems to use mongoose, so I will too.
 import mongoose from 'mongoose';
-const { Schema } = mongoose;
 
 //auth_db schema
 //https://mongoosejs.com/docs/guide.html
 //https://www.mongodb.com/docs/manual/core/document/
 //https://www.slingacademy.com/article/mongodb-set-default-value-for-a-field-with-examples/
 //_id and createdAt should be created automatically on document creation
-const authSchema = new Schema
+const authSchema = new mongoose.schema
 ({
   _id: {
     type: ObjectId,
