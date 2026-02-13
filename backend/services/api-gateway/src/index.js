@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import { optionalAuth } from "./middleware/auth.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -9,6 +10,14 @@ const CORE_SERVICE_URL = process.env.CORE_SERVICE_URL || "http://core-service:30
 
 app.use(cors());
 app.use(express.json());
+
+// API Gateway Architecture:
+// 1. optionalAuth middleware validates JWT tokens from Authorization header
+// 2. If token is valid, stores userId in req.userId
+// 3. All downstream routes receive req.userId (from auth-service validation)
+// 4. Each route forwards X-User-Id header to microservices with req.userId
+// This way, other services get user context without validating token themselves
+app.use(optionalAuth);
 
 // Proxy GET /health to core-service
 app.get("/health", async (req, res) => {
@@ -37,7 +46,13 @@ app.get("/health/db", async (req, res) => {
 // Proxy GET /recipes to core-service
 app.get("/recipes", async (req, res) => {
   try {
-    const response = await fetch(`${CORE_SERVICE_URL}/recipes`);
+    // Forward X-User-Id header to core-service if user is authenticated
+    const headers = {};
+    if (req.userId) {
+      headers['X-User-Id'] = req.userId.toString();
+    }
+    
+    const response = await fetch(`${CORE_SERVICE_URL}/recipes`, { headers });
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
@@ -49,7 +64,13 @@ app.get("/recipes", async (req, res) => {
 // Proxy GET /recipes/:id to core-service
 app.get("/recipes/:id", async (req, res) => {
   try {
-    const response = await fetch(`${CORE_SERVICE_URL}/recipes/${req.params.id}`);
+    // Forward X-User-Id header to core-service if user is authenticated
+    const headers = {};
+    if (req.userId) {
+      headers['X-User-Id'] = req.userId.toString();
+    }
+    
+    const response = await fetch(`${CORE_SERVICE_URL}/recipes/${req.params.id}`, { headers });
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
