@@ -1,14 +1,68 @@
 const express = require('express');
+const app = express();
 const mongoose = require('mongoose');
-const userModel = require('./auth_schema'); // Importing userModel from schema
+const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
 
-//skeleton of functions, they will need error handling at the very least
-// they will also need to account for more database fields
-// I suppose req.body will depend on what the request ultimately looks like
-// all shit to sort out later on, a problem for future Eric
-//maybe they will not need to take in req, res, depending on further up
+// Importing userModel from schema
+const userModel = require('./auth_schema');
 
-// create user
+// For parsing application/json
+app.use(express.json());
+
+// Password hashing, using bcrypt. I think slightly simpler than others.
+const hashPassword = async (password) =>
+{
+	const saltCost = 5;
+
+	try {
+		const salt = await bcrypt.genSalt(saltCost);
+		const hash = await bcrypt.hash(password, salt);
+		return hash;
+	} catch (error) {
+		console.log(error);
+	}
+	return null;
+};
+
+// Password hash check.
+const comparePassword = async (password, hash) =>
+{
+	try {
+		const isMatch = await bcrypt.compare(password, hash);
+		return isMatch;
+	} catch (error) {
+		console.log(error);
+	}
+	return false;
+};
+
+// create user.
+//Check for existance. If not, attempt to has password and create new user
+//userModel({username: name}, {passwordHash: hash});
+app.post('/register', async (req, res) =>
+{
+	try {
+		const document = await userModel.find({username: req.body.username});
+
+		if (!document)
+		{
+			const hashedPassword = hashPassword(req.body.password);
+			if (hashedPassword)
+			{
+				const newUser = new userModel( {username: req.body.username}, {passwordHash: hashedPassword} );
+				const retPromise = await newUser.save();
+				res.status(201).json(retPromise);
+			}
+			else
+				res.status(500).json({error: 'Hashing failed'});
+		}
+	} catch (error) {
+		res.status(400).json({ error: error.message });
+	}
+});
+
+/* create user
 create(async (req, res) =>
 {
 	//userModel({username: name}, {passwordHash: hash});
@@ -54,3 +108,4 @@ update(async (req, res) =>
 	res.
 	res.status(204).json({message: 'Username deleted'});
 });
+*/
