@@ -37,8 +37,25 @@ const comparePassword = async (password, hash) =>
 	return false;
 };
 
+// Call this method after credential verification
+const generateToken = (username) =>
+{
+	const JWTSecret = "supersecretsecurity";
+
+	const payload = {
+		username: username,
+		iat: Math.floor(Date.now() / 1000),
+		exp: "1h",
+	};
+
+	return jwt.sign(payload, JWTSecret, {
+		algorithm: "HS256",
+		expiresIn: "1h",
+	});
+};
+
 // create user.
-//Check for existance. If not, attempt to has password and create new user
+//Check for existance. If not, attempt to hash password and create new user
 //userModel({username: name}, {passwordHash: hash});
 app.post('/register', async (req, res) =>
 {
@@ -47,7 +64,7 @@ app.post('/register', async (req, res) =>
 
 		if (!document)
 		{
-			const hashedPassword = hashPassword(req.body.password);
+			const hashedPassword = await hashPassword(req.body.password);
 			if (hashedPassword)
 			{
 				const newUser = new userModel( {username: req.body.username}, {passwordHash: hashedPassword} );
@@ -57,6 +74,29 @@ app.post('/register', async (req, res) =>
 			else
 				res.status(500).json({error: 'Hashing failed'});
 		}
+	} catch (error) {
+		res.status(400).json({ error: error.message });
+	}
+});
+
+// login user
+//Check for existance. If so, check password. If good, create token and return
+app.post('/login', async (req, res) =>
+{
+	try {
+		const document = await userModel.find({username: req.body.username});
+
+		if (!document)
+			res.status(404).json({error: 'User not found'});
+
+		const gotHash = document.get('passwordHash');
+		if (!comparePassword(req.body.passwordHash, gotHash))
+			res.status(401).json({ error: 'Password mismatch' });
+
+		const JWToken = generateToken(req.body.username);
+		res.append('JWT', JWToken);
+		res.sendStatus(200);
+
 	} catch (error) {
 		res.status(400).json({ error: error.message });
 	}
