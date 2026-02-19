@@ -1,18 +1,14 @@
 //Everyone seems to use mongoose, so I will too.
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 //auth_db schema
 //https://mongoosejs.com/docs/guide.html
 //https://www.mongodb.com/docs/manual/core/document/
 //https://www.slingacademy.com/article/mongodb-set-default-value-for-a-field-with-examples/
-//_id and createdAt should be created automatically on document creation
-const authSchema = new mongoose.schema
+//_id will be created by default and have an ObjectId value
+// createdAt should be created automatically on document creation
+const authSchema = new mongoose.Schema
 ({
-  _id: {
-    type: ObjectId,
-    required: true,
-	unique: true
-  },
   username: {
 	type: String,
 	required: true,

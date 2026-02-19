@@ -1,14 +1,28 @@
 const express = require('express');
-const app = express();
 const mongoose = require('mongoose');
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
+
+const app = express();
 
 // Importing userModel from schema
 const userModel = require('./auth_schema');
 
 // For parsing application/json
 app.use(express.json());
+
+// Connect to MongoDB
+// https://mongoosejs.com/docs/connections.html
+mongoose.connect('mongodb://127.0.0.1:27017/auth_db').then(() =>
+{
+    console.log('Connected to MongoDB');
+    // Start the server after the database connection is established
+    app.listen(port, () => {
+    	console.log(`Server is running on http://localhost:${port}`);
+    });
+}).catch((err) => {
+	console.log('Error connecting to MongoDB:', err);
+});
 
 // Password hashing, using bcrypt. I think slightly simpler than others.
 const hashPassword = async (password) =>
