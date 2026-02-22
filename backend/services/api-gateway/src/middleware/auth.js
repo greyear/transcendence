@@ -21,7 +21,7 @@ export const optionalAuth = async (req, res, next) => {
       return next();
     }
 
-    const token = authHeader.substring(7); // Remove "Bearer " prefix
+    const token = authHeader.split(" ")[1]; // Remove "Bearer " prefix
 
     // Validate token with auth-service
     // Note: Auth-service validates the token once here, then we pass userId via headers
@@ -30,9 +30,8 @@ export const optionalAuth = async (req, res, next) => {
       const response = await fetch(`${AUTH_SERVICE_URL}/auth/validate`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ token }),
       });
 
       if (response.ok) {

@@ -6,11 +6,12 @@
 Validates JWT token and returns user information for API Gateway.
 
 ### Request
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
+**Headers:**
 ```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**Body:** Empty (no body required)
 
 ### Response (Success - 200 OK)
 ```json

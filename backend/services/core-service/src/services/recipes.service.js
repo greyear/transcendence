@@ -60,8 +60,10 @@ export const getRecipeById = async (id, userId = null) => {
     // This distinguishes between:
     // - 404: Recipe doesn't exist
     // - 403: Recipe exists but is not accessible (draft from another user)
-    const existsQuery = `SELECT id, status, author_id FROM recipes WHERE id = $1`;
-    const existsResult = await pool.query(existsQuery, [id]);
+    const existsResult = await pool.query(
+      `SELECT id, status, author_id FROM recipes WHERE id = $1`,
+      [id]
+    );
     
     if (existsResult.rows.length > 0) {
       // Recipe exists but is not accessible to this user
