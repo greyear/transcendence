@@ -1,4 +1,47 @@
-# DATABASE CHOICE:
+# Recipe Sharing Platform
+
+A modern web application for sharing, discovering, and managing recipes with social features. Users can create and share their favorite recipes, follow other cooking enthusiasts, save favorites, leave comments, and explore a rich collection of culinary content.
+
+## Overview
+
+This project is a full-stack Recipe Sharing Platform built with a microservices architecture. It demonstrates industry best practices in modern web development, including containerization, orchestration, and scalable service design.
+
+### Key Features
+
+- **Recipe Management**: Create, update, delete, and browse recipes with detailed ingredients, categories, and dietary information
+- **Social Interactions**: Follow users, comment on recipes, and build a community around shared culinary interests
+- **User Profiles**: Manage public profiles with avatars and track your recipe collection
+- **Advanced Search**: Filter and discover recipes based on ingredients, categories, dietary preferences, and more
+- **Notifications**: Stay updated on new followers, comments, and interactions
+- **Secure Authentication**: OAuth 2.0 integration (Google) and two-factor authentication support
+
+## Project Requirements
+
+This project fulfills the following technical requirements:
+
+- **Web Application**: Complete frontend and backend with persistent data storage
+- **Version Control**: Git-based workflow with clear, meaningful commit messages and proper team collaboration
+- **Containerization**: Fully containerized deployment using Docker, orchestrated with Kubernetes
+- **Single-Command Deployment**: The entire application stack can be deployed with one command
+- **Browser Compatibility**: Optimized for the latest stable version of Google Chrome
+- **Production Quality**: No warnings or errors in the browser console
+- **Legal Compliance**: Includes accessible Privacy Policy and Terms of Service pages
+
+## Architecture Overview
+
+The application follows a microservices architecture with clear separation of concerns:
+
+- **API Gateway**: Single entry point for all client requests
+- **Auth Service**: Handles authentication, authorization, and user identity
+- **Core Service**: Manages recipes, profiles, and social interactions
+- **Notification Service**: Handles event-driven notifications
+- **Frontend**: User interface served as a containerized service
+
+Each service is independently deployable, scalable, and maintains its own database, following the database-per-service pattern.
+
+---
+
+## DATABASE CHOICE:
 This project uses multiple databases, each selected according to the purpose of each microservice and how it accesses data.
 
 Each microservice owns its database and is the single source of truth for its data.
@@ -51,7 +94,7 @@ MongoDB is a good fit for this use case because it:
 
 Using MongoDB for authentication ensures that sensitive credential data is fully decoupled from the core relational database, improving security and scalability.
 
-# MICROSERVICES:
+## MICROSERVICES:
 The system is divided into microservices based on clearly defined business responsibilities: authentication, core domain logic, and notifications.
 Each service owns its data and encapsulates a single responsibility, while the API Gateway serves as a unified entry point responsible for request routing, security, and cross-cutting concerns.
 
@@ -122,7 +165,7 @@ Contains:
 
 Database: notification_db (PostgreSQL)
 
-# KUBERNETES:
+## KUBERNETES:
 Kubernetes (K8s) is an open-source container orchestration platform designed to manage, scale, and maintain containerized applications.
 
 While Docker Compose is suitable for local development and simple setups, it lacks the orchestration, scalability, and fault-tolerance required for a microservices-based architecture. Kubernetes provides these capabilities by managing service lifecycle, networking, scaling, and resilience.

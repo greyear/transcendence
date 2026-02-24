@@ -30,13 +30,23 @@ export const getRecipeById = async (req, res, next) => {
       throw error;
     }
 
+    // Get userId from middleware (set by extractUser middleware)
+    const userId = req.userId || null;
+
     // Call service layer to fetch recipe
-    const recipe = await recipesService.getRecipeById(validation.value);
+    const recipe = await recipesService.getRecipeById(validation.value, userId);
 
     // If recipe not found, return 404
     if (!recipe) {
       const error = new Error("Recipe not found");
       error.statusCode = 404;
+      throw error;
+    }
+
+    // If recipe is restricted (exists but not accessible), return 403
+    if (recipe.restricted) {
+      const error = new Error("Access to this recipe is restricted");
+      error.statusCode = 403;
       throw error;
     }
 
