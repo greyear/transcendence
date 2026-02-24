@@ -70,24 +70,37 @@ const generateToken = (username) =>
 
 // create user.
 //Check for existance. If not, attempt to hash password and create new user
+// findOne() is fine here because usernames are unique and returns better than find()
 //userModel({username: name}, {passwordHash: hash});
 app.post('/register', async (req, res) =>
 {
 	try {
-		const document = await userModel.find({username: req.body.username});
+		const document = await userModel.findOne(
+			{ $or: [
+					{email: req.body.username},
+					{username: req.body.username}
+				 ]
+			} );
 
 		if (!document)
 		{
 			const hashedPassword = await hashPassword(req.body.password);
 			if (hashedPassword)
 			{
-				const newUser = new userModel( {username: req.body.username}, {passwordHash: hashedPassword} );
+				const newUser = new userModel({
+												username:req.body.username,
+												email:req.body.email,
+												passwordHash:hashedPassword
+											 });
 				const retPromise = await newUser.save();
 				res.status(201).json(retPromise);
 			}
 			else
 				res.status(500).json({error: 'Hashing failed'});
 		}
+		else
+			res.status(409).json({error: 'Resource exists'});
+
 	} catch (error) {
 		res.status(400).json({ error: error.message });
 	}
@@ -98,68 +111,86 @@ app.post('/register', async (req, res) =>
 app.post('/login', async (req, res) =>
 {
 	try {
-		const document = await userModel.find({username: req.body.username});
+		const document = await userModel.findOne(
+			{ $or: [
+					{email: req.body.username},
+					{username: req.body.username}
+				 ]
+			} );
 
 		if (!document)
 			res.status(404).json({error: 'User not found'});
-
-		const gotHash = document.get('passwordHash');
-		if (!comparePassword(req.body.passwordHash, gotHash))
-			res.status(401).json({ error: 'Password mismatch' });
-
-		const JWToken = generateToken(req.body.username);
-		res.append('JWT', JWToken);
-		res.sendStatus(200);
+		else
+		{
+			const gotHash = document.get('passwordHash');
+			if (!comparePassword(req.body.password, gotHash))
+				res.status(401).json({ error: 'Password mismatch' });
+			else
+			{
+				const JWToken = generateToken(req.body.username);
+				res.append('JWT', JWToken);
+				res.sendStatus(200);
+			}
+		}
 
 	} catch (error) {
 		res.status(400).json({ error: error.message });
 	}
 });
 
-/* create user
-create(async (req, res) =>
+// change user password.
+//Check for existance. If not, attempt to hash password and create new user
+// findOne() is fine here because usernames are unique and returns better than find()
+//userModel({username: name}, {passwordHash: hash});
+app.put('/users/:username', async (req, res) =>
 {
-	//userModel({username: name}, {passwordHash: hash});
-	const newUser = new userModel(req.body);
-	const retPromise = await newUser.save();
-	res.status(201).json(retPromise);
-});
+	try {
+		const hashedPassword = await hashPassword(req.body.password);
 
-//read
-read(async (req, res) => 
-{
-	const document = await userModel.find({username: req.params.username});
-	if (!document)
-	{
-		return res.status(404).json({error: 'Username not found'});
+		const document = await userModel.findOneAndUpdate(
+			{username: req.params.username},
+			{passwordHash: hashedPassword},
+			{new: true}
+			);
+
+		if (!document)
+			res.status(404).json({error: 'User not found'});
+
+		res.json(document);
+	
+	} catch (error) {
+		res.status(400).json({ error: error.message });
 	}
-
-	res.status(200).json(document);
-	return 
 });
 
-//delete user
-del(async (req, res) =>
+//Fetch single user record
+app.get('/users/:username', async (req, res) =>
 {
-	const document = await userModel.find({username: req.params.username});
-	if (!document)
-	{
-		return res.status(404).json({error: 'Username not found'});
-	}
+	try {
+		const document = await userModel.findOne({username: req.params.username});
 
-	res.status(204).json({message: 'Username deleted'});
+		if (!document)
+			res.status(404).json({error: 'User not found'});
+		else
+			res.json(document);
+
+	} catch (error) {
+		res.status(400).json({ error: error.message });
+	}
 });
 
-//update user
-update(async (req, res) =>
+//Fetch all user records
+app.get('/users', async (req, res) =>
 {
-	const document = await userModel.find({username: req.params.username});
-	if (!document)
-	{
-		return res.status(404).json({error: 'Username not found'});
-	}
+	try {
+		const document = await userModel.find();
 
-	res.
-	res.status(204).json({message: 'Username deleted'});
+		if (!document)
+			res.status(404).json({error: 'Records not found'});
+		else
+			res.json(document);
+
+	} catch (error) {
+		res.status(400).json({ error: error.message });
+	}
 });
-*/
