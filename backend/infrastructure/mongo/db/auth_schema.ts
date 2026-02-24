@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 //https://www.slingacademy.com/article/mongodb-set-default-value-for-a-field-with-examples/
 //_id will be created by default and have an ObjectId value
 // createdAt should be created automatically on document creation
+//email may be the same for Google ID, but we shall see
 const authSchema = new mongoose.Schema
 ({
   username: {

@@ -1,14 +1,24 @@
+/*
+	express is our backend node.js framework
+	mongoose is a mongob convenience library for node.js
+	bcrypt is our password hashing module
+	jsonwebtoken is an encrypted way to pass sesson data client/server
+ */
 const express = require('express');
+const app = express();
+
 const mongoose = require('mongoose');
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 
-const app = express();
-
 // Importing userModel from schema
-const userModel = require('./auth_schema');
+const userModel = require('./auth_schema.ts');
 
-// For parsing application/json
+//Connection port
+const port = 3000;
+
+// Parse incoming JSON requests automatically
+//https://www.geeksforgeeks.org/node-js/getting-started-with-express-js/
 app.use(express.json());
 
 // Connect to MongoDB
@@ -59,19 +69,21 @@ const generateToken = (username) =>
 	const payload = {
 		username: username,
 		iat: Math.floor(Date.now() / 1000),
-		exp: "1h",
+		exp: 3600 //1 hour
 	};
 
 	return jwt.sign(payload, JWTSecret, {
 		algorithm: "HS256",
-		expiresIn: "1h",
 	});
 };
 
-// create user.
-//Check for existance. If not, attempt to hash password and create new user
-// findOne() is fine here because usernames are unique and returns better than find()
-//userModel({username: name}, {passwordHash: hash});
+/*
+	Create user if user does not exist.
+		1. Check for existance. Try username and email
+			findOne() because usernames/emails are unique in the DB
+		2. If not, attempt to hash password and create new user
+		3. Return relevant code
+*/
 app.post('/register', async (req, res) =>
 {
 	try {
@@ -94,6 +106,7 @@ app.post('/register', async (req, res) =>
 											 });
 				const retPromise = await newUser.save();
 				res.status(201).json(retPromise);
+				//What is the creation or save fails? Look into that.
 			}
 			else
 				res.status(500).json({error: 'Hashing failed'});
@@ -106,8 +119,14 @@ app.post('/register', async (req, res) =>
 	}
 });
 
-// login user
-//Check for existance. If so, check password. If good, create token and return
+/*
+	Login with username/email and password.
+		1. Check for existance. Try username and email
+			findOne() because usernames/emails are unique in the DB
+		2. If so, check password using bcrypt
+		3. If good, create JWT and return
+		4. Return relevant code
+*/
 app.post('/login', async (req, res) =>
 {
 	try {
@@ -138,25 +157,34 @@ app.post('/login', async (req, res) =>
 	}
 });
 
-// change user password.
-//Check for existance. If not, attempt to hash password and create new user
-// findOne() is fine here because usernames are unique and returns better than find()
-//userModel({username: name}, {passwordHash: hash});
+/*
+	Change user password. /users/:username endpoint
+		1. Attempt to hash new password
+		2. findOneAndUpdate() to update the record with new hash
+			Find by URI param. Recreate record with new data
+		3. If good, create JWT and return
+		4. Return relevant code
+*/
 app.put('/users/:username', async (req, res) =>
 {
 	try {
 		const hashedPassword = await hashPassword(req.body.password);
 
-		const document = await userModel.findOneAndUpdate(
-			{username: req.params.username},
-			{passwordHash: hashedPassword},
-			{new: true}
-			);
+		if (hashedPassword)
+		{
+			const document = await userModel.findOneAndUpdate(
+				{username: req.params.username},
+				{passwordHash: hashedPassword},
+				{new: true}
+				);
 
-		if (!document)
-			res.status(404).json({error: 'User not found'});
+			if (!document)
+				res.status(404).json({error: 'User not found'});
 
-		res.json(document);
+			res.json(document);
+		}
+		else
+			res.status(500).json({error: 'Hashing failed'});
 	
 	} catch (error) {
 		res.status(400).json({ error: error.message });
