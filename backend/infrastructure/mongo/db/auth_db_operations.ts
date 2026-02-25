@@ -1,6 +1,6 @@
 /*
 	express is our backend node.js framework
-	mongoose is a mongob convenience library for node.js
+	mongoose is a mongodb convenience library for node.js
 	bcrypt is our password hashing module
 	jsonwebtoken is an encrypted way to pass sesson data client/server
  */
@@ -180,11 +180,32 @@ app.put('/users/:username', async (req, res) =>
 
 			if (!document)
 				res.status(404).json({error: 'User not found'});
-
-			res.json(document);
+			else
+				res.json(document);
 		}
 		else
 			res.status(500).json({error: 'Hashing failed'});
+	
+	} catch (error) {
+		res.status(400).json({ error: error.message });
+	}
+});
+
+/*
+	Delete user. /users/:username endpoint
+		1. Attempt to hash new password
+		2. findOneAndDelete() to remove matching record
+		4. Return relevant code
+*/
+app.delete('/users/:username', async (req, res) =>
+{
+	try {
+		const document = await userModel.findOneAndDelete( {username: req.params.username} );
+
+		if (!document)
+			return res.status(404).json({error: 'User not found'});
+		else
+			res.json({ message: 'User deleted' });
 	
 	} catch (error) {
 		res.status(400).json({ error: error.message });

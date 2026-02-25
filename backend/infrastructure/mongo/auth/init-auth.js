@@ -1,7 +1,7 @@
 //This is a very default initialisation script, but seems like it should#
 //at least do the job. 
 
-//THIS IS WRONG, FIX LATER
+//THIS IS PROBABLY NOT AT ALL NEEDED
 
 //Unless it is required elsewhere I do not think we should store anything but
 //username and password hashes in this database, maybe a date of creation....
