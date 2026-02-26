@@ -1,0 +1,15 @@
+{
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5433,
+            "driver": "PostgreSQL",
+            "name": "transcendence-core",
+            "database": "core_db",
+            "username": "core_user",
+            "password": "core_password"
+        }
+    ]
+}
