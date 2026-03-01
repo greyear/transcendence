@@ -4,37 +4,32 @@
 	bcrypt is our password hashing module
 	jsonwebtoken is an encrypted way to pass sesson data client/server
  */
-const express = require('express');
-const app = express();
-
-const mongoose = require('mongoose');
-const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken');
+import { Router } from 'express';
+import mongoose from 'mongoose';
+import bcrypt from "bcrypt";
+import jwt from 'jsonwebtoken';
 
 // Importing userModel from schema
-const userModel = require('./auth_schema.ts');
+import { userModel } from './auth_schema.ts'; 
 
-//Connection port
-const port = 3000;
+export const authRouter = Router();
 
-// Parse incoming JSON requests automatically
-//https://www.geeksforgeeks.org/node-js/getting-started-with-express-js/
-app.use(express.json());
+const MONGO_AUTH_URI = process.env.MONGODB_AUTH_URI || 'mongodb://127.0.0.1:27017/auth_db';
 
 // Connect to MongoDB
 // https://mongoosejs.com/docs/connections.html
-mongoose.connect('mongodb://127.0.0.1:27017/auth_db').then(() =>
+mongoose.connect(MONGO_AUTH_URI).then(() =>
 {
     console.log('Connected to MongoDB');
     // Start the server after the database connection is established
-    app.listen(port, () => {
-    	console.log(`Server is running on http://localhost:${port}`);
-    });
+    
 }).catch((err) => {
 	console.error('Error connecting to MongoDB:', err);
+	process.exit(1);
 });
 
 // Password hashing, using bcrypt. I think slightly simpler than others.
+//maybe cgange to argon2
 const hashPassword = async (password) =>
 {
 	const saltCost = 5;
@@ -64,10 +59,10 @@ const comparePassword = async (password, hash) =>
 // Call this method after credential verification
 const generateToken = (username) =>
 {
-	const JWTSecret = "supersecretsecurity";
+	const JWTSecret = process.env.JWTSecret || "";
 
 	const payload = {
-		username: username,
+		username,
 		iat: Math.floor(Date.now() / 1000),
 		exp: 3600 //1 hour
 	};
@@ -84,15 +79,16 @@ const generateToken = (username) =>
 		2. If not, attempt to hash password and create new user
 		3. Return relevant code
 */
-app.post('/register', async (req, res) =>
+authRouter.post('/register', async (req, res) =>
 {
 	try {
+		const {email, username} = req.body;
 		const document = await userModel.findOne(
 			{ $or: [
-					{email: req.body.username},
-					{username: req.body.username}
-				 ]
-			} );
+					{email},{username}
+				   ]
+			}
+		);
 
 		if (!document)
 		{
@@ -106,7 +102,6 @@ app.post('/register', async (req, res) =>
 											 });
 				const retPromise = await newUser.save();
 				res.status(201).json(retPromise);
-				//What is the creation or save fails? Look into that.
 			}
 			else
 				res.status(500).json({error: 'Hashing failed'});
@@ -127,7 +122,7 @@ app.post('/register', async (req, res) =>
 		3. If good, create JWT and return
 		4. Return relevant code
 */
-app.post('/login', async (req, res) =>
+authRouter.post('/login', async (req, res) =>
 {
 	try {
 		const document = await userModel.findOne(
@@ -167,7 +162,7 @@ app.post('/login', async (req, res) =>
 		3. If good, create JWT and return
 		4. Return relevant code
 */
-app.put('/users/:username', async (req, res) =>
+authRouter.put('/users/:username', async (req, res) =>
 {
 	try {
 		const hashedPassword = await hashPassword(req.body.password);
@@ -199,7 +194,7 @@ app.put('/users/:username', async (req, res) =>
 		2. findOneAndDelete() to remove matching record
 		4. Return relevant code
 */
-app.delete('/users/:username', async (req, res) =>
+authRouter.delete('/users/:username', async (req, res) =>
 {
 	try {
 		const document = await userModel.findOneAndDelete( {username: req.params.username} );
@@ -215,7 +210,7 @@ app.delete('/users/:username', async (req, res) =>
 });
 
 //Fetch single user record
-app.get('/users/:username', async (req, res) =>
+authRouter.get('/users/:username', async (req, res) =>
 {
 	try {
 		const document = await userModel.findOne({username: req.params.username});
@@ -231,7 +226,7 @@ app.get('/users/:username', async (req, res) =>
 });
 
 //Fetch all user records
-app.get('/users', async (req, res) =>
+authRouter.get('/users', async (req, res) =>
 {
 	try {
 		const document = await userModel.find();
