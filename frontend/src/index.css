@@ -17,13 +17,13 @@
 	--borders-action: #27341E;
 	--borders-input: #E2D8E0;
 
-  --radius-s: 8px;
+	--radius-s: 8px;
 	--radius-m: 12px;
 	--radius-l: 16px;
 	--radius-full: 9999px;
-  
+
 	/* Mobile as default */
-  --space-xs: 4px;
+	--space-xs: 4px;
 	--space-s: 8px;
 	--space-m: 12px;
 	--space-l: 16px;
@@ -63,7 +63,7 @@
 /* Tablet */
 @media (min-width: 768px) {
 	:root {
-    --space-xs: 8px;
+		--space-xs: 8px;
 		--space-s: 12px;
 		--space-m: 16px;
 		--space-l: 24px;
@@ -88,13 +88,14 @@
 		--lh-caption-s: 16px;
 		--fs-label: 24px;
 		--lh-label: 24px;
+	}
 }
 
 
 /* Desktop */
 @media (min-width: 1440px) {
 	:root {
-    --space-xs: 12px;
+		--space-xs: 12px;
 		--space-s: 16px;
 		--space-m: 24px;
 		--space-l: 32px;
