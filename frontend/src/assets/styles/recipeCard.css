@@ -1,21 +1,24 @@
 .recipe-card {
 	display: flex;
-	--recipe-card-image-size: 156px;
+	position: relative;
+	--recipe-card-image-size: 160px;
 	align-items: center;
 	height: var(--recipe-card-image-size);
 }
 
 .recipe-card-image {
 	position: absolute;
-	x: 0;
-	y: 0;
+	object-fit: cover;
 	width: var(--recipe-card-image-size);
 	height: var(--recipe-card-image-size);
+	border-radius: var(--radius-full);
 }
 
 .recipe-card-container {
 	display: flex;
 	background-color: var(--surface-card);
+	margin-top: var(--space-l);
+	margin-bottom: var(--space-l);
 	padding: var(--space-l);
 	border-radius: var(--radius-l);
 	width: calc(100% - var(--recipe-card-image-size) / 2);
@@ -27,7 +30,21 @@
 .recipe-card-content-column {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-s);
-	margin-left: calc(var(--recipe-card-image-size) / 2 + var(--space-l));
+	gap: var(--space-m);
+	margin-left: calc(var(--recipe-card-image-size) / 2);
 	width: 100%;
+}
+
+.recipe-card-title-description-column {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-s);
+	width: 100%;
+}
+
+.recipe-card-tag-favorite-row {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
 }
