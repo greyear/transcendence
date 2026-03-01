@@ -31,7 +31,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/auth_db').then(() =>
     	console.log(`Server is running on http://localhost:${port}`);
     });
 }).catch((err) => {
-	console.log('Error connecting to MongoDB:', err);
+	console.error('Error connecting to MongoDB:', err);
 });
 
 // Password hashing, using bcrypt. I think slightly simpler than others.
@@ -44,7 +44,7 @@ const hashPassword = async (password) =>
 		const hash = await bcrypt.hash(password, salt);
 		return hash;
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 	}
 	return null;
 };
@@ -56,7 +56,7 @@ const comparePassword = async (password, hash) =>
 		const isMatch = await bcrypt.compare(password, hash);
 		return isMatch;
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 	}
 	return false;
 };
