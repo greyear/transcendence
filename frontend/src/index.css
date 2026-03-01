@@ -1,7 +1,6 @@
 :root {
 	--bg-main: #F2ECE3;
 	--bg-footer: #FFF8F0;
-
 	--surface-header: #637548;
 	--surface-card: #F9F6F1;
 	--surface-primary: #E1D9CD;
@@ -9,19 +8,28 @@
 	--surface-action-active: #4E633B;
 	--surface-favorite: #B4C09B;
 	--surface-error: #BE4F4F;
-
 	--text-primary: #334427;
 	--text-secondary: #4E633B;
 	--text-on-accent: #F1F7D4;
-
 	--icons-heart: #DB858B;
-
 	--borders-heart-inactive: #F2ECE3;
 	--borders-heart-active: #8E4977;
 	--borders-action: #27341E;
 	--borders-input: #E2D8E0;
 
+  --radius-s: 8px;
+	--radius-m: 12px;
+	--radius-l: 16px;
+	--radius-full: 9999px;
+  
 	/* Mobile as default */
+  --space-xs: 4px;
+	--space-s: 8px;
+	--space-m: 12px;
+	--space-l: 16px;
+	--space-xl: 24px;
+	--space-xxl: 48px;
+
 	/* Typography (fs=fontsize, lh=lineheight, fw=fontweight) === */
 	--fs-h1: 36px;
 	--lh-h1: 36px;
@@ -55,6 +63,13 @@
 /* Tablet */
 @media (min-width: 768px) {
 	:root {
+    --space-xs: 8px;
+		--space-s: 12px;
+		--space-m: 16px;
+		--space-l: 24px;
+		--space-xl: 32px;
+		--space-xxl: 64px;
+ 
 		--fs-h1: 64px;
 		--lh-h1: 64px;
 		--fs-h2: 48px;
@@ -73,13 +88,19 @@
 		--lh-caption-s: 16px;
 		--fs-label: 24px;
 		--lh-label: 24px;
-	}
 }
 
 
 /* Desktop */
 @media (min-width: 1440px) {
 	:root {
+    --space-xs: 12px;
+		--space-s: 16px;
+		--space-m: 24px;
+		--space-l: 32px;
+		--space-xl: 48px;
+		--space-xxl: 72px;
+
 		--fs-h1: 96px;
 		--lh-h1: 96px;
 		--fs-h2: 72px;
