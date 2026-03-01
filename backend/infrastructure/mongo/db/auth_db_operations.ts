@@ -147,8 +147,10 @@ app.post('/login', async (req, res) =>
 			else
 			{
 				const JWToken = generateToken(req.body.username);
-				res.append('JWT', JWToken);
-				res.sendStatus(200);
+				res.status(200).json({ 
+                         token: JWToken,
+                         message: "Login successful" 
+                });
 			}
 		}
 
