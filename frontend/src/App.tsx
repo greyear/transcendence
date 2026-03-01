@@ -1,12 +1,7 @@
-import { FavoriteButton } from "./components/buttons/FavoriteButton"
+import { RecipeCard } from "./components/cards/RecipeCard.js"
 
 function App() {
-	return (
-	<>
-		<h1>Testing</h1>
-		<FavoriteButton />
-	</>
-	)
+	return <RecipeCard />
 }
 
 export default App
