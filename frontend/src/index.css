@@ -1,7 +1,6 @@
 :root {
 	--bg-main: #F2ECE3;
 	--bg-footer: #FFF8F0;
-
 	--surface-header: #637548;
 	--surface-card: #F9F6F1;
 	--surface-primary: #E1D9CD;
@@ -9,64 +8,182 @@
 	--surface-action-active: #4E633B;
 	--surface-favorite: #B4C09B;
 	--surface-error: #BE4F4F;
-
 	--text-primary: #334427;
 	--text-secondary: #4E633B;
 	--text-on-accent: #F1F7D4;
-
 	--icons-heart: #DB858B;
-
 	--borders-heart-inactive: #F2ECE3;
 	--borders-heart-active: #8E4977;
 	--borders-action: #27341E;
 	--borders-input: #E2D8E0;
 
+  --radius-s: 8px;
+	--radius-m: 12px;
+	--radius-l: 16px;
+	--radius-full: 9999px;
+  
 	/* Mobile as default */
-	--space-xs: 4px;
+  --space-xs: 4px;
 	--space-s: 8px;
 	--space-m: 12px;
 	--space-l: 16px;
 	--space-xl: 24px;
 	--space-xxl: 48px;
 
-	--radius-s: 8px;
-	--radius-m: 12px;
-	--radius-l: 16px;
-	--radius-full: 9999px;
+	/* Typography (fs=fontsize, lh=lineheight, fw=fontweight) === */
+	--fs-h1: 36px;
+	--lh-h1: 36px;
+	--fw-h1: 400;
+	--fs-h2: 32px;
+	--lh-h2: 32px;
+	--fw-h2: 700;
+	--fs-h3: 24px;
+	--lh-h3: 24px;
+	--fw-h3: 700;
+	--fs-body1: 24px;
+	--lh-body1: 24px;
+	--fw-body1: 300;
+	--fs-body2: 20px;
+	--lh-body2: 20px;
+	--fw-body2: 300;
+	--fs-body3: 16px;
+	--lh-body3: 16px;
+	--fw-body3: 400;
+	--fs-caption: 16px;
+	--lh-caption: 16px;
+	--fw-caption: 300;
+	--fs-caption-s: 12px;
+	--lh-caption-s: 12px;
+	--fw-caption-s: 300;
+	--fs-label: 20px;
+	--lh-label: 20px;
+	--fw-label: 500;
 }
-
 
 /* Tablet */
 @media (min-width: 768px) {
 	:root {
-		--space-xs: 8px;
+    --space-xs: 8px;
 		--space-s: 12px;
 		--space-m: 16px;
 		--space-l: 24px;
 		--space-xl: 32px;
 		--space-xxl: 64px;
-	}
+ 
+		--fs-h1: 64px;
+		--lh-h1: 64px;
+		--fs-h2: 48px;
+		--lh-h2: 48px;
+		--fs-h3: 36px;
+		--lh-h3: 36px;
+		--fs-body1: 32px;
+		--lh-body1: 32px;
+		--fs-body2: 24px;
+		--lh-body2: 24px;
+		--fs-body3: 20px;
+		--lh-body3: 20px;
+		--fs-caption: 20px;
+		--lh-caption: 20px;
+		--fs-caption-s: 16px;
+		--lh-caption-s: 16px;
+		--fs-label: 24px;
+		--lh-label: 24px;
 }
 
 
 /* Desktop */
 @media (min-width: 1440px) {
 	:root {
-		--space-xs: 12px;
+    --space-xs: 12px;
 		--space-s: 16px;
 		--space-m: 24px;
 		--space-l: 32px;
 		--space-xl: 48px;
 		--space-xxl: 72px;
+
+		--fs-h1: 96px;
+		--lh-h1: 96px;
+		--fs-h2: 72px;
+		--lh-h2: 72px;
+		--fs-h3: 48px;
+		--lh-h3: 48px;
+		--fs-body1: 36px;
+		--lh-body1: 36px;
+		--fs-body2: 32px;
+		--lh-body2: 32px;
+		--fs-body3: 24px;
+		--lh-body3: 24px;
+		--fs-caption: 24px;
+		--lh-caption: 24px;
+		--fs-caption-s: 20px;
+		--lh-caption-s: 20px;
+		--fs-label: 32px;
+		--lh-label: 32px;
 	}
 }
 
 
 body {
 	margin: 0;
-	font-family: system-ui, sans-serif;
+	font-family: "Glory", system-ui, sans-serif;
+	font-size: var(--fs-body3);
+	line-height: var(--lh-body3);
+	font-weight: var(--fw-body3);
+	color: var(--text-primary);
+	background-color: var(--bg-main);
 }
 
 h1 {
-  font-size: 3.2em;
+	font-size: var(--fs-h1);
+	line-height: var(--lh-h1);
+	font-weight: var(--fw-h1);
+}
+
+h2 {
+	font-size: var(--fs-h2);
+	line-height: var(--lh-h2);
+	font-weight: var(--fw-h2);
+}
+
+h3 {
+	font-size: var(--fs-h3);
+	line-height: var(--lh-h3);
+	font-weight: var(--fw-h3);
+}
+
+/* Text styles */
+.text-body1 {
+	font-size: var(--fs-body1);
+	line-height: var(--lh-body1);
+	font-weight: var(--fw-body1);
+}
+
+.text-body2 {
+	font-size: var(--fs-body2);
+	line-height: var(--lh-body2);
+	font-weight: var(--fw-body2);
+}
+
+.text-body3 {
+	font-size: var(--fs-body3);
+	line-height: var(--lh-body3);
+	font-weight: var(--fw-body3);
+}
+
+.text-caption {
+	font-size: var(--fs-caption);
+	line-height: var(--lh-caption);
+	font-weight: var(--fw-caption);
+}
+
+.text-caption-s {
+	font-size: var(--fs-caption-s);
+	line-height: var(--lh-caption-s);
+	font-weight: var(--fw-caption-s);
+}
+
+.text-label {
+	font-size: var(--fs-label);
+	line-height: var(--lh-label);
+	font-weight: var(--fw-label);
 }
