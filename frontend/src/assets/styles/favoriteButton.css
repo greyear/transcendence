@@ -1,0 +1,27 @@
+.favoriteButton {
+	background: var(--surface-favorite);
+	border: none;
+	width: 44px;
+	height: 44px;
+	border-radius: var(--radius-s);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+}
+
+.favoriteHeartInactive {
+	width: 20px;
+	height: 20px;
+	fill: none;
+	color: var(--borders-heart-inactive);
+	stroke-width: 1.5;
+}
+
+.favoriteHeartActive {
+	width: 20px;
+	height: 20px;
+	fill: var(--icons-heart);
+ 	color: var(--borders-heart-active);
+	stroke-width: 1.5;
+}
