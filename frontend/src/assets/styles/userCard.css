@@ -1,0 +1,39 @@
+.user-card {
+	--user-card-photo-size: 120px;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	align-items: center;
+}
+
+.user-card-photo {
+	display: flex;
+	position: absolute;
+	width: var(--user-card-photo-size);
+	height: var(--user-card-photo-size);
+	border-radius: var(--radius-full);
+	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.user-card-container {
+	display: flex;
+	flex-direction: column;
+	height: fit-content;
+	margin-top: calc(var(--user-card-photo-size) / 2);
+	background-color: var(--surface-card);
+	padding: var(--space-l);
+	border-radius: var(--radius-l);
+	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+	gap: var(--space-m);
+
+	/* TODO: remove it once the button is created */
+	width: 160px;
+}
+
+.user-card-header {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin-top: calc(var(--user-card-photo-size) / 2);
+	gap: var(--space-s);
+}
