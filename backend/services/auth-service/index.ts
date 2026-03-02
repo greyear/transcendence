@@ -1,14 +1,18 @@
 import express from 'express';
 import { authRouter } from './src/auth_db_operations.ts';
-const app = express();
+import { authGetSet } from './src/authGetSet.ts';
 
-//Connection port
-const port = 3000;
+const app = express();
 
 // Parse incoming JSON requests automatically
 //https://www.geeksforgeeks.org/node-js/getting-started-with-express-js/
 app.use(express.json());
+
 app.use(authRouter);
+app.use(authGetSet);
+
+//Connection port
+const port = 3000;
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

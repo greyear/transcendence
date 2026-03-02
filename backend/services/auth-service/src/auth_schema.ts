@@ -25,11 +25,10 @@ const authSchema = new mongoose.Schema
     required: true,
     unique: false
   },
-  createdAt: {
-    type: Date,
+  realName: {
+    type: String,
     required: true,
-    unique: false,
-	default: Date.now
+    unique: false
   }
 });
 
