@@ -7,11 +7,11 @@ export const RecipeCard = () => {
 			<img className='recipe-card-image' src={recipeImg} alt='Vegetable side dishes'></img>
 			<div className='recipe-card-container'>
 				<div className='recipe-card-content-column'>
-					<header className='recipe-card-title-description-column'>
+					<header className='recipe-card-header'>
 						<h3 className='text-label'>Title</h3>
 						<p className='text-caption-s'>Short description</p>
 					</header>
-					<footer className='recipe-card-tag-favorite-row'>
+					<footer className='recipe-card-footer'>
 						<span className='text-caption'>smth</span>
 						<button aria-label='Add to favorites'>heart</button>
 					</footer>
