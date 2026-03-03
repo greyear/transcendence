@@ -4,28 +4,40 @@
  * Middleware function that ADDS user information to the req object
  * 
  * TypeScript benefits:
- * - declare global namespace Express - extends built-in Request type
  * - req.userId is now "known" by TypeScript everywhere req is used
  * - Without this, TypeScript would complain: "Property 'userId' does not exist"
+ * 
+ * Zod validation:
+ * - Validates X-User-Id header format (must be a valid UUID if present)
+ * - Ensures type safety at runtime, not just compile time
  */
 
 import { Request, Response, NextFunction } from "express";
+import { z } from "zod";
 
 /**
- * INTERFACE - a "contract" that an object contains specific properties
- * declare global - tells TypeScript "extend an existing type"
+ * Zod schema for validating userId from header
  * 
- * Before: Request had only: method, headers, body, params, etc.
- * After: Request has ALL existing fields + our new userId field
+ * z.preprocess() - first, normalize the value:
+ *   - if it's a string → keep it
+ *   - if it's anything else → convert to null
+ * 
+ * Then validate:
+ * - z.string().uuid() - must be valid UUID format
+ * - .nullish() - or null or undefined
+ * - .default(null) - if undefined, default to null
  */
-declare global {
-  namespace Express {
-    interface Request {
-      // userId can be: string (user ID), null (guest), or undefined (not set)
-      // ? after userId means this field is OPTIONAL (can be undefined)
-      userId?: string | null;
-    }
-  }
+const userIdSchema = z.preprocess(
+  (val) => (typeof val === 'string' ? val : null),
+  z.string().uuid().nullish().default(null)
+);
+
+/**
+ * Custom Request type for authenticated requests
+ * Used when X-User-Id header is present (comes from API Gateway)
+ */
+export interface AuthenticatedRequest extends Request {
+  userId: string | null;
 }
 
 /**
@@ -39,18 +51,20 @@ declare global {
  * void - function returns nothing (just calls next() at the end)
  */
 export const extractUser = (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): void => {
-  // Get userId from X-User-Id header
-  // as string | undefined - tells TypeScript this can be string or undefined
-  const userId = req.headers["x-user-id"] as string | undefined;
+  // Validate userId with Zod (no type assertion needed!)
+  // z.preprocess handles the type coercion safely
+  const result = userIdSchema.safeParse(req.headers["x-user-id"]);
 
-  // If userId was sent - set it, otherwise set to null (guest)
-  if (userId) {
-    req.userId = userId;
+  if (result.success) {
+    // Validation passed - set userId (could be valid UUID or null)
+    req.userId = result.data;
   } else {
+    // Validation failed - treat as guest
+    console.warn("Invalid X-User-Id header format:", result.error.issues[0]?.message);
     req.userId = null;
   }
 

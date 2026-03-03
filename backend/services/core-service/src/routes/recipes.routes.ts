@@ -18,7 +18,7 @@ import { extractUser } from "../middleware/extractUser.js";
 
 // Create router for recipe endpoints
 // Router - object that contains routes
-const router: Router = Router();
+export const recipesRouter: Router = Router();
 
 /**
  * MIDDLEWARE on this router - runs BEFORE any route below
@@ -28,7 +28,7 @@ const router: Router = Router();
  * - extractUser will add req.userId
  * - Then run the route (GET / or GET /:id)
  */
-router.use(extractUser);
+recipesRouter.use(extractUser);
 
 /**
  * GET /recipes - fetch all published recipes
@@ -39,7 +39,7 @@ router.use(extractUser);
  * Response:
  * { data: [{...}, {...}], count: 2 }
  */
-router.get("/", recipesController.getAllRecipes);
+recipesRouter.get("/", recipesController.getAllRecipes);
 
 /**
  * GET /recipes/:id - fetch a specific recipe by id
@@ -57,6 +57,4 @@ router.get("/", recipesController.getAllRecipes);
  * - 403 Forbidden - if recipe is restricted (draft of another user)
  * - 404 Not Found - if recipe doesn't exist
  */
-router.get("/:id", recipesController.getRecipeById);
-
-export default router;
+recipesRouter.get("/:id", recipesController.getRecipeById);

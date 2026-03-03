@@ -1,15 +1,12 @@
 .DS_Store
 .env
-**/.env
 !.env.template
-!**/.env.template
+
 # Dependencies
 node_modules/
-**/node_modules/
 
 # Build outputs
 dist/
-**/dist/
 
 # Logs
 npm-debug.log*

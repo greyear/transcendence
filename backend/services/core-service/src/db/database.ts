@@ -13,7 +13,7 @@ import "dotenv/config";
 // Pool - Postgres database connection pool
 // Reads config from environment variables (with fallback values)
 // If DATABASE_URL is set (common in Docker), it takes priority
-const pool: Pool = process.env.DATABASE_URL
+export const pool: Pool = process.env.DATABASE_URL
   ? new Pool({ connectionString: process.env.DATABASE_URL })
   : new Pool({
       host: process.env.POSTGRES_HOST || "localhost",
@@ -34,7 +34,3 @@ pool.on("error", (err) => {
   console.error("Unexpected error on idle client", err);
   process.exit(-1); // Stop the application
 });
-
-// Export pool for use in other files
-// Pool type ensures other files can only call valid pool methods
-export default pool;

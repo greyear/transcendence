@@ -9,9 +9,9 @@
 
 import express, { Express } from "express";
 import cors from "cors";
-import healthRoutes from "./routes/health.routes.js";
-import recipesRoutes from "./routes/recipes.routes.js";
-import errorHandler, { notFoundHandler } from "./middleware/errorHandler.js";
+import { healthRouter } from "./routes/health.routes.js";
+import { recipesRouter } from "./routes/recipes.routes.js";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 // Express app - typed as Express (type from @types/express)
 // This ensures all methods like app.get(), app.use() etc. are type-checked
@@ -22,14 +22,19 @@ const app: Express = express();
 const PORT: number = parseInt(process.env.PORT || "3002", 10);
 
 // ===== MIDDLEWARE (handlers that run on EVERY request) =====
-app.use(cors()); // Allow cross-domain requests
+app.use(
+  cors({
+    origin: `http://localhost:${PORT}`,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  })
+); // Configure CORS for security
 app.use(express.json()); // Parse JSON from request body
 
 // ===== ROUTES (endpoints for different paths) =====
-// Requests to /health* are routed to healthRoutes
-app.use("/health", healthRoutes);
-// Requests to /recipes* are routed to recipesRoutes
-app.use("/recipes", recipesRoutes);
+// Requests to /health* are routed to healthRouter
+app.use("/health", healthRouter);
+// Requests to /recipes* are routed to recipesRouter
+app.use("/recipes", recipesRouter);
 
 // ===== ERROR HANDLER (MUST be last middleware!) =====
 // Catches 404 errors (no route matched)

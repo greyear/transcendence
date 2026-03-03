@@ -34,7 +34,7 @@ interface CustomError extends Error {
  * 
  * void - returns nothing, just sends res.status().json()
  */
-const errorHandler = (
+export const errorHandler = (
   err: CustomError,
   req: Request,
   res: Response,
@@ -48,9 +48,8 @@ const errorHandler = (
   // Log to console for debugging
   console.error(`Error [${statusCode}]:`, message);
 
-  // Send JSON response to client
-  // res.status(200) - success, res.status(404) - not found, res.status(500) - error
-  res.status(statusCode).json({ error: message, status: statusCode });
+  // Send JSON response to client with HTTP status code
+  res.status(statusCode).json({ error: message });
 };
 
 /**
@@ -59,11 +58,9 @@ const errorHandler = (
  * MUST be before errorHandler in middleware chain
  * Catches all requests that didn't match any route
  */
-const notFoundHandler = (
+export const notFoundHandler = (
   req: Request,
   res: Response
 ): void => {
-  res.status(404).json({ error: "Route not found", status: 404 });
+  res.status(404).json({ error: "Route not found" });
 };
-
-export { errorHandler as default, notFoundHandler };

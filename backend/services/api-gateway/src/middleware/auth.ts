@@ -20,18 +20,26 @@
  */
 
 import { Request, Response, NextFunction } from "express";
+import { z } from "zod";
 
 /**
- * Extend Express.Request type with userId
- * This allows us to set req.userId in middleware
- * and use it in other middleware / routes
+ * Zod schema for validating auth-service response
+ * Auth service must return an object with 'id' field
+ * id must be a non-empty string (the user ID)
  */
-declare global {
-  namespace Express {
-    interface Request {
-      userId?: string | null;
-    }
-  }
+const authResponseSchema = z.object({
+  id: z.string().min(1),
+});
+
+/**
+ * Custom Request type for authenticated requests
+ * Extends Express.Request with userId field
+ * 
+ * userId is NOT optional here - after auth middleware,
+ * we know it always exists (string or null, but defined)
+ */
+export interface AuthenticatedRequest extends Request {
+  userId: string | null;
 }
 
 // Auth service URL from environment variable
@@ -56,7 +64,7 @@ const AUTH_SERVICE_URL =
  * 5. Call next() to pass to next middleware
  */
 export const optionalAuth = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -70,8 +78,8 @@ export const optionalAuth = async (
     // If no cookie, try Authorization header
     if (!token) {
       const authHeader = req.headers.authorization;
-      if (authHeader && authHeader.startsWith("Bearer ")) {
-        token = authHeader.substring(7); // Remove "Bearer " prefix
+      if (authHeader) {
+        token = authHeader.split(" ")[1]; // Remove "Bearer " prefix
       }
     }
 
@@ -98,15 +106,19 @@ export const optionalAuth = async (
       // response.ok = true if status 200-299
       if (response.ok) {
         // Token is valid! Get user information
-        // as { id: string } - tells TypeScript response contains { id: "..." }
-        const data = await response.json() as { id: string };
+        const rawData = await response.json();
 
-        // Save userId for use in other middleware/routes
-        // data.id - user ID from auth-service
-        // Important: this is userId, not the token itself!
-        // Microservices get userId through X-User-Id header, not token
-        // This is safer (token not distributed) and faster (no need to validate everywhere)
-        req.userId = data.id;
+        // Validate response with Zod schema
+        const parseResult = authResponseSchema.safeParse(rawData);
+
+        if (parseResult.success) {
+          // Validation passed - extract user ID
+          req.userId = parseResult.data.id;
+        } else {
+          // Response format is invalid - treat as auth failure
+          console.warn("Invalid auth-service response format:", parseResult.error.issues[0]?.message);
+          req.userId = null;
+        }
       } else {
         // Token is invalid (expired, fake, etc.)
         // Continue as guest

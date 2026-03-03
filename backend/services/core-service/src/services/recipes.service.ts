@@ -12,7 +12,7 @@
  * - Function parameters are type-safe (id: string, userId: string | null)
  */
 
-import pool from "../db/database.js";
+import { pool } from "../db/database.js";
 import { Recipe } from "../validation/schemas.js";
 
 /**
@@ -27,13 +27,13 @@ import { Recipe } from "../validation/schemas.js";
 interface RecipeRow {
   id: string;
   title: string;
+  author_id: string;
+  status?: string;
   description?: string;
   instructions?: string;
   servings?: number;
   spiciness?: number;
-  author_id: string;
   rating_avg?: number;
-  status?: string;
 }
 
 /**
@@ -43,8 +43,8 @@ interface RecipeRow {
 interface RecipeListItem {
   id: string;
   title: string;
-  description?: string;
   author_id: string;
+  description?: string;
   rating_avg?: number;
 }
 

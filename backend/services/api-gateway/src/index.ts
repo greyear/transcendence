@@ -16,22 +16,13 @@ import express, { Express, Request, Response } from "express";
 import "dotenv/config";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { optionalAuth } from "./middleware/auth.js";
+import { optionalAuth, AuthenticatedRequest } from "./middleware/auth.js";
 
 /**
- * DECLARE GLOBAL - extends built-in Express.Request type
- * This allows us to add userId property
- * 
- * Before: Request had only method, headers, body, params, etc.
- * After: Request also has userId property (set by optionalAuth middleware)
+ * Custom Request type for authenticated requests
+ * This is used in route handlers after optionalAuth middleware
  */
-declare global {
-  namespace Express {
-    interface Request {
-      userId?: string | null;
-    }
-  }
-}
+// (no need for declare global anymore - we use AuthRequest from middleware)
 
 // Express application - typed as Express
 const app: Express = express();
@@ -46,7 +37,12 @@ const CORE_SERVICE_URL =
   process.env.CORE_SERVICE_URL || "http://core-service:3002";
 
 // ===== MIDDLEWARE =====
-app.use(cors()); // Allow requests from other domains
+app.use(
+  cors({
+    origin: `http://localhost:${port}`,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  })
+); // Configure CORS for security
 app.use(express.json()); // Parse JSON from request body
 app.use(cookieParser()); // Parse cookies from request headers
 
@@ -120,7 +116,7 @@ app.get("/health/db", async (req: Request, res: Response): Promise<void> => {
  * 4. Core-service: Return all published recipes (or own + published if authenticated)
  * 5. Gateway: Return response to client
  */
-app.get("/recipes", async (req: Request, res: Response): Promise<void> => {
+app.get("/recipes", async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     // Record<string, string> - type-safe headers object
     // {} - empty object (headers)
@@ -160,7 +156,7 @@ app.get("/recipes", async (req: Request, res: Response): Promise<void> => {
  * - 404 Not Found: recipe doesn't exist
  * - 400 Bad Request: ID is not a valid UUID
  */
-app.get("/recipes/:id", async (req: Request, res: Response): Promise<void> => {
+app.get("/recipes/:id", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     // Prepare headers
     const headers: Record<string, string> = {};

@@ -10,11 +10,11 @@
  */
 
 import { Router, Request, Response, NextFunction } from "express";
-import pool from "../db/database.js";
+import { pool } from "../db/database.js";
 
 // Router - object that contains routes (endpoints)
 // Typed as Router from express
-const router: Router = Router();
+export const healthRouter: Router = Router();
 
 /**
  * GET /health - endpoint to check service health
@@ -27,7 +27,7 @@ const router: Router = Router();
  * 
  * : void - function returns nothing, just sends res.json()
  */
-router.get("/", (req: Request, res: Response): void => {
+healthRouter.get("/", (req: Request, res: Response): void => {
   // Send JSON response
   // res.status(200) - HTTP status "OK"
   // res.json({...}) - convert object to JSON and send
@@ -48,7 +48,7 @@ router.get("/", (req: Request, res: Response): void => {
  * 
  * Promise<void> - async function that sends response (not returns)
  */
-router.get("/db", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+healthRouter.get("/db", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Simple query to verify database connectivity
     await pool.query("SELECT 1");
@@ -58,6 +58,3 @@ router.get("/db", async (req: Request, res: Response, next: NextFunction): Promi
     next(error);
   }
 });
-
-// Export router for use in index.ts
-export default router;

@@ -59,13 +59,13 @@ export const validateRecipeId = (
 export const recipeSchema = z.object({
   id: z.string().uuid(), // ID must be UUID
   title: z.string(), // Title - string
+  author_id: z.string().uuid(), // Author - UUID
+  status: z.enum(["draft", "published", "archived"]), // ONLY these statuses
   description: z.string().optional(), // Description - optional
   instructions: z.string().optional(), // Instructions - optional
   servings: z.number().optional(), // Servings - optional, but if present must be number
   spiciness: z.number().min(0).max(10).optional(), // 0 to 10
-  author_id: z.string().uuid(), // Author - UUID
   rating_avg: z.number().optional(), // Rating - optional
-  status: z.enum(["draft", "published", "archived"]), // ONLY these statuses
 });
 
 /**
