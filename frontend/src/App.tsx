@@ -1,4 +1,4 @@
-import FavoriteButton from "./components/buttons/FavoriteButton"
+import { FavoriteButton } from "./components/buttons/FavoriteButton"
 
 function App() {
 	return (

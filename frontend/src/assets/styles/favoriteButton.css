@@ -1,4 +1,4 @@
-.favoriteButton {
+.favorite-button {
 	background: var(--surface-favorite);
 	border: none;
 	width: 44px;
@@ -8,9 +8,10 @@
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
+	transition: filter 0.2s ease;
 }
 
-.favoriteHeartInactive {
+.favorite-icon {
 	width: 20px;
 	height: 20px;
 	fill: none;
@@ -18,10 +19,15 @@
 	stroke-width: 1.5;
 }
 
-.favoriteHeartActive {
-	width: 20px;
-	height: 20px;
+.favorite-icon.is-active {
 	fill: var(--icons-heart);
- 	color: var(--borders-heart-active);
-	stroke-width: 1.5;
+	color: var(--borders-heart-active);
+}
+
+.favorite-button:hover {
+	filter: brightness(1.2);
+}
+
+.favorite-button:active {
+	filter: brightness(0.8);
 }

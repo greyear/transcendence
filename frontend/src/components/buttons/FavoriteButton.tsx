@@ -3,16 +3,16 @@ import { useState } from 'react'
 import "../../assets/styles/favoriteButton.css"
 
 
-const FavoriteButton = () => {
+export const FavoriteButton = () => {
 	const [isActive, setIsActive] = useState(false);
 	function handleClick() {
 		setIsActive(!isActive);
 	}
 	return (
-		<button type="button" className="favoriteButton" onClick={handleClick}>
-			<Heart className={isActive ? "favoriteHeartActive" : "favoriteHeartInactive"} />
+		<button type="button" className="favorite-button" 
+			onClick={handleClick} aria-pressed={isActive} 
+			aria-label={isActive ? "Remove from favorites" : "Add to favorites"}>
+			<Heart className={`favorite-icon ${isActive ? 'is-active' : ''}`} />
 		</button>
 	)
 }
-
-export default FavoriteButton
