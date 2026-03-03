@@ -25,8 +25,8 @@ authGetSet.delete('/users/:username', async (req, res) =>
 
 		if (!userDocument)
 			return res.status(404).json({error: 'User not found'});
-		else
-			res.json({ message: 'User deleted' });
+
+		return res.json({ message: 'User deleted' });
 	
 	} catch (error) {
 		res.status(400).json({ error: error.message });
@@ -42,9 +42,9 @@ authGetSet.get('/users/:username', async (req, res) =>
 													 {username: 1, email: 1, realName: 1});
 
 		if (!userDocument)
-			res.status(404).json({error: 'User not found'});
-		else
-			res.json(userDocument);
+			return res.status(404).json({error: 'User not found'});
+
+		return res.json(userDocument);
 
 	} catch (error) {
 		res.status(400).json({ error: error.message });
@@ -59,9 +59,9 @@ authGetSet.get('/users', async (req, res) =>
 		const userDocument = await userModel.find({},{username: 1, email: 1, realName: 1});
 
 		if (!userDocument)
-			res.status(404).json({error: 'Records not found'});
-		else
-			res.json(userDocument);
+			return res.status(404).json({error: 'Records not found'});
+
+		return res.json(userDocument);
 
 	} catch (error) {
 		res.status(400).json({ error: error.message });

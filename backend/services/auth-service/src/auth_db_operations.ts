@@ -62,13 +62,14 @@ const comparePassword = async (password, hash) =>
 
 //Validate email using Zod library
 //This is not much different to the example they give on their basic manual
+//https://zod.dev/basics
 const validateEmail = (email) =>
 {
 	const emailPattern = z.email();
 	const result = emailPattern.safeParse(email);
-	if (result.success) {
+	if (result.success)
 		return true;
-	}
+
 	return false;
 };
 
@@ -77,7 +78,7 @@ const validateEmail = (email) =>
 	https://zod.dev/basics
 	Password rules: 8 chars min, 1 each of upper, lower and special
 	The refinement is looking for at least one in the test string.
-	[^A-Za-z0-9] means anything that is not in the given character ranges
+	[^A-Za-z0-9] means ANYTHING that is not in the given character ranges.
 	Zod has a .regex() method, but it didn't seem to work for me.
 */
 const validatePassword = (password) =>
@@ -88,11 +89,11 @@ const validatePassword = (password) =>
 							.refine((password) => /[0-9]/.test(password))
 							.refine((password) => /[^A-Za-z0-9]/.test(password));
 
-			const result = passwordPattern.safeParse(password);
-			if (result.success) {
-				return true;
-			}
-			return false;
+	const result = passwordPattern.safeParse(password);
+	if (result.success)
+		return true;
+
+	return false;
 };
 
 // Call this function after authentication success.
@@ -102,7 +103,7 @@ const generateToken = (id, username) =>
 	const JWTSecret = process.env.JWTSecret || "";
 
 	const payload = {
-        id,
+        sub: id,
         username,
     };
 
@@ -141,19 +142,19 @@ authRouter.post('/register', async (req, res) =>
 			return res.status(422).json({error: 'Invalid password'});
 
 		const hashedPassword = await hashPassword(req.body.password);
-		if (hashedPassword)
-		{
-			const newUser = new userModel({
-											username:req.body.username,
-											email:req.body.email,
-											passwordHash:hashedPassword,
-											realName:req.body.realname
-											});
-			const retPromise = await newUser.save();
-			return res.status(201).json(retPromise);
-		}
-		else
+		if (!hashedPassword)
 			return res.status(500).json({error: 'Hashing failed'});
+
+		const newUser = new userModel({
+										username:req.body.username,
+										email:req.body.email,
+										passwordHash:hashedPassword,
+										realName:req.body.realname
+										});
+		const retPromise = await newUser.save();
+
+		const {username, email, realname} = req.body
+		return res.status(201).json({username, email, realname});
 
 	} catch (error) {
 		res.status(400).json({ error: error.message });
@@ -180,22 +181,18 @@ authRouter.post('/login', async (req, res) =>
 				   ]
 			} );
 
-		if (userDocument)
-		{
-			const gotHash = userDocument.get('passwordHash');
-			if (!comparePassword(req.body.password, gotHash))
-				return res.status(401).json({ error: 'Password mismatch' });
-			else
-			{
-				const JWToken = generateToken(userDocument.get('_id'), req.body.username);
-				return res.status(200).json({ 
-                         token: JWToken,
-                         message: "Login successful" 
-                });
-			}
-		}
-
-		return res.status(404).json({error: 'User not found'});
+		if (!userDocument)
+			return res.status(404).json({error: 'User not found'});
+			
+		const gotHash = userDocument.get('passwordHash');
+		if (!comparePassword(req.body.password, gotHash))
+			return res.status(401).json({ error: 'Password mismatch' });
+		
+		const JWToken = generateToken(userDocument.get('_id'), req.body.username);
+		return res.status(200).json({ 
+					token: JWToken,
+					message: "Login successful" 
+		});
 
 	} catch (error) {
 		res.status(400).json({ error: error.message });
@@ -213,23 +210,23 @@ authRouter.post('/login', async (req, res) =>
 authRouter.put('/users/:username', async (req, res) =>
 {
 	try {
+		if (!validatePassword(req.body.password))
+			return res.status(422).json({error: 'Invalid password'});
+
 		const hashedPassword = await hashPassword(req.body.password);
-
-		if (hashedPassword)
-		{
-			const userDocument = await userModel.findOneAndUpdate(
-				{username: req.params.username},
-				{passwordHash: hashedPassword},
-				{new: true}
-				);
-
-			if (userDocument)
-				return res.json(userDocument);
-			else
-				return res.status(404).json({error: 'User not found'});
-		}
-		else
+		if (!hashedPassword)
 			return res.status(500).json({error: 'Hashing failed'});
+
+		const userDocument = await userModel.findOneAndUpdate(
+			{username: req.params.username},
+			{passwordHash: hashedPassword},
+			{new: true}
+			);
+
+		if (userDocument)
+			return res.json(userDocument);
+		
+		return res.status(404).json({error: 'User not found'});
 	
 	} catch (error) {
 		res.status(400).json({ error: error.message });
