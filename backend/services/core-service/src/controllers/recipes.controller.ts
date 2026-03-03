@@ -16,7 +16,8 @@
  */
 
 import { Request, Response, NextFunction } from "express";
-import * as recipesService from "../services/recipes.service.js";
+import { AuthenticatedRequest } from "../middleware/extractUser.js";
+import { getAllRecipes as getAllRecipesService, getRecipeById as getRecipeByIdService } from "../services/recipes.service.js";
 import { validateRecipeId } from "../validation/schemas.js";
 
 /**
@@ -46,7 +47,7 @@ export const getAllRecipes = async (
 ): Promise<void> => {
   try {
     // Call service to get all recipes from database
-    const recipes = await recipesService.getAllRecipes();
+    const recipes = await getAllRecipesService();
 
     // Send JSON response to client
     // res.status(200) - OK
@@ -67,7 +68,7 @@ export const getAllRecipes = async (
  * 3. Returns 404 if not found, 403 if restricted, 200 if OK
  */
 export const getRecipeById = async (
-  req: Request,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -85,12 +86,12 @@ export const getRecipeById = async (
     }
 
     // 3. Get userId from middleware (extractUser set it in req.userId)
-    // req.userId can be string (user ID) or null (guest)
-    const userId = req.userId || null;
+    // req.userId can be string (user ID) or undefined (guest)
+    const userId = req.userId;
 
     // 4. Call service to get recipe from database
     // Pass userId so service knows which recipe to show
-    const recipe = await recipesService.getRecipeById(validation.value, userId);
+    const recipe = await getRecipeByIdService(validation.value, userId);
 
     // 5. CHECK result and send proper HTTP status
 

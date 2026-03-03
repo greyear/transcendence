@@ -13,22 +13,12 @@
  */
 
 import { Router } from "express";
-import * as recipesController from "../controllers/recipes.controller.js";
+import { getAllRecipes, getRecipeById } from "../controllers/recipes.controller.js";
 import { extractUser } from "../middleware/extractUser.js";
 
 // Create router for recipe endpoints
 // Router - object that contains routes
 export const recipesRouter: Router = Router();
-
-/**
- * MIDDLEWARE on this router - runs BEFORE any route below
- * 
- * router.use(extractUser) means:
- * - For every request to /recipes* first run extractUser
- * - extractUser will add req.userId
- * - Then run the route (GET / or GET /:id)
- */
-recipesRouter.use(extractUser);
 
 /**
  * GET /recipes - fetch all published recipes
@@ -38,8 +28,10 @@ recipesRouter.use(extractUser);
  * 
  * Response:
  * { data: [{...}, {...}], count: 2 }
+ * 
+ * Note: No authentication needed - returns only published recipes
  */
-recipesRouter.get("/", recipesController.getAllRecipes);
+recipesRouter.get("/", getAllRecipes);
 
 /**
  * GET /recipes/:id - fetch a specific recipe by id
@@ -56,5 +48,8 @@ recipesRouter.get("/", recipesController.getAllRecipes);
  * - 400 Bad Request - if ID is not a valid UUID
  * - 403 Forbidden - if recipe is restricted (draft of another user)
  * - 404 Not Found - if recipe doesn't exist
+ * 
+ * Note: extractUser middleware extracts userId from X-User-Id header
+ * This is needed to determine access rights (own drafts vs others' published recipes)
  */
-recipesRouter.get("/:id", recipesController.getRecipeById);
+recipesRouter.get("/:id", extractUser, getRecipeById);

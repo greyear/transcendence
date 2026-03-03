@@ -9,11 +9,11 @@
  * TypeScript benefits:
  * - Interface RecipeRow - describes database data structure
  * - Async/await with typing guarantees function returns Promise
- * - Function parameters are type-safe (id: string, userId: string | null)
+ * - Function parameters are type-safe (id: string, userId?: string)
  */
 
 import { pool } from "../db/database.js";
-import { Recipe } from "../validation/schemas.js";
+import { Recipe, recipeSchema, recipeListItemSchema } from "../validation/schemas.js";
 
 /**
  * INTERFACE - describes how a Recipe object looks when coming from database
@@ -25,7 +25,7 @@ import { Recipe } from "../validation/schemas.js";
  * ? after field - means optional field (can be undefined)
  */
 interface RecipeRow {
-  id: string;
+  id: number;
   title: string;
   author_id: string;
   status?: string;
@@ -41,7 +41,7 @@ interface RecipeRow {
  * Used by getAllRecipes() - doesn't include full details
  */
 interface RecipeListItem {
-  id: string;
+  id: number;
   title: string;
   author_id: string;
   description?: string;
@@ -73,7 +73,18 @@ export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
     // pool.query(query) - execute SQL
     // result.rows - array of rows from result
     const result = await pool.query(query);
-    return result.rows;
+    
+    // Validate each recipe with Zod
+    const validatedRows = result.rows.map((row) => {
+      const validation = recipeListItemSchema.safeParse(row);
+      if (!validation.success) {
+        console.error("Invalid recipe data from database:", validation.error.issues[0]?.message);
+        throw new Error("Invalid recipe data received from database");
+      }
+      return validation.data;
+    });
+    
+    return validatedRows;
   } catch (error) {
     // If error - log it and throw it to caller
     console.error("Database error in getAllRecipes:", error);
@@ -85,14 +96,14 @@ export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
  * Get a specific recipe by ID
  * 
  * Access rules:
- * - Guest (userId = null): sees only published recipes
+ * - Guest (userId undefined): sees only published recipes
  * - User (userId = "123"): sees their own recipes (any status) + others' published
  * - Non-existent recipe: returns null (404)
  * - Existing but restricted recipe: returns { restricted: true } (403)
  * 
  * Parameters:
  * - id: string - recipe UUID
- * - userId: string | null = null - user ID (null if guest)
+ * - userId?: string - user ID (undefined if guest)
  * 
  * | - means "OR" (union type), can be one of three:
  * RecipeRow - normal recipe
@@ -101,11 +112,11 @@ export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
  */
 export const getRecipeById = async (
   id: string,
-  userId: string | null = null
+  userId?: string
 ): Promise<RecipeRow | { restricted: true } | null> => {
   try {
     let query: string;
-    let params: (string | null)[];
+    let params: string[];
 
     if (userId) {
       // User is authenticated - show own drafts OR others' published recipes
@@ -130,9 +141,17 @@ export const getRecipeById = async (
     // Execute query
     const result = await pool.query(query, params);
 
-    // If recipe found and accessible - return it
+    // If recipe found and accessible - validate and return it
     if (result.rows.length > 0) {
-      return result.rows[0];
+      // Validate recipe data with Zod (ensures data structure is correct)
+      const validation = recipeSchema.safeParse(result.rows[0]);
+      if (validation.success) {
+        return validation.data;
+      } else {
+        // Recipe data from DB doesn't match expected schema
+        console.error("Invalid recipe data from database:", validation.error.issues[0]?.message);
+        throw new Error("Invalid recipe data received from database");
+      }
     }
 
     // Recipe not found - check if it exists at all

@@ -12,11 +12,11 @@
  * - Promise<void> - async functions with explicit type
  */
 
-import express, { Express, Request, Response } from "express";
+import express, { Express, Request, Response, RequestHandler } from "express";
 import "dotenv/config";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { optionalAuth, AuthenticatedRequest } from "./middleware/auth.js";
+import { authRouter, AuthenticatedRequest } from "./middleware/auth.js";
 
 /**
  * Custom Request type for authenticated requests
@@ -45,27 +45,6 @@ app.use(
 ); // Configure CORS for security
 app.use(express.json()); // Parse JSON from request body
 app.use(cookieParser()); // Parse cookies from request headers
-
-/**
- * API Gateway Architecture:
- * 
- * Request flow:
- * 1. Client sends request with Authorization header containing JWT token
- * 2. optionalAuth middleware:
- *    - Extracts token from header
- *    - Validates with auth-service
- *    - Sets req.userId if OK
- * 3. Route handlers forward request to core-service
- *    - Add X-User-Id header with userId
- *    - Core-service uses this header instead of validating token (safer, faster)
- * 4. Response from core-service is sent to client
- * 
- * Benefits:
- * - Token validated only ONCE (in gateway), not in every service
- * - Microservices don't see token (only see userId)
- * - Improved security and performance
- */
-app.use(optionalAuth);
 
 // ===== HEALTH CHECK ROUTES =====
 
@@ -106,69 +85,58 @@ app.get("/health/db", async (req: Request, res: Response): Promise<void> => {
 // ===== RECIPES ROUTES =====
 
 /**
- * GET /recipes - get all recipes
+ * Recipes routes with optional authentication
  * 
- * Flow:
- * 1. Client: GET /recipes (without auth or with auth header)
- * 2. Gateway: optionalAuth checks token, sets req.userId
- * 3. Gateway: Forward GET http://core-service:3002/recipes
- *    - With header X-User-Id if user is authenticated
- * 4. Core-service: Return all published recipes (or own + published if authenticated)
- * 5. Gateway: Return response to client
+ * Architecture:
+ * - authRouter (from auth.ts) has optionalAuth middleware applied
+ * - Mounted to /recipes path
+ * - Health endpoints don't use authRouter (no auth overhead)
+ * 
+ * Benefits:
+ * - Reduced auth-service calls (only for routes that need it)
+ * - Better performance for monitoring endpoints
+ * - Clear separation of concerns
  */
-app.get("/recipes", async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+
+/**
+ * GET / - get all recipes
+ * (Actual path: /recipes/)
+ */
+const getRecipesHandler: RequestHandler = async (req, res, next) => {
   try {
-    // Record<string, string> - type-safe headers object
-    // {} - empty object (headers)
-    const headers: Record<string, string> = {};
-
-    // If user is authenticated - add X-User-Id header
-    // req.userId set by middleware optionalAuth
-    if (req.userId) {
-      headers["X-User-Id"] = req.userId.toString();
-    }
-
     // Forward request to core-service
-    // { headers } - pass headers in fetch request
-    const response = await fetch(`${CORE_SERVICE_URL}/recipes`, { headers });
+    // X-User-Id header already set by optionalAuth middleware
+    const response = await fetch(`${CORE_SERVICE_URL}/recipes`, {
+      headers: req.headers as Record<string, string>
+    });
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
     console.error("Error proxying to core-service:", error);
     res.status(500).json({ error: "Failed to fetch recipes from core-service" });
   }
-});
+};
+
+authRouter.get("/", getRecipesHandler);
 
 /**
- * GET /recipes/:id - get a specific recipe
- * 
- * :id - URL parameter (example 550e8400-e29b-41d4-a716-446655440000)
- * 
- * Flow:
- * 1. Client: GET /recipes/550e8400-e29b-41d4-a716-446655440000
- * 2. Gateway: Forward with X-User-Id header (if authenticated)
- * 3. Core-service: Check access rights + return recipe
- * 4. Gateway: Return response to client
+ * GET /:id - get a specific recipe
+ * (Actual path: /recipes/:id)
  * 
  * Possible responses:
  * - 200 OK: recipe found and accessible
  * - 403 Forbidden: recipe exists but is closed (draft of another user)
  * - 404 Not Found: recipe doesn't exist
- * - 400 Bad Request: ID is not a valid UUID
+ * - 400 Bad Request: ID is not a valid positive integer
  */
-app.get("/recipes/:id", async (req: AuthRequest, res: Response): Promise<void> => {
+const getRecipeByIdHandler: RequestHandler = async (req, res, next) => {
   try {
-    // Prepare headers
-    const headers: Record<string, string> = {};
-    if (req.userId) {
-      headers["X-User-Id"] = req.userId.toString();
-    }
-
     // Forward request to core-service
+    // X-User-Id header already set by optionalAuth middleware
     // req.params.id - parameter from URL (/recipes/:id)
     const response = await fetch(
       `${CORE_SERVICE_URL}/recipes/${req.params.id}`,
-      { headers }
+      { headers: req.headers as Record<string, string> }
     );
     const data = await response.json();
     res.status(response.status).json(data);
@@ -176,7 +144,12 @@ app.get("/recipes/:id", async (req: AuthRequest, res: Response): Promise<void> =
     console.error("Error proxying to core-service:", error);
     res.status(500).json({ error: "Failed to fetch recipe from core-service" });
   }
-});
+};
+
+authRouter.get("/:id", getRecipeByIdHandler);
+
+// Mount authRouter to /recipes path
+app.use("/recipes", authRouter);
 
 // ===== START SERVER =====
 app.listen(port, () => {

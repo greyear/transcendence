@@ -15,31 +15,32 @@ import { z } from "zod";
  */
 
 /**
- * z.string().uuid() - a string that must be a valid UUID format
- * UUID example: "550e8400-e29b-41d4-a716-446655440000"
+ * Recipe ID validation - must be a positive integer
+ * Database uses integer GENERATED ALWAYS AS IDENTITY for recipe IDs
  * 
  * This function tries to parse id and returns result:
- * - valid: true, value: "uuid-string" if OK
- * - valid: false, error: "error message" if NOT a valid UUID
+ * - valid: true, value: "id-string" if OK
+ * - valid: false, error: "error message" if NOT a valid positive integer
  */
-const recipeIdSchema = z.string().uuid();
+const recipeIdSchema = z.string().regex(/^\d+$/, "Must be a positive integer");
+
+type ValidationResult =
+  | { valid: true; value: string }
+  | { valid: false; error: string };
 
 export const validateRecipeId = (
   id: unknown
-): { valid: true; value: string } | { valid: false; error: string } => {
-  try {
-    // parse() throws error if id is not a valid UUID
-    const value = recipeIdSchema.parse(id);
-    return { valid: true, value };
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return {
-        valid: false,
-        error: error.errors[0]?.message || "Invalid recipe ID",
-      };
-    }
-    return { valid: false, error: "Invalid recipe ID" };
+): ValidationResult => {
+  const result = recipeIdSchema.safeParse(id);
+
+  if (result.success) {
+    return { valid: true, value: result.data };
   }
+
+  return {
+    valid: false,
+    error: result.error.issues[0]?.message || "Invalid recipe ID",
+  };
 };
 
 /**
@@ -57,15 +58,27 @@ export const validateRecipeId = (
  * .min().max() - minimum and maximum value
  */
 export const recipeSchema = z.object({
-  id: z.string().uuid(), // ID must be UUID
+  id: z.number().int().positive(), // ID must be positive integer
   title: z.string(), // Title - string
-  author_id: z.string().uuid(), // Author - UUID
+  author_id: z.string(), // Author - user ID string
   status: z.enum(["draft", "published", "archived"]), // ONLY these statuses
   description: z.string().optional(), // Description - optional
   instructions: z.string().optional(), // Instructions - optional
   servings: z.number().optional(), // Servings - optional, but if present must be number
   spiciness: z.number().min(0).max(10).optional(), // 0 to 10
   rating_avg: z.number().optional(), // Rating - optional
+});
+
+/**
+ * Zod schema for RecipeListItem - minimal recipe info for list view
+ * Used by getAllRecipes() endpoint
+ */
+export const recipeListItemSchema = z.object({
+  id: z.number().int().positive(),
+  title: z.string(),
+  author_id: z.string(),
+  description: z.string().optional(),
+  rating_avg: z.number().optional(),
 });
 
 /**

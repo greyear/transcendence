@@ -20,16 +20,16 @@ import { z } from "zod";
  * 
  * z.preprocess() - first, normalize the value:
  *   - if it's a string → keep it
- *   - if it's anything else → convert to null
+ *   - if it's anything else → convert to undefined
  * 
  * Then validate:
  * - z.string().uuid() - must be valid UUID format
- * - .nullish() - or null or undefined
- * - .default(null) - if undefined, default to null
+ * - .optional() - or undefined
+ * - .default(undefined) - if undefined, stays undefined
  */
 const userIdSchema = z.preprocess(
-  (val) => (typeof val === 'string' ? val : null),
-  z.string().uuid().nullish().default(null)
+  (val) => (typeof val === 'string' ? val : undefined),
+  z.string().uuid().optional()
 );
 
 /**
@@ -37,7 +37,7 @@ const userIdSchema = z.preprocess(
  * Used when X-User-Id header is present (comes from API Gateway)
  */
 export interface AuthenticatedRequest extends Request {
-  userId: string | null;
+  userId?: string;
 }
 
 /**
@@ -60,12 +60,12 @@ export const extractUser = (
   const result = userIdSchema.safeParse(req.headers["x-user-id"]);
 
   if (result.success) {
-    // Validation passed - set userId (could be valid UUID or null)
+    // Validation passed - set userId (could be valid UUID or undefined)
     req.userId = result.data;
   } else {
     // Validation failed - treat as guest
     console.warn("Invalid X-User-Id header format:", result.error.issues[0]?.message);
-    req.userId = null;
+    req.userId = undefined;
   }
 
   // Pass control to the next middleware
