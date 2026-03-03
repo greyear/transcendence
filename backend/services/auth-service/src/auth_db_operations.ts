@@ -3,11 +3,13 @@
 	mongoose is a mongodb convenience library for node.js
 	bcrypt is our password hashing module
 	jsonwebtoken is an encrypted way to pass sesson data client/server
+	zod is our parsing and field validation module
  */
 import { Router } from 'express';
 import mongoose from 'mongoose';
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
+import * as z from "zod";
 
 // Importing userModel from schema
 //Location of this may or may not change later.
@@ -58,6 +60,41 @@ const comparePassword = async (password, hash) =>
 	return false;
 };
 
+//Validate email using Zod library
+//This is not much different to the example they give on their basic manual
+const validateEmail = (email) =>
+{
+	const emailPattern = z.email();
+	const result = emailPattern.safeParse(email);
+	if (result.success) {
+		return true;
+	}
+	return false;
+};
+
+/*
+	Validate password using Zod library
+	https://zod.dev/basics
+	Password rules: 8 chars min, 1 each of upper, lower and special
+	The refinement is looking for at least one in the test string.
+	[^A-Za-z0-9] means anything that is not in the given character ranges
+	Zod has a .regex() method, but it didn't seem to work for me.
+*/
+const validatePassword = (password) =>
+{
+	const passwordPattern = z.string().min(8)
+							.refine((password) => /[A-Z]/.test(password))
+							.refine((password) => /[a-z]/.test(password))
+							.refine((password) => /[0-9]/.test(password))
+							.refine((password) => /[^A-Za-z0-9]/.test(password));
+
+			const result = passwordPattern.safeParse(password);
+			if (result.success) {
+				return true;
+			}
+			return false;
+};
+
 // Call this function after authentication success.
 // id is from userDocument._id and is ObjectId type
 const generateToken = (id, username) =>
@@ -80,8 +117,9 @@ const generateToken = (id, username) =>
 			findOne() because usernames/emails are unique in the DB
 			Login name request can be either email or username so both fields
 				need checking individually.
-		2. If not, attempt to hash password and create new user
-		3. Return relevant code
+		2. Validate email address and password.
+		3. If not, attempt to hash password and create new user
+		4. Return relevant code
 */
 authRouter.post('/register', async (req, res) =>
 {
@@ -95,6 +133,12 @@ authRouter.post('/register', async (req, res) =>
 
 		if (userDocument)
 			return res.status(409).json({error: 'Resource exists'});
+
+		if (!validateEmail(req.body.email))
+			return res.status(422).json({error: 'Invalid email address'});
+
+		if (!validatePassword(req.body.password))
+			return res.status(422).json({error: 'Invalid password'});
 
 		const hashedPassword = await hashPassword(req.body.password);
 		if (hashedPassword)
