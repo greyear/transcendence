@@ -1,3 +1,8 @@
+.recipe-card-link-wrapper {
+	text-decoration: none;
+	color: unset;
+}
+
 .recipe-card {
 	display: flex;
 	position: relative;

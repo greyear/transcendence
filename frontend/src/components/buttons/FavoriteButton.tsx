@@ -5,12 +5,14 @@ import "../../assets/styles/favoriteButton.css"
 
 export const FavoriteButton = () => {
 	const [isActive, setIsActive] = useState(false);
-	function handleClick() {
+	const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		setIsActive(!isActive);
+		e.preventDefault();
+		e.stopPropagation();
 	}
 	return (
 		<button type="button" className="favorite-button" 
-			onClick={handleClick} aria-pressed={isActive} 
+			onClick={(e) => handleClick(e)} aria-pressed={isActive} 
 			aria-label={isActive ? "Remove from favorites" : "Add to favorites"}>
 			<Heart className={`favorite-icon ${isActive ? 'is-active' : ''}`} />
 		</button>
