@@ -25,7 +25,7 @@ const authSchema = new mongoose.Schema
     required: true,
     unique: false
   },
-  realName: {
+  realname: {
     type: String,
     required: true,
     unique: false

@@ -17,7 +17,7 @@ export const authGetSet = Router();
 		1. Attempt to hash new password
 		2. findOneAndDelete() to remove matching record
 		4. Return relevant code
-*/
+*
 authGetSet.delete('/users/:username', async (req, res) =>
 {
 	try {
@@ -29,9 +29,10 @@ authGetSet.delete('/users/:username', async (req, res) =>
 		return res.json({ message: 'User deleted' });
 	
 	} catch (error) {
-		res.status(400).json({ error: error.message });
+		res.status(500).json({ error: error.message });
 	}
 });
+*/
 
 //Fetch single user record
 //Return all but passwordHash
@@ -47,7 +48,7 @@ authGetSet.get('/users/:username', async (req, res) =>
 		return res.json(userDocument);
 
 	} catch (error) {
-		res.status(400).json({ error: error.message });
+		res.status(500).json({ error: error.message });
 	}
 });
 
@@ -64,6 +65,41 @@ authGetSet.get('/users', async (req, res) =>
 		return res.json(userDocument);
 
 	} catch (error) {
-		res.status(400).json({ error: error.message });
+		res.status(500).json({ error: error.message });
 	}
 });
+
+/*
+	Change user password. /users/:username endpoint
+		1. Attempt to hash new password
+		2. findOneAndUpdate() to update the record with new hash
+			Find by URI param. Recreate record with new data
+		3. If good, create JWT and return
+		4. Return relevant code
+*
+authGetSet.put('/users/:username', async (req, res) =>
+{
+	try {
+		if (!validatePassword(req.body.password))
+			return res.status(422).json({error: "The password doesn't match the password requirements"});
+
+		const hashedPassword = await hashPassword(req.body.password);
+		if (!hashedPassword)
+			return res.status(500).json({error: 'Hashing failed'});
+
+		const userDocument = await userModel.findOneAndUpdate(
+			{username: req.params.username},
+			{passwordHash: hashedPassword},
+			{new: true}
+			);
+
+		if (userDocument)
+			return res.json(userDocument);
+		
+		return res.status(404).json({error: 'User not found'});
+	
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+});
+*/
