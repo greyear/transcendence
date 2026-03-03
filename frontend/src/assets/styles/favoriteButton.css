@@ -25,9 +25,9 @@
 }
 
 .favorite-button:hover {
-	filter: brightness(1.2);
+	filter: brightness(var(--hover-brightness));
 }
 
 .favorite-button:active {
-	filter: brightness(0.8);
+	filter: brightness(var(--active-brightness));
 }

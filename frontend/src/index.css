@@ -1,3 +1,8 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
 :root {
 	--bg-main: #F2ECE3;
 	--bg-footer: #FFF8F0;
@@ -58,6 +63,9 @@
 	--fs-label: 20px;
 	--lh-label: 20px;
 	--fw-label: 500;
+
+	--hover-brightness: 1.1;
+	--active-brightness: 0.9;
 }
 
 /* Tablet */
