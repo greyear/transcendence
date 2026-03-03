@@ -63,6 +63,9 @@
 	--fs-label: 20px;
 	--lh-label: 20px;
 	--fw-label: 500;
+
+	--hover-brightness: 1.1;
+	--active-brightness: 0.9;
 }
 
 /* Tablet */

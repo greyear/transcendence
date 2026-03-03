@@ -1,6 +1,14 @@
 .recipe-card-link-wrapper {
 	text-decoration: none;
 	color: unset;
+
+	&:active {
+		filter: brightness(var(--active-brightness));
+	}
+
+	&:has(.favorite-button:hover) {
+		filter: none;
+	}
 }
 
 .recipe-card {

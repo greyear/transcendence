@@ -6,9 +6,9 @@ import "../../assets/styles/favoriteButton.css"
 export const FavoriteButton = () => {
 	const [isActive, setIsActive] = useState(false);
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-		setIsActive(!isActive);
-		e.preventDefault();
 		e.stopPropagation();
+		e.preventDefault();
+		setIsActive(!isActive);
 	}
 	return (
 		<button type="button" className="favorite-button" 
