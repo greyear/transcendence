@@ -14,7 +14,6 @@
 	"author": "",
 	"type": "module",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
 		"check": "npx @biomejs/biome check",
 		"fix": "npx @biomejs/biome check --write"
 	},
