@@ -1,7 +1,7 @@
-import { RecipeCard } from "./components/cards/RecipeCard.js"
+import { RecipeCard } from "./components/cards/RecipeCard.js";
 
 function App() {
-	return <RecipeCard />
+	return <RecipeCard />;
 }
 
-export default App
+export default App;
