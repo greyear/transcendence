@@ -1,6 +1,6 @@
-import express from 'express';
-import { authRouter } from './src/auth_db_operations.ts';
-import { authGetSet } from './src/authGetSet.ts';
+import express from "express";
+import { authRouter } from "./src/auth_db_operations.ts";
+import { authGetSet } from "./src/authGetSet.ts";
 
 const app = express();
 
@@ -15,5 +15,5 @@ app.use(authGetSet);
 const port = 3000;
 
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+	console.log(`Server is running on http://localhost:${port}`);
 });

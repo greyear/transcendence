@@ -1,8 +1,8 @@
-import express from "express";
 import cors from "cors";
+import express from "express";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import healthRoutes from "./routes/health.routes.js";
 import recipesRoutes from "./routes/recipes.routes.js";
-import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 // Create Express app instance
 const app = express();
@@ -22,5 +22,5 @@ app.use(errorHandler);
 
 // Server startup
 app.listen(port, () => {
-  console.log(`core-service listening on port ${port}`);
+	console.log(`core-service listening on port ${port}`);
 });

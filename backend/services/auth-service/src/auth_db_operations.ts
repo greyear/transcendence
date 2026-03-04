@@ -5,37 +5,39 @@
 	jsonwebtoken is an encrypted way to pass sesson data client/server
 	zod is our parsing and field validation module
  */
-import { Router } from 'express';
-import mongoose from 'mongoose';
+
 import bcrypt from "bcrypt";
-import jwt from 'jsonwebtoken';
+import { Router } from "express";
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import * as z from "zod";
 
 // Importing userModel from schema
 //Location of this may or may not change later.
-import { userModel } from './auth_schema.ts'; 
+import { userModel } from "./auth_schema.ts";
 
 export const authRouter = Router();
 
 //Connection part probably being moved later
-const MONGO_AUTH_URI = process.env.MONGODB_AUTH_URI || 'mongodb://127.0.0.1:27017/auth_db';
+const MONGO_AUTH_URI =
+	process.env.MONGODB_AUTH_URI || "mongodb://127.0.0.1:27017/auth_db";
 // Connect to MongoDB
 // https://mongoosejs.com/docs/connections.html
-mongoose.connect(MONGO_AUTH_URI).then(() =>
-{
-    console.log('Connected to MongoDB');
-    // Start the server after the database connection is established
-    
-}).catch((err) => {
-	console.error('Error connecting to MongoDB:', err);
-	process.exit(1);
-});
+mongoose
+	.connect(MONGO_AUTH_URI)
+	.then(() => {
+		console.log("Connected to MongoDB");
+		// Start the server after the database connection is established
+	})
+	.catch((err) => {
+		console.error("Error connecting to MongoDB:", err);
+		process.exit(1);
+	});
 
 // Password hashing, using bcrypt. I think slightly simpler than others.
 //Concern with security of the salt.
 //Maybe change to argon2
-const hashPassword = async (password) =>
-{
+const hashPassword = async (password) => {
 	const saltCost = 5;
 
 	try {
@@ -49,8 +51,7 @@ const hashPassword = async (password) =>
 };
 
 // Password hash check.
-const comparePassword = async (password, hash) =>
-{
+const comparePassword = async (password, hash) => {
 	try {
 		const isMatch = await bcrypt.compare(password, hash);
 		return isMatch;
@@ -63,11 +64,10 @@ const comparePassword = async (password, hash) =>
 //Validate email using Zod library
 //This is not much different to the example they give on their basic manual
 //https://zod.dev/basics
-const validateEmail = (email) =>
-{
+const validateEmail = (email) => {
 	const emailPattern = z.email();
 	const result = emailPattern.safeParse(email);
-	return result.success
+	return result.success;
 };
 
 /*
@@ -78,31 +78,41 @@ const validateEmail = (email) =>
 	[^A-Za-z0-9] means ANYTHING that is not in the given character ranges.
 	Zod has a .regex() method, but it didn't seem to work for me.
 */
-const validatePassword = (password) =>
-{
-	const passwordPattern = z.string().min(8, "Password must be at least 8 characters")
-		.refine((password) => /[A-Z]/.test(password), "Must include 1 uppercase letter")
-		.refine((password) => /[a-z]/.test(password), "Must include 1 lowercase letter")
+const validatePassword = (password) => {
+	const passwordPattern = z
+		.string()
+		.min(8, "Password must be at least 8 characters")
+		.refine(
+			(password) => /[A-Z]/.test(password),
+			"Must include 1 uppercase letter",
+		)
+		.refine(
+			(password) => /[a-z]/.test(password),
+			"Must include 1 lowercase letter",
+		)
 		.refine((password) => /[0-9]/.test(password), "Must include 1 number")
-		.refine((password) => /[^A-Za-z0-9]/.test(password), "Must include 1 special character");
+		.refine(
+			(password) => /[^A-Za-z0-9]/.test(password),
+			"Must include 1 special character",
+		);
 
 	const result = passwordPattern.safeParse(password);
-	return result.success
+	return result.success;
 };
 
 // Call this function after authentication success.
 // id is from userDocument._id and is ObjectId type
-const generateToken = (id, username) =>
-{
+const generateToken = (id, username) => {
 	const JWTSecret = process.env.JWTSecret || "";
 
 	const payload = {
-        sub: id,
-        username,
-    };
+		sub: id,
+		username,
+	};
 
 	return jwt.sign(payload, JWTSecret, {
-		algorithm: "HS256", expiresIn: "1h"
+		algorithm: "HS256",
+		expiresIn: "1h",
 	});
 };
 
@@ -116,41 +126,37 @@ const generateToken = (id, username) =>
 		3. If not, attempt to hash password and create new user
 		4. Return relevant code
 */
-authRouter.post('/register', async (req, res) =>
-{
+authRouter.post("/register", async (req, res) => {
 	try {
-		const {username, email, realname, password} = req.body;
+		const { username, email, realname, password } = req.body;
 
-		const userDocument = await userModel.findOne(
-			{ $or: [
-					{email},
-					{username}
-				   ]
-			} );
+		const userDocument = await userModel.findOne({
+			$or: [{ email }, { username }],
+		});
 
-		if (userDocument)
-			return res.status(409).json({error: 'Resource exists'});
+		if (userDocument) return res.status(409).json({ error: "Resource exists" });
 
 		if (!validateEmail(req.body.email))
-			return res.status(422).json({error: 'Invalid email address'});
+			return res.status(422).json({ error: "Invalid email address" });
 
 		if (!validatePassword(req.body.password))
-			return res.status(422).json({error: "The password doesn't match the password requirements"});
+			return res.status(422).json({
+				error: "The password doesn't match the password requirements",
+			});
 
 		const hashedPassword = await hashPassword(password);
 		if (!hashedPassword)
-			return res.status(500).json({error: 'Hashing failed'});
+			return res.status(500).json({ error: "Hashing failed" });
 
 		const newUser = new userModel({
-										username,
-										email,
-										passwordHash:hashedPassword,
-										realname
-										});
+			username,
+			email,
+			passwordHash: hashedPassword,
+			realname,
+		});
 		const retPromise = await newUser.save();
 
-		return res.status(201).json({username, email, realname});
-
+		return res.status(201).json({ username, email, realname });
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}
@@ -166,31 +172,25 @@ authRouter.post('/register', async (req, res) =>
 		3. If good, create JWT and return
 		4. Return relevant code
 */
-authRouter.post('/login', async (req, res) =>
-{
+authRouter.post("/login", async (req, res) => {
 	try {
-		const {username, password} = req.body;
+		const { username, password } = req.body;
 
-		const userDocument = await userModel.findOne(
-			{ $or: [
-					{email: username},
-					{username}
-				   ]
-			} );
-
-		if (!userDocument)
-			return res.status(404).json({error: 'User not found'});
-			
-		const gotHash = userDocument.get('passwordHash');
-		if (!comparePassword(password, gotHash))
-			return res.status(401).json({ error: 'Password mismatch' });
-		
-		const JWToken = generateToken(userDocument.get('_id'), username);
-		return res.status(200).json({ 
-					token: JWToken,
-					message: "Login successful" 
+		const userDocument = await userModel.findOne({
+			$or: [{ email: username }, { username }],
 		});
 
+		if (!userDocument) return res.status(404).json({ error: "User not found" });
+
+		const gotHash = userDocument.get("passwordHash");
+		if (!comparePassword(password, gotHash))
+			return res.status(401).json({ error: "Password mismatch" });
+
+		const JWToken = generateToken(userDocument.get("_id"), username);
+		return res.status(200).json({
+			token: JWToken,
+			message: "Login successful",
+		});
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}

@@ -4,11 +4,11 @@
 	bcrypt is our password hashing module
 	jsonwebtoken is an encrypted way to pass sesson data client/server
  */
-import { Router } from 'express';
+import { Router } from "express";
 
 // Importing userModel from schema
 //Location of this may or may not change later.
-import { userModel } from './auth_schema.ts';
+import { userModel } from "./auth_schema.ts";
 
 export const authGetSet = Router();
 
@@ -36,17 +36,16 @@ authGetSet.delete('/users/:username', async (req, res) =>
 
 //Fetch single user record
 //Return all but passwordHash
-authGetSet.get('/users/:username', async (req, res) =>
-{
+authGetSet.get("/users/:username", async (req, res) => {
 	try {
-		const userDocument = await userModel.findOne({username: req.params.username},
-													 {username: 1, email: 1, realName: 1});
+		const userDocument = await userModel.findOne(
+			{ username: req.params.username },
+			{ username: 1, email: 1, realName: 1 },
+		);
 
-		if (!userDocument)
-			return res.status(404).json({error: 'User not found'});
+		if (!userDocument) return res.status(404).json({ error: "User not found" });
 
 		return res.json(userDocument);
-
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}
@@ -54,16 +53,17 @@ authGetSet.get('/users/:username', async (req, res) =>
 
 //Fetch all user records
 //Return all but passwordHash
-authGetSet.get('/users', async (req, res) =>
-{
+authGetSet.get("/users", async (req, res) => {
 	try {
-		const userDocument = await userModel.find({},{username: 1, email: 1, realName: 1});
+		const userDocument = await userModel.find(
+			{},
+			{ username: 1, email: 1, realName: 1 },
+		);
 
 		if (!userDocument)
-			return res.status(404).json({error: 'Records not found'});
+			return res.status(404).json({ error: "Records not found" });
 
 		return res.json(userDocument);
-
 	} catch (error) {
 		res.status(500).json({ error: error.message });
 	}

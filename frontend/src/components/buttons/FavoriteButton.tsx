@@ -1,7 +1,6 @@
-import { Heart } from 'iconoir-react'
-import { useState } from 'react'
-import "../../assets/styles/favoriteButton.css"
-
+import { Heart } from "iconoir-react";
+import { useState } from "react";
+import "../../assets/styles/favoriteButton.css";
 
 export const FavoriteButton = () => {
 	const [isActive, setIsActive] = useState(false);
@@ -9,12 +8,16 @@ export const FavoriteButton = () => {
 		e.stopPropagation();
 		e.preventDefault();
 		setIsActive(!isActive);
-	}
+	};
 	return (
-		<button type="button" className="favorite-button" 
-			onClick={(e) => handleClick(e)} aria-pressed={isActive} 
-			aria-label={isActive ? "Remove from favorites" : "Add to favorites"}>
-			<Heart className={`favorite-icon ${isActive ? 'is-active' : ''}`} />
+		<button
+			type="button"
+			className="favorite-button"
+			onClick={(e) => handleClick(e)}
+			aria-pressed={isActive}
+			aria-label={isActive ? "Remove from favorites" : "Add to favorites"}
+		>
+			<Heart className={`favorite-icon ${isActive ? "is-active" : ""}`} />
 		</button>
-	)
-}
+	);
+};
