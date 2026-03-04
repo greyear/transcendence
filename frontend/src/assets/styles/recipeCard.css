@@ -25,7 +25,7 @@
 	width: var(--recipe-card-image-size);
 	height: var(--recipe-card-image-size);
 	border-radius: var(--radius-full);
-	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--shadow);
 	align-content: center;
 }
 
@@ -38,7 +38,7 @@
 	border-radius: var(--radius-l);
 	width: calc(100% - var(--recipe-card-image-size) / 2);
 	height: fit-content;
-	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--shadow);
 	margin-left: calc(var(--recipe-card-image-size) / 2);
 }
 

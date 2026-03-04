@@ -22,7 +22,7 @@
 	width: var(--user-card-photo-size);
 	height: var(--user-card-photo-size);
 	border-radius: var(--radius-full);
-	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--shadow);
 }
 
 .user-card-container {
@@ -35,7 +35,7 @@
 	background-color: var(--surface-card);
 	padding: var(--space-l);
 	border-radius: var(--radius-l);
-	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
+	box-shadow: var(--shadow);
 	gap: var(--space-m);
 	width: var(--user-card-width);
 }
