@@ -1,5 +1,15 @@
+.user-card-link-wrapper {
+	text-decoration: none;
+	color: unset;
+
+	&:active {
+		filter: brightness(var(--active-brightness));
+	}
+}
+
 .user-card {
 	--user-card-photo-size: 120px;
+
 	display: flex;
 	flex-direction: column;
 	position: relative;
@@ -16,6 +26,8 @@
 }
 
 .user-card-container {
+	--user-card-width: 160px;
+
 	display: flex;
 	flex-direction: column;
 	height: fit-content;
@@ -25,9 +37,7 @@
 	border-radius: var(--radius-l);
 	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
 	gap: var(--space-m);
-
-	/* TODO: remove it once the button is created */
-	width: 160px;
+	width: var(--user-card-width);
 }
 
 .user-card-header {
@@ -36,4 +46,24 @@
 	align-items: center;
 	margin-top: calc(var(--user-card-photo-size) / 2);
 	gap: var(--space-s);
+}
+
+@media (min-width: 768px) {
+	.user-card {
+		--user-card-photo-size: 200px;
+	}
+	
+	.user-card-container {
+		--user-card-width: 328px;
+	}
+}
+
+@media (min-width: 1440px) {
+	.user-card {
+		--user-card-photo-size: 212px;
+	}
+
+	.user-card-container {
+		--user-card-width: 394px;
+	}
 }
