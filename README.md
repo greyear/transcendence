@@ -15,6 +15,17 @@ This project is a full-stack Recipe Sharing Platform built with a microservices 
 - **Notifications**: Stay updated on new followers, comments, and interactions
 - **Secure Authentication**: OAuth 2.0 integration (Google) and two-factor authentication support
 
+## Code cleanup
+
+Check the code linting and formatting:
+```bash
+npm run check
+```
+Fix lint and formatting issues:
+```bash
+npm run fix
+```
+
 ## Project Requirements
 
 This project fulfills the following technical requirements:
