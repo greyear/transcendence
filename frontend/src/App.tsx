@@ -1,7 +1,7 @@
-import { RecipeCard } from "./components/cards/RecipeCard.js"
+import { MainButton } from "./components/buttons/MainButton"
 
 function App() {
-	return <RecipeCard />
+	return (<MainButton>Log in/sign up</MainButton>);
 }
 
 export default App
