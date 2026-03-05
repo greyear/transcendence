@@ -13,11 +13,12 @@
 	--surface-action-active: #4E633B;
 	--surface-favorite: #B4C09B;
 	--surface-error: #BE4F4F;
+	--surface-success: #0FA707;
 	--text-primary: #334427;
 	--text-secondary: #4E633B;
 	--text-on-accent: #F1F7D4;
-	--icons-heart: #DB858B;
-	--borders-heart-inactive: #F2ECE3;
+	--icons-default: #F2ECE3;
+	--icons-heart-active: #DB858B;
 	--borders-heart-active: #8E4977;
 	--borders-action: #27341E;
 	--borders-input: #E2D8E0;

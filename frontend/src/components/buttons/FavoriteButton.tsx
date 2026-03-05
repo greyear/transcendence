@@ -1,20 +1,21 @@
 import { Heart } from 'iconoir-react'
 import { useState } from 'react'
+import { IconButton } from './IconButton'
 import "../../assets/styles/favoriteButton.css"
 
 
 export const FavoriteButton = () => {
-	const [isActive, setIsActive] = useState(false);
+	const [active, setActive] = useState(false);
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		e.stopPropagation();
 		e.preventDefault();
-		setIsActive(!isActive);
+		setActive((prev) => !prev)
 	}
 	return (
-		<button type="button" className="favorite-button" 
-			onClick={(e) => handleClick(e)} aria-pressed={isActive} 
-			aria-label={isActive ? "Remove from favorites" : "Add to favorites"}>
-			<Heart className={`favorite-icon ${isActive ? 'is-active' : ''}`} />
-		</button>
+		<IconButton type="button" className={`favorite-button ${active ? 'active' : ''}`}
+			onClick={(e) => handleClick(e)} ariaPressed={active}
+			ariaLabel={active ? "Remove from favorites" : "Add to favorites"} >
+			<Heart />
+		</IconButton>
 	)
 }

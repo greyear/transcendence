@@ -1,0 +1,30 @@
+.moderation-button.approve {
+	background-color: var(--surface-success);
+}
+
+.moderation-button.discard {
+	background-color: var(--surface-error);
+}
+
+.moderation-button:hover {
+	filter: brightness(var(--hover-brightness));
+}
+
+.moderation-button:active {
+	filter: brightness(var(--active-brightness));
+}
+
+@media (min-width: 768px) {
+
+}
+
+@media (min-width: 1440px) {
+	.moderation-button.approve {
+		width: 140px;
+		height: 48px;
+	}
+	.moderation-button.discard {
+		width: 140px;
+		height: 48px;
+	}
+}

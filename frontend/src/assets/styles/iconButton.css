@@ -1,0 +1,21 @@
+.icon-button {
+	border: none;
+	width: 44px;
+	height: 44px;
+	border-radius: var(--radius-s);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: filter 0.2s ease;
+	background: transparent;
+	padding: 0;
+}
+
+.icon-button svg {
+	width: 20px;
+	height: 20px;
+	stroke-width: 1.5;
+	color: var(--icons-default);
+	fill: none;
+}
