@@ -19,8 +19,13 @@
  * - Supports both cookie-based and header-based authentication
  */
 
-import express, { Request, Response, NextFunction, RequestHandler, Router } from "express";
+import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
+import {
+  AUTH_SERVICE_TIMEOUT_MS,
+  createTimeoutSignal,
+  isTimeoutError,
+} from "../utils/timeouts.js";
 
 /**
  * Utility function to safely extract error message from unknown error type
@@ -48,11 +53,12 @@ const authResponseSchema = z.object({
  * Custom Request type for authenticated requests
  * Extends Express.Request with userId field
  * 
- * userId is NOT optional here - after auth middleware,
- * we know it always exists (string or null, but defined)
+ * userId is optional - it's set by optionalAuth middleware
+ * After middleware: string (authenticated) or null (guest)
+ * Before middleware: undefined
  */
 export interface AuthenticatedRequest extends Request {
-  userId: string | null;
+  userId?: string | null;
 }
 
 // Auth service URL from environment variable
@@ -76,22 +82,21 @@ const AUTH_SERVICE_URL =
  * 4. Set req.userId based on result
  * 5. Call next() to pass to next middleware
  */
-export const optionalAuth: RequestHandler = async (
-  req,
-  res,
-  next
+export const optionalAuth = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
-  const authReq = req as AuthenticatedRequest;
   try {
     // 1. GET TOKEN FROM COOKIE OR HEADER
     // Priority: 
     // - First check cookies (browser sends automatically)
     // - If no cookie, check Authorization header (mobile apps, API clients)
-    let token = authReq.cookies.token;
+    let token = req.cookies.token;
 
     // If no cookie, try Authorization header
     if (!token) {
-      const authHeader = authReq.headers.authorization;
+      const authHeader = req.headers.authorization;
       if (authHeader) {
         token = authHeader.split(" ")[1]; // Remove "Bearer " prefix
       }
@@ -100,7 +105,7 @@ export const optionalAuth: RequestHandler = async (
     // If no token from either source → continue as guest
     if (!token) {
       // No token provided - continue as guest
-      authReq.userId = null;
+      req.userId = null;
     } else {
       // 2. VALIDATE TOKEN IN AUTH-SERVICE
       // Send token to auth-service for verification
@@ -112,6 +117,7 @@ export const optionalAuth: RequestHandler = async (
           headers: {
             "Authorization": `Bearer ${token}`, // Send token in Authorization header (RFC 7235)
           },
+          signal: createTimeoutSignal(AUTH_SERVICE_TIMEOUT_MS),
         });
 
         // response.ok = true if status 200-299
@@ -124,47 +130,38 @@ export const optionalAuth: RequestHandler = async (
 
           if (parseResult.success) {
             // Validation passed - extract user ID
-            authReq.userId = parseResult.data.id;
+            req.userId = parseResult.data.id;
             // Set X-User-Id header for proxying to downstream services
-            authReq.headers["x-user-id"] = parseResult.data.id;
+            req.headers["x-user-id"] = parseResult.data.id;
           } else {
             // Response format is invalid - treat as auth failure
             console.warn("Invalid auth-service response format:", parseResult.error.issues[0]?.message);
-            authReq.userId = null;
+            req.userId = null;
           }
         } else {
           // Token is invalid (expired, fake, etc.)
           // Continue as guest
           console.warn("Invalid token, continuing as guest");
-          authReq.userId = null;
+          req.userId = null;
         }
       } catch (authError) {
         // Auth-service is unavailable (network error, service down, etc.)
         // Continue as guest (to avoid breaking entire service)
-        console.error("Auth-service error:", getErrorMessage(authError));
-        authReq.userId = null;
+        if (isTimeoutError(authError)) {
+          console.warn("Auth-service timeout, continuing as guest");
+          req.userId = null;
+        } else {
+          console.error("Auth-service error:", getErrorMessage(authError));
+          req.userId = null;
+        }
       }
     }
   } catch (error) {
     // Unexpected error - continue as guest (fail-safe)
     console.error("Error in optionalAuth middleware:", getErrorMessage(error));
-    authReq.userId = null;
+    req.userId = null;
   }
   
   // ALWAYS call next() - happens after both successful and error paths
   next();
 };
-
-/**
- * Authentication Router
- * 
- * Router with optionalAuth middleware applied
- * Use this for routes that need optional authentication (recipes, etc.)
- * 
- * Benefits:
- * - optionalAuth only runs for routes that need it
- * - Health/monitoring endpoints don't trigger auth-service calls
- * - Better performance and reduced coupling
- */
-export const authRouter: Router = express.Router();
-authRouter.use(optionalAuth);

@@ -12,11 +12,18 @@
  * - Promise<void> - async functions with explicit type
  */
 
-import express, { Express, Request, Response, RequestHandler } from "express";
+import express, { Express, Request, Response } from "express";
 import "dotenv/config";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { authRouter, AuthenticatedRequest } from "./middleware/auth.js";
+import { recipesRouter } from "./routes/recipes.routes.js";
+import {
+  CORE_HEALTH_TIMEOUT_MS,
+  GATEWAY_RESPONSE_TIMEOUT_MS,
+  createResponseTimeoutMiddleware,
+  createTimeoutSignal,
+  isTimeoutError,
+} from "./utils/timeouts.js";
 
 /**
  * Custom Request type for authenticated requests
@@ -28,11 +35,6 @@ import { authRouter, AuthenticatedRequest } from "./middleware/auth.js";
 const app: Express = express();
 // PORT - number (environment variable converted to number)
 const port = process.env.PORT || 3000;
-
-// Service URLs from environment variables (for different environments: dev, prod, k8s)
-// http://localhost:3002 - for local development
-// http://core-service:3002 - for Docker (named as core-service)
-// http://core-service.default.svc.cluster.local:3002 - for Kubernetes
 const CORE_SERVICE_URL =
   process.env.CORE_SERVICE_URL || "http://core-service:3002";
 
@@ -45,6 +47,7 @@ app.use(
 ); // Configure CORS for security
 app.use(express.json()); // Parse JSON from request body
 app.use(cookieParser()); // Parse cookies from request headers
+app.use(createResponseTimeoutMiddleware(GATEWAY_RESPONSE_TIMEOUT_MS));
 
 // ===== HEALTH CHECK ROUTES =====
 
@@ -57,10 +60,17 @@ app.use(cookieParser()); // Parse cookies from request headers
 app.get("/health", async (req: Request, res: Response): Promise<void> => {
   try {
     // Forward request to core-service
-    const response = await fetch(`${CORE_SERVICE_URL}/health`);
+    const response = await fetch(`${CORE_SERVICE_URL}/health`, {
+      signal: createTimeoutSignal(CORE_HEALTH_TIMEOUT_MS),
+    });
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
+    if (isTimeoutError(error)) {
+      res.status(504).json({ error: "Gateway Timeout" });
+      return;
+    }
+
     console.error("Error proxying to core-service:", error);
     res.status(500).json({ error: "Failed to fetch health from core-service" });
   }
@@ -73,10 +83,17 @@ app.get("/health", async (req: Request, res: Response): Promise<void> => {
  */
 app.get("/health/db", async (req: Request, res: Response): Promise<void> => {
   try {
-    const response = await fetch(`${CORE_SERVICE_URL}/health/db`);
+    const response = await fetch(`${CORE_SERVICE_URL}/health/db`, {
+      signal: createTimeoutSignal(CORE_HEALTH_TIMEOUT_MS),
+    });
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
+    if (isTimeoutError(error)) {
+      res.status(504).json({ error: "Gateway Timeout" });
+      return;
+    }
+
     console.error("Error proxying to core-service:", error);
     res.status(500).json({ error: "Failed to fetch health/db from core-service" });
   }
@@ -84,72 +101,8 @@ app.get("/health/db", async (req: Request, res: Response): Promise<void> => {
 
 // ===== RECIPES ROUTES =====
 
-/**
- * Recipes routes with optional authentication
- * 
- * Architecture:
- * - authRouter (from auth.ts) has optionalAuth middleware applied
- * - Mounted to /recipes path
- * - Health endpoints don't use authRouter (no auth overhead)
- * 
- * Benefits:
- * - Reduced auth-service calls (only for routes that need it)
- * - Better performance for monitoring endpoints
- * - Clear separation of concerns
- */
-
-/**
- * GET / - get all recipes
- * (Actual path: /recipes/)
- */
-const getRecipesHandler: RequestHandler = async (req, res, next) => {
-  try {
-    // Forward request to core-service
-    // X-User-Id header already set by optionalAuth middleware
-    const response = await fetch(`${CORE_SERVICE_URL}/recipes`, {
-      headers: req.headers as Record<string, string>
-    });
-    const data = await response.json();
-    res.status(response.status).json(data);
-  } catch (error) {
-    console.error("Error proxying to core-service:", error);
-    res.status(500).json({ error: "Failed to fetch recipes from core-service" });
-  }
-};
-
-authRouter.get("/", getRecipesHandler);
-
-/**
- * GET /:id - get a specific recipe
- * (Actual path: /recipes/:id)
- * 
- * Possible responses:
- * - 200 OK: recipe found and accessible
- * - 403 Forbidden: recipe exists but is closed (draft of another user)
- * - 404 Not Found: recipe doesn't exist
- * - 400 Bad Request: ID is not a valid positive integer
- */
-const getRecipeByIdHandler: RequestHandler = async (req, res, next) => {
-  try {
-    // Forward request to core-service
-    // X-User-Id header already set by optionalAuth middleware
-    // req.params.id - parameter from URL (/recipes/:id)
-    const response = await fetch(
-      `${CORE_SERVICE_URL}/recipes/${req.params.id}`,
-      { headers: req.headers as Record<string, string> }
-    );
-    const data = await response.json();
-    res.status(response.status).json(data);
-  } catch (error) {
-    console.error("Error proxying to core-service:", error);
-    res.status(500).json({ error: "Failed to fetch recipe from core-service" });
-  }
-};
-
-authRouter.get("/:id", getRecipeByIdHandler);
-
-// Mount authRouter to /recipes path
-app.use("/recipes", authRouter);
+// Mount recipes router (defined in routes/recipes.routes.ts)
+app.use("/recipes", recipesRouter);
 
 // ===== START SERVER =====
 app.listen(port, () => {
