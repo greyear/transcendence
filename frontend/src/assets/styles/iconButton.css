@@ -19,3 +19,21 @@
 	color: var(--icons-default);
 	fill: none;
 }
+
+.icon-button:hover {
+	filter: brightness(var(--hover-brightness));
+}
+
+.icon-button:active {
+	filter: brightness(var(--active-brightness));
+}
+
+.icon-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	filter: none;
+}
+
+.icon-button:disabled:hover {
+	filter: none;
+}

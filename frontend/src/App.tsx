@@ -5,11 +5,15 @@ import { RecipeCard } from "./components/cards/RecipeCard";
 function App() {
 	return (
 		<>
-		<RecipeCard />
-		<FavoriteButton />
-		<ModerationButton action="approve" />
-		<ModerationButton action="discard" />
-	</>);
+			<RecipeCard />
+			<FavoriteButton />
+			<ModerationButton action="approve" />
+			<ModerationButton action="discard" />
+
+			<FavoriteButton disabled />
+			<ModerationButton action="discard" disabled />
+		</>
+	);
 }
 
-export default App
+export default App;

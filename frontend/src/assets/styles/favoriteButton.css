@@ -1,17 +1,8 @@
 .favorite-button {
 	background: var(--surface-favorite);
-	padding: 12px;
 }
 
 .favorite-button.active svg {
 	fill: var(--icons-heart-active);
 	color: var(--borders-heart-active);
-}
-
-.favorite-button:hover {
-	filter: brightness(var(--hover-brightness));
-}
-
-.favorite-button:active {
-	filter: brightness(var(--active-brightness));
 }

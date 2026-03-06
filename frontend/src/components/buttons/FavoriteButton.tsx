@@ -1,21 +1,29 @@
-import { Heart } from 'iconoir-react'
-import { useState } from 'react'
-import { IconButton } from './IconButton'
-import "../../assets/styles/favoriteButton.css"
+import { Heart } from "iconoir-react";
+import { useState } from "react";
+import { IconButton } from "./IconButton";
+import "../../assets/styles/favoriteButton.css";
 
+type Props = {
+	disabled?: boolean;
+};
 
-export const FavoriteButton = () => {
-	const [active, setActive] = useState(false);
+export const FavoriteButton = ({ disabled = false }: Props) => {
+	const [isActive, setIsActive] = useState(false);
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		e.stopPropagation();
 		e.preventDefault();
-		setActive((prev) => !prev)
-	}
+		setIsActive((prev) => !prev);
+	};
 	return (
-		<IconButton type="button" className={`favorite-button ${active ? 'active' : ''}`}
-			onClick={(e) => handleClick(e)} ariaPressed={active}
-			ariaLabel={active ? "Remove from favorites" : "Add to favorites"} >
+		<IconButton
+			type="button"
+			className={`favorite-button ${isActive ? "active" : ""}`}
+			onClick={(e) => handleClick(e)}
+			aria-pressed={isActive}
+			aria-label={isActive ? "Remove from favorites" : "Add to favorites"}
+			disabled={disabled}
+		>
 			<Heart />
 		</IconButton>
-	)
-}
+	);
+};

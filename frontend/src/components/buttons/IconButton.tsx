@@ -1,31 +1,18 @@
-import '../../assets/styles/iconButton.css'
+import type { ButtonHTMLAttributes, ReactNode } from "react";
+import "../../assets/styles/iconButton.css";
 
-type IconButtonProps = {
-	children: React.ReactNode
-	onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
-	className?: string
-	type?: 'button' | 'submit' | 'reset'
-	ariaLabel?: string
-	ariaPressed?: boolean
+interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+	children: ReactNode;
 }
 
 export const IconButton = ({
 	children,
-	onClick,
-	className = '',
-	type = 'button',
-	ariaLabel,
-	ariaPressed,
+	className = "",
+	...props
 }: IconButtonProps) => {
 	return (
-		<button
-			type={type}
-			className={`icon-button ${className}`.trim()}
-			onClick={onClick}
-			aria-label={ariaLabel}
-			aria-pressed={ariaPressed}
-		>
+		<button className={`icon-button ${className}`.trim()} {...props}>
 			{children}
 		</button>
-	)
-}
+	);
+};

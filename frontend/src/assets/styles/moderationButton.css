@@ -5,11 +5,3 @@
 .moderation-button.discard {
 	background-color: var(--surface-error);
 }
-
-.moderation-button:hover {
-	filter: brightness(var(--hover-brightness));
-}
-
-.moderation-button:active {
-	filter: brightness(var(--active-brightness));
-}
