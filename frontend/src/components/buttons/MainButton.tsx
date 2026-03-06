@@ -1,28 +1,18 @@
-import "../../assets/styles/mainButton.css"
+import type { ButtonHTMLAttributes, ReactNode } from "react";
+import "../../assets/styles/mainButton.css";
 
-type Props = {
-	children: React.ReactNode
-	onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
-	disabled?: boolean
-	type?: "button" | "submit" | "reset"
-	variant?: "primary"
+interface MainButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+	children: ReactNode;
 }
 
 export const MainButton = ({
 	children,
-	onClick,
-	disabled,
-	type = "button",
-	variant = "primary"
-}: Props) => {
+	className = "",
+	...props
+}: MainButtonProps) => {
 	return (
-		<button
-			type={type}
-			className={`main-button ${variant}`}
-			onClick={onClick}
-			disabled={disabled}
-		>
+		<button className={`main-button ${className}`.trim()} {...props}>
 			{children}
 		</button>
-	)
-}
+	);
+};
