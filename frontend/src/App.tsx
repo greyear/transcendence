@@ -1,7 +1,17 @@
-import { RecipeCard } from "./components/cards/RecipeCard.js"
+import { Plus } from "iconoir-react";
+import { MainButton } from "./components/buttons/MainButton";
 
 function App() {
-	return <RecipeCard />
+	return (
+		<>
+			<MainButton>
+				<Plus />
+				Create new
+			</MainButton>
+			<MainButton>Log in/sign up</MainButton>
+			<MainButton disabled>Disabled</MainButton>
+		</>
+	);
 }
 
-export default App
+export default App;
