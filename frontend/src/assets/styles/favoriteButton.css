@@ -1,33 +1,8 @@
 .favorite-button {
 	background: var(--surface-favorite);
-	border: none;
-	width: 44px;
-	height: 44px;
-	border-radius: var(--radius-s);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	transition: filter 0.2s ease;
 }
 
-.favorite-icon {
-	width: 20px;
-	height: 20px;
-	fill: none;
-	color: var(--borders-heart-inactive);
-	stroke-width: 1.5;
-}
-
-.favorite-icon.is-active {
-	fill: var(--icons-heart);
+.favorite-button.active svg {
+	fill: var(--icons-heart-active);
 	color: var(--borders-heart-active);
-}
-
-.favorite-button:hover {
-	filter: brightness(var(--hover-brightness));
-}
-
-.favorite-button:active {
-	filter: brightness(var(--active-brightness));
 }
