@@ -2,6 +2,107 @@
 
 A modern web application for sharing, discovering, and managing recipes with social features. Users can create and share their favorite recipes, follow other cooking enthusiasts, save favorites, leave comments, and explore a rich collection of culinary content.
 
+## Quick Start (Makefile)
+
+### 1) Prerequisites
+
+Install the following tools:
+
+- Docker Engine
+- Docker Compose (`docker-compose` command)
+- GNU Make (`make`)
+- Node.js 20+ and npm (only for local service development without Docker)
+
+Check that tools are available:
+
+```bash
+docker --version
+docker-compose --version
+make --version
+node --version
+npm --version
+```
+
+### 1.2) Environment files (`.env`)
+
+This repository contains `.env.template` files. Copy them to `.env` before local development:
+
+```bash
+cp .env.template .env
+cp backend/services/api-gateway/.env.template backend/services/api-gateway/.env
+cp backend/services/core-service/.env.template backend/services/core-service/.env
+cp backend/services/auth-service/.env.template backend/services/auth-service/.env
+cp backend/services/notification-service/.env.template backend/services/notification-service/.env
+```
+
+Then replace placeholder values (for example, `JWT_SECRET="change-me"`).
+
+### 1.1) Node.js version for local dev
+
+Local commands `make dev-api` and `make dev-core` require **Node.js >= 18** (recommended **Node.js 20 LTS**).
+
+If your version is older (for example Node 12), install Node 20 with `nvm`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+source ~/.nvm/nvm.sh
+nvm install 20
+nvm use 20
+node --version
+```
+
+### 2) Start all backend services (recommended)
+
+From the project root:
+
+```bash
+sudo make up
+```
+
+This starts databases and backend microservices via Docker Compose.
+
+Useful commands:
+
+- `sudo make down` — stop all services
+- `sudo make restart` — restart services
+- `sudo make logs` — follow logs
+- `sudo make db-status` — container and health status
+- `sudo make db-reset` — reset only DB containers/volumes
+- `sudo make clean` — full reset (including volumes)
+
+### 3) Run services locally (dev mode, without running app containers)
+
+If you want hot-reload development locally:
+
+1. Start infrastructure first (DBs) with Docker:
+
+```bash
+sudo make up
+```
+
+2. In separate terminals run the services you need:
+
+```bash
+make dev-api
+make dev-core
+```
+
+> Note: in this repository `auth-service` and `notification-service` are Docker stubs and are started with `make up`.
+
+3. If dependencies are missing, install once per service:
+
+```bash
+cd backend/services/<service-name>
+npm install
+```
+
+### 4) Main service endpoints
+
+- API Gateway: `http://localhost:3000`
+- Auth Service: `http://localhost:3001`
+- Core Service: `http://localhost:3002`
+- Notification Service: `http://localhost:3003`
+
 ## Overview
 
 This project is a full-stack Recipe Sharing Platform built with a microservices architecture. It demonstrates industry best practices in modern web development, including containerization, orchestration, and scalable service design.
