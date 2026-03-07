@@ -7,13 +7,11 @@
  */
 import { Router } from 'express';
 import mongoose from 'mongoose';
-import bcrypt from "bcrypt";
-import jwt from 'jsonwebtoken';
-import * as z from "zod";
 
-// Importing userModel from schema
-//Location of this may or may not change later.
+// Import of project modules
+//Location of userModel may or may not change later.
 import { userModel } from './auth_schema.ts'; 
+import * as help from './authHelpers.ts';
 
 export const authRouter = Router();
 
@@ -30,81 +28,6 @@ mongoose.connect(MONGO_AUTH_URI).then(() =>
 	console.error('Error connecting to MongoDB:', err);
 	process.exit(1);
 });
-
-// Password hashing, using bcrypt. I think slightly simpler than others.
-//Concern with security of the salt.
-//Maybe change to argon2
-const hashPassword = async (password) =>
-{
-	const saltCost = 5;
-
-	try {
-		const salt = await bcrypt.genSalt(saltCost);
-		const hash = await bcrypt.hash(password, salt);
-		return hash;
-	} catch (error) {
-		console.error(error);
-	}
-	return null;
-};
-
-// Password hash check.
-const comparePassword = async (password, hash) =>
-{
-	try {
-		const isMatch = await bcrypt.compare(password, hash);
-		return isMatch;
-	} catch (error) {
-		console.error(error);
-	}
-	return false;
-};
-
-//Validate email using Zod library
-//This is not much different to the example they give on their basic manual
-//https://zod.dev/basics
-const validateEmail = (email) =>
-{
-	const emailPattern = z.email();
-	const result = emailPattern.safeParse(email);
-	return result.success
-};
-
-/*
-	Validate password using Zod library
-	https://zod.dev/basics
-	Password rules: 8 chars min, 1 each of upper, lower and special
-	The refinement is looking for at least one in the test string.
-	[^A-Za-z0-9] means ANYTHING that is not in the given character ranges.
-	Zod has a .regex() method, but it didn't seem to work for me.
-*/
-const validatePassword = (password) =>
-{
-	const passwordPattern = z.string().min(8, "Password must be at least 8 characters")
-		.refine((password) => /[A-Z]/.test(password), "Must include 1 uppercase letter")
-		.refine((password) => /[a-z]/.test(password), "Must include 1 lowercase letter")
-		.refine((password) => /[0-9]/.test(password), "Must include 1 number")
-		.refine((password) => /[^A-Za-z0-9]/.test(password), "Must include 1 special character");
-
-	const result = passwordPattern.safeParse(password);
-	return result.success
-};
-
-// Call this function after authentication success.
-// id is from userDocument._id and is ObjectId type
-const generateToken = (id, username) =>
-{
-	const JWTSecret = process.env.JWTSecret || "";
-
-	const payload = {
-        sub: id,
-        username,
-    };
-
-	return jwt.sign(payload, JWTSecret, {
-		algorithm: "HS256", expiresIn: "1h"
-	});
-};
 
 /*
 	Create user if user does not exist.
@@ -131,13 +54,13 @@ authRouter.post('/register', async (req, res) =>
 		if (userDocument)
 			return res.status(409).json({error: 'Resource exists'});
 
-		if (!validateEmail(req.body.email))
+		if (!help.validateEmail(req.body.email))
 			return res.status(422).json({error: 'Invalid email address'});
 
-		if (!validatePassword(req.body.password))
+		if (!help.validatePassword(req.body.password))
 			return res.status(422).json({error: "The password doesn't match the password requirements"});
 
-		const hashedPassword = await hashPassword(password);
+		const hashedPassword = await help.hashPassword(password);
 		if (!hashedPassword)
 			return res.status(500).json({error: 'Hashing failed'});
 
@@ -182,10 +105,11 @@ authRouter.post('/login', async (req, res) =>
 			return res.status(404).json({error: 'User not found'});
 			
 		const gotHash = userDocument.get('passwordHash');
-		if (!comparePassword(password, gotHash))
+		const passwordMatch = await help.comparePassword(password, gotHash);
+		if (!passwordMatch)
 			return res.status(401).json({ error: 'Password mismatch' });
 		
-		const JWToken = generateToken(userDocument.get('_id'), username);
+		const JWToken = help.generateToken(userDocument.get('_id'), username);
 		return res.status(200).json({ 
 					token: JWToken,
 					message: "Login successful" 
