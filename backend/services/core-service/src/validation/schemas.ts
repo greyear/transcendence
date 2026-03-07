@@ -15,17 +15,37 @@ import { z } from "zod";
  */
 
 /**
- * Recipe ID validation - must be a positive integer
- * Database uses integer GENERATED ALWAYS AS IDENTITY for recipe IDs
- * 
- * This function tries to parse id and returns result:
- * - valid: true, value: "id-string" if OK
- * - valid: false, error: "error message" if NOT a valid positive integer
+ * Integer Range Constant
+ * Maximum value for PostgreSQL INTEGER type (2^31 - 1)
  */
-const recipeIdSchema = z.string().regex(/^\d+$/, "Must be a positive integer");
+const MAX_SIGNED_INT = 2147483647;
+
+/**
+ * Positive Integer ID schema
+ * 
+ * Single schema for both recipe IDs and user IDs
+ * Logic:
+ * - Transforms string input to number (coerce)
+ * - Validates it's positive integer ≤ MAX_SIGNED_INT
+ * - Returns as NUMBER
+ * 
+ * Works for:
+ * - Recipe ID: URL parameter req.params.id → number → getRecipeById(id: number)
+ * - User ID: HTTP header X-User-Id → number → getRecipeById(userId?: number)
+ */
+const intIdSchema = z
+  .coerce
+  .number()
+  .int()
+  .positive()
+  .max(MAX_SIGNED_INT);
+
+const recipeIdSchema = intIdSchema;
+
+export const userIdIntSchema = intIdSchema;
 
 type ValidationResult =
-  | { valid: true; value: string }
+  | { valid: true; value: number }
   | { valid: false; error: string };
 
 export const validateRecipeId = (
@@ -39,7 +59,7 @@ export const validateRecipeId = (
 
   return {
     valid: false,
-    error: result.error.issues[0]?.message || "Invalid recipe ID",
+    error: `Must be a positive integer in range 1..${MAX_SIGNED_INT}`,
   };
 };
 
@@ -54,19 +74,18 @@ export const validateRecipeId = (
  * z.string() - string type
  * z.number() - number type
  * z.enum([...]) - can ONLY be one of the values in array
- * .optional() - field can be omitted
  * .min().max() - minimum and maximum value
  */
 export const recipeSchema = z.object({
   id: z.number().int().positive(), // ID must be positive integer
   title: z.string(), // Title - string
-  author_id: z.string(), // Author - user ID string
+  author_id: userIdIntSchema.nullable(), // Author can be null (ON DELETE SET NULL)
   status: z.enum(["draft", "published", "archived"]), // ONLY these statuses
-  description: z.string().optional(), // Description - optional
-  instructions: z.string().optional(), // Instructions - optional
-  servings: z.number().optional(), // Servings - optional, but if present must be number
-  spiciness: z.number().min(0).max(10).optional(), // 0 to 10
-  rating_avg: z.number().optional(), // Rating - optional
+  description: z.string().nullable(), // Description can be null in DB
+  instructions: z.array(z.string()), // Instructions required (NOT NULL)
+  servings: z.number().int().positive(), // Servings is required (NOT NULL, default 1)
+  spiciness: z.number().int().min(0).max(3), // 0 to 3, NOT NULL DEFAULT 0
+  rating_avg: z.coerce.number().min(1).max(5).nullable(), // numeric(3,2) or null
 });
 
 /**
@@ -76,9 +95,9 @@ export const recipeSchema = z.object({
 export const recipeListItemSchema = z.object({
   id: z.number().int().positive(),
   title: z.string(),
-  author_id: z.string(),
-  description: z.string().optional(),
-  rating_avg: z.number().optional(),
+  author_id: userIdIntSchema.nullable(),
+  description: z.string().nullable(),
+  rating_avg: z.coerce.number().min(1).max(5).nullable(),
 });
 
 /**

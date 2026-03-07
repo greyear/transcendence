@@ -114,7 +114,7 @@ Route Handler: getAllRecipes (async)
 - Handler is async, uses try/catch
 - Errors → errorHandler
 
-**File**: `src/controllers/recipes.controller.ts:40-57`
+**File**: `src/routes/recipes.routes.ts:22-30` (2-layer: routes handle logic directly)
 
 ---
 
@@ -154,7 +154,7 @@ Route Handler: getRecipeById (async)
 - All possible errors (400, 403, 404) are explicitly handled
 - Errors → errorHandler
 
-**File**: `src/controllers/recipes.controller.ts:63-121`
+**File**: `src/routes/recipes.routes.ts:35-78` (2-layer: routes handle logic directly)
 
 ---
 
@@ -273,3 +273,4 @@ errorHandler (line 38 in index.ts)
 3. **Router-level middleware works** - extractUser runs only for /recipes routes
 4. **Error handling is complete** - All error paths (400, 403, 404, 500) are caught
 5. **No sync issues** - All async operations use try/catch with next(error)
+6. **2-layer architecture** - Routes handle HTTP concerns (validation, error handling, responses) and call services for business logic

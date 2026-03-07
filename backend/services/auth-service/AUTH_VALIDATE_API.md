@@ -20,6 +20,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 }
 ```
 
+`id` must be a positive integer in range 1..2147483647 (application validation rule).
+
 **IMPORTANT:** The field must be named exactly `id` (not `userId`, not `user_id`).
 
 ### Response (Error - 401 Unauthorized)
@@ -34,4 +36,5 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ## Integration Notes
 - API Gateway uses this endpoint to validate tokens
 - The `id` field from the response is passed to other microservices via the `X-User-Id` header
+- API Gateway validates `id` as positive INT and rejects out-of-range values
 - If you need to change the field name, also update the code in `api-gateway/src/middleware/auth.js`

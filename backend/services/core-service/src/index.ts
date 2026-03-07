@@ -22,6 +22,9 @@ const app: Express = express();
 const PORT: number = parseInt(process.env.PORT || "3002", 10);
 
 // ===== MIDDLEWARE (handlers that run on EVERY request) =====
+// TODO: Review CORS configuration when all microservices are integrated.
+// Currently core-service is behind API Gateway, so CORS may not be needed here.
+// Revisit when frontend direct access to core-service is required.
 app.use(
   cors({
     origin: `http://localhost:${PORT}`,

@@ -1,5 +1,5 @@
 CREATE TABLE "users" (
-  "id" varchar PRIMARY KEY,
+  "id" integer PRIMARY KEY CHECK ("id" > 0),
   "username" varchar(32) UNIQUE NOT NULL,
   "avatar" bytea,
   "status" varchar(16)
@@ -11,8 +11,8 @@ CREATE TABLE "users" (
 );
 
 CREATE TABLE "followers" (
-  "user_id" varchar NOT NULL,
-  "followed_id" varchar NOT NULL,
+  "user_id" integer NOT NULL,
+  "followed_id" integer NOT NULL,
     CHECK (user_id <> followed_id),
   "created_at" timestamptz DEFAULT now(),
 
@@ -33,10 +33,10 @@ CREATE TABLE "recipes" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "title" varchar(256) NOT NULL,
   "description" text,
-  "instructions" text NOT NULL,
+  "instructions" text[] NOT NULL,
   "servings" integer NOT NULL DEFAULT 1,
-  "spiciness" smallint CHECK (spiciness BETWEEN 0 AND 3),
-  "author_id" varchar NULL,
+  "spiciness" smallint NOT NULL DEFAULT 0 CHECK (spiciness BETWEEN 0 AND 3),
+  "author_id" integer NULL,
   "status" varchar(16) NOT NULL
     CHECK (status IN ('draft', 'published', 'archived')),
   "rating_avg" numeric(3,2)
@@ -164,7 +164,7 @@ CREATE TABLE "allergen_categories" (
 );
 
 CREATE TABLE "user_allergens" (
-  "user_id" varchar NOT NULL,
+  "user_id" integer NOT NULL,
   "allergen_id" integer NOT NULL,
   "created_at" timestamptz DEFAULT now(),
 
@@ -203,7 +203,7 @@ CREATE TABLE "diet_restricted_categories" (
 );
 
 CREATE TABLE "user_diets" (
-  "user_id" varchar NOT NULL,
+  "user_id" integer NOT NULL,
   "diet_id" integer NOT NULL,
   "created_at" timestamptz DEFAULT now(),
 
@@ -275,7 +275,7 @@ CREATE TABLE "ingredient_portions" (
 );
 
 CREATE TABLE "favorites" (
-  "user_id" varchar NOT NULL,
+  "user_id" integer NOT NULL,
   "recipe_id" integer NOT NULL,
   "created_at" timestamptz DEFAULT now(),
 
@@ -293,7 +293,7 @@ CREATE TABLE "favorites" (
 );
 
 CREATE TABLE "recipe_shares" (
-  "user_id" varchar NOT NULL,
+  "user_id" integer NOT NULL,
   "recipe_id" integer NOT NULL,
   "created_at" timestamptz DEFAULT now(),
 
@@ -329,7 +329,7 @@ CREATE TABLE "recipe_media" (
 CREATE TABLE "recipe_reviews" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "recipe_id" integer NOT NULL,
-  "author_id" varchar NULL,
+  "author_id" integer NULL,
   "body" text NOT NULL,
   "is_deleted" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz DEFAULT now(),
@@ -348,7 +348,7 @@ CREATE TABLE "recipe_reviews" (
 
 
 CREATE TABLE "recipe_ratings" (
-  "user_id" varchar NOT NULL,
+  "user_id" integer NOT NULL,
   "recipe_id" integer NOT NULL,
   "rating" smallint NOT NULL CHECK (rating BETWEEN 1 AND 5),
   "created_at" timestamptz DEFAULT now(),
@@ -375,7 +375,7 @@ CREATE UNIQUE INDEX ON "recipe_media" ("recipe_id", "position");
 
 CREATE INDEX ON "recipe_reviews" ("recipe_id", "created_at");
 
-COMMENT ON COLUMN "users"."id" IS 'User ID from auth service (UUID, for example)';
+COMMENT ON COLUMN "users"."id" IS 'User ID from auth service (positive INT; CHECK > 0)';
 
 COMMENT ON COLUMN "users"."avatar" IS 'Original pic is stored in the DB, we need to set the limit for the size';
 

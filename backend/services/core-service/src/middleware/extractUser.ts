@@ -8,28 +8,29 @@
  * - Without this, TypeScript would complain: "Property 'userId' does not exist"
  * 
  * Zod validation:
- * - Validates X-User-Id header format (must be a valid UUID if present)
+ * - Validates X-User-Id header format (must be positive INT if present)
  * - Ensures type safety at runtime, not just compile time
  */
 
 import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
+import { userIdIntSchema } from "../validation/schemas.js";
 
 /**
  * Zod schema for validating userId from header
  * 
  * z.preprocess() - first, normalize the value:
- *   - if it's a string → keep it
- *   - if it's anything else → convert to undefined
+ *   - if it's an array from Node headers → take first value
+ *   - otherwise keep value as-is for Zod coercion
  * 
  * Then validate:
- * - z.string().uuid() - must be valid UUID format
+ * - parse to integer using Zod coercion
+ * - must fit application INT range
  * - .optional() - or undefined
- * - .default(undefined) - if undefined, stays undefined
  */
 const userIdSchema = z.preprocess(
-  (val) => (typeof val === 'string' ? val : undefined),
-  z.string().uuid().optional()
+  (val) => (Array.isArray(val) ? val[0] : val),
+  userIdIntSchema.optional()
 );
 
 /**
@@ -37,7 +38,7 @@ const userIdSchema = z.preprocess(
  * Used when X-User-Id header is present (comes from API Gateway)
  */
 export interface AuthenticatedRequest extends Request {
-  userId?: string;
+  userId?: number;
 }
 
 /**
@@ -60,11 +61,11 @@ export const extractUser = (
   const result = userIdSchema.safeParse(req.headers["x-user-id"]);
 
   if (result.success) {
-    // Validation passed - set userId (could be valid UUID or undefined)
+    // Validation passed - set userId (could be valid INT or undefined)
     req.userId = result.data;
   } else {
     // Validation failed - treat as guest
-    console.warn("Invalid X-User-Id header format:", result.error.issues[0]?.message);
+    console.warn("Invalid X-User-Id header:", z.prettifyError(result.error));
     req.userId = undefined;
   }
 

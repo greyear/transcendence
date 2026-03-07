@@ -1,6 +1,5 @@
 .DS_Store
 .env
-!.env.template
 
 # Dependencies
 node_modules/

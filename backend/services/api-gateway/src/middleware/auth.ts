@@ -43,10 +43,20 @@ function getErrorMessage(error: unknown): string {
 /**
  * Zod schema for validating auth-service response
  * Auth service must return an object with 'id' field
- * id must be a non-empty string (the user ID)
+ * id can be integer number or integer string
+ * value is parsed to integer and validated against INT range
  */
+const MAX_SIGNED_INT = 2147483647;
+
+const authUserIdSchema = z
+  .coerce
+  .number()
+  .int()
+  .positive()
+  .max(MAX_SIGNED_INT, `id is out of INT range (max ${MAX_SIGNED_INT})`);
+
 const authResponseSchema = z.object({
-  id: z.string().min(1),
+  id: authUserIdSchema,
 });
 
 /**
@@ -54,11 +64,11 @@ const authResponseSchema = z.object({
  * Extends Express.Request with userId field
  * 
  * userId is optional - it's set by optionalAuth middleware
- * After middleware: string (authenticated) or null (guest)
+ * After middleware: number (authenticated) or null (guest)
  * Before middleware: undefined
  */
 export interface AuthenticatedRequest extends Request {
-  userId?: string | null;
+  userId?: number | null;
 }
 
 // Auth service URL from environment variable
@@ -132,10 +142,10 @@ export const optionalAuth = async (
             // Validation passed - extract user ID
             req.userId = parseResult.data.id;
             // Set X-User-Id header for proxying to downstream services
-            req.headers["x-user-id"] = parseResult.data.id;
+            req.headers["x-user-id"] = String(parseResult.data.id);
           } else {
             // Response format is invalid - treat as auth failure
-            console.warn("Invalid auth-service response format:", parseResult.error.issues[0]?.message);
+            console.warn("Invalid auth-service response format:", z.prettifyError(parseResult.error));
             req.userId = null;
           }
         } else {

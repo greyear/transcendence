@@ -9,10 +9,12 @@
  * TypeScript benefits:
  * - Interface RecipeRow - describes database data structure
  * - Async/await with typing guarantees function returns Promise
- * - Function parameters are type-safe (id: string, userId?: string)
+ * - Function parameters are type-safe (id: number, userId?: number)
+ * - Query params always contain only numbers (no undefined values sent to DB)
  */
 
 import { pool } from "../db/database.js";
+import { z } from "zod";
 import { Recipe, recipeSchema, recipeListItemSchema } from "../validation/schemas.js";
 
 /**
@@ -21,19 +23,17 @@ import { Recipe, recipeSchema, recipeListItemSchema } from "../validation/schema
  * This differs from Recipe type in schemas.ts!
  * RecipeRow - what database returns
  * Recipe - what we send to client (might be different)
- * 
- * ? after field - means optional field (can be undefined)
  */
 interface RecipeRow {
   id: number;
   title: string;
-  author_id: string;
-  status?: string;
-  description?: string;
-  instructions?: string;
-  servings?: number;
-  spiciness?: number;
-  rating_avg?: number;
+  author_id: number | null;
+  status: string;
+  description: string | null;
+  instructions: string[];
+  servings: number;
+  spiciness: number;
+  rating_avg: number | null;
 }
 
 /**
@@ -43,9 +43,9 @@ interface RecipeRow {
 interface RecipeListItem {
   id: number;
   title: string;
-  author_id: string;
-  description?: string;
-  rating_avg?: number;
+  author_id: number | null;
+  description: string | null;
+  rating_avg: number | null;
 }
 
 /**
@@ -78,7 +78,7 @@ export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
     const validatedRows = result.rows.map((row) => {
       const validation = recipeListItemSchema.safeParse(row);
       if (!validation.success) {
-        console.error("Invalid recipe data from database:", validation.error.issues[0]?.message);
+        console.error("Invalid recipe data from database:", z.prettifyError(validation.error));
         throw new Error("Invalid recipe data received from database");
       }
       return validation.data;
@@ -102,8 +102,8 @@ export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
  * - Existing but restricted recipe: returns { restricted: true } (403)
  * 
  * Parameters:
- * - id: string - recipe UUID
- * - userId?: string - user ID (undefined if guest)
+ * - id: number - recipe integer ID from URL params (validated and coerced)
+ * - userId?: number - user ID (undefined if guest)
  * 
  * | - means "OR" (union type), can be one of three:
  * RecipeRow - normal recipe
@@ -111,12 +111,12 @@ export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
  * null - recipe doesn't exist at all
  */
 export const getRecipeById = async (
-  id: string,
-  userId?: string
+  id: number,
+  userId?: number
 ): Promise<RecipeRow | { restricted: true } | null> => {
   try {
     let query: string;
-    let params: string[];
+    let params: number[];
 
     if (userId) {
       // User is authenticated - show own drafts OR others' published recipes
@@ -131,7 +131,7 @@ export const getRecipeById = async (
       // Guest - only published recipes
       query = `
         SELECT id, title, description, instructions, servings, 
-               spiciness, author_id, rating_avg
+               spiciness, author_id, rating_avg, status
         FROM recipes
         WHERE id = $1 AND status = 'published'
       `;
@@ -149,7 +149,7 @@ export const getRecipeById = async (
         return validation.data;
       } else {
         // Recipe data from DB doesn't match expected schema
-        console.error("Invalid recipe data from database:", validation.error.issues[0]?.message);
+        console.error("Invalid recipe data from database:", z.prettifyError(validation.error));
         throw new Error("Invalid recipe data received from database");
       }
     }
