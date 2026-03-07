@@ -15,16 +15,6 @@ import * as help from './authHelpers.ts';
 
 export const authRouter = Router();
 
-//Temporary function to wait for x milliseconds
-function wait(ms){
-   var start = new Date().getTime();
-   var end = start;
-   while(end < start + ms) {
-     end = new Date().getTime();
-  }
-}
-//End temp function, please remember to remove later
-
 //Connection part probably being moved later
 const MONGO_AUTH_URI = process.env.MONGODB_AUTH_URI || 'mongodb://127.0.0.1:27017/auth_db';
 // Connect to MongoDB
@@ -120,8 +110,6 @@ authRouter.post('/login', async (req, res) =>
 			return res.status(401).json({ error: 'Password mismatch' });
 		
 		const JWToken = help.generateToken(userDocument.get('_id'), username);
-		//wait(2000);
-		//help.validateJWT(JWToken);
 		return res.status(200).json({ 
 					token: JWToken,
 					message: "Login successful" 
