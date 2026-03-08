@@ -3,11 +3,13 @@ import { ModerationButton } from "./components/buttons/ModerationButton";
 import { RecipeCard } from "./components/cards/RecipeCard";
 import { Plus } from "iconoir-react";
 import { MainButton } from "./components/buttons/MainButton";
+import { UserCard } from "./components/cards/UserCard";
 
 function App() {
 	return (
 		<>
 			<RecipeCard />
+			<UserCard />
 			<FavoriteButton />
 			<ModerationButton action="approve" />
 			<ModerationButton action="discard" />

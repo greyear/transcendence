@@ -1,3 +1,16 @@
+.user-card-link-wrapper {
+	text-decoration: none;
+	color: unset;
+
+	&:active {
+		filter: brightness(var(--active-brightness));
+	}
+
+	&:has(.main-button:hover) {
+		filter: none;
+	}
+}
+
 .user-card {
 	--user-card-photo-size: 120px;
 	display: flex;
@@ -26,8 +39,6 @@
 	border-radius: var(--radius-l);
 	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.15);
 	gap: var(--space-m);
-
-	/* TODO: remove it once the button is created */
 	width: 160px;
 }
 
@@ -37,4 +48,9 @@
 	align-items: center;
 	margin-top: calc(var(--user-card-photo-size) / 2);
 	gap: var(--space-s);
+}
+
+.unfollow-button {
+	color: var(--text-primary);
+	background-color: var(--surface-card);
 }
