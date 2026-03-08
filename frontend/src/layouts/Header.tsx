@@ -1,7 +1,8 @@
-import { Bell, Menu, XmarkCircle } from "iconoir-react"
+import { Bell, Menu, Xmark } from "iconoir-react"
 import { IconButton } from "../components/buttons/IconButton"
 import { MainButton } from "../components/buttons/MainButton"
 import { useState } from "react"
+import "../assets/styles/header.css"
 
 export const Header = () => {
 	const [isOpen, setIsOpen] = useState(false)
@@ -9,7 +10,7 @@ export const Header = () => {
 	const handleMenuButtonClick = () => setIsOpen((prev) => !prev);
 
 	return (
-		<header>
+		<header className="main-header">
 			<div className="header-top-row">
 				<h2>RCP</h2>
 				<div className="header-top-icon-row">
@@ -21,7 +22,7 @@ export const Header = () => {
 						aria-expanded={isOpen}
 						aria-label="Toggle menu"
 					>
-						{isOpen ? <XmarkCircle /> : <Menu />}
+						{isOpen ? <Xmark /> : <Menu />}
 					</IconButton>
 				</div>
 			</div>

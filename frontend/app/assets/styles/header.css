@@ -1,0 +1,31 @@
+.main-header {
+	display: flex;
+	flex-direction: column;
+	background-color: var(--surface-header);
+	padding: var(--space-l);
+	gap: var(--space-xl);
+}
+
+.header-top-row {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.header-top-icon-row {
+	display: flex;
+	flex-direction: row;
+}
+
+.header-navigation-list {
+	list-style: none;
+    margin: 0;
+    padding: 0;
+
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xl);
+	padding: 0;
+	align-items: center;
+}
