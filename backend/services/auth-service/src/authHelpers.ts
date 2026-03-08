@@ -102,3 +102,15 @@ export const validateJWT = (req) =>
 		return null;
 	}
 };
+
+// Simple helper to validate JWT and check username
+export const compareJWT = (req) =>
+{
+	const validatedJWT = validateJWT(req);
+	if (!validatedJWT)
+		return false;
+	if (validatedJWT !== req.params.username)
+		return false;
+
+	return true;
+};

@@ -19,11 +19,8 @@ authGetSet.delete('/users/:username', async (req, res) =>
 	try {
 		const username = req.params.username;
 
-		const validatedJWT = help.validateJWT(req);
-		if (!validatedJWT)
+		if (!help.compareJWT(req))
 			return res.status(401).json({ error: "Invalid token" });
-		if (validatedJWT !== username)
-			return res.status(401).json({ error: "Incorrect token" });
 
 		const userDocument = await userModel.findOneAndDelete( {username} );
 
@@ -90,11 +87,8 @@ authGetSet.put('/users/:username', async (req, res) =>
 		const {newpassword, password} = req.body;
 		const username = req.params.username;
 
-		const validatedJWT = help.validateJWT(req);
-		if (!validatedJWT)
+		if (!help.compareJWT(req))
 			return res.status(401).json({ error: "Invalid token" });
-		if (validatedJWT !== username)
-			return res.status(401).json({ error: "Incorrect token" });
 
 		if (!help.validatePassword(newpassword))
 			return res.status(422).json({error: "The password doesn't match the password requirements"});
