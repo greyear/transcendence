@@ -60,15 +60,14 @@ export const extractUser = (
   // z.preprocess handles the type coercion safely
   const result = userIdSchema.safeParse(req.headers["x-user-id"]);
 
-  if (result.success) {
-    // Validation passed - set userId (could be valid INT or undefined)
-    req.userId = result.data;
-  } else {
+  if (!result.success) {
     // Validation failed - treat as guest
     console.warn("Invalid X-User-Id header:", z.prettifyError(result.error));
     req.userId = undefined;
+    return next();
   }
 
-  // Pass control to the next middleware
-  next();
+  // Validation passed - set userId (could be valid INT or undefined)
+  req.userId = result.data;
+  return next();
 };

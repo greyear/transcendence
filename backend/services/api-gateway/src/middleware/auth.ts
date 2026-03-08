@@ -112,66 +112,66 @@ export const optionalAuth = async (
       }
     }
 
-    // If no token from either source → continue as guest
+    // Early return: no token provided
     if (!token) {
-      // No token provided - continue as guest
       req.userId = null;
-    } else {
-      // 2. VALIDATE TOKEN IN AUTH-SERVICE
-      // Send token to auth-service for verification
-      // Auth-service returns user information or error
-      try {
-        // fetch() - HTTP request (built-in function in Node.js)
-        const response = await fetch(`${AUTH_SERVICE_URL}/auth/validate`, {
-          method: "POST", // POST request
-          headers: {
-            "Authorization": `Bearer ${token}`, // Send token in Authorization header (RFC 7235)
-          },
-          signal: createTimeoutSignal(AUTH_SERVICE_TIMEOUT_MS),
-        });
+      return next();
+    }
 
-        // response.ok = true if status 200-299
-        if (response.ok) {
-          // Token is valid! Get user information
-          const rawData = await response.json();
+    // 2. VALIDATE TOKEN IN AUTH-SERVICE
+    // Send token to auth-service for verification
+    // Auth-service returns user information or error
+    try {
+      // fetch() - HTTP request (built-in function in Node.js)
+      const response = await fetch(`${AUTH_SERVICE_URL}/auth/validate`, {
+        method: "POST", // POST request
+        headers: {
+          "Authorization": `Bearer ${token}`, // Send token in Authorization header (RFC 7235)
+        },
+        signal: createTimeoutSignal(AUTH_SERVICE_TIMEOUT_MS),
+      });
 
-          // Validate response with Zod schema
-          const parseResult = authResponseSchema.safeParse(rawData);
-
-          if (parseResult.success) {
-            // Validation passed - extract user ID
-            req.userId = parseResult.data.id;
-            // Set X-User-Id header for proxying to downstream services
-            req.headers["x-user-id"] = String(parseResult.data.id);
-          } else {
-            // Response format is invalid - treat as auth failure
-            console.warn("Invalid auth-service response format:", z.prettifyError(parseResult.error));
-            req.userId = null;
-          }
-        } else {
-          // Token is invalid (expired, fake, etc.)
-          // Continue as guest
-          console.warn("Invalid token, continuing as guest");
-          req.userId = null;
-        }
-      } catch (authError) {
-        // Auth-service is unavailable (network error, service down, etc.)
-        // Continue as guest (to avoid breaking entire service)
-        if (isTimeoutError(authError)) {
-          console.warn("Auth-service timeout, continuing as guest");
-          req.userId = null;
-        } else {
-          console.error("Auth-service error:", getErrorMessage(authError));
-          req.userId = null;
-        }
+      // Early return: token is invalid (expired, fake, etc.)
+      if (!response.ok) {
+        console.warn("Invalid token, continuing as guest");
+        req.userId = null;
+        return next();
       }
+
+      // Get user information from response
+      const rawData = await response.json();
+
+      // Validate response with Zod schema
+      const parseResult = authResponseSchema.safeParse(rawData);
+
+      // Early return: response format is invalid
+      if (!parseResult.success) {
+        console.warn("Invalid auth-service response format:", z.prettifyError(parseResult.error));
+        req.userId = null;
+        return next();
+      }
+
+      // Success: token is valid and response is well-formed
+      req.userId = parseResult.data.id;
+      // Set X-User-Id header for proxying to downstream services
+      req.headers["x-user-id"] = String(parseResult.data.id);
+      return next();
+    } catch (authError) {
+      // Auth-service is unavailable (network error, service down, etc.)
+      // Continue as guest (to avoid breaking entire service)
+      if (isTimeoutError(authError)) {
+        console.warn("Auth-service timeout, continuing as guest");
+      } else {
+        console.error("Auth-service error:", getErrorMessage(authError));
+      }
+
+      req.userId = null;
+      return next();
     }
   } catch (error) {
     // Unexpected error - continue as guest (fail-safe)
     console.error("Error in optionalAuth middleware:", getErrorMessage(error));
     req.userId = null;
+    return next();
   }
-  
-  // ALWAYS call next() - happens after both successful and error paths
-  next();
 };

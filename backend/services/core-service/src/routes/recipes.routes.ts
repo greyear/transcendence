@@ -36,8 +36,6 @@ const getAllRecipesHandler = async (
   }
 };
 
-recipesRouter.get("/", getAllRecipesHandler);
-
 /**
  * GET /recipes/:id - fetch a specific recipe by id
  *
@@ -83,3 +81,4 @@ const getRecipeByIdHandler = async (
 
 // extractUser middleware extracts userId from X-User-Id header
 recipesRouter.get("/:id", extractUser, getRecipeByIdHandler);
+recipesRouter.get("/", getAllRecipesHandler);

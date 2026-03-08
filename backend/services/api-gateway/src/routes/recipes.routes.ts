@@ -64,8 +64,6 @@ const getRecipesHandler: RequestHandler = async (req, res, next) => {
   }
 };
 
-recipesRouter.get("/", getRecipesHandler);
-
 /**
  * GET /:id - get a specific recipe
  * (Actual path: /recipes/:id)
@@ -102,3 +100,4 @@ const getRecipeByIdHandler: RequestHandler = async (req, res, next) => {
 };
 
 recipesRouter.get("/:id", getRecipeByIdHandler);
+recipesRouter.get("/", getRecipesHandler);

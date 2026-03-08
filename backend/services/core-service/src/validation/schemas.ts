@@ -110,3 +110,9 @@ export const recipeListItemSchema = z.object({
  * Usage: const recipe: Recipe = { id: "...", title: "..." }
  */
 export type Recipe = z.infer<typeof recipeSchema>;
+
+/**
+ * RecipeListItem type - minimal recipe info for list view
+ * Inferred from recipeListItemSchema, automatically stays in sync
+ */
+export type RecipeListItem = z.infer<typeof recipeListItemSchema>;
