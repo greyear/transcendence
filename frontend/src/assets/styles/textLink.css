@@ -1,0 +1,16 @@
+.text-link {
+	text-decoration: none;
+	font-size: var(--fs-body2);
+	line-height: var(--lh-body2);
+	color: var(--text-primary);
+
+	&:hover {
+		filter: brightness(var(--hover-brightness));
+		text-decoration: underline;
+	}
+
+	&:active {
+		filter: brightness(var(--active-brightness));
+	}
+}
+
