@@ -1,17 +1,17 @@
 /**
  * Core Service Entry Point
- * 
+ *
  * TypeScript provides:
  * - Type safety for Express objects (app, PORT)
  * - Compile-time error checking (errors found BEFORE runtime)
  * - IDE autocomplete and suggestions
  */
 
-import express, { Express } from "express";
 import cors from "cors";
+import express, { type Express } from "express";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
-import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 // Express app - typed as Express (type from @types/express)
 // This ensures all methods like app.get(), app.use() etc. are type-checked
@@ -26,10 +26,10 @@ const PORT: number = parseInt(process.env.PORT || "3002", 10);
 // Currently core-service is behind API Gateway, so CORS may not be needed here.
 // Revisit when frontend direct access to core-service is required.
 app.use(
-  cors({
-    origin: `http://localhost:${PORT}`,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  })
+	cors({
+		origin: `http://localhost:${PORT}`,
+		methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+	}),
 ); // Configure CORS for security
 app.use(express.json()); // Parse JSON from request body
 
@@ -47,5 +47,5 @@ app.use(errorHandler);
 
 // ===== START SERVER =====
 app.listen(PORT, () => {
-  console.log(`Core service running on port ${PORT}`);
+	console.log(`Core service running on port ${PORT}`);
 });
