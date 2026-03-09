@@ -43,7 +43,7 @@ recipesRouter.use(optionalAuth);
  * GET / - get all recipes
  * (Actual path: /recipes/)
  */
-const getRecipesHandler: RequestHandler = async (req, res, next) => {
+const getRecipesHandler: RequestHandler = async (req, res, _next) => {
 	try {
 		// Forward request to core-service
 		// X-User-Id header already set by optionalAuth middleware
@@ -76,7 +76,7 @@ const getRecipesHandler: RequestHandler = async (req, res, next) => {
  * - 404 Not Found: recipe doesn't exist
  * - 400 Bad Request: ID is not a valid positive integer
  */
-const getRecipeByIdHandler: RequestHandler = async (req, res, next) => {
+const getRecipeByIdHandler: RequestHandler = async (req, res, _next) => {
 	try {
 		// Forward request to core-service
 		// X-User-Id header already set by optionalAuth middleware

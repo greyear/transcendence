@@ -36,7 +36,7 @@ export const AUTH_SERVICE_TIMEOUT_MS = parseTimeoutMs(
 export const createResponseTimeoutMiddleware = (
 	timeoutMs: number,
 ): RequestHandler => {
-	return (req, res, next) => {
+	return (_req, res, next) => {
 		res.setTimeout(timeoutMs, () => {
 			if (!res.headersSent) {
 				res.status(504).json({ error: "Gateway Timeout" });

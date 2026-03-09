@@ -22,7 +22,10 @@ export const healthRouter = Router();
  * Forwards request to core-service:
  * Gateway request → Core service request → Response
  */
-const getHealthHandler = async (req: Request, res: Response): Promise<void> => {
+const getHealthHandler = async (
+	_req: Request,
+	res: Response,
+): Promise<void> => {
 	try {
 		const response = await fetch(`${CORE_SERVICE_URL}/health`, {
 			signal: createTimeoutSignal(CORE_HEALTH_TIMEOUT_MS),
@@ -48,7 +51,7 @@ healthRouter.get("/", getHealthHandler);
  * Forwards request to core-service which will check Postgres connection
  */
 const getHealthDbHandler = async (
-	req: Request,
+	_req: Request,
 	res: Response,
 ): Promise<void> => {
 	try {
