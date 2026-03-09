@@ -1,26 +1,26 @@
 /**
  * API Gateway Entry Point
- * 
+ *
  * API Gateway is a "facade" that:
  * 1. Checks authorization (JWT token)
  * 2. Forwards requests to other services (core-service)
  * 3. Adds user context in headers
- * 
+ *
  * TypeScript benefits:
  * - app: Express - properly typed
  * - Record<string, string> - type-safe headers object
  * - Promise<void> - async functions with explicit type
  */
 
-import express, { Express } from "express";
+import express, { type Express } from "express";
 import "dotenv/config";
-import cors from "cors";
 import cookieParser from "cookie-parser";
-import { recipesRouter } from "./routes/recipes.routes.js";
+import cors from "cors";
 import { healthRouter } from "./routes/health.routes.js";
+import { recipesRouter } from "./routes/recipes.routes.js";
 import {
-  GATEWAY_RESPONSE_TIMEOUT_MS,
-  createResponseTimeoutMiddleware,
+	createResponseTimeoutMiddleware,
+	GATEWAY_RESPONSE_TIMEOUT_MS,
 } from "./utils/timeouts.js";
 
 /**
@@ -36,10 +36,10 @@ const port = process.env.PORT || 3000;
 
 // ===== MIDDLEWARE =====
 app.use(
-  cors({
-    origin: `http://localhost:${port}`,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  })
+	cors({
+		origin: `http://localhost:${port}`,
+		methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+	}),
 ); // Configure CORS for security
 app.use(express.json()); // Parse JSON from request body
 app.use(cookieParser()); // Parse cookies from request headers
@@ -55,5 +55,5 @@ app.use("/recipes", recipesRouter);
 
 // ===== START SERVER =====
 app.listen(port, () => {
-  console.log(`api-gateway listening on port ${port}`);
+	console.log(`api-gateway listening on port ${port}`);
 });

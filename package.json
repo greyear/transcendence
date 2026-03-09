@@ -15,7 +15,9 @@
 	"type": "module",
 	"scripts": {
 		"check": "npx @biomejs/biome check",
-		"fix": "npx @biomejs/biome check --write"
+		"fix": "npx @biomejs/biome check --write",
+		"test": "bash test-endpoints.sh",
+		"test:fix": "npm run fix && npm run test"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.5"
