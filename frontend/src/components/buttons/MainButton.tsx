@@ -15,6 +15,7 @@ interface MainButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export function MainButton({
 	children,
+	className = "",
 	variant = "primary",
 	active = false,
 	...props
@@ -22,7 +23,7 @@ export function MainButton({
 
 	return (
 		<button
-			className={`main-button ${variant} ${active ? "active" : ""}`}
+			className={`main-button ${variant} ${active ? "active" : ""} ${className}`}
 			{...props}
 		>
 			{children}
