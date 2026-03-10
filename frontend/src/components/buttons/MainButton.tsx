@@ -1,11 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import "../../assets/styles/mainButton.css";
 
-type MainButtonVariant =
-	| "primary"
-	| "pill"
-	| "danger"
-	| "secondary";
+type MainButtonVariant = "primary" | "pill" | "danger" | "secondary";
 
 interface MainButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	children: ReactNode;
@@ -20,7 +16,6 @@ export const MainButton = ({
 	active = false,
 	...props
 }: MainButtonProps) => {
-
 	return (
 		<button
 			className={`main-button ${variant} ${active ? "active" : ""} ${className}`}
@@ -29,4 +24,4 @@ export const MainButton = ({
 			{children}
 		</button>
 	);
-}
+};
