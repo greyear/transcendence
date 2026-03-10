@@ -1,10 +1,10 @@
-import { Routes, Route } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { HomePage } from "./pages/HomePage";
 import { RecipePage } from "./pages/RecipePage";
 
 const routes = [
 	{ path: "/", element: <HomePage /> },
-	{ path: "/recipe-page", element: <RecipePage />},
+	{ path: "/recipe-page", element: <RecipePage /> },
 ];
 
 function App() {
