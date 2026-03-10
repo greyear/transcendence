@@ -1,6 +1,8 @@
 .user-card-link-wrapper {
+	display: flex;
 	text-decoration: none;
 	color: unset;
+	width: fit-content;
 
 	&:active {
 		filter: brightness(var(--active-brightness));
@@ -13,11 +15,12 @@
 
 .user-card {
 	--user-card-photo-size: 120px;
-	--user-card-container-width: 160px;
+	--user-card-width: 160px;
 	display: flex;
 	flex-direction: column;
 	position: relative;
 	align-items: center;
+	width: var(--user-card-width);
 }
 
 .user-card-photo {
@@ -40,7 +43,8 @@
 	border-radius: var(--radius-l);
 	box-shadow: var(--shadow-effect);
 	gap: var(--space-m);
-	width: var(--user-card-container-width);
+	width: 100%;
+	align-items: center;
 }
 
 .user-card-header {
@@ -51,7 +55,11 @@
 	gap: var(--space-s);
 }
 
-.unfollow-button {
+.user-card-button {
+	width: 100%;
+}
+
+.user-card-button.unfollow {
 	color: var(--text-primary);
 	background-color: var(--surface-card);
 }
@@ -59,13 +67,17 @@
 @media (min-width: 768px) {
 	.user-card {
 		--user-card-photo-size: 200px;
-		--user-card-container-width: 328px;
+		--user-card-width: 328px;
 	}
 }
 
 @media (min-width: 1440px) {
 	.user-card {
 		--user-card-photo-size: 212px;
-		--user-card-container-width: 394px;
+		--user-card-width: 394px;
+	}
+
+	.user-card-button {
+		width: 296px;
 	}
 }

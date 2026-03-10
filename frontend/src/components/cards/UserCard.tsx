@@ -22,7 +22,7 @@ export const UserCard = () => {
 					</header>
 					<MainButton
 						onClick={onClick}
-						className={isActive ? "unfollow-button" : ""}
+						className={`user-card-button ${isActive ? "unfollow" : ""}`}
 					>
 						{isActive ? "Unfollow" : "Follow"}
 					</MainButton>
