@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import "@fontsource/glory/300.css";
 import "@fontsource/glory/400.css";
 import "@fontsource/glory/500.css";
@@ -9,6 +10,8 @@ import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
 	<StrictMode>
-		<App />
-	</StrictMode>,
+		<BrowserRouter>
+			<App />
+		</BrowserRouter>
+	</StrictMode>
 );
