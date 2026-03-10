@@ -14,13 +14,10 @@ export const authGetSet = Router();
 		2. Return relevant code
 	As of now does not require the current password.
 */
-authGetSet.delete('/users/:username', async (req, res) =>
+authGetSet.delete('/users/:username', help.compareJWT,  async (req, res) =>
 {
 	try {
 		const username = req.params.username;
-
-		if (!help.compareJWT(req))
-			return res.status(401).json({ error: "Invalid token" });
 
 		const userDocument = await userModel.findOneAndDelete( {username} );
 
@@ -81,16 +78,13 @@ authGetSet.get('/users', async (req, res) =>
 			Find by URI param. Recreate record with new data
 		6. Return relevant code
 */
-authGetSet.put('/users/:username', async (req, res) =>
+authGetSet.patch('/users/:username/change-password', help.compareJWT, async (req, res) =>
 {
 	try {
-		const {newpassword, password} = req.body;
+		const {newPassword, password} = req.body;
 		const username = req.params.username;
 
-		if (!help.compareJWT(req))
-			return res.status(401).json({ error: "Invalid token" });
-
-		if (!help.validatePassword(newpassword))
+		if (!help.validatePassword(newPassword))
 			return res.status(422).json({error: "The password doesn't match the password requirements"});
 		
 		const userDocument = await userModel.findOne({username});
@@ -102,18 +96,18 @@ authGetSet.put('/users/:username', async (req, res) =>
 		if (!passwordMatch)
 			return res.status(401).json({ error: 'Password mismatch' });
 
-		const hashedPassword = await help.hashPassword(newpassword);
+		const hashedPassword = await help.hashPassword(newPassword);
 		if (!hashedPassword)
 			return res.status(500).json({error: 'Hashing failed'});
 
-		const toReplaceDoc = await userModel.findOneAndUpdate(
+		const updatedUser = await userModel.findOneAndUpdate(
 			{username},
 			{passwordHash: hashedPassword},
 			{new: true}
 			);
 
-		if (toReplaceDoc)
-			return res.json(toReplaceDoc);
+		if (updatedUser)
+			return res.json({ message: "Password updated successfully" });
 		
 		return res.status(404).json({error: 'User not found'});
 	
@@ -123,14 +117,20 @@ authGetSet.put('/users/:username', async (req, res) =>
 });
 
 // /auth/validate endpoint to specifically validate a JWT within the header.
-authGetSet.post('/auth/validate', (req, res) =>
+authGetSet.post('/auth/validate', async (req, res) =>
 {
 	try {
-		const validatedJWT = help.validateJWT(req);
-		if (!validatedJWT)
+		const decodedToken = help.fetchDecodeToken(req);
+		if (!decodedToken)
+			throw Error("Invalid header");
+
+		const username = decodedToken.username;
+		const userDocument = await userModel.findOne({username});
+		if (!userDocument)
 			return res.status(401).json({ error: "Invalid token" });
 
-		return res.status(200).json({ username: validatedJWT });
+		const userID = userDocument.get('_id');
+		return res.status(200).json({ _id: userID });
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({ error: error.message });

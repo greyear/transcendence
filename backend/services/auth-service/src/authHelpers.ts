@@ -2,6 +2,9 @@ import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
 import z from "zod";
 
+//Location of userModel may or may not change later.
+import { userModel } from './auth_schema.ts'; 
+
 //From auth_db_operations.ts
 //
 // Password hashing, using bcrypt. I think slightly simpler than others.
@@ -79,13 +82,22 @@ export const generateToken = (id, username) =>
 	});
 };
 
-/*
-	Validate/verify a JWT. /auth/validate endpoint
-	When passed a request with an "Authorization" header, attempts to
-	validate any attached token. Missing header returns 422 (Unprocessable Entity)
-	Authorization header is formatted thus: <type> <token> so needs splitting.
-*/
-export const validateJWT = (req) =>
+
+export const decodeToken = (token) =>
+{
+	try {
+		const JWTSecret = process.env.JWTSecret || "placeholder";
+
+		const decoded = jwt.verify(token, JWTSecret);
+
+		return decoded;
+	} catch (error) {
+		console.error(error);
+		return null;
+	}
+};
+
+export const sequenceHeader = (req) =>
 {
 	try {
 		const authHeaders = req.headers.authorization;
@@ -93,10 +105,26 @@ export const validateJWT = (req) =>
 			return null;
 
 		const testToken = authHeaders.split(" ");
-		const JWTSecret = process.env.JWTSecret || "placeholder";
-		const decoded = jwt.verify(testToken[1], JWTSecret);
-		console.log(decoded);
-		return decoded.username;
+		return testToken[1];
+
+	} catch (error) {
+		console.error(error);
+		return null;
+	}
+};
+
+export const fetchDecodeToken = (req) =>
+{
+	try {
+		const tokenHeader = sequenceHeader(req);
+		if (!tokenHeader)
+			throw Error("Given header does not contain a parseable token");
+
+		const decodedToken = decodeToken(tokenHeader);
+		if (!decodedToken)
+			throw Error("Whatever was given was not a token");
+
+		return decodedToken;
 	} catch (error) {
 		console.error(error);
 		return null;
@@ -104,13 +132,13 @@ export const validateJWT = (req) =>
 };
 
 // Simple helper to validate JWT and check username
-export const compareJWT = (req) =>
+export const compareJWT = (req, res, next) =>
 {
-	const validatedJWT = validateJWT(req);
-	if (!validatedJWT)
-		return false;
-	if (validatedJWT !== req.params.username)
-		return false;
+	const decodedJWT = fetchDecodeToken(req);
+	if (!decodedJWT)
+		return res.status(401).json({ error: "Invalid token" });
+	if (decodedJWT.username !== req.params.username)
+		return res.status(401).json({ error: "Incorrect token" });
 
-	return true;
-};
+	next();
+}
