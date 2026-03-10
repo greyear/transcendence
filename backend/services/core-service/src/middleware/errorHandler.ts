@@ -45,8 +45,10 @@ export const errorHandler = (
 	// message from error, or generic text
 	const message = err.message || "Internal server error";
 
-	// Log to console for debugging
-	console.error(`Error [${statusCode}]:`, message);
+	// Log errors outside test environment to keep test output readable
+	if (process.env.NODE_ENV !== "test") {
+		console.error(`Error [${statusCode}]:`, message);
+	}
 
 	// Send JSON response to client with HTTP status code
 	res.status(statusCode).json({ error: message });
