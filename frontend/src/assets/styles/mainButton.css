@@ -15,7 +15,6 @@
 	border: 1px solid var(--borders-action);
 	background-color: var(--surface-action-active);
 	white-space: nowrap;
-	min-width: 128px;
 }
 
 .main-button:hover {
