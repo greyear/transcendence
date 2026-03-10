@@ -13,13 +13,13 @@ interface MainButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	active?: boolean;
 }
 
-export function MainButton({
+export const MainButton = ({
 	children,
 	className = "",
 	variant = "primary",
 	active = false,
 	...props
-}: MainButtonProps) {
+}: MainButtonProps) => {
 
 	return (
 		<button
