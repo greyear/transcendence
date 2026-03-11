@@ -1,28 +1,19 @@
-import { Plus } from "iconoir-react";
-import { FavoriteButton } from "./components/buttons/FavoriteButton";
-import { MainButton } from "./components/buttons/MainButton";
-import { ModerationButton } from "./components/buttons/ModerationButton";
-import { RecipeCard } from "./components/cards/RecipeCard";
-import { UserCard } from "./components/cards/UserCard";
+import { Route, Routes } from "react-router-dom";
+import { HomePage } from "./pages/HomePage";
+import { RecipePage } from "./pages/RecipePage";
+
+const routes = [
+	{ path: "/", element: <HomePage /> },
+	{ path: "/recipe-page", element: <RecipePage /> },
+];
 
 function App() {
 	return (
-		<>
-			<RecipeCard />
-			<UserCard />
-			<FavoriteButton />
-			<ModerationButton action="approve" />
-			<ModerationButton action="discard" />
-
-			<FavoriteButton disabled />
-			<ModerationButton action="discard" disabled />
-			<MainButton>
-				<Plus />
-				Create new
-			</MainButton>
-			<MainButton>Log in/sign up</MainButton>
-			<MainButton disabled>Disabled</MainButton>
-		</>
+		<Routes>
+			{routes.map((route) => (
+				<Route key={route.path} path={route.path} element={route.element} />
+			))}
+		</Routes>
 	);
 }
 
