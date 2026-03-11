@@ -1,4 +1,4 @@
-.PHONY: help up down restart clean logs logs-db db-status db-reset dev-api dev-core dev-all test-core test-core-fix check-node
+.PHONY: help up down restart clean logs logs-db db-status db-reset dev-api dev-core dev-all test-core test-core-fix test-jest-core test-jest-api test-jest-all test-all check-node
 
 help:
 	@echo "Transcendence Development Commands:"
@@ -21,6 +21,10 @@ help:
 	@echo "Tests:"
 	@echo "  make test-core       - Run core-service endpoint smoke tests"
 	@echo "  make test-core-fix   - Run Biome autofix, then core-service smoke tests"
+	@echo "  make test-jest-core  - Run Jest unit/integration tests for core-service"
+	@echo "  make test-jest-api   - Run Jest unit/integration tests for api-gateway"
+	@echo "  make test-jest-all   - Run all Jest tests (core + gateway)"
+	@echo "  make test-all        - Run smoke tests + all Jest tests"
 	@echo ""
 	@echo "Requirements for local dev:"
 	@echo "  Node.js >= 18 (recommended 20 LTS)"
@@ -94,3 +98,27 @@ dev-all:
 	@echo "(if you need auth-service and notification-service stubs in Docker)"
 	@echo ""
 	@echo "Or use tmux/screen to run them in one window"
+
+# ===== Jest Tests =====
+# Unit and integration tests using Jest + Supertest
+# These test individual services without requiring Docker
+
+test-jest-core:
+	@echo "Running Jest tests for core-service..."
+	cd backend/services/core-service && npm test
+
+test-jest-api:
+	@echo "Running Jest tests for api-gateway..."
+	cd backend/services/api-gateway && npm test
+
+test-jest-all:
+	@echo "Running all Jest tests..."
+	@$(MAKE) test-jest-core
+	@$(MAKE) test-jest-api
+
+test-all:
+	@echo "Running complete test suite (smoke + Jest)..."
+	@$(MAKE) test-core
+	@$(MAKE) test-jest-all
+	@echo "✓ All tests completed"
+

@@ -67,6 +67,8 @@
 
 	--hover-brightness: 1.1;
 	--active-brightness: 0.9;
+
+	--shadow-effect: 2px 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* Tablet */

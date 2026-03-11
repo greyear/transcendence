@@ -15,7 +15,11 @@
 	"type": "module",
 	"scripts": {
 		"check": "npx @biomejs/biome check",
-		"fix": "npx @biomejs/biome check --write",
+		"check:backend": "npm run check -- backend",
+		"check:frontend": "npm run check -- frontend",
+		"fix": "npm run check -- --write",
+		"fix:backend": "npm run fix -- backend",
+		"fix:frontend": "npm run fix -- frontend",
 		"test": "bash test-endpoints.sh",
 		"test:fix": "npm run fix && npm run test"
 	},
