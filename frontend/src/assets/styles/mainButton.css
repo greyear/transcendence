@@ -14,6 +14,7 @@
 	color: var(--text-on-accent);
 	border: 1px solid var(--borders-action);
 	background-color: var(--surface-action-active);
+	white-space: nowrap;
 }
 
 .main-button:hover {
@@ -34,14 +35,48 @@
 	filter: none;
 }
 
+.main-button.pill {
+	border-radius: var(--radius-full);
+	background-color: var(--surface-primary);
+	color: var(--text-primary);
+	font-size: var(--fs-caption);
+	font-weight: var(--fw-caption);
+	line-height: var(--lh-caption);
+	min-width: 114px;
+}
+
+.main-button.pill.active {
+	background-color: var(--surface-action-active);
+	color: var(--text-on-accent);
+}
+
+.main-button.danger {
+	background-color: var(--surface-error);
+}
+
+.main-button.secondary {
+	background-color: var(--surface-warning);
+	color: var(--text-primary);
+}
+
 @media (min-width: 768px) {
 	.main-button {
 		height: 48px;
+	}
+	.main-button.danger,
+	.main-button.secondary {
+		min-width: 296px;
+	}
+	.main-button.pill {
+		min-width: 146px;
 	}
 }
 
 @media (min-width: 1440px) {
 	.main-button {
 		height: 56px;
+	}
+	.main-button.pill {
+		min-width: 162px;
 	}
 }
