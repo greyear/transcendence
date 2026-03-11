@@ -5,8 +5,9 @@
  * All routes in this router automatically pass through optionalAuth middleware.
  */
 
-import { type Request, type RequestHandler, Router } from "express";
+import { type RequestHandler, Router } from "express";
 import { optionalAuth } from "../middleware/auth.js";
+import { getInternalHeaders } from "../utils/internalHeaders.js";
 import {
 	CORE_SERVICE_TIMEOUT_MS,
 	createTimeoutSignal,
@@ -16,22 +17,6 @@ import {
 // Service URL for core-service
 const CORE_SERVICE_URL =
 	process.env.CORE_SERVICE_URL || "http://core-service:3002";
-
-const getInternalHeaders = (req: Request): Record<string, string> => {
-	const headers: Record<string, string> = {
-		"Content-Type": "application/json",
-	};
-
-	for (const key in req.headers) {
-		const value = req.headers[key];
-
-		if (value) {
-			headers[key] = Array.isArray(value) ? value.join(", ") : value;
-		}
-	}
-
-	return headers;
-};
 
 // Create router for recipes
 export const recipesRouter = Router();

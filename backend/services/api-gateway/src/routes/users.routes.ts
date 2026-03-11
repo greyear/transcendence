@@ -1,0 +1,63 @@
+import { type RequestHandler, Router } from "express";
+import { requireAuth } from "../middleware/auth.js";
+import { getInternalHeaders } from "../utils/internalHeaders.js";
+import {
+	CORE_SERVICE_TIMEOUT_MS,
+	createTimeoutSignal,
+	isTimeoutError,
+} from "../utils/timeouts.js";
+
+const CORE_SERVICE_URL =
+	process.env.CORE_SERVICE_URL || "http://core-service:3002";
+
+export const usersRouter = Router();
+
+const getUserRecipesHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/users/${req.params.id}/recipes`,
+			{
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res
+			.status(500)
+			.json({ error: "Failed to fetch user recipes from core-service" });
+	}
+};
+
+const getMyRecipesHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(`${CORE_SERVICE_URL}/users/me/recipes`, {
+			headers: getInternalHeaders(req),
+			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+		});
+
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({
+			error: "Failed to fetch current user recipes from core-service",
+		});
+	}
+};
+
+usersRouter.get("/me/recipes", requireAuth, getMyRecipesHandler);
+usersRouter.get("/:id/recipes", getUserRecipesHandler);

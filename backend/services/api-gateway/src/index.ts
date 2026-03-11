@@ -18,6 +18,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { healthRouter } from "./routes/health.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
+import { usersRouter } from "./routes/users.routes.js";
 import {
 	createResponseTimeoutMiddleware,
 	GATEWAY_RESPONSE_TIMEOUT_MS,
@@ -52,6 +53,8 @@ app.use("/health", healthRouter);
 
 // Mount recipes router (defined in routes/recipes.routes.ts)
 app.use("/recipes", recipesRouter);
+// Mount users router (defined in routes/users.routes.ts)
+app.use("/users", usersRouter);
 
 // ===== START SERVER =====
 app.listen(port, () => {

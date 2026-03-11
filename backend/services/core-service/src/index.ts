@@ -12,6 +12,7 @@ import express, { type Express } from "express";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
+import { usersRouter } from "./routes/users.routes.js";
 
 // Express app - typed as Express (type from @types/express)
 // This ensures all methods like app.get(), app.use() etc. are type-checked
@@ -38,6 +39,8 @@ app.use(express.json()); // Parse JSON from request body
 app.use("/health", healthRouter);
 // Requests to /recipes* are routed to recipesRouter
 app.use("/recipes", recipesRouter);
+// Requests to /users* are routed to usersRouter
+app.use("/users", usersRouter);
 
 // ===== ERROR HANDLER (MUST be last middleware!) =====
 // Catches 404 errors (no route matched)
