@@ -1,4 +1,4 @@
-.PHONY: help up down restart clean logs logs-db db-status db-reset dev-api dev-core dev-all check-node
+.PHONY: help up down restart clean logs logs-db db-status db-reset dev-api dev-core dev-all test-core test-core-fix test-jest-core test-jest-api test-jest-all test-all check-node
 
 help:
 	@echo "Transcendence Development Commands:"
@@ -17,6 +17,14 @@ help:
 	@echo "  make dev-api         - Start api-gateway locally (auto-installs deps if needed)"
 	@echo "  make dev-core        - Start core-service locally (auto-installs deps if needed)"
 	@echo "  make dev-all         - Instructions for running API + Core locally"
+	@echo ""
+	@echo "Tests:"
+	@echo "  make test-core       - Run core-service endpoint smoke tests"
+	@echo "  make test-core-fix   - Run Biome autofix, then core-service smoke tests"
+	@echo "  make test-jest-core  - Run Jest unit/integration tests for core-service"
+	@echo "  make test-jest-api   - Run Jest unit/integration tests for api-gateway"
+	@echo "  make test-jest-all   - Run all Jest tests (core + gateway)"
+	@echo "  make test-all        - Run smoke tests + all Jest tests"
 	@echo ""
 	@echo "Requirements for local dev:"
 	@echo "  Node.js >= 18 (recommended 20 LTS)"
@@ -59,6 +67,14 @@ db-reset:
 	docker-compose up -d auth-db core-db notification-db
 	@echo "✓ Database reset completed (apps untouched)"
 
+test-core:
+	@echo "Running core-service endpoint smoke tests..."
+	npm test
+
+test-core-fix:
+	@echo "Running Biome autofix + core-service endpoint smoke tests..."
+	npm run test:fix
+
 check-node:
 	@node -e 'const major=Number(process.versions.node.split(".")[0]); if (major < 18) { console.error("Node.js >= 18 is required for local dev (current: " + process.versions.node + ")"); console.error("Install Node.js 20 LTS, then retry make dev-api/dev-core."); process.exit(1); }'
 
@@ -82,3 +98,27 @@ dev-all:
 	@echo "(if you need auth-service and notification-service stubs in Docker)"
 	@echo ""
 	@echo "Or use tmux/screen to run them in one window"
+
+# ===== Jest Tests =====
+# Unit and integration tests using Jest + Supertest
+# These test individual services without requiring Docker
+
+test-jest-core:
+	@echo "Running Jest tests for core-service..."
+	cd backend/services/core-service && npm test
+
+test-jest-api:
+	@echo "Running Jest tests for api-gateway..."
+	cd backend/services/api-gateway && npm test
+
+test-jest-all:
+	@echo "Running all Jest tests..."
+	@$(MAKE) test-jest-core
+	@$(MAKE) test-jest-api
+
+test-all:
+	@echo "Running complete test suite (smoke + Jest)..."
+	@$(MAKE) test-core
+	@$(MAKE) test-jest-all
+	@echo "✓ All tests completed"
+

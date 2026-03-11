@@ -455,4 +455,36 @@ SELECT id, '1 cup cooked', 234 FROM ingredients WHERE name = 'Oats' UNION ALL
 SELECT id, '1/2 cup dry', 40 FROM ingredients WHERE name = 'Oats'
 ON CONFLICT (ingredient_id, name) DO NOTHING;
 
+-- ============================================
+-- TEST RECIPE (for smoke tests)
+-- ============================================
+INSERT INTO recipes (
+  title, 
+  description, 
+  instructions, 
+  servings, 
+  spiciness, 
+  author_id, 
+  status,
+  rating_avg,
+  rating_count
+) VALUES (
+  'Classic Pancakes',
+  'Fluffy and delicious homemade pancakes perfect for breakfast',
+  ARRAY[
+    'Mix flour, sugar, baking powder and salt in a large bowl',
+    'In another bowl, whisk together milk, egg and melted butter',
+    'Pour wet ingredients into dry ingredients and stir until just combined',
+    'Heat a lightly oiled griddle over medium-high heat',
+    'Pour batter onto the griddle and cook until bubbles form on surface',
+    'Flip and cook until golden brown on both sides'
+  ],
+  4,
+  0,
+  NULL,
+  'published',
+  4.50,
+  10
+) ON CONFLICT DO NOTHING;
+
 COMMENT ON SCHEMA public IS 'Seed data loaded successfully';
