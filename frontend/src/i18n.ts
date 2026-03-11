@@ -1,8 +1,13 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
+import i18n from "i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
+import Backend from "i18next-http-backend";
+import { initReactI18next } from "react-i18next";
 
 i18n
+	// i18next-http-backend
+	// loads translations from your server
+	// https://github.com/i18next/i18next-http-backend
+	.use(Backend)
 	// detect user language
 	// learn more: https://github.com/i18next/i18next-browser-languageDetector
 	.use(LanguageDetector)
@@ -11,34 +16,14 @@ i18n
 	// init i18next
 	// for all options read: https://www.i18next.com/overview/configuration-options
 	.init({
-		debug: true,
-		fallbackLng: 'en',
+		debug: true, // TODO: change to false once this feature is done
+		fallbackLng: "en",
 		interpolation: {
 			escapeValue: false, // not needed for react as it escapes by default
 		},
-		resources: {
-			en: {
-				translation: {
-					homePage: {
-						title: "Home"
-					}
-				}
-			},
-			fi: {
-				translation: {
-					homePage: {
-						title: "Koti"
-					}
-				}
-			},
-			ru: {
-				translation: {
-					homePage: {
-						title: "Дом"
-					}
-				}
-			}
-		}
+		backend: {
+			loadPath: "/locales/{{lng}}/translations.json",
+		},
 	});
 
 export default i18n;

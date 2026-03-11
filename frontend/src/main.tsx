@@ -7,7 +7,7 @@ import "@fontsource/nunito/500.css";
 import "@fontsource/nunito/700.css";
 import "./index.css";
 import App from "./App.tsx";
-import './i18n';
+import "./i18n";
 
 const rootElement = document.getElementById("root");
 

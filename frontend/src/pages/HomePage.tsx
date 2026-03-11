@@ -1,20 +1,18 @@
 import { Filter, Plus } from "iconoir-react";
+import { useTranslation } from "react-i18next";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
 import { MainButton } from "../components/buttons/MainButton";
 import { ModerationButton } from "../components/buttons/ModerationButton";
-import { TextIconButton } from "../components/buttons/TextIconButton";
 import { RecipeCard } from "../components/cards/RecipeCard";
 import { UserCard } from "../components/cards/UserCard";
-import { Trans } from "react-i18next";
+import { TextIconButton } from "../components/buttons/TextIconButton";
 
 export const HomePage = () => {
+	const { t } = useTranslation();
+
 	return (
 		<>
-			<h1>
-				<Trans i18nKey={"homePage.title"}>
-					Home
-				</Trans>
-			</h1>
+			<h1>{t("homePage.title")}</h1>
 			<RecipeCard />
 			<UserCard />
 			<FavoriteButton />
