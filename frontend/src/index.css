@@ -136,7 +136,7 @@
 
 body {
 	margin: 0;
-	font-family: "Glory", system-ui, sans-serif;
+	font-family: "Nunito", system-ui, sans-serif;
 	font-size: var(--fs-body3);
 	line-height: var(--lh-body3);
 	font-weight: var(--fw-body3);
