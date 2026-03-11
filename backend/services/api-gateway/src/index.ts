@@ -1,17 +1,11 @@
 /**
  * API Gateway Entry Point
  *
- * API Gateway is a "facade" that:
- * 1. Checks authorization (JWT token)
- * 2. Forwards requests to other services (core-service)
- * 3. Adds user context in headers
- *
- * TypeScript benefits:
- * - app: Express - properly typed
- * - Record<string, string> - type-safe headers object
- * - Promise<void> - async functions with explicit type
+ * Server startup only - all configuration is in app.ts.
+ * This allows testing the app without starting a real server.
  */
 
+<<<<<<< HEAD
 import express, { type Express } from "express";
 import "dotenv/config";
 import cookieParser from "cookie-parser";
@@ -23,18 +17,14 @@ import {
 	createResponseTimeoutMiddleware,
 	GATEWAY_RESPONSE_TIMEOUT_MS,
 } from "./utils/timeouts.js";
+=======
+import { app } from "./app.js";
+>>>>>>> origin/main
 
-/**
- * Custom Request type for authenticated requests
- * This is used in route handlers after optionalAuth middleware
- */
-// (no need for declare global anymore - we use AuthRequest from middleware)
-
-// Express application - typed as Express
-const app: Express = express();
-// PORT - number (environment variable converted to number)
+// PORT from environment variable or default 3000
 const port = process.env.PORT || 3000;
 
+<<<<<<< HEAD
 // ===== MIDDLEWARE =====
 app.use(
 	cors({
@@ -57,6 +47,9 @@ app.use("/recipes", recipesRouter);
 app.use("/users", usersRouter);
 
 // ===== START SERVER =====
+=======
+// Start server
+>>>>>>> origin/main
 app.listen(port, () => {
 	console.log(`api-gateway listening on port ${port}`);
 });

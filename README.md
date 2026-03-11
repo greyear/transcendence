@@ -37,9 +37,9 @@ cp backend/services/notification-service/.env.template backend/services/notifica
 
 Then replace placeholder values (for example, `JWT_SECRET="change-me"`).
 
-### 1.1) Node.js version for local dev
+### 1.3) Node.js version for local dev
 
-Local commands `make dev-api` and `make dev-core` require **Node.js >= 18** (recommended **Node.js 20 LTS**).
+Local commands `make dev-api`, `make dev-core`, and `npm test` require **Node.js >= 18** (recommended **Node.js 20 LTS**).
 
 If your version is older (for example Node 12), install Node 20 with `nvm`:
 
@@ -51,7 +51,9 @@ nvm use 20
 node --version
 ```
 
-### 2) Start all backend services (recommended)
+## 2) Running the Application
+
+### 2.1) Start all backend services via Docker (recommended)
 
 From the project root:
 
@@ -70,7 +72,7 @@ Useful commands:
 - `sudo make db-reset` — reset only DB containers/volumes
 - `sudo make clean` — full reset (including volumes)
 
-### 3) Run services locally (dev mode, without running app containers)
+### 2.2) Run services locally (dev mode, without running app containers)
 
 If you want hot-reload development locally:
 
@@ -96,12 +98,42 @@ cd backend/services/<service-name>
 npm install
 ```
 
-### 4) Main service endpoints
+### 2.3) Main service endpoints
 
 - API Gateway: `http://localhost:3000`
 - Auth Service: `http://localhost:3001`
 - Core Service: `http://localhost:3002`
 - Notification Service: `http://localhost:3003`
+
+## 3) Testing
+
+The project uses **Jest** and **Supertest** for developer-friendly integration testing.
+
+### Test Architecture
+- **Integration Tests**: We test entire service routes without a browser.
+- **Supertest**: Allows testing Express apps in-memory (no need to manage ports or wait for servers to start).
+- **Mocks**: In the API Gateway, we mock downstream services using `jest.spyOn(global, 'fetch')` to ensure tests are fast and isolated.
+- **Database**: `core-service` tests run against the real PostgreSQL database (specified in `.env`).
+
+### How to Run Tests
+
+From the project root:
+
+```bash
+# Run all tests for all services
+make test-jest-all
+
+# Run tests for a specific service using the root Makefile
+make test-jest-core
+make test-jest-api
+
+# Alternative: run directly in service directory via npm
+cd backend/services/core-service && npm test
+cd backend/services/api-gateway && npm test
+
+# Run tests in "watch" mode (re-runs on file changes)
+cd backend/services/core-service && npm run test:watch
+```
 
 ## Overview
 
