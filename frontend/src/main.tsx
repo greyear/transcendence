@@ -7,6 +7,7 @@ import "@fontsource/glory/500.css";
 import "@fontsource/glory/700.css";
 import "./index.css";
 import App from "./App.tsx";
+import './i18n';
 
 const rootElement = document.getElementById("root");
 
