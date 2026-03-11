@@ -19,7 +19,23 @@ i18n
 		resources: {
 			en: {
 				translation: {
-					// here we will place our translations...
+					homePage: {
+						title: "Home"
+					}
+				}
+			},
+			fi: {
+				translation: {
+					homePage: {
+						title: "Koti"
+					}
+				}
+			},
+			ru: {
+				translation: {
+					homePage: {
+						title: "Дом"
+					}
 				}
 			}
 		}

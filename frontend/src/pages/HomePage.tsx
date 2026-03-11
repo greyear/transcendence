@@ -5,11 +5,16 @@ import { ModerationButton } from "../components/buttons/ModerationButton";
 import { TextIconButton } from "../components/buttons/TextIconButton";
 import { RecipeCard } from "../components/cards/RecipeCard";
 import { UserCard } from "../components/cards/UserCard";
+import { Trans } from "react-i18next";
 
 export const HomePage = () => {
 	return (
 		<>
-			<h1>Home</h1>
+			<h1>
+				<Trans i18nKey={"homePage.title"}>
+					Home
+				</Trans>
+			</h1>
 			<RecipeCard />
 			<UserCard />
 			<FavoriteButton />
