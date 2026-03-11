@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import "../../assets/styles/textIconButton.css";
+import { Link } from "react-router-dom";
 
 interface TextButtonProps {
 	children: ReactNode;
-	href?: string; // replace by "to" when router is set up
+	to?: string;
 	onClick?: () => void;
 	size?: "body1" | "body2";
 	className?: string;
@@ -11,18 +12,19 @@ interface TextButtonProps {
 
 export const TextIconButton = ({
 	children,
-	href,
+	to,
 	onClick,
 	size = "body1",
 	className = "",
 }: TextButtonProps) => {
-	const combinedClasses = `text-button text-button--${size} ${className}`;
+	const combinedClasses =
+		`text-button text-button--${size} ${className}`.trim();
 
-	if (href) {
+	if (to) {
 		return (
-			<a href={href} className={combinedClasses}>
+			<Link to={to} className={combinedClasses} onClick={onClick}>
 				{children}
-			</a>
+			</Link>
 		);
 	}
 

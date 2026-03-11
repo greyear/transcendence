@@ -1,9 +1,10 @@
-import { RecipeCard } from "../components/cards/RecipeCard";
-import { UserCard } from "../components/cards/UserCard"
+import { Filter, Plus } from "iconoir-react";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
-import { ModerationButton } from "../components/buttons/ModerationButton";
 import { MainButton } from "../components/buttons/MainButton";
-import { Plus } from "iconoir-react";
+import { ModerationButton } from "../components/buttons/ModerationButton";
+import { TextIconButton } from "../components/buttons/TextIconButton";
+import { RecipeCard } from "../components/cards/RecipeCard";
+import { UserCard } from "../components/cards/UserCard";
 
 export const HomePage = () => {
 	return (
@@ -23,6 +24,11 @@ export const HomePage = () => {
 			</MainButton>
 			<MainButton>Log in/sign up</MainButton>
 			<MainButton disabled>Disabled</MainButton>
+			<TextIconButton>
+				Filter
+				<Filter />
+			</TextIconButton>
+			<TextIconButton to="recipes">All recipes</TextIconButton>
 		</>
 	);
 };
