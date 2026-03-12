@@ -5,7 +5,7 @@
 	jsonwebtoken is an encrypted way to pass sesson data client/server
 	zod is our parsing and field validation module
  */
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import mongoose from 'mongoose';
 
 // Import of project modules
@@ -39,7 +39,7 @@ mongoose.connect(MONGO_AUTH_URI).then(() =>
 		3. If not, attempt to hash password and create new user
 		4. Return relevant code
 */
-authRouter.post('/register', async (req, res) =>
+authRouter.post('/register', async (req: Request, res: Response) =>
 {
 	try {
 		const {username, email, realname, password} = req.body;
@@ -89,7 +89,7 @@ authRouter.post('/register', async (req, res) =>
 		3. If good, create JWT and return
 		4. Return relevant code
 */
-authRouter.post('/login', async (req, res) =>
+authRouter.post('/login', async (req: Request, res: Response) =>
 {
 	try {
 		const {username, password} = req.body;

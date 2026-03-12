@@ -1,16 +1,18 @@
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
 import z from "zod";
+import { NextFunction, Request, Response } from "express"; 
 
 //Location of userModel may or may not change later.
 import { userModel } from './auth_schema.ts'; 
+import { ObjectId } from "mongoose";
 
 //From auth_db_operations.ts
 //
 // Password hashing, using bcrypt. I think slightly simpler than others.
 //Concern with security of the salt.
 //Maybe change to argon2
-export const hashPassword = async (password) =>
+export const hashPassword = async (password: string) =>
 {
 	const saltCost = 5;
 
@@ -25,7 +27,7 @@ export const hashPassword = async (password) =>
 };
 
 // Password hash check.
-export const comparePassword = async (password, hash) =>
+export const comparePassword = async (password: string, hash: string) =>
 {
 	try {
 		const isMatch = await bcrypt.compare(password, hash);
@@ -39,7 +41,7 @@ export const comparePassword = async (password, hash) =>
 //Validate email using Zod library
 //This is not much different to the example they give on their basic manual
 //https://zod.dev/basics
-export const validateEmail = (email) =>
+export const validateEmail = (email: string) =>
 {
 	const emailPattern = z.email();
 	const result = emailPattern.safeParse(email);
@@ -54,7 +56,7 @@ export const validateEmail = (email) =>
 	[^A-Za-z0-9] means ANYTHING that is not in the given character ranges.
 	Zod has a .regex() method, but it didn't seem to work for me.
 */
-export const validatePassword = (password) =>
+export const validatePassword = (password: string) =>
 {
 	const passwordPattern = z.string().min(8, "Password must be at least 8 characters")
 		.refine((password) => /[A-Z]/.test(password), "Must include 1 uppercase letter")
@@ -68,7 +70,7 @@ export const validatePassword = (password) =>
 
 // Call this function after authentication success.
 // id is from userDocument._id and is ObjectId type
-export const generateToken = (id, username) =>
+export const generateToken = (id: string, username: string) =>
 {
 	const JWTSecret = process.env.JWTSecret || "placeholder";
 
@@ -83,7 +85,7 @@ export const generateToken = (id, username) =>
 };
 
 
-export const decodeToken = (token) =>
+export const decodeToken = (token: string) =>
 {
 	try {
 		const JWTSecret = process.env.JWTSecret || "placeholder";
@@ -97,7 +99,7 @@ export const decodeToken = (token) =>
 	}
 };
 
-export const sequenceHeader = (req) =>
+export const sequenceHeader = (req: Request) =>
 {
 	try {
 		const authHeaders = req.headers.authorization;
@@ -113,7 +115,7 @@ export const sequenceHeader = (req) =>
 	}
 };
 
-export const fetchDecodeToken = (req) =>
+export const fetchDecodeToken = (req: Request) =>
 {
 	try {
 		const tokenHeader = sequenceHeader(req);
@@ -132,7 +134,7 @@ export const fetchDecodeToken = (req) =>
 };
 
 // Simple helper to validate JWT and check username
-export const compareJWT = (req, res, next) =>
+export const compareJWT = (req: Request, res: Response, next: NextFunction) =>
 {
 	const decodedJWT = fetchDecodeToken(req);
 	if (!decodedJWT)

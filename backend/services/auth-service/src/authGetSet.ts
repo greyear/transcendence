@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 
 // Import of project modules
 //Location of userModel may or may not change later.
@@ -14,7 +14,7 @@ export const authGetSet = Router();
 		2. Return relevant code
 	As of now does not require the current password.
 */
-authGetSet.delete('/users/:username', help.compareJWT,  async (req, res) =>
+authGetSet.delete('/users/:username', help.compareJWT,  async (req: Request, res: Response) =>
 {
 	try {
 		const username = req.params.username;
@@ -33,7 +33,7 @@ authGetSet.delete('/users/:username', help.compareJWT,  async (req, res) =>
 
 //Fetch single user record
 //Return all but passwordHash
-authGetSet.get('/users/:username', async (req, res) =>
+authGetSet.get('/users/:username', async (req: Request, res: Response) =>
 {
 	try {
 		const username = req.params.username;
@@ -53,7 +53,7 @@ authGetSet.get('/users/:username', async (req, res) =>
 
 //Fetch all user records
 //Return all but passwordHash
-authGetSet.get('/users', async (req, res) =>
+authGetSet.get('/users', async (res: Response) =>
 {
 	try {
 		const userDocument = await userModel.find({},{username: 1, email: 1, realName: 1});
@@ -78,7 +78,7 @@ authGetSet.get('/users', async (req, res) =>
 			Find by URI param. Recreate record with new data
 		6. Return relevant code
 */
-authGetSet.patch('/users/:username/change-password', help.compareJWT, async (req, res) =>
+authGetSet.patch('/users/:username/change-password', help.compareJWT, async (req: Request, res: Response) =>
 {
 	try {
 		const {newPassword, password} = req.body;
@@ -117,7 +117,7 @@ authGetSet.patch('/users/:username/change-password', help.compareJWT, async (req
 });
 
 // /auth/validate endpoint to specifically validate a JWT within the header.
-authGetSet.post('/auth/validate', async (req, res) =>
+authGetSet.post('/auth/validate', async (req: Request, res: Response) =>
 {
 	try {
 		const decodedToken = help.fetchDecodeToken(req);
