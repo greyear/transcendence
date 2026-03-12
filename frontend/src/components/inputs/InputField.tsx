@@ -1,8 +1,8 @@
 import type { InputHTMLAttributes } from "react";
 import { useState } from "react";
 import "../../assets/styles/inputField.css";
-import { IconButton } from "../buttons/IconButton";
 import { Eye, EyeClosed } from "iconoir-react";
+import { IconButton } from "../buttons/IconButton";
 
 type InputFieldProps = InputHTMLAttributes<HTMLInputElement>;
 
