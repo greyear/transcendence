@@ -5,8 +5,8 @@
  * and do not require running core-service.
  */
 
-import request from "supertest";
 import { jest } from "@jest/globals";
+import request from "supertest";
 import { app } from "../app.js";
 
 describe("API Gateway - Health Routes", () => {

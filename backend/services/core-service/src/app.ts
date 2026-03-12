@@ -12,6 +12,7 @@ import express, { type Express } from "express";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
+import { usersRouter } from "./routes/users.routes.js";
 
 // Create Express application
 const app: Express = express();
@@ -32,6 +33,8 @@ app.use(express.json());
 app.use("/health", healthRouter);
 // /recipes/* → recipesRouter
 app.use("/recipes", recipesRouter);
+// /users/* → usersRouter
+app.use("/users", usersRouter);
 
 // ===== ERROR HANDLERS (must be last!) =====
 // 404 for non-existent routes
