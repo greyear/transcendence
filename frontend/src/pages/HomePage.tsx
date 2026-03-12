@@ -5,11 +5,15 @@ import { ModerationButton } from "../components/buttons/ModerationButton";
 import { TextIconButton } from "../components/buttons/TextIconButton";
 import { RecipeCard } from "../components/cards/RecipeCard";
 import { UserCard } from "../components/cards/UserCard";
+import { InputField } from "../components/inputs/InputField";
 
 export const HomePage = () => {
 	return (
 		<>
 			<h1>Home</h1>
+			<InputField />
+			<InputField placeholder="Username" />
+			<InputField type="password" placeholder="Password" />
 			<RecipeCard />
 			<UserCard />
 			<FavoriteButton />

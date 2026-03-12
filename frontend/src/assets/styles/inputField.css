@@ -1,0 +1,60 @@
+.input-wrapper {
+	position: relative;
+	width: 328px;
+}
+
+.input-field {
+	height: 44px;
+	width: 100%;
+	padding: 12px;
+	border-radius: var(--radius-s);
+	background-color: var(--surface-primary);
+	color: var(--text-primary);
+	font-size: var(--fs-label);
+	font-weight: var(--fw-label);
+	line-height: var(--lh-label);
+	border: none;
+}
+
+.input-field.password {
+	padding-right: 52px;
+}
+
+.input-field:focus {
+	outline: none;
+	border: none;
+}
+
+.eye {
+	width: 18px;
+	height: 18px;
+	position: absolute;
+	top: 50%;
+	right: 14px;
+	transform: translateY(-50%);
+}
+
+.eye svg {
+	color: var(--text-primary);
+	stroke-width: 2;
+}
+
+@media (min-width: 768px) {
+	.input-field {
+		height: 48px;
+	}
+	.eye {
+		width: 20px;
+		height: 20px;
+	}
+}
+
+@media (min-width: 1440px) {
+	.input-field {
+		height: 56px;
+	}
+	.eye {
+		width: 24px;
+		height: 24px;
+	}
+}
