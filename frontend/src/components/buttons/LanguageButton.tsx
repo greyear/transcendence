@@ -1,4 +1,4 @@
-import type { LangCodes } from "../../pages/HomePage";
+import type { LangCodes } from "../LanguageSelector";
 
 interface LangButtonProps {
 	langCode: LangCodes;

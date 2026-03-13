@@ -1,0 +1,15 @@
+.language-list {
+	display: flex;
+	flex-direction: row;
+	gap: var(--space-s);
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	width: fit-content;
+}
+
+.language-list-item {
+	display: flex;
+	margin: 0;
+	padding: 0;
+}
