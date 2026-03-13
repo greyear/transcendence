@@ -26,15 +26,19 @@
 }
 
 .eye {
-	width: 18px;
-	height: 18px;
+	width: 32px;
+	height: 32px;
 	position: absolute;
 	top: 50%;
 	right: 14px;
 	transform: translateY(-50%);
+	color: var(--text-primary);
+	stroke-width: 2;
 }
 
 .eye svg {
+	width: 18px;
+	height: 18px;
 	color: var(--text-primary);
 	stroke-width: 2;
 }
@@ -43,7 +47,7 @@
 	.input-field {
 		height: 48px;
 	}
-	.eye {
+	.eye svg {
 		width: 20px;
 		height: 20px;
 	}
@@ -53,8 +57,8 @@
 	.input-field {
 		height: 56px;
 	}
-	.eye {
-		width: 24px;
-		height: 24px;
+	.eye svg {
+		width: 30px;
+		height: 30px;
 	}
 }

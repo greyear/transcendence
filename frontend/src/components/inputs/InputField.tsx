@@ -20,7 +20,7 @@ export const InputField = ({
 		setIsActive((prev) => !prev);
 	};
 	const isPassword = type === "password";
-	const inputType = isActive ? "text" : type;
+	const inputType = isPassword && isActive ? "text" : type;
 
 	return (
 		<div className={`input-wrapper ${className}`.trim()}>
@@ -32,7 +32,7 @@ export const InputField = ({
 			/>
 
 			{isPassword && (
-				<IconButton className="eye" onClick={handleClick}>
+				<IconButton className="eye" type="button" onClick={handleClick}>
 					{isActive ? <EyeClosed /> : <Eye />}
 				</IconButton>
 			)}
