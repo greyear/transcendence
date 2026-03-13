@@ -19,6 +19,7 @@
 	--text-secondary: #4e633b;
 	--text-on-accent: #f1f7d4;
 	--icons-default: #f2ece3;
+	--icons-dark: var(--text-primary);
 	--icons-heart-active: #db858b;
 	--borders-heart-active: #8e4977;
 	--borders-action: #27341e;

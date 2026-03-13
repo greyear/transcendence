@@ -1,3 +1,8 @@
+.moderation-button {
+	color: var(--icons-default);
+	border: none;
+}
+
 .moderation-button.approve {
 	background-color: var(--surface-success);
 }
