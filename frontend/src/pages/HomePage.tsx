@@ -14,7 +14,7 @@ export const HomePage = () => {
 	return (
 		<>
 			<h1>{t("homePage.title")}</h1>
-			<LanguageSelector />
+			<LanguageSelector isHeader={false} />
 			<RecipeCard />
 			<UserCard />
 			<FavoriteButton />
