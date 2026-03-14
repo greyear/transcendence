@@ -6,18 +6,11 @@ import { TextIconButton } from "../components/buttons/TextIconButton";
 import { RecipeCard } from "../components/cards/RecipeCard";
 import { UserCard } from "../components/cards/UserCard";
 import { InputField } from "../components/inputs/InputField";
-import { SelectField } from "../components/inputs/SelectField";
 
 export const HomePage = () => {
 	return (
 		<>
 			<h1>Home</h1>
-			<SelectField defaultValue="tbsp">
-				<option value="tbsp">tbsp</option>
-				<option value="g">g</option>
-				<option value="ml">ml</option>
-				<option value="longer value">longer value</option>
-			</SelectField>
 			<InputField />
 			<InputField placeholder="Username" />
 			<InputField type="password" placeholder="Password" />
