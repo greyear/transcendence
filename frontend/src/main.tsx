@@ -1,12 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import "@fontsource/glory/300.css";
-import "@fontsource/glory/400.css";
-import "@fontsource/glory/500.css";
-import "@fontsource/glory/700.css";
+import "@fontsource/nunito/300.css";
+import "@fontsource/nunito/400.css";
+import "@fontsource/nunito/500.css";
+import "@fontsource/nunito/700.css";
 import "./index.css";
 import App from "./App.tsx";
+import "./i18n";
 
 const rootElement = document.getElementById("root");
 

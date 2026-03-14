@@ -21,6 +21,7 @@
 	--icons-default: #f2ece3;
 	--icons-dark: var(--text-primary);
 	--icons-heart-active: #db858b;
+	--borders-default: #f2ece3;
 	--borders-heart-active: #8e4977;
 	--borders-action: #27341e;
 	--borders-input: #e2d8e0;
@@ -137,7 +138,7 @@
 
 body {
 	margin: 0;
-	font-family: "Glory", system-ui, sans-serif;
+	font-family: "Nunito", system-ui, sans-serif;
 	font-size: var(--fs-body3);
 	line-height: var(--lh-body3);
 	font-weight: var(--fw-body3);
