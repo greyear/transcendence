@@ -10,17 +10,22 @@ interface LanguageSelectorProps extends HTMLAttributes<HTMLUListElement> {
 	isHeader: boolean;
 }
 
-export const LanguageSelector = ({ isHeader }: LanguageSelectorProps) => {
+export const LanguageSelector = ({
+	isHeader,
+	className = "",
+	...props
+}: LanguageSelectorProps) => {
 	const { i18n } = useTranslation();
+	const classNames = `language-list ${className}`.trim();
 
 	return (
-		<ul className="language-list">
+		<ul className={classNames} {...props}>
 			{languages.map((langCode) => (
 				<li key={langCode} className="language-list-item">
 					<LanguageButton
 						langCode={langCode}
 						isHeader={isHeader}
-						isActive={i18n.language === langCode}
+						isActive={i18n.resolvedLanguage === langCode}
 						onClick={() => i18n.changeLanguage(langCode)}
 					/>
 				</li>
