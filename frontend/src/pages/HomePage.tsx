@@ -1,5 +1,6 @@
 import { Filter, Plus } from "iconoir-react";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
+import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
 import { ModerationButton } from "../components/buttons/ModerationButton";
 import { TextIconButton } from "../components/buttons/TextIconButton";
@@ -29,6 +30,11 @@ export const HomePage = () => {
 				<Filter />
 			</TextIconButton>
 			<TextIconButton to="recipes">All recipes</TextIconButton>
+			<div>
+				<IconButton>
+					<Filter />
+				</IconButton>
+			</div>
 		</>
 	);
 };

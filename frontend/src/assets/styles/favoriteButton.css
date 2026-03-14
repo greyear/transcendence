@@ -1,5 +1,7 @@
 .favorite-button {
 	background: var(--surface-favorite);
+	color: var(--icons-default);
+	border: none;
 }
 
 .favorite-button.active svg {
