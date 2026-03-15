@@ -15,7 +15,8 @@ export const HomePage = () => {
 
 	return (
 		<>
-			<h1>Home</h1>
+			<h1>{t("homePage.title")}</h1>
+			<LanguageSelector isHeader={false} />
 			<InputField />
 			<InputField placeholder="Username" />
 			<InputField id="password" type="password" placeholder="Password" />
@@ -33,8 +34,6 @@ export const HomePage = () => {
 				type="password"
 				error="Password too short!"
 			/>
-			<h1>{t("homePage.title")}</h1>
-			<LanguageSelector isHeader={false} />
 			<RecipeCard />
 			<UserCard />
 			<FavoriteButton />
