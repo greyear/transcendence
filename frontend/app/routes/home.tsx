@@ -9,6 +9,10 @@ import { RecipeCard } from "../components/cards/RecipeCard";
 import { UserCard } from "../components/cards/UserCard";
 import { LanguageSelector } from "../components/LanguageSelector";
 
+export async function loader() {
+	return { message: "Welcome to SSR" };
+}
+
 export const HomePage = () => {
 	const { t } = useTranslation();
 
