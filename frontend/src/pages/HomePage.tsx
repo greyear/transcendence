@@ -16,6 +16,7 @@ export const HomePage = () => {
 	return (
 		<>
 			<h1>{t("homePage.title")}</h1>
+			<LanguageSelector isHeader={false} />
 			<SelectField
 				options={[
 					{ label: "Tomato", value: "tomato" },
@@ -23,7 +24,6 @@ export const HomePage = () => {
 					{ label: "Onion", value: "onion" },
 				]}
 			/>
-			<LanguageSelector isHeader={false} />
 			<RecipeCard />
 			<UserCard />
 			<FavoriteButton />
