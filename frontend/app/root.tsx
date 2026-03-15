@@ -1,10 +1,11 @@
+import { useTranslation } from "react-i18next";
 import {
 	Links,
 	Meta,
 	Outlet,
 	Scripts,
 	ScrollRestoration,
-	useLoaderData
+	useLoaderData,
 } from "react-router";
 import "@fontsource/nunito/300.css";
 import "@fontsource/nunito/400.css";
@@ -21,9 +22,10 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 
 const App = () => {
 	const { locale } = useLoaderData<typeof loader>();
+	const { i18n } = useTranslation();
 
 	return (
-		<html lang={locale} dir="ltr">
+		<html lang={i18n.resolvedLanguage ?? locale} dir="ltr">
 			<head>
 				<meta charSet="utf-8" />
 				<Meta />
