@@ -5,7 +5,7 @@
 	height: 44px;
 	border-radius: var(--radius-s);
 	background-color: var(--surface-primary);
-	border: 2px solid var(--borders-input);
+	border: 1px solid var(--borders-input);
 	padding: 12px;
 	gap: var(--space-s);
 	align-items: center;
