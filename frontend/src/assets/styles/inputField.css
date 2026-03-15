@@ -50,14 +50,12 @@
 }
 
 .icon-button.eye {
-	width: 32px;
 	min-width: 32px;
 	height: 32px;
 	padding: 0;
 	background-color: transparent;
 	border: none;
 	color: var(--icons-dark);
-	--eye-icon-size: 18px;
 }
 
 .icon-button.eye svg {
@@ -83,16 +81,10 @@
 	.input-wrapper {
 		height: 48px;
 	}
-	.icon-button.eye {
-		--eye-icon-size: 20px;
-	}
 }
 
 @media (min-width: 1440px) {
 	.input-wrapper {
 		height: 56px;
-	}
-	.icon-button.eye {
-		--eye-icon-size: 24px;
 	}
 }

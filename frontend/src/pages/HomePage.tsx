@@ -21,14 +21,14 @@ export const HomePage = () => {
 			<InputField id="password" type="password" placeholder="Password" />
 
 			<InputField
-				id="password-rules"
+				id="password-rules-hint"
 				label="Password"
 				type="password"
 				placeholder="Password"
 				hint="Password must include at least 8 characters."
 			/>
 			<InputField
-				id="password-rules"
+				id="password-rules-error"
 				label="Password"
 				type="password"
 				error="Password too short!"
