@@ -49,18 +49,21 @@
 	color: var(--surface-error);
 }
 
-.eye {
+.icon-button.eye {
 	width: 32px;
+	min-width: 32px;
 	height: 32px;
-	color: var(--text-primary);
-	stroke-width: 2;
+	padding: 0;
+	background-color: transparent;
+	border: none;
+	color: var(--icons-dark);
 	--eye-icon-size: 18px;
 }
 
-.eye svg {
-	width: var(--eye-icon-size);
-	height: var(--eye-icon-size);
-	color: var(--text-primary);
+.icon-button.eye svg {
+	width: var(--icon-size);
+	height: var(--icon-size);
+	color: var(--icons-dark);
 	stroke-width: 2;
 }
 
@@ -80,7 +83,7 @@
 	.input-wrapper {
 		height: 48px;
 	}
-	.eye {
+	.icon-button.eye {
 		--eye-icon-size: 20px;
 	}
 }
@@ -89,7 +92,7 @@
 	.input-wrapper {
 		height: 56px;
 	}
-	.eye {
+	.icon-button.eye {
 		--eye-icon-size: 24px;
 	}
 }
