@@ -1,0 +1,38 @@
+.language-list {
+	display: flex;
+	flex-direction: row;
+	gap: var(--space-s);
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	width: fit-content;
+}
+
+.language-list-item {
+	display: flex;
+	margin: 0;
+	padding: 0;
+}
+
+.language-button {
+	font-family: "Nunito", system-ui, sans-serif;
+	text-transform: uppercase;
+	font-size: var(--fs-label);
+	line-height: var(--lh-label);
+	border: 1px solid var(--borders-default);
+}
+
+.language-button.header {
+	&.active {
+		background-color: var(--surface-primary);
+		color: var(--text-primary);
+	}
+}
+
+.language-button.footer {
+	border-color: var(--borders-action);
+	&.active {
+		background-color: var(--surface-action-active);
+		color: var(--text-on-accent);
+	}
+}
