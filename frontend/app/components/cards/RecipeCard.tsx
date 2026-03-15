@@ -3,8 +3,9 @@ import recipeImg from "../../assets/images/vegetable-side-dishes.jpg";
 import { FavoriteButton } from "../buttons/FavoriteButton";
 
 export const RecipeCard = () => {
+	const recipeId = 1;
 	return (
-		<a href="/recipe-page" className="recipe-card-link-wrapper">
+		<a href={`recipe/${recipeId}`} className="recipe-card-link-wrapper">
 			<article className="recipe-card">
 				<img
 					className="recipe-card-image"

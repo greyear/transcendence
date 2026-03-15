@@ -18,6 +18,11 @@ export const LanguageSelector = ({
 	const { i18n } = useTranslation();
 	const classNames = `language-list ${className}`.trim();
 
+	const handleLanguageButtonClick = (langCode: LangCodes) => {
+		i18n.changeLanguage(langCode);
+		localStorage.setItem("i18nextLng", langCode);
+	};
+
 	return (
 		<ul className={classNames} {...props}>
 			{languages.map((langCode) => (
@@ -26,7 +31,7 @@ export const LanguageSelector = ({
 						langCode={langCode}
 						isHeader={isHeader}
 						isActive={i18n.resolvedLanguage === langCode}
-						onClick={() => i18n.changeLanguage(langCode)}
+						onClick={() => handleLanguageButtonClick(langCode)}
 					/>
 				</li>
 			))}
