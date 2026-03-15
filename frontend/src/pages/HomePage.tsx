@@ -13,7 +13,21 @@ export const HomePage = () => {
 			<h1>Home</h1>
 			<InputField />
 			<InputField placeholder="Username" />
-			<InputField type="password" placeholder="Password" />
+			<InputField id="password" type="password" placeholder="Password" />
+
+			<InputField
+				id="password-rules"
+				label="Password"
+				type="password"
+				placeholder="Password"
+				hint="Password must include at least 8 characters."
+			/>
+			<InputField
+				id="password-rules"
+				label="Password"
+				type="password"
+				error="Password too short!"
+			/>
 			<RecipeCard />
 			<UserCard />
 			<FavoriteButton />
