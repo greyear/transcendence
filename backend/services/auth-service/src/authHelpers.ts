@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import z from "zod";
 import { NextFunction, Request, Response } from "express"; 
 
@@ -136,11 +136,18 @@ export const fetchDecodeToken = (req: Request) =>
 // Simple helper to validate JWT and check username
 export const compareJWT = (req: Request, res: Response, next: NextFunction) =>
 {
-	const decodedJWT = fetchDecodeToken(req);
+	const decodedJWT = fetchDecodeToken(req) as JwtPayload;
 	if (!decodedJWT)
 		return res.status(401).json({ error: "Invalid token" });
 	if (decodedJWT.username !== req.params.username)
 		return res.status(401).json({ error: "Incorrect token" });
 
 	next();
-}
+};
+
+// the middleware (might be in a separate file).
+export const errorHandler = (error: unknown, req: Request, res: Response, next: NextFunction) => {
+	console.error(error);
+	const message = error instanceof Error ? error.message : "Internal Server Error";
+	res.status(500).json({ error: message });
+};

@@ -1,11 +1,13 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 
 // Import of project modules
 //Location of userModel may or may not change later.
 import { userModel } from './auth_schema.ts'; 
 import * as help from './authHelpers.ts';
+import { JwtPayload } from 'jsonwebtoken';
 
 export const authGetSet = Router();
+authGetSet.use(help.errorHandler);
 
 /*
 	Delete user. /users/:username endpoint
@@ -14,7 +16,7 @@ export const authGetSet = Router();
 		2. Return relevant code
 	As of now does not require the current password.
 */
-authGetSet.delete('/users/:username', help.compareJWT,  async (req: Request, res: Response) =>
+authGetSet.delete('/users/:username', help.compareJWT,  async (req: Request, res: Response, next: NextFunction) =>
 {
 	try {
 		const username = req.params.username;
@@ -27,13 +29,13 @@ authGetSet.delete('/users/:username', help.compareJWT,  async (req: Request, res
 		return res.json({ message: 'User deleted' });
 	
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		next(error);
 	}
 });
 
 //Fetch single user record
 //Return all but passwordHash
-authGetSet.get('/users/:username', async (req: Request, res: Response) =>
+authGetSet.get('/users/:username', async (req: Request, res: Response, next: NextFunction) =>
 {
 	try {
 		const username = req.params.username;
@@ -47,13 +49,13 @@ authGetSet.get('/users/:username', async (req: Request, res: Response) =>
 		return res.json(userDocument);
 
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		next(error);
 	}
 });
 
 //Fetch all user records
 //Return all but passwordHash
-authGetSet.get('/users', async (res: Response) =>
+authGetSet.get('/users', async (req: Request, res: Response, next: NextFunction) =>
 {
 	try {
 		const userDocument = await userModel.find({},{username: 1, email: 1, realName: 1});
@@ -64,7 +66,7 @@ authGetSet.get('/users', async (res: Response) =>
 		return res.json(userDocument);
 
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		next(error);
 	}
 });
 
@@ -78,7 +80,7 @@ authGetSet.get('/users', async (res: Response) =>
 			Find by URI param. Recreate record with new data
 		6. Return relevant code
 */
-authGetSet.patch('/users/:username/change-password', help.compareJWT, async (req: Request, res: Response) =>
+authGetSet.patch('/users/:username/change-password', help.compareJWT, async (req: Request, res: Response, next: NextFunction) =>
 {
 	try {
 		const {newPassword, password} = req.body;
@@ -112,15 +114,15 @@ authGetSet.patch('/users/:username/change-password', help.compareJWT, async (req
 		return res.status(404).json({error: 'User not found'});
 	
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		next(error);
 	}
 });
 
 // /auth/validate endpoint to specifically validate a JWT within the header.
-authGetSet.post('/auth/validate', async (req: Request, res: Response) =>
+authGetSet.post('/auth/validate', async (req: Request, res: Response, next: NextFunction) =>
 {
 	try {
-		const decodedToken = help.fetchDecodeToken(req);
+		const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
 		if (!decodedToken)
 			throw Error("Invalid header");
 
@@ -132,7 +134,6 @@ authGetSet.post('/auth/validate', async (req: Request, res: Response) =>
 		const userID = userDocument.get('_id');
 		return res.status(200).json({ _id: userID });
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({ error: error.message });
+		next(error);
 	}
 });

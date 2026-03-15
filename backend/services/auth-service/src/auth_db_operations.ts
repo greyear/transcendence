@@ -5,7 +5,7 @@
 	jsonwebtoken is an encrypted way to pass sesson data client/server
 	zod is our parsing and field validation module
  */
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 
 // Import of project modules
@@ -14,6 +14,7 @@ import { userModel } from './auth_schema.ts';
 import * as help from './authHelpers.ts';
 
 export const authRouter = Router();
+authRouter.use(help.errorHandler);
 
 //Connection part probably being moved later
 const MONGO_AUTH_URI = process.env.MONGODB_AUTH_URI || 'mongodb://127.0.0.1:27017/auth_db';
@@ -39,7 +40,7 @@ mongoose.connect(MONGO_AUTH_URI).then(() =>
 		3. If not, attempt to hash password and create new user
 		4. Return relevant code
 */
-authRouter.post('/register', async (req: Request, res: Response) =>
+authRouter.post('/register', async (req: Request, res: Response, next: NextFunction) =>
 {
 	try {
 		const {username, email, realname, password} = req.body;
@@ -75,7 +76,7 @@ authRouter.post('/register', async (req: Request, res: Response) =>
 		return res.status(201).json({username, email, realname});
 
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		next(error);
 	}
 });
 
@@ -89,7 +90,7 @@ authRouter.post('/register', async (req: Request, res: Response) =>
 		3. If good, create JWT and return
 		4. Return relevant code
 */
-authRouter.post('/login', async (req: Request, res: Response) =>
+authRouter.post('/login', async (req: Request, res: Response, next: NextFunction) =>
 {
 	try {
 		const {username, password} = req.body;
@@ -116,6 +117,6 @@ authRouter.post('/login', async (req: Request, res: Response) =>
 		});
 
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		next(error);
 	}
 });
