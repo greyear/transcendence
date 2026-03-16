@@ -36,6 +36,7 @@
 }
 
 .select-toggle {
+	--select-icon-size: 20px;
 	border: none;
 	background: transparent;
 	padding: 0;
@@ -94,8 +95,8 @@
 }
 
 .select-icon {
-	width: var(--icon-size);
-	height: var(--icon-size);
+	width: var(--select-icon-size);
+	height: var(--select-icon-size);
 	color: var(--text-primary);
 	stroke-width: 2;
 	transition: transform 0.2s ease;
@@ -104,9 +105,17 @@
 .select-icon.open {
 	transform: rotate(180deg);
 }
+@media (min-width: 768px) {
+	.select-toggle {
+		--select-icon-size: 24px;
+	}
+}
 
 @media (min-width: 1440px) {
 	.select-field {
 		height: 56px;
+	}
+	.select-toggle {
+		--select-icon-size: 32px;
 	}
 }
