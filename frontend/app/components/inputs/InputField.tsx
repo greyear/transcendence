@@ -44,7 +44,6 @@ export const InputField = ({
 
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		e.stopPropagation();
-		e.preventDefault();
 		const input = inputRef.current;
 		const start = input?.selectionStart ?? 0;
 		const end = input?.selectionEnd ?? 0;
@@ -90,6 +89,10 @@ export const InputField = ({
 		onInvalid?.(e);
 	};
 
+	const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
+		e.preventDefault();
+	};
+
 	return (
 		<div className={`input-field-container ${className}`.trim()}>
 			<label htmlFor={id} className={label ? "text-caption" : "sr-only"}>
@@ -117,6 +120,7 @@ export const InputField = ({
 					<IconButton
 						className="eye"
 						type="button"
+						onMouseDown={handleMouseDown}
 						onClick={handleClick}
 						aria-label={showPassword ? "Hide password" : "Show password"}
 					>
