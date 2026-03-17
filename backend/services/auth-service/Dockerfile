@@ -2,10 +2,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Minimal stub service
-RUN echo '{"name":"auth-service","version":"0.1.0","type":"module","main":"index.js"}' > package.json
-RUN echo 'import http from "http"; http.createServer((req,res)=>res.end("auth-service stub")).listen(3001);' > index.js
+# Install MongoDB.
+# Add repos, install daemon and utilities, start service
+RUN \
+	apk update
+	echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositories \
+	echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repositories \
+	apk add mongodb mongodb-tools
+	rc-update add mongodb default
 
-EXPOSE 3001
+# Define default command.
+CMD ["mongod"]
 
-CMD ["node", "index.js"]
+# Expose ports.
+#   - 27017: process
+EXPOSE 27017
