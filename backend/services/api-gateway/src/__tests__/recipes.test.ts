@@ -5,8 +5,8 @@
  * or running core-service containers.
  */
 
-import request from "supertest";
 import { jest } from "@jest/globals";
+import request from "supertest";
 import { app } from "../app.js";
 
 describe("API Gateway - Recipes Routes", () => {
@@ -29,11 +29,16 @@ describe("API Gateway - Recipes Routes", () => {
 		const response = await request(app).get("/recipes");
 
 		expect(response.status).toBe(200);
-		expect(response.body).toEqual({ data: [{ id: 1, title: "Test" }], count: 1 });
+		expect(response.body).toEqual({
+			data: [{ id: 1, title: "Test" }],
+			count: 1,
+		});
 		expect(fetchSpy).toHaveBeenCalledWith(
 			expect.stringContaining("/recipes"),
 			expect.objectContaining({
-				headers: expect.objectContaining({ "Content-Type": "application/json" }),
+				headers: expect.objectContaining({
+					"Content-Type": "application/json",
+				}),
 				signal: expect.any(AbortSignal),
 			}),
 		);

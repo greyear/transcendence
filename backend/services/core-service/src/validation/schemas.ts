@@ -39,12 +39,27 @@ const recipeIdSchema = intIdSchema;
 
 export const userIdIntSchema = intIdSchema;
 
+const recipeStatusSchema = z.enum(["draft", "published", "archived"]);
+
 type ValidationResult =
 	| { valid: true; value: number }
 	| { valid: false; error: string };
 
 export const validateRecipeId = (id: unknown): ValidationResult => {
 	const result = recipeIdSchema.safeParse(id);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: `Must be a positive integer in range 1..${MAX_SIGNED_INT}`,
+	};
+};
+
+export const validateUserId = (id: unknown): ValidationResult => {
+	const result = userIdIntSchema.safeParse(id);
 
 	if (result.success) {
 		return { valid: true, value: result.data };
@@ -73,7 +88,7 @@ export const recipeSchema = z.object({
 	id: z.number().int().positive(), // ID must be positive integer
 	title: z.string(), // Title - string
 	author_id: userIdIntSchema.nullable(), // Author can be null (ON DELETE SET NULL)
-	status: z.enum(["draft", "published", "archived"]), // ONLY these statuses
+	status: recipeStatusSchema, // ONLY these statuses
 	description: z.string().nullable(), // Description can be null in DB
 	instructions: z.array(z.string()), // Instructions required (NOT NULL)
 	servings: z.number().int().positive(), // Servings is required (NOT NULL, default 1)
@@ -94,6 +109,19 @@ export const recipeListItemSchema = z.object({
 });
 
 /**
+ * MyRecipeListItem type - minimal recipe info for current user list view
+ * Includes status because /users/me/recipes returns recipes of all statuses
+ */
+export const myRecipeListItemSchema = z.object({
+	id: z.number().int().positive(),
+	title: z.string(),
+	author_id: userIdIntSchema.nullable(), // Maybe delete this field from /users/me/recipes response since it's always the same as current user?
+	description: z.string().nullable(),
+	rating_avg: z.coerce.number().min(1).max(5).nullable(),
+	status: recipeStatusSchema,
+});
+
+/**
  * z.infer<typeof recipeSchema> - "extract TypeScript type from Zod schema"
  *
  * This means Recipe type will contain all fields from recipeSchema above
@@ -109,3 +137,8 @@ export type Recipe = z.infer<typeof recipeSchema>;
  * Inferred from recipeListItemSchema, automatically stays in sync
  */
 export type RecipeListItem = z.infer<typeof recipeListItemSchema>;
+
+/**
+ * MyRecipeListItem type - minimal recipe info for current user's recipes
+ */
+export type MyRecipeListItem = z.infer<typeof myRecipeListItemSchema>;

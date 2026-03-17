@@ -16,9 +16,10 @@ import express, { type Express } from "express";
 import "dotenv/config";
 import { healthRouter } from "./routes/health.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
+import { usersRouter } from "./routes/users.routes.js";
 import {
-	GATEWAY_RESPONSE_TIMEOUT_MS,
 	createResponseTimeoutMiddleware,
+	GATEWAY_RESPONSE_TIMEOUT_MS,
 } from "./utils/timeouts.js";
 
 // Create Express application
@@ -44,6 +45,8 @@ app.use(createResponseTimeoutMiddleware(GATEWAY_RESPONSE_TIMEOUT_MS));
 app.use("/health", healthRouter);
 // Mount recipes router (includes authentication middleware)
 app.use("/recipes", recipesRouter);
+// Mount users router
+app.use("/users", usersRouter);
 
 // Export app for use in index.ts and tests
 export { app };

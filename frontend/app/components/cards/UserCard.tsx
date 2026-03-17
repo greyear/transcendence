@@ -1,6 +1,7 @@
 import { useState } from "react";
 import userPhoto from "../../assets/images/user-photo.jpg";
 import "../../assets/styles/userCard.css";
+import { Link } from "react-router";
 import { MainButton } from "../buttons/MainButton";
 
 export const UserCard = () => {
@@ -12,7 +13,7 @@ export const UserCard = () => {
 		setIsActive((prev) => !prev);
 	};
 	return (
-		<a href="/user" className="user-card-link-wrapper">
+		<Link to="/user" className="user-card-link-wrapper">
 			<article className="user-card">
 				<img className="user-card-photo" src={userPhoto} alt="User profile" />
 				<div className="user-card-container">
@@ -28,6 +29,6 @@ export const UserCard = () => {
 					</MainButton>
 				</div>
 			</article>
-		</a>
+		</Link>
 	);
 };

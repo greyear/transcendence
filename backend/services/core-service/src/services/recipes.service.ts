@@ -16,11 +16,45 @@
 import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
+	type MyRecipeListItem,
+	myRecipeListItemSchema,
 	type Recipe,
 	type RecipeListItem,
 	recipeListItemSchema,
 	recipeSchema,
 } from "../validation/schemas.js";
+
+const parseRecipeRows = <T>(
+	rows: Array<Record<string, unknown>>,
+	schema: z.ZodType<T>,
+	rowLabel: string,
+): T[] => {
+	return rows.reduce<T[]>((acc, row) => {
+		const validation = schema.safeParse(row);
+		if (validation.success) {
+			acc.push(validation.data);
+		} else {
+			const rowId =
+				typeof row.id === "number" || typeof row.id === "string"
+					? row.id
+					: "unknown";
+
+			console.error(
+				`Skipping invalid ${rowLabel} ID ${rowId}:`,
+				z.prettifyError(validation.error),
+			);
+		}
+		return acc;
+	}, []);
+};
+
+const userExists = async (userId: number): Promise<boolean> => {
+	const result = await pool.query(`SELECT 1 FROM users WHERE id = $1 LIMIT 1`, [
+		userId,
+	]);
+
+	return result.rowCount === 1;
+};
 
 /**
  * Get ALL published recipes
@@ -48,26 +82,71 @@ export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
 		// result.rows - array of rows from result
 		const result = await pool.query(query);
 
-		// Validate each recipe with Zod
-		// Skip invalid recipes instead of crashing the endpoint
-		const validatedRows = result.rows.reduce<RecipeListItem[]>((acc, row) => {
-			const validation = recipeListItemSchema.safeParse(row);
-			if (validation.success) {
-				acc.push(validation.data);
-			} else {
-				// Log the error for maintenance without crashing the app
-				console.error(
-					`Skipping invalid recipe ID ${row?.id ?? "unknown"}:`,
-					z.prettifyError(validation.error),
-				);
-			}
-			return acc;
-		}, []);
-
-		return validatedRows;
+		return parseRecipeRows(result.rows, recipeListItemSchema, "recipe");
 	} catch (error) {
 		// If error - log it and throw it to caller
 		console.error("Database error in getAllRecipes:", error);
+		throw error;
+	}
+};
+
+/**
+ * Get all published recipes created by a particular user
+ *
+ * Returns:
+ * - RecipeListItem[] if user exists (can be empty)
+ * - null if user doesn't exist
+ */
+export const getPublishedRecipesByUserId = async (
+	userId: number,
+): Promise<RecipeListItem[] | null> => {
+	try {
+		const exists = await userExists(userId);
+		if (!exists) {
+			return null;
+		}
+
+		const query = `
+      SELECT id, title, description, author_id, rating_avg
+      FROM recipes
+      WHERE author_id = $1 AND status = 'published'
+      ORDER BY created_at DESC
+    `;
+
+		const result = await pool.query(query, [userId]);
+
+		return parseRecipeRows(
+			result.rows,
+			recipeListItemSchema,
+			"published user recipe",
+		);
+	} catch (error) {
+		console.error("Database error in getPublishedRecipesByUserId:", error);
+		throw error;
+	}
+};
+
+/**
+ * Get all recipes created by the current authenticated user
+ *
+ * Returns recipes of all statuses (draft, published, archived)
+ */
+export const getMyRecipes = async (
+	userId: number,
+): Promise<MyRecipeListItem[]> => {
+	try {
+		const query = `
+      SELECT id, title, description, author_id, rating_avg, status
+      FROM recipes
+      WHERE author_id = $1
+      ORDER BY created_at DESC
+    `;
+
+		const result = await pool.query(query, [userId]);
+
+		return parseRecipeRows(result.rows, myRecipeListItemSchema, "my recipe");
+	} catch (error) {
+		console.error("Database error in getMyRecipes:", error);
 		throw error;
 	}
 };
