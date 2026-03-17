@@ -9,7 +9,7 @@ import { RecipeCard } from "../components/cards/RecipeCard";
 import { UserCard } from "../components/cards/UserCard";
 import { LanguageSelector } from "../components/LanguageSelector";
 
-export const HomePage = () => {
+const HomePage = () => {
 	const { t } = useTranslation();
 
 	return (
@@ -43,3 +43,5 @@ export const HomePage = () => {
 		</>
 	);
 };
+
+export default HomePage;
