@@ -17,21 +17,21 @@ export const HomePage = () => {
 		<>
 			<h1>{t("homePage.title")}</h1>
 			<LanguageSelector isHeader={false} />
-			<InputField />
-			<InputField placeholder="Username" />
-			<InputField id="password" type="password" placeholder="Password" />
-
 			<InputField
-				id="password-rules-hint"
-				label="Password"
-				type="password"
-				placeholder="Password"
-				hint="Password must include at least 8 characters."
+				id="email"
+				label="Email"
+				type="email"
+				placeholder="Enter your email"
+				required
+				hint="We’ll never share your email."
 			/>
 			<InputField
-				id="password-rules-error"
+				id="password-own-error"
 				label="Password"
 				type="password"
+				required
+				minLength={8}
+				hint="Password must include at least 8 characters."
 				error="Password too short!"
 			/>
 			<RecipeCard />
