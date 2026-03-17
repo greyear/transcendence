@@ -1,121 +1,93 @@
 .select-wrapper {
-	position: relative;
 	width: 100%;
 }
 
-.select-field {
-	height: 48px;
-	width: 100%;
-	padding: 12px;
-	border-radius: var(--radius-s);
-	background-color: var(--surface-primary);
-	border: 1px solid var(--borders-input);
-	color: var(--text-primary);
-	font-size: var(--fs-label);
-	font-weight: var(--fw-label);
-	line-height: normal;
-	display: flex;
+.react-select__control {
+	min-height: 48px !important;
+	border-radius: var(--radius-s) !important;
+	background-color: var(--surface-primary) !important;
+	border: 1px solid var(--borders-input) !important;
+	box-shadow: none !important;
+	cursor: pointer !important;
 }
 
-.select-field:focus-within {
-	border-color: var(--borders-action);
+.react-select__control--is-focused {
+	border-color: var(--borders-action) !important;
+	box-shadow: none !important;
 }
 
-.select-input {
-	width: 100%;
-	border: none;
-	padding: 0;
-	background: transparent;
-	color: var(--text-primary);
-	font-size: var(--fs-label);
-	font-weight: var(--fw-label);
+.react-select__value-container {
+	padding: 0 12px !important;
 }
 
-.select-input:focus {
-	outline: none;
+.react-select__input-container,
+.react-select__single-value,
+.react-select__placeholder {
+	color: var(--text-primary) !important;
+	font-size: var(--fs-label) !important;
+	font-weight: var(--fw-label) !important;
 }
 
-.select-toggle {
-	--select-icon-size: 20px;
-	border: none;
-	background: transparent;
-	padding: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
+.react-select__placeholder {
+	opacity: 0.8;
 }
 
-.select-dropdown {
-	position: absolute;
-	top: calc(100% + 2px);
-	left: 0;
-	width: 100%;
-	max-height: 240px;
-	overflow-y: auto;
-	background-color: var(--surface-primary);
-	border-radius: var(--radius-s);
-	z-index: 10;
-	list-style: none;
-	margin: 0;
-	padding: 0;
+.react-select__indicator-separator {
+	display: none;
 }
 
-.select-dropdown li {
-	list-style: none;
-	margin: 0;
-	padding: 0;
+.react-select__dropdown-indicator {
+	padding: 0 12px !important;
+	color: var(--text-primary) !important;
+	transition: transform 0.2s ease !important;
 }
 
-.select-option {
-	width: 100%;
-	border: none;
-	background: transparent;
-	padding: 12px;
-	text-align: left;
-	cursor: pointer;
-	color: var(--text-primary);
-	font-size: var(--fs-caption-s);
-	font-weight: var(--fw-caption-s);
-}
-
-.select-option:hover,
-.select-option:focus {
-	background-color: var(--surface-hover);
-	outline: none;
-}
-
-.select-empty {
-	width: 100%;
-	padding: 12px;
-	text-align: left;
-	color: var(--text-primary);
-	font-size: var(--fs-caption-s);
-	font-weight: var(--fw-caption-s);
-}
-
-.select-icon {
-	width: var(--select-icon-size);
-	height: var(--select-icon-size);
-	color: var(--text-primary);
-	stroke-width: 2;
-	transition: transform 0.2s ease;
-}
-
-.select-icon.open {
+.react-select__control--menu-is-open .react-select__dropdown-indicator {
 	transform: rotate(180deg);
 }
-@media (min-width: 768px) {
-	.select-toggle {
-		--select-icon-size: 24px;
-	}
+
+.react-select__menu {
+	margin-top: 2px !important;
+	border-radius: var(--radius-s) !important;
+	background-color: var(--surface-primary) !important;
+	overflow: hidden;
+}
+
+.react-select__menu-list {
+	padding: 0 !important;
+	max-height: 240px;
+}
+
+.react-select__option {
+	padding: 12px !important;
+	font-size: var(--fs-caption-s) !important;
+	font-weight: var(--fw-caption-s) !important;
+	color: var(--text-primary) !important;
+	background-color: transparent !important;
+	cursor: pointer !important;
+}
+
+.react-select__option--is-focused {
+	background-color: var(--surface-hover) !important;
+}
+
+.react-select__option--is-selected {
+	background-color: var(--surface-hover) !important;
+}
+
+.has-error .react-select__control {
+	border-color: var(--surface-error) !important;
+}
+
+.select-error {
+	margin-top: 4px;
+	color: var(--surface-error);
+	font-size: var(--fs-caption-s);
+	font-weight: var(--fw-caption-s);
 }
 
 @media (min-width: 1440px) {
-	.select-field {
-		height: 56px;
-	}
-	.select-toggle {
-		--select-icon-size: 32px;
+	.react-select__control {
+		min-height: 56px !important;
 	}
 }

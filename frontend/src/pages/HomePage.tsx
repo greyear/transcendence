@@ -18,6 +18,7 @@ export const HomePage = () => {
 			<h1>{t("homePage.title")}</h1>
 			<LanguageSelector isHeader={false} />
 			<SelectField
+				inputId="ingredients"
 				options={[
 					{ label: "Tomato", value: "tomato" },
 					{ label: "Garlic", value: "garlic" },
