@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import "../../assets/styles/textIconButton.css";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 interface TextButtonProps {
 	children: ReactNode;

@@ -11,23 +11,23 @@
 
 export default {
 	// Use ts-jest preset for TypeScript support
-	preset: 'ts-jest',
+	preset: "ts-jest",
 
 	// Run tests in Node.js environment (not browser)
-	testEnvironment: 'node',
+	testEnvironment: "node",
 
 	// Treat .ts files as ES modules
-	extensionsToTreatAsEsm: ['.ts'],
+	extensionsToTreatAsEsm: [".ts"],
 
 	// Map local ESM imports like ../file.js to source ../file.ts during tests
 	moduleNameMapper: {
-		'^(\\.{1,2}/.*)\\.js$': '$1',
+		"^(\\.{1,2}/.*)\\.js$": "$1",
 	},
 
 	// Transform .ts files with ts-jest
 	transform: {
-		'^.+\\.ts$': [
-			'ts-jest',
+		"^.+\\.ts$": [
+			"ts-jest",
 			{
 				useESM: true,
 			},
@@ -35,13 +35,13 @@ export default {
 	},
 
 	// Test file pattern
-	testMatch: ['**/*.test.ts'],
+	testMatch: ["**/*.test.ts"],
 
 	// Coverage settings (optional, useful for CI/CD)
 	collectCoverageFrom: [
-		'src/**/*.ts',
-		'!src/**/*.d.ts',
-		'!src/index.ts', // Entry point doesn't need coverage
+		"src/**/*.ts",
+		"!src/**/*.d.ts",
+		"!src/index.ts", // Entry point doesn't need coverage
 	],
 
 	// Verbose output for better debugging

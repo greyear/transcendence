@@ -456,6 +456,13 @@ SELECT id, '1/2 cup dry', 40 FROM ingredients WHERE name = 'Oats'
 ON CONFLICT (ingredient_id, name) DO NOTHING;
 
 -- ============================================
+-- TEST USER (for recipe ownership tests)
+-- ============================================
+INSERT INTO users (id, username, role, status) VALUES
+  (1, 'demo_chef', 'user', 'offline')
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
 -- TEST RECIPE (for smoke tests)
 -- ============================================
 INSERT INTO recipes (
@@ -481,7 +488,7 @@ INSERT INTO recipes (
   ],
   4,
   0,
-  NULL,
+  1,
   'published',
   4.50,
   10

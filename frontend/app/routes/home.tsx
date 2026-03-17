@@ -10,7 +10,7 @@ import { UserCard } from "../components/cards/UserCard";
 import { SelectField } from "../components/inputs/SelectField";
 import { LanguageSelector } from "../components/LanguageSelector";
 
-export const HomePage = () => {
+const HomePage = () => {
 	const { t } = useTranslation();
 
 	return (
@@ -52,3 +52,5 @@ export const HomePage = () => {
 		</>
 	);
 };
+
+export default HomePage;
