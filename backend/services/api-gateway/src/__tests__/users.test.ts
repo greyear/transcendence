@@ -1,0 +1,135 @@
+/**
+ * API Gateway Users Routes Tests
+ *
+ * Tests the proxying behavior of user endpoints:
+ * - Ensures requests are routed to core-service correctly
+ * - Verifies that authentication is enforced at the edge for private routes
+ * - Ensures user context details (X-User-Id) are injected into requests
+ */
+
+import { jest } from "@jest/globals";
+import request from "supertest";
+import { app } from "../app.js";
+
+describe("API Gateway - Users Routes", () => {
+	const fetchSpy = jest.spyOn(global, "fetch");
+
+	afterEach(() => {
+		fetchSpy.mockReset();
+	});
+
+	afterAll(() => {
+		fetchSpy.mockRestore();
+	});
+
+	describe("GET /users/:id/recipes", () => {
+		/**
+		 * Test: Proxy GET /users/:id/recipes
+		 *
+		 * What we're testing:
+		 * - Gateway shouldn't block public endpoints
+		 * - It correctly appends headers before proxying
+		 */
+		it("should proxy to core-service and forward the response", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 200,
+				json: async () => ({
+					data: [{ id: 1, title: "Public Recipe" }],
+					count: 1,
+				}),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users/1/recipes");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({
+				data: [{ id: 1, title: "Public Recipe" }],
+				count: 1,
+			});
+			expect(fetchSpy).toHaveBeenCalledWith(
+				expect.stringContaining("/users/1/recipes"),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						"Content-Type": "application/json",
+					}),
+					signal: expect.any(AbortSignal),
+				}),
+			);
+		});
+	});
+
+	describe("GET /users/me/recipes", () => {
+		/**
+		 * Test: Reject unauthenticated requests early
+		 *
+		 * Why this matters:
+		 * - Gateway handles authentication checks for protected routes
+		 * - core-service only accepts forwarded X-User-Id header
+		 */
+		it("should reject with 401 if no auth token is provided", async () => {
+			const response = await request(app).get("/users/me/recipes");
+
+			expect(response.status).toBe(401);
+			expect(response.body).toEqual({ error: "Authentication required" });
+			expect(fetchSpy).not.toHaveBeenCalled();
+		});
+
+		/**
+		 * Test: Route valid authenticated requests with custom headers
+		 *
+		 * What we're testing:
+		 * - Intercepts user token
+		 * - Checks token with auth-service (1st fetch)
+		 * - Injects 'X-User-Id' header and calls core-service (2nd fetch)
+		 */
+		it("should validate token, proxy to core-service, and include X-User-Id header", async () => {
+			// Mock 1: First fetch goes to auth-service to validate token
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }), // returned by auth-service
+			} as unknown as Response);
+
+			// Mock 2: Second fetch goes to core-service for recipes
+			fetchSpy.mockResolvedValueOnce({
+				status: 200,
+				json: async () => ({
+					data: [{ id: 2, title: "My Private Recipe" }],
+					count: 1,
+				}),
+			} as unknown as Response);
+
+			const response = await request(app)
+				.get("/users/me/recipes")
+				.set("Authorization", "Bearer faketoken123");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({
+				data: [{ id: 2, title: "My Private Recipe" }],
+				count: 1,
+			});
+
+			// Verify auth-service check
+			expect(fetchSpy).toHaveBeenNthCalledWith(
+				1,
+				expect.stringContaining("/auth/validate"),
+				expect.objectContaining({
+					method: "POST",
+					headers: { Authorization: "Bearer faketoken123" },
+				}),
+			);
+
+			// Verify core-service proxy
+			expect(fetchSpy).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining("/users/me/recipes"),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						"x-user-id": "42",
+					}),
+					signal: expect.any(AbortSignal),
+				}),
+			);
+		});
+	});
+});
