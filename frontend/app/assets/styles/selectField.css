@@ -75,17 +75,6 @@
 	background-color: var(--surface-hover) !important;
 }
 
-.has-error .react-select__control {
-	border-color: var(--surface-error) !important;
-}
-
-.select-error {
-	margin-top: 4px;
-	color: var(--surface-error);
-	font-size: var(--fs-caption-s);
-	font-weight: var(--fw-caption-s);
-}
-
 @media (min-width: 1440px) {
 	.react-select__control {
 		min-height: 56px !important;

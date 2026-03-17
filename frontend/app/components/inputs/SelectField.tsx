@@ -16,13 +16,13 @@ type SelectFieldProps = {
 
 export const SelectField = ({
 	options,
-	placeholder = "Search...",
+	placeholder = "",
 	onChange,
 	inputId,
 	name,
 }: SelectFieldProps) => {
 	return (
-		<div className={"select-wrapper"}>
+		<div className="select-wrapper">
 			<Select
 				inputId={inputId}
 				name={name}

@@ -19,6 +19,7 @@ const HomePage = () => {
 			<LanguageSelector isHeader={false} />
 			<SelectField
 				inputId="ingredients"
+				placeholder="Select one"
 				options={[
 					{ label: "Tomato", value: "tomato" },
 					{ label: "Garlic", value: "garlic" },
