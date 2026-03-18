@@ -31,6 +31,7 @@ export const SelectField = ({
 				onChange={(selectedOption) => onChange?.(selectedOption?.value ?? "")}
 				classNamePrefix="react-select"
 				isSearchable
+				unstyled
 			/>
 		</div>
 	);
