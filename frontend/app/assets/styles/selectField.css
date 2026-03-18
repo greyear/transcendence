@@ -10,7 +10,7 @@
 	cursor: pointer;
 }
 
-.react-select__control--is-focused {
+.select-wrapper .react-select__control--is-focused {
 	border-color: var(--borders-action);
 	box-shadow: none;
 }
@@ -79,7 +79,7 @@
 }
 
 .select-wrapper .react-select__option--is-selected {
-	color: var(--borders-action);
+	color: var(--text-primary);
 	background-color: transparent;
 }
 
