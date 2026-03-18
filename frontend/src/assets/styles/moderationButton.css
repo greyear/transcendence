@@ -1,7 +1,0 @@
-.moderation-button.approve {
-	background-color: var(--surface-success);
-}
-
-.moderation-button.discard {
-	background-color: var(--surface-error);
-}

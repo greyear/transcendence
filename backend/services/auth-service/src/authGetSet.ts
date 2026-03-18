@@ -1,27 +1,27 @@
-/*
-	express is our backend node.js framework
-	mongoose is a mongodb convenience library for node.js
-	bcrypt is our password hashing module
-	jsonwebtoken is an encrypted way to pass sesson data client/server
- */
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 
-// Importing userModel from schema
-//Location of this may or may not change later.
-import { userModel } from './auth_schema.ts';
+// Import of project modules
+//Location of userModel may or may not change later.
+import { userModel } from './auth_schema.ts'; 
+import * as help from './authHelpers.ts';
+import { JwtPayload } from 'jsonwebtoken';
 
 export const authGetSet = Router();
+authGetSet.use(help.errorHandler);
 
 /*
 	Delete user. /users/:username endpoint
-		1. Attempt to hash new password
-		2. findOneAndDelete() to remove matching record
-		4. Return relevant code
-*
-authGetSet.delete('/users/:username', async (req, res) =>
+		1. Attempt to validate JWT from header
+		1. findOneAndDelete() to remove matching record
+		2. Return relevant code
+	As of now does not require the current password.
+*/
+authGetSet.delete('/users/:username', help.compareJWT,  async (req: Request, res: Response, next: NextFunction) =>
 {
 	try {
-		const userDocument = await userModel.findOneAndDelete( {username: req.params.username} );
+		const username = req.params.username;
+
+		const userDocument = await userModel.findOneAndDelete( {username} );
 
 		if (!userDocument)
 			return res.status(404).json({error: 'User not found'});
@@ -29,17 +29,18 @@ authGetSet.delete('/users/:username', async (req, res) =>
 		return res.json({ message: 'User deleted' });
 	
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		next(error);
 	}
 });
-*/
 
 //Fetch single user record
 //Return all but passwordHash
-authGetSet.get('/users/:username', async (req, res) =>
+authGetSet.get('/users/:username', async (req: Request, res: Response, next: NextFunction) =>
 {
 	try {
-		const userDocument = await userModel.findOne({username: req.params.username},
+		const username = req.params.username;
+
+		const userDocument = await userModel.findOne({username},
 													 {username: 1, email: 1, realName: 1});
 
 		if (!userDocument)
@@ -48,13 +49,13 @@ authGetSet.get('/users/:username', async (req, res) =>
 		return res.json(userDocument);
 
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		next(error);
 	}
 });
 
 //Fetch all user records
 //Return all but passwordHash
-authGetSet.get('/users', async (req, res) =>
+authGetSet.get('/users', async (req: Request, res: Response, next: NextFunction) =>
 {
 	try {
 		const userDocument = await userModel.find({},{username: 1, email: 1, realName: 1});
@@ -65,41 +66,74 @@ authGetSet.get('/users', async (req, res) =>
 		return res.json(userDocument);
 
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		next(error);
 	}
 });
 
 /*
 	Change user password. /users/:username endpoint
-		1. Attempt to hash new password
-		2. findOneAndUpdate() to update the record with new hash
+		1. Attempt to validate JWT from header
+		2. Attempt to validate new password format
+		3. Attempt to validate old password
+		4. Attempt to hash new password
+		5. findOneAndUpdate() to update the record with new hash
 			Find by URI param. Recreate record with new data
-		3. If good, create JWT and return
-		4. Return relevant code
-*
-authGetSet.put('/users/:username', async (req, res) =>
+		6. Return relevant code
+*/
+authGetSet.patch('/users/:username/change-password', help.compareJWT, async (req: Request, res: Response, next: NextFunction) =>
 {
 	try {
-		if (!validatePassword(req.body.password))
-			return res.status(422).json({error: "The password doesn't match the password requirements"});
+		const {newPassword, password} = req.body;
+		const username = req.params.username;
 
-		const hashedPassword = await hashPassword(req.body.password);
+		if (!help.validatePassword(newPassword))
+			return res.status(422).json({error: "The password doesn't match the password requirements"});
+		
+		const userDocument = await userModel.findOne({username});
+		if (!userDocument)
+			return res.status(404).json({error: 'User not found'});
+
+		const gotHash = userDocument.get('passwordHash');
+		const passwordMatch = await help.comparePassword(password, gotHash);
+		if (!passwordMatch)
+			return res.status(401).json({ error: 'Password mismatch' });
+
+		const hashedPassword = await help.hashPassword(newPassword);
 		if (!hashedPassword)
 			return res.status(500).json({error: 'Hashing failed'});
 
-		const userDocument = await userModel.findOneAndUpdate(
-			{username: req.params.username},
+		const updatedUser = await userModel.findOneAndUpdate(
+			{username},
 			{passwordHash: hashedPassword},
 			{new: true}
 			);
 
-		if (userDocument)
-			return res.json(userDocument);
+		if (updatedUser)
+			return res.json({ message: "Password updated successfully" });
 		
 		return res.status(404).json({error: 'User not found'});
 	
 	} catch (error) {
-		res.status(500).json({ error: error.message });
+		next(error);
 	}
 });
-*/
+
+// /auth/validate endpoint to specifically validate a JWT within the header.
+authGetSet.post('/auth/validate', async (req: Request, res: Response, next: NextFunction) =>
+{
+	try {
+		const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
+		if (!decodedToken)
+			throw Error("Invalid header");
+
+		const username = decodedToken.username;
+		const userDocument = await userModel.findOne({username});
+		if (!userDocument)
+			return res.status(401).json({ error: "Invalid token" });
+
+		const userID = userDocument.get('_id');
+		return res.status(200).json({ _id: userID });
+	} catch (error) {
+		next(error);
+	}
+});

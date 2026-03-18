@@ -1,0 +1,54 @@
+.icon-button {
+	--icon-button-size: 44px;
+	--icon-size: 20px;
+	min-width: var(--icon-button-size);
+	height: var(--icon-button-size);
+	border-radius: var(--radius-s);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: filter 0.2s ease;
+	background-color: var(--bg-main);
+	padding: 0;
+	border: 1px solid var(--borders-action);
+}
+
+.icon-button svg {
+	width: var(--icon-size);
+	height: var(--icon-size);
+	stroke-width: 1.5;
+	color: var(--icons-primary);
+}
+
+.icon-button:hover {
+	filter: brightness(var(--hover-brightness));
+}
+
+.icon-button:active {
+	filter: brightness(var(--active-brightness));
+}
+
+.icon-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	filter: none;
+}
+
+.icon-button:disabled:hover {
+	filter: none;
+}
+
+@media (min-width: 768px) {
+	.icon-button {
+		--icon-button-size: 48px;
+		--icon-size: 24px;
+	}
+}
+
+@media (min-width: 1440px) {
+	.icon-button {
+		--icon-button-size: 56px;
+		--icon-size: 32px;
+	}
+}
