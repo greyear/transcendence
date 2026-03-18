@@ -95,15 +95,15 @@ export const InputField = ({
 
 	return (
 		<div className={`input-field-container ${className}`.trim()}>
-			<label htmlFor={id} className={label ? "text-caption" : "sr-only"}>
+			<label htmlFor={id} className={label ? "text-label" : "sr-only"}>
 				{label || placeholder}
 			</label>
 
-			<div className={`input-wrapper ${visibleError ? "error" : ""}`}>
+			<div className={`input-wrapper ${visibleError ? "error" : ""}`.trim()}>
 				<input
 					ref={inputRef}
 					id={id}
-					className="input-field"
+					className="input-field text-body3"
 					type={inputType}
 					placeholder={placeholder}
 					aria-invalid={visibleError ? "true" : "false"}

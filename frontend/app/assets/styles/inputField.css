@@ -20,9 +20,6 @@
 	padding: 0;
 	background-color: transparent;
 	color: var(--text-primary);
-	font-size: var(--fs-body3);
-	font-weight: var(--fw-body3);
-	line-height: var(--lh-body3);
 	border: none;
 }
 
