@@ -2,11 +2,12 @@ name: Backend Smoke Tests (Main)
 
 on:
   push:
-    branches: [main, gh_action_tests]
+    branches: [main]
     paths:
       - 'backend/**'
       - 'docker-compose.yml'
       - '.github/workflows/smoke-tests.yml'
+  workflow_dispatch:
 
 jobs:
   smoke-tests:

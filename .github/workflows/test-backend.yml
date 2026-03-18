@@ -7,12 +7,7 @@ on:
       - 'backend/**'
       - 'package.json'
       - '.github/workflows/test-backend.yml'
-  push:
-    branches: [gh_action_tests]
-    paths:
-      - 'backend/**'
-      - 'package.json'
-      - '.github/workflows/test-backend.yml'
+  workflow_dispatch:
 
 jobs:
   test-core-service:
