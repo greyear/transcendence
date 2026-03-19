@@ -40,3 +40,9 @@
 	font-size: var(--fs-caption-s);
 	color: var(--text-secondary);
 }
+
+@media (min-width: 1440px) {
+	.divider-line {
+		width: 1248px;
+	}
+}
