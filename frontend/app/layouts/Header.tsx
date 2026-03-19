@@ -1,18 +1,23 @@
-import { Bell, Menu, Xmark } from "iconoir-react"
-import { IconButton } from "../components/buttons/IconButton"
-import { MainButton } from "../components/buttons/MainButton"
-import { useState } from "react"
-import "../assets/styles/header.css"
+import { Bell, Menu, Xmark } from "iconoir-react";
+import { useState } from "react";
+import { IconButton } from "../components/buttons/IconButton";
+import { MainButton } from "../components/buttons/MainButton";
+import "../assets/styles/header.css";
+import { Link } from "react-router";
+import { TextIconButton } from "~/components/buttons/TextIconButton";
+import { LanguageSelector } from "~/components/LanguageSelector";
 
 export const Header = () => {
-	const [isOpen, setIsOpen] = useState(false)
+	const [isOpen, setIsOpen] = useState(false);
 
 	const handleMenuButtonClick = () => setIsOpen((prev) => !prev);
 
 	return (
 		<header className="main-header">
 			<div className="header-top-row">
-				<h2>RCP</h2>
+				<Link to="/" aria-label="RCP – go to homepage" className="logo-link h2">
+					RCP
+				</Link>
 				<div className="header-top-icon-row">
 					<IconButton aria-label="Notifications">
 						<Bell />
@@ -26,24 +31,34 @@ export const Header = () => {
 					</IconButton>
 				</div>
 			</div>
-			{isOpen &&
+			{isOpen && (
 				<>
-					<nav>
-						<ul className="header-navigation-list" role="list">
-							<li>Home</li>
-							<li>Recipes</li>
-							<li>People</li>
+					<nav aria-label="Main">
+						<ul className="header-navigation-list">
 							<li>
-								<MainButton>Log in/Sign up</MainButton>
+								<TextIconButton size="body2" to="/" variant="inverted">
+									Home
+								</TextIconButton>
+							</li>
+							<li>
+								<TextIconButton size="body2" to="/recipes" variant="inverted">
+									Recipes
+								</TextIconButton>
+							</li>
+							<li>
+								<TextIconButton size="body2" to="/users" variant="inverted">
+									People
+								</TextIconButton>
+							</li>
+							<li>
+								<MainButton variant="inverted">Log in/Sign Up</MainButton>
 							</li>
 						</ul>
 					</nav>
 					{/* Searchbar */}
-					<div className="lang-row">
-						{/* Lang buttons */}
-					</div>
+					<LanguageSelector isHeader />
 				</>
-			}
+			)}
 		</header>
-	)
-}
+	);
+};
