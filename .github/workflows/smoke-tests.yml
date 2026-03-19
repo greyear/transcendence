@@ -1,0 +1,61 @@
+name: Backend Smoke Tests (Main)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/smoke-tests.yml'
+  workflow_dispatch:
+
+jobs:
+  smoke-tests:
+    name: Smoke Tests with Docker
+    runs-on: ubuntu-latest
+
+    services:
+      core-postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: core_user
+          POSTGRES_PASSWORD: core_pass
+          POSTGRES_DB: core_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U core_user; do
+            sleep 1
+          done
+        env:
+          PGPASSWORD: core_pass
+
+      - name: Initialize database schema
+        run: |
+          psql -h localhost -U core_user -d core_db -f backend/infrastructure/postgres/core/01-init-core.sql \
+            && psql -h localhost -U core_user -d core_db -f backend/infrastructure/postgres/core/02-seed-core.sql
+        env:
+          PGPASSWORD: core_pass
+
+      - name: Run smoke tests
+        run: npm test
