@@ -7,6 +7,7 @@ import { ModerationButton } from "../components/buttons/ModerationButton";
 import { TextIconButton } from "../components/buttons/TextIconButton";
 import { RecipeCard } from "../components/cards/RecipeCard";
 import { UserCard } from "../components/cards/UserCard";
+import { SelectField } from "../components/inputs/SelectField";
 import { InputField } from "../components/inputs/InputField";
 import { LanguageSelector } from "../components/LanguageSelector";
 
@@ -17,6 +18,14 @@ const HomePage = () => {
 		<>
 			<h1>{t("homePage.title")}</h1>
 			<LanguageSelector isHeader={false} />
+			<SelectField
+				inputId="ingredients"
+				placeholder="Select one"
+				options={[
+					{ label: "Tomato", value: "tomato" },
+					{ label: "Garlic", value: "garlic" },
+					{ label: "Onion", value: "onion" },
+				]}
 			<InputField
 				id="email"
 				label="Email"
