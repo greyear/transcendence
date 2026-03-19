@@ -22,14 +22,14 @@
 	border: 1px solid var(--borders-default);
 }
 
-.language-button.header {
+.language-button--header {
 	&.active {
 		background-color: var(--surface-primary);
 		color: var(--text-primary);
 	}
 }
 
-.language-button.footer {
+.language-button--footer {
 	border-color: var(--borders-action);
 	&.active {
 		background-color: var(--surface-action-active);

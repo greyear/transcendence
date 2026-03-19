@@ -20,7 +20,7 @@ export const LanguageButton = ({
 		<button
 			type="button"
 			onClick={onClick}
-			className={`icon-button language-button ${location} ${activeClass}`}
+			className={`icon-button language-button language-button--${location} ${activeClass}`}
 			aria-pressed={isActive}
 		>
 			{langCode}
