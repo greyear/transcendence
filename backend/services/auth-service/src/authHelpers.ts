@@ -3,9 +3,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import z from "zod";
 import { NextFunction, Request, Response } from "express"; 
 
-//Location of userModel may or may not change later.
-import { userModel } from './auth_schema.ts'; 
-import { ObjectId } from "mongoose";
+import { userCounter } from './auth_schema.ts'; 
 
 //From auth_db_operations.ts
 //
@@ -150,4 +148,26 @@ export const errorHandler = (error: unknown, req: Request, res: Response, next: 
 	console.error(error);
 	const message = error instanceof Error ? error.message : "Internal Server Error";
 	res.status(500).json({ error: message });
+};
+
+//Create a sequential and unique userID
+export const makeID = async () =>
+{
+		let counter = await userCounter.findOne({name: 'CounterDB'});
+		if (!counter)
+		{
+			const newCounter = new userCounter({
+										name: "CounterDB",
+										seq: 2
+										});
+			const retPromise = await newCounter.save();
+
+			return 1;
+		}
+		
+		const currentCount = counter.get('seq');
+		counter = await userCounter.findOneAndUpdate({name: 'CounterDB'},
+											{ $inc: { seq: 1 } });
+
+		return currentCount;
 };

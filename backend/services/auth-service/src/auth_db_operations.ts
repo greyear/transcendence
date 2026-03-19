@@ -65,7 +65,10 @@ authRouter.post('/register', async (req: Request, res: Response, next: NextFunct
 		if (!hashedPassword)
 			return res.status(500).json({error: 'Hashing failed'});
 
+		const currentCount = await help.makeID();
+
 		const newUser = new userModel({
+										id:currentCount,
 										username,
 										email,
 										passwordHash:hashedPassword,
