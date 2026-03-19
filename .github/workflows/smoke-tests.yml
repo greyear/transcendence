@@ -14,48 +14,34 @@ jobs:
     name: Smoke Tests with Docker
     runs-on: ubuntu-latest
 
-    services:
-      core-postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: core_user
-          POSTGRES_PASSWORD: core_pass
-          POSTGRES_DB: core_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      - name: Install root dependencies
-        run: npm ci
+      - name: Start services with docker-compose
+        run: docker-compose up -d
 
-      - name: Wait for PostgreSQL
+      - name: Wait for API Gateway to be ready
         run: |
-          until pg_isready -h localhost -p 5432 -U core_user; do
-            sleep 1
+          echo "Waiting for API Gateway to be ready..."
+          for i in {1..60}; do
+            if curl -f http://localhost:3000/health >/dev/null 2>&1; then
+              echo "✓ API Gateway is ready"
+              exit 0
+            fi
+            echo "Attempt $i/60: waiting for API Gateway..."
+            sleep 2
           done
-        env:
-          PGPASSWORD: core_pass
-
-      - name: Initialize database schema
-        run: |
-          psql -h localhost -U core_user -d core_db -f backend/infrastructure/postgres/core/01-init-core.sql \
-            && psql -h localhost -U core_user -d core_db -f backend/infrastructure/postgres/core/02-seed-core.sql
-        env:
-          PGPASSWORD: core_pass
+          echo "❌ API Gateway did not become ready in time"
+          docker-compose logs
+          exit 1
 
       - name: Run smoke tests
         run: npm test
+
+      - name: Cleanup docker-compose
+        if: always()
+        run: docker-compose down -v
