@@ -131,8 +131,8 @@ authGetSet.post('/auth/validate', async (req: Request, res: Response, next: Next
 		if (!userDocument)
 			return res.status(401).json({ error: "Invalid token" });
 
-		const userID = userDocument.get('_id');
-		return res.status(200).json({ _id: userID });
+		const userID = userDocument.get('id');
+		return res.status(200).json({ id: userID });
 	} catch (error) {
 		next(error);
 	}
