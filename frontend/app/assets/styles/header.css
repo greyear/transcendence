@@ -39,3 +39,15 @@
 	list-style: none;
 	margin: 0;
 }
+
+@media (min-width: 768px) {
+	.header-navigation-list {
+		flex-direction: row;
+	}
+}
+
+@media (min-width: 1440px) {
+	.header-top-row {
+		width: 1248px;
+	}
+}

@@ -50,11 +50,9 @@ export const Header = () => {
 									People
 								</TextIconButton>
 							</li>
-							<li>
-								<MainButton variant="inverted">Log in/Sign Up</MainButton>
-							</li>
 						</ul>
 					</nav>
+					<MainButton variant="inverted">Log in/Sign Up</MainButton>
 					{/* Searchbar */}
 					<LanguageSelector isHeader />
 				</>
