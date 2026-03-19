@@ -1,31 +1,51 @@
-import { MainButton } from "~/components/buttons/MainButton"
-import { TextIconButton } from "~/components/buttons/TextIconButton"
-import { LanguageSelector } from "~/components/LanguageSelector"
+import { MainButton } from "~/components/buttons/MainButton";
+import { TextIconButton } from "~/components/buttons/TextIconButton";
+import { LanguageSelector } from "~/components/LanguageSelector";
+import "../assets/styles/footer.css";
 
 export const Footer = () => {
 	return (
-		<footer>
+		<footer className="footer">
 			<nav aria-label="Main">
-				<ul>
-					<li><TextIconButton to="/">Home</TextIconButton></li>
-					<li><TextIconButton to="/recipes">Recipes</TextIconButton></li>
-					<li><TextIconButton to="/users">People</TextIconButton></li>
+				<ul className="nav-list">
+					<li>
+						<TextIconButton size="body2" to="/">
+							Home
+						</TextIconButton>
+					</li>
+					<li>
+						<TextIconButton size="body2" to="/recipes">
+							Recipes
+						</TextIconButton>
+					</li>
+					<li>
+						<TextIconButton size="body2" to="/users">
+							People
+						</TextIconButton>
+					</li>
 				</ul>
 			</nav>
 			{/* TODO: add the login state */}
 			<MainButton>Log In/Sign up</MainButton>
 			<LanguageSelector isHeader={false} />
 			<div className="divider-line" aria-hidden="true" />
-			<div>
+			<div className="legal-container">
 				<nav aria-label="Legal">
-					<ul>
-						<li><TextIconButton to="/terms">Terms and Conditions</TextIconButton></li>
-						<li><span aria-hidden="true">|</span></li> {/* Move it to css */}
-						<li><TextIconButton to="/policy">Privacy Policy</TextIconButton></li>
+					<ul className="nav-list nav-list-divider">
+						<li>
+							<TextIconButton size="body2" to="/terms">
+								Terms and Conditions
+							</TextIconButton>
+						</li>
+						<li>
+							<TextIconButton size="body2" to="/policy">
+								Privacy Policy
+							</TextIconButton>
+						</li>
 					</ul>
 				</nav>
-				<small>Transcendence, Hive © 2026</small>
+				<small className="copyright">Transcendence, Hive © 2026</small>
 			</div>
 		</footer>
-	)
-}
+	);
+};
