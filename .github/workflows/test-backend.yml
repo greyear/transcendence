@@ -6,7 +6,7 @@ on:
     paths:
       - 'backend/**'
       - 'package.json'
-      - '.github/workflows/test-backend.yml'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 jobs:
