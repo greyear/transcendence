@@ -127,7 +127,7 @@ authGetSet.post('/auth/validate', async (req: Request, res: Response, next: Next
 			throw Error("Invalid header");
 
 		const username = decodedToken.username;
-		const userDocument = await userModel.findOne({username});
+		const userDocument = await userModel.findOne({$or: [{username}, {email:username}]});
 		if (!userDocument)
 			return res.status(401).json({ error: "Invalid token" });
 
