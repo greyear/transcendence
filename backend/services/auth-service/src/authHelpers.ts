@@ -12,7 +12,7 @@ import { userCounter } from './auth_schema.ts';
 //Maybe change to argon2
 export const hashPassword = async (password: string) =>
 {
-	const saltCost = 5;
+	const saltCost = 12;
 
 	try {
 		const salt = await bcrypt.genSalt(saltCost);
@@ -70,7 +70,9 @@ export const validatePassword = (password: string) =>
 // id is from userDocument._id and is ObjectId type
 export const generateToken = (id: string, username: string) =>
 {
-	const JWTSecret = process.env.JWTSecret || "placeholder";
+	const JWTSecret = process.env.JWT_SECRET;
+	if (!JWTSecret)
+        throw new Error("JWTSecret env variable is not set");
 
 	const payload = {
 		sub: id,
@@ -82,11 +84,12 @@ export const generateToken = (id: string, username: string) =>
 	});
 };
 
-
 export const decodeToken = (token: string) =>
 {
 	try {
-		const JWTSecret = process.env.JWTSecret || "placeholder";
+		const JWTSecret = process.env.JWT_SECRET;
+		if (!JWTSecret)
+        	throw new Error("JWTSecret env variable is not set");
 
 		const decoded = jwt.verify(token, JWTSecret);
 
@@ -151,23 +154,12 @@ export const errorHandler = (error: unknown, req: Request, res: Response, next: 
 };
 
 //Create a sequential and unique userID
-export const makeID = async () =>
+export const makeID = async (): Promise<number> =>
 {
-		let counter = await userCounter.findOne({name: 'CounterDB'});
-		if (!counter)
-		{
-			const newCounter = new userCounter({
-										name: "CounterDB",
-										seq: 2
-										});
-			const retPromise = await newCounter.save();
-
-			return 1;
-		}
-		
-		const currentCount = counter.get('seq');
-		counter = await userCounter.findOneAndUpdate({name: 'CounterDB'},
-											{ $inc: { seq: 1 } });
-
-		return currentCount;
+    const counter = await userCounter.findOneAndUpdate(
+        { name: 'CounterDB' },
+        { $inc: { seq: 1 } },
+        { new: false, upsert: true, setDefaultsOnInsert: true }
+    );
+    return counter ? counter.seq : 1;
 };

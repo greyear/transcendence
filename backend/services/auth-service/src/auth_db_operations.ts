@@ -74,7 +74,7 @@ authRouter.post('/register', async (req: Request, res: Response, next: NextFunct
 										passwordHash:hashedPassword,
 										realname
 										});
-		const retPromise = await newUser.save();
+		await newUser.save();
 
 		return res.status(201).json({username, email, realname});
 
