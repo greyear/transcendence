@@ -3,9 +3,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import z from "zod";
 import { NextFunction, Request, Response } from "express"; 
 
-//Location of userModel may or may not change later.
-import { userModel } from './auth_schema.ts'; 
-import { ObjectId } from "mongoose";
+import { userCounter } from './auth_schema.ts'; 
 
 //From auth_db_operations.ts
 //
@@ -14,7 +12,7 @@ import { ObjectId } from "mongoose";
 //Maybe change to argon2
 export const hashPassword = async (password: string) =>
 {
-	const saltCost = 5;
+	const saltCost = 12;
 
 	try {
 		const salt = await bcrypt.genSalt(saltCost);
@@ -72,7 +70,9 @@ export const validatePassword = (password: string) =>
 // id is from userDocument._id and is ObjectId type
 export const generateToken = (id: string, username: string) =>
 {
-	const JWTSecret = process.env.JWTSecret || "placeholder";
+	const JWTSecret = process.env.JWT_SECRET;
+	if (!JWTSecret)
+        throw new Error("JWTSecret env variable is not set");
 
 	const payload = {
 		sub: id,
@@ -84,11 +84,12 @@ export const generateToken = (id: string, username: string) =>
 	});
 };
 
-
 export const decodeToken = (token: string) =>
 {
 	try {
-		const JWTSecret = process.env.JWTSecret || "placeholder";
+		const JWTSecret = process.env.JWT_SECRET;
+		if (!JWTSecret)
+        	throw new Error("JWTSecret env variable is not set");
 
 		const decoded = jwt.verify(token, JWTSecret);
 
@@ -150,4 +151,15 @@ export const errorHandler = (error: unknown, req: Request, res: Response, next: 
 	console.error(error);
 	const message = error instanceof Error ? error.message : "Internal Server Error";
 	res.status(500).json({ error: message });
+};
+
+//Create a sequential and unique userID
+export const makeID = async (): Promise<number> =>
+{
+    const counter = await userCounter.findOneAndUpdate(
+        { name: 'CounterDB' },
+        { $inc: { seq: 1 } },
+        { new: false, upsert: true, setDefaultsOnInsert: true }
+    );
+    return counter ? counter.seq : 1;
 };
