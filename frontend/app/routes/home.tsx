@@ -1,5 +1,4 @@
 import { Filter, Plus } from "iconoir-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
 import { IconButton } from "../components/buttons/IconButton";
@@ -9,23 +8,19 @@ import { TextIconButton } from "../components/buttons/TextIconButton";
 import { RecipeCard } from "../components/cards/RecipeCard";
 import { UserCard } from "../components/cards/UserCard";
 import { InputField } from "../components/inputs/InputField";
+import { SearchField } from "../components/inputs/SearchField";
 import { SelectField } from "../components/inputs/SelectField";
 import { LanguageSelector } from "../components/LanguageSelector";
-import { SearchField } from "../components/search/SearchField";
 
 const HomePage = () => {
 	const { t } = useTranslation();
-	const [search, setSearch] = useState("");
 
 	return (
 		<>
 			<h1>{t("homePage.title")}</h1>
 			<LanguageSelector isHeader={false} />
-			<SearchField
-				value={search}
-				onChange={setSearch}
-				placeholder="Search..."
-			/>
+			<SearchField placeholder="Search..." />
+			<SearchField placeholder="Search..." mode="collapsible" />
 			<SelectField
 				inputId="ingredients"
 				placeholder="Select one"
