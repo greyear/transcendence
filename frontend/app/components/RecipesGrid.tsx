@@ -11,25 +11,25 @@ type RecipeCardResponse = {
 	title: string;
 	description: string;
 	rating_avg: string;
-}
+};
 
 export const RecipesGrid = async () => {
 	const getRecipeList = async (): Promise<RecipeCardResponse[]> => {
 		try {
 			const res = await fetch("http://localhost:3000/recipes");
 			if (!res.ok) {
-				console.log("The recipe database is empty.")
-				return []
+				console.log("The recipe database is empty.");
+				return [];
 			}
 			const body = await res.json();
 			return body.data;
 		} catch (error) {
 			console.error(error);
-			return []
+			return [];
 		}
-	}
+	};
 
-	const recipeList: RecipeCardResponse[] = await getRecipeList() || [];
+	const recipeList: RecipeCardResponse[] = (await getRecipeList()) || [];
 
 	return (
 		<ul className="recipe-card-list">

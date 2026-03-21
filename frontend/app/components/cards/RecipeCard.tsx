@@ -1,4 +1,5 @@
 import "../../assets/styles/recipeCard.css";
+import { StarSolid } from "iconoir-react";
 import { Link } from "react-router";
 import recipeImg from "../../assets/images/vegetable-side-dishes.jpg";
 import { FavoriteButton } from "../buttons/FavoriteButton";
@@ -31,7 +32,10 @@ export const RecipeCard = ({
 							<p className="text-caption-s">{description}</p>
 						</header>
 						<footer className="recipe-card-footer">
-							<span className="text-caption">{rating}</span>
+							<div className="rating-row">
+								<span className="text-caption">{rating}</span>
+								<StarSolid />
+							</div>
 							<FavoriteButton />
 						</footer>
 					</div>

@@ -68,14 +68,34 @@
 	align-items: center;
 }
 
+.rating-row {
+	--star-icon-size: 20px;
+	display: flex;
+	flex-direction: row;
+	gap: var(--space-xs);
+	align-items: center;
+
+	svg {
+		width: var(--star-icon-size);
+	}
+}
+
 @media (min-width: 768px) {
 	.recipe-card {
 		--recipe-card-image-size: 180px;
+	}
+
+	.rating-row {
+		--star-icon-size: 24px;
 	}
 }
 
 @media (min-width: 1440px) {
 	.recipe-card {
 		--recipe-card-image-size: 248px;
+	}
+
+	.rating-row {
+		--star-icon-size: 32px;
 	}
 }
