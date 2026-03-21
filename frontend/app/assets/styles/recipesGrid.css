@@ -6,14 +6,15 @@
 	gap: var(--space-s);
 }
 
-@media (min-width: 768px) {
+/* Adding 1024px as an exception because otherwise the cards are really small */
+@media (min-width: 1024px) {
 	.recipe-card-list {
 		display: grid;
 		grid-template-columns: repeat(2, minmax(328px, 1fr));
 	}
 }
 
-@media (min-width: 1440px) {
+@media (min-width: 1920px) {
 	.recipe-card-list {
 		grid-template-columns: repeat(3, minmax(328px, 1fr));
 	}

@@ -18,9 +18,11 @@
 }
 
 .nav-list-divider {
+	gap: var(--space-xs);
+
 	li:not(:last-child) {
 		border-right: 1px solid var(--text-primary);
-		padding-right: var(--space-s);
+		padding-right: var(--space-xs);
 	}
 }
 
