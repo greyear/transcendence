@@ -2,6 +2,10 @@
 	text-decoration: none;
 	color: unset;
 
+	&:hover {
+		filter: brightness(var(--hover-brightness));
+	}
+
 	&:active {
 		filter: brightness(var(--active-brightness));
 	}
