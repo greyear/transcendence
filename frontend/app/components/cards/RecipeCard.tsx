@@ -7,7 +7,7 @@ type RecipeCardProps = {
 	id: number;
 	title: string;
 	description: string;
-	rating: number;
+	rating: string;
 };
 
 export const RecipeCard = ({
