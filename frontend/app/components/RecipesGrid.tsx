@@ -1,5 +1,6 @@
 import { RecipeCard } from "./cards/RecipeCard";
 import "../assets/styles/recipesGrid.css";
+import { useEffect, useState } from "react";
 
 // TODO: add count for pagination
 // type RecipesGridProps = {
@@ -13,23 +14,21 @@ type RecipeCardResponse = {
 	rating_avg: string;
 };
 
-export const RecipesGrid = async () => {
-	const getRecipeList = async (): Promise<RecipeCardResponse[]> => {
-		try {
-			const res = await fetch("http://localhost:3000/recipes");
-			if (!res.ok) {
-				console.log("The recipe database is empty.");
-				return [];
-			}
-			const body = await res.json();
-			return body.data;
-		} catch (error) {
-			console.error(error);
-			return [];
-		}
-	};
+export const RecipesGrid = () => {
+	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
 
-	const recipeList: RecipeCardResponse[] = (await getRecipeList()) || [];
+	useEffect(() => {
+		fetch("http://localhost:3000/recipes")
+			.then((res) => {
+				if (!res.ok) {
+					console.log("The recipe database is empty.");
+					return { data: [] };
+				}
+				return res.json();
+			})
+			.then((body) => setRecipeList(body.data))
+			.catch(console.error);
+	}, []);
 
 	return (
 		<ul className="recipe-card-list">
