@@ -1,4 +1,5 @@
 import { RecipeCard } from "./cards/RecipeCard";
+import "../assets/styles/recipesGrid.css";
 
 // TODO: add count for pagination
 // type RecipesGridProps = {
