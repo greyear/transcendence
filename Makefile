@@ -1,4 +1,4 @@
-.PHONY: help up down restart clean logs logs-db db-status db-reset dev-api dev-core dev-all test-core test-core-fix test-jest-core test-jest-api test-jest-all test-all check-node
+.PHONY: help up down restart clean logs logs-db db-status db-reset wait-core-seed dev-api dev-core dev-all test-core test-biome test-jest-core test-jest-api test-jest-all test-all check-node
 
 help:
 	@echo "Transcendence Development Commands:"
@@ -20,7 +20,7 @@ help:
 	@echo ""
 	@echo "Tests:"
 	@echo "  make test-core       - Run core-service endpoint smoke tests"
-	@echo "  make test-core-fix   - Run Biome autofix, then core-service smoke tests"
+	@echo "  make test-biome      - Run Biome autofix, then smoke tests"
 	@echo "  make test-jest-core  - Run Jest unit/integration tests for core-service"
 	@echo "  make test-jest-api   - Run Jest unit/integration tests for api-gateway"
 	@echo "  make test-jest-all   - Run all Jest tests (core + gateway)"
@@ -45,7 +45,8 @@ clean:
 	@echo "Cleaning volumes and restarting database..."
 	docker-compose down -v
 	docker-compose up -d
-	@echo "✓ Fresh database initialized"
+	@$(MAKE) wait-core-seed
+	@echo "✓ Fresh database initialized with seed data"
 
 logs:
 	docker-compose logs -f
@@ -65,15 +66,15 @@ db-reset:
 	docker-compose stop auth-db core-db notification-db
 	docker-compose rm -f -v auth-db core-db notification-db
 	docker-compose up -d auth-db core-db notification-db
+	@$(MAKE) wait-core-seed
 	@echo "✓ Database reset completed (apps untouched)"
 
-test-core:
-	@echo "Running core-service endpoint smoke tests..."
-	npm test
-
-test-core-fix:
-	@echo "Running Biome autofix + core-service endpoint smoke tests..."
-	npm run test:fix
+wait-core-seed:
+	@echo "Waiting for core-db to become ready..."
+	@until docker exec core-postgres pg_isready -U core_user -d core_db >/dev/null 2>&1; do sleep 1; done
+	@echo "Waiting for core seed data (users.id=1)..."
+	@until [ "`docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM users WHERE id = 1;\" | tr -d '[:space:]'`" = "1" ]; do sleep 1; done
+	@echo "✓ Core DB seed data is ready"
 
 check-node:
 	@node -e 'const major=Number(process.versions.node.split(".")[0]); if (major < 18) { console.error("Node.js >= 18 is required for local dev (current: " + process.versions.node + ")"); console.error("Install Node.js 20 LTS, then retry make dev-api/dev-core."); process.exit(1); }'
@@ -98,6 +99,21 @@ dev-all:
 	@echo "(if you need auth-service and notification-service stubs in Docker)"
 	@echo ""
 	@echo "Or use tmux/screen to run them in one window"
+
+# ===== Code Quality & Formatting =====
+# Biome autofix + smoke tests for code consistency
+
+test-biome:
+	@echo "Running Biome autofix + core-service endpoint smoke tests..."
+	npm run test:fix
+
+# ===== Smoke Tests =====
+# Functional black-box tests using bash scripts
+# These test the entire stack with Docker containers
+
+test-core:
+	@echo "Running core-service endpoint smoke tests..."
+	npm test
 
 # ===== Jest Tests =====
 # Unit and integration tests using Jest + Supertest
