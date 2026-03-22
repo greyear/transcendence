@@ -9,7 +9,6 @@ type PaginationItemProps = {
 	variant?: PaginationItemVariant;
 	active?: boolean;
 	disabled?: boolean;
-	hideMobile?: boolean;
 	ariaCurrentPage?: boolean;
 };
 
@@ -19,17 +18,14 @@ export const PaginationItem = ({
 	variant = "page",
 	active = false,
 	disabled = false,
-	hideMobile = false,
 	ariaCurrentPage = false,
 	children,
 }: PaginationItemProps) => {
 	const className = [
-		"pagination-item",
-		"text-label",
-		`pagination-item--${variant}`,
-		active && "active",
-		disabled && "disabled",
-		hideMobile && "hide-mobile",
+		"pagination__link",
+		`pagination__link--${variant}`,
+		active && "pagination__link--active",
+		disabled && "pagination__link--disabled",
 	]
 		.filter(Boolean)
 		.join(" ");

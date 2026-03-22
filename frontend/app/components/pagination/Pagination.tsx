@@ -37,55 +37,73 @@ export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 
 	return (
 		<nav className="pagination" aria-label="Pagination">
-			<PaginationItem
-				to={buildPageUrl(1)}
-				variant="nav"
-				disabled={currentPage <= 1}
-				ariaLabel="First page"
-			>
-				<FastArrowLeft />
-			</PaginationItem>
+			<ul className="pagination__list">
+				<li className="pagination__item">
+					<PaginationItem
+						to={buildPageUrl(1)}
+						variant="nav"
+						disabled={currentPage <= 1}
+						ariaLabel="First page"
+					>
+						<FastArrowLeft />
+					</PaginationItem>
+				</li>
 
-			<PaginationItem
-				to={buildPageUrl(currentPage - 1)}
-				variant="nav"
-				disabled={currentPage <= 1}
-				ariaLabel="Previous page"
-			>
-				<NavArrowLeft />
-			</PaginationItem>
+				<li className="pagination__item">
+					<PaginationItem
+						to={buildPageUrl(currentPage - 1)}
+						variant="nav"
+						disabled={currentPage <= 1}
+						ariaLabel="Previous page"
+					>
+						<NavArrowLeft />
+					</PaginationItem>
+				</li>
 
-			{desktopPages.map((page) => (
-				<PaginationItem
-					key={page}
-					to={buildPageUrl(page)}
-					variant="page"
-					active={page === currentPage}
-					hideMobile={!mobilePageSet.has(page)}
-					ariaLabel={`Page ${page}`}
-					ariaCurrentPage={page === currentPage}
-				>
-					{page}
-				</PaginationItem>
-			))}
+				{desktopPages.map((page) => (
+					<li
+						key={page}
+						className={[
+							"pagination__item",
+							!mobilePageSet.has(page) && "pagination__item--hidden",
+						]
+							.filter(Boolean)
+							.join(" ")}
+					>
+						<PaginationItem
+							to={buildPageUrl(page)}
+							variant="page"
+							active={page === currentPage}
+							ariaLabel={`Page ${page}`}
+							ariaCurrentPage={page === currentPage}
+						>
+							{page}
+						</PaginationItem>
+					</li>
+				))}
 
-			<PaginationItem
-				to={buildPageUrl(currentPage + 1)}
-				variant="nav"
-				disabled={currentPage >= totalPagesCount}
-				ariaLabel="Next page"
-			>
-				<NavArrowRight />
-			</PaginationItem>
+				<li className="pagination__item">
+					<PaginationItem
+						to={buildPageUrl(currentPage + 1)}
+						variant="nav"
+						disabled={currentPage >= totalPagesCount}
+						ariaLabel="Next page"
+					>
+						<NavArrowRight />
+					</PaginationItem>
+				</li>
 
-			<PaginationItem
-				to={buildPageUrl(totalPagesCount)}
-				variant="nav"
-				disabled={currentPage >= totalPagesCount}
-				ariaLabel="Last page"
-			>
-				<FastArrowRight />
-			</PaginationItem>
+				<li className="pagination__item">
+					<PaginationItem
+						to={buildPageUrl(totalPagesCount)}
+						variant="nav"
+						disabled={currentPage >= totalPagesCount}
+						ariaLabel="Last page"
+					>
+						<FastArrowRight />
+					</PaginationItem>
+				</li>
+			</ul>
 		</nav>
 	);
 };
