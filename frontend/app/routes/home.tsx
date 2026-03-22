@@ -1,6 +1,6 @@
 import { Filter, Plus } from "iconoir-react";
 import { useTranslation } from "react-i18next";
-import { Pagination } from "~/components/Pagination";
+import { Pagination } from "~/components/pagination/Pagination";
 import { RecipesGrid } from "~/components/RecipesGrid";
 import { UsersGrid } from "~/components/UsersGrid";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";

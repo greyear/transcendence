@@ -4,8 +4,9 @@ import {
 	NavArrowLeft,
 	NavArrowRight,
 } from "iconoir-react";
-import { Link, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 import "~/assets/styles/pagination.css";
+import { PaginationItem } from "./PaginationItem";
 
 export type PaginationProps = {
 	totalElementsCount: number;
@@ -36,51 +37,55 @@ export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 
 	return (
 		<nav className="pagination" aria-label="Pagination">
-			<Link
+			<PaginationItem
 				to={buildPageUrl(1)}
-				className={`pagination-item${currentPage <= 1 ? " disabled" : ""}`}
-				aria-label="First page"
+				variant="nav"
+				disabled={currentPage <= 1}
+				ariaLabel="First page"
 			>
 				<FastArrowLeft />
-			</Link>
+			</PaginationItem>
 
-			<Link
+			<PaginationItem
 				to={buildPageUrl(currentPage - 1)}
-				className={`pagination-item${currentPage <= 1 ? " disabled" : ""}`}
-				aria-label="Previous page"
+				variant="nav"
+				disabled={currentPage <= 1}
+				ariaLabel="Previous page"
 			>
 				<NavArrowLeft />
-			</Link>
+			</PaginationItem>
 
 			{desktopPages.map((page) => (
-				<Link
+				<PaginationItem
 					key={page}
 					to={buildPageUrl(page)}
-					className={`pagination-item${page === currentPage ? " active" : ""}${
-						!mobilePageSet.has(page) ? " hide-mobile" : ""
-					}`}
-					aria-label={`Page ${page}`}
-					aria-current={page === currentPage ? "page" : undefined}
+					variant="page"
+					active={page === currentPage}
+					hideMobile={!mobilePageSet.has(page)}
+					ariaLabel={`Page ${page}`}
+					ariaCurrentPage={page === currentPage}
 				>
 					{page}
-				</Link>
+				</PaginationItem>
 			))}
 
-			<Link
+			<PaginationItem
 				to={buildPageUrl(currentPage + 1)}
-				className={`pagination-item${currentPage >= totalPagesCount ? " disabled" : ""}`}
-				aria-label="Next page"
+				variant="nav"
+				disabled={currentPage >= totalPagesCount}
+				ariaLabel="Next page"
 			>
 				<NavArrowRight />
-			</Link>
+			</PaginationItem>
 
-			<Link
+			<PaginationItem
 				to={buildPageUrl(totalPagesCount)}
-				className={`pagination-item${currentPage >= totalPagesCount ? " disabled" : ""}`}
-				aria-label="Last page"
+				variant="nav"
+				disabled={currentPage >= totalPagesCount}
+				ariaLabel="Last page"
 			>
 				<FastArrowRight />
-			</Link>
+			</PaginationItem>
 		</nav>
 	);
 };
