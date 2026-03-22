@@ -8,6 +8,7 @@ import { ModerationButton } from "../components/buttons/ModerationButton";
 import { TextIconButton } from "../components/buttons/TextIconButton";
 import { UserCard } from "../components/cards/UserCard";
 import { InputField } from "../components/inputs/InputField";
+import { SearchField } from "../components/inputs/SearchField";
 import { SelectField } from "../components/inputs/SelectField";
 import { LanguageSelector } from "../components/LanguageSelector";
 
@@ -18,6 +19,8 @@ const HomePage = () => {
 		<>
 			<h1>{t("homePage.title")}</h1>
 			<LanguageSelector isHeader={false} />
+			<SearchField placeholder="Search..." />
+			<SearchField placeholder="Search..." mode="collapsible" />
 			<SelectField
 				inputId="ingredients"
 				placeholder="Select one"
