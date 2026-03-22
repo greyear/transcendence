@@ -1,5 +1,6 @@
 import { Filter, Plus } from "iconoir-react";
 import { useTranslation } from "react-i18next";
+import { Pagination } from "~/components/Pagination";
 import { RecipesGrid } from "~/components/RecipesGrid";
 import { UsersGrid } from "~/components/UsersGrid";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
@@ -19,6 +20,11 @@ const HomePage = () => {
 		<>
 			<h1>{t("homePage.title")}</h1>
 			<LanguageSelector isHeader={false} />
+			<Pagination
+				totalElementsCount={100}
+				elementsPerPage={16}
+				totalPagesCount={120}
+			/>
 			<SearchField placeholder="Search..." />
 			<SearchField placeholder="Search..." mode="collapsible" />
 			<SelectField
