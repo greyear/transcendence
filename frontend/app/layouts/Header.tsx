@@ -42,7 +42,11 @@ export const Header = () => {
 	const isDesktop = screenSize === "desktop";
 	const isMobile = screenSize === "mobile";
 
-	useEffect(() => setIsOpen(false), [isDesktop]);
+	useEffect(() => {
+		if (screenSize === "desktop") {
+			setIsOpen(false);
+		}
+	}, [screenSize]);
 
 	return (
 		<header className="main-header">
