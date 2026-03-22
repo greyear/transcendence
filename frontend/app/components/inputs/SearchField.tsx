@@ -32,12 +32,11 @@ export const SearchField = ({
 		setValue("");
 	};
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
 		const query = value.trim();
 		if (!query) return;
-
 		// later navigation/search logic comes here
 	};
 
