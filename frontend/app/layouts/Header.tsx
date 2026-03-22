@@ -5,6 +5,7 @@ import { MainButton } from "../components/buttons/MainButton";
 import "../assets/styles/header.css";
 import { Link } from "react-router";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
+import { SearchField } from "~/components/inputs/SearchField";
 import { LanguageSelector } from "~/components/LanguageSelector";
 import { useScreenSize } from "~/composables/useScreenSize";
 
@@ -47,6 +48,7 @@ export const Header = () => {
 					RCP
 				</Link>
 				<div className="header-top-icon-row">
+					{isDesktop && <SearchField mode="collapsible" />}
 					<IconButton aria-label="Notifications">
 						<Bell />
 					</IconButton>
@@ -72,7 +74,7 @@ export const Header = () => {
 					<NavigationList />
 					{/* TODO: add the login state */}
 					<MainButton variant="inverted">Log in/Sign Up</MainButton>
-					{/* Searchbar */}
+					<SearchField />
 					<LanguageSelector isHeader />
 				</>
 			)}

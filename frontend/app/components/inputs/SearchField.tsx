@@ -11,7 +11,7 @@ type SearchProps = {
 };
 
 export const SearchField = ({
-	placeholder,
+	placeholder = "Search for ...",
 	className = "",
 	ariaLabel = "Search",
 	mode = "always-open",
@@ -54,62 +54,63 @@ export const SearchField = ({
 	}
 
 	return (
-		<form
-			role="search"
-			className={`search-wrapper ${className}`.trim()}
-			onSubmit={handleSubmit}
-		>
-			{mode === "collapsible" ? (
-				<IconButton
-					className="search-inline-button"
-					type="button"
-					aria-label="Close search"
-					onClick={closeSearch}
-				>
-					<ArrowLeft />
-				</IconButton>
-			) : (
-				<IconButton
-					className="search-inline-button"
-					type="submit"
-					aria-label="Search"
-				>
-					<Search />
-				</IconButton>
-			)}
+		<search>
+			<form
+				className={`search-wrapper ${className}`.trim()}
+				onSubmit={handleSubmit}
+			>
+				{mode === "collapsible" ? (
+					<IconButton
+						className="search-inline-button"
+						type="button"
+						aria-label="Close search"
+						onClick={closeSearch}
+					>
+						<ArrowLeft />
+					</IconButton>
+				) : (
+					<IconButton
+						className="search-inline-button"
+						type="submit"
+						aria-label="Search"
+					>
+						<Search />
+					</IconButton>
+				)}
 
-			<input
-				ref={inputRef}
-				className="search-field text-body3"
-				type="text"
-				value={value}
-				placeholder={placeholder}
-				aria-label={ariaLabel}
-				onChange={(e) => setValue(e.target.value)}
-				onKeyDown={(e) => {
-					if (e.key === "Escape") {
-						if (mode === "collapsible") {
-							closeSearch();
-						} else {
-							inputRef.current?.blur();
+				<input
+					ref={inputRef}
+					className="search-field text-body3"
+					type="text"
+					value={value}
+					placeholder={placeholder}
+					aria-label={ariaLabel}
+					onChange={(e) => setValue(e.target.value)}
+					onKeyDown={(e) => {
+						if (e.key === "Escape") {
+							if (mode === "collapsible") {
+								closeSearch();
+							} else {
+								inputRef.current?.blur();
+							}
 						}
-					}
-				}}
-			/>
-
-			{value && (
-				<IconButton
-					className="cross"
-					type="button"
-					aria-label="Clear search"
-					onClick={() => {
-						setValue("");
-						inputRef.current?.focus();
 					}}
-				>
-					<Xmark />
-				</IconButton>
-			)}
-		</form>
+				/>
+
+				{value && (
+					<IconButton
+						className="cross"
+						type="button"
+						aria-label="Clear search"
+						onClick={() => {
+							setValue("");
+							inputRef.current?.focus();
+						}}
+					>
+						<Xmark />
+					</IconButton>
+				)}
+			</form>
+		</search>
 	);
 };
