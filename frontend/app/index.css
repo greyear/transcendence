@@ -73,6 +73,8 @@
 	--active-brightness: 0.9;
 
 	--shadow-effect: 2px 2px 4px rgba(0, 0, 0, 0.15);
+
+	--desktop-content-width: 1248px;
 }
 
 /* Tablet */

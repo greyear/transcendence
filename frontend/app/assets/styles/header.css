@@ -42,14 +42,6 @@
 	margin: 0;
 }
 
-.header-bottom-row {
-	display: flex;
-	flex-direction: row;
-	width: 1248px;
-	justify-content: space-between;
-	align-items: center;
-}
-
 @media (min-width: 768px) {
 	.header-navigation-list {
 		flex-direction: row;
@@ -58,6 +50,14 @@
 
 @media (min-width: 1440px) {
 	.header-top-row {
-		width: 1248px;
+		width: var(--desktop-content-width);
+	}
+
+	.header-bottom-row {
+		display: flex;
+		flex-direction: row;
+		width: var(--desktop-content-width);
+		justify-content: space-between;
+		align-items: center;
 	}
 }

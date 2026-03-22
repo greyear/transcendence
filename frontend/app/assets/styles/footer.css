@@ -45,6 +45,6 @@
 
 @media (min-width: 1440px) {
 	.divider-line {
-		width: 1248px;
+		width: var(--desktop-content-width);
 	}
 }
