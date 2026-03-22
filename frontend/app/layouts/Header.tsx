@@ -1,4 +1,4 @@
-import { Bell, Menu, User, Xmark } from "iconoir-react";
+import { Bell, Menu, Xmark } from "iconoir-react";
 import { useState } from "react";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
@@ -40,6 +40,7 @@ export const Header = () => {
 	const handleMenuButtonClick = () => setIsOpen((prev) => !prev);
 
 	const isDesktop = screenSize === "desktop";
+	const isMobile = screenSize === "mobile";
 
 	return (
 		<header className="main-header">
@@ -48,23 +49,19 @@ export const Header = () => {
 					RCP
 				</Link>
 				<div className="header-top-icon-row">
-					{isDesktop && <SearchField mode="collapsible" />}
+					{!isMobile && (
+						<SearchField mode={isDesktop ? "always-open" : "collapsible"} />
+					)}
 					<IconButton aria-label="Notifications">
 						<Bell />
 					</IconButton>
-					{!isDesktop ? (
+					{!isDesktop && (
 						<IconButton
 							onClick={handleMenuButtonClick}
 							aria-expanded={isOpen}
 							aria-label="Toggle menu"
 						>
 							{isOpen ? <Xmark /> : <Menu />}
-						</IconButton>
-					) : (
-						<IconButton
-						// onClick={navigate to profile}
-						>
-							<User />
 						</IconButton>
 					)}
 				</div>
@@ -74,7 +71,6 @@ export const Header = () => {
 					<NavigationList />
 					{/* TODO: add the login state */}
 					<MainButton variant="inverted">Log in/Sign Up</MainButton>
-					<SearchField />
 					<LanguageSelector isHeader />
 				</>
 			)}

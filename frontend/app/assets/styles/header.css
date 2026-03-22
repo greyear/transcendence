@@ -28,6 +28,7 @@
 .header-top-icon-row {
 	display: flex;
 	flex-direction: row;
+	gap: var(--space-s);
 }
 
 .header-navigation-list {

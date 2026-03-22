@@ -26,6 +26,7 @@
 	background-color: var(--surface-header);
 	color: var(--text-on-accent);
 	border-color: var(--borders-default);
+
 	&.active {
 		background-color: var(--surface-primary);
 		color: var(--text-primary);
@@ -34,6 +35,7 @@
 
 .language-button.language-button--footer {
 	border-color: var(--borders-action);
+
 	&.active {
 		background-color: var(--surface-action-active);
 		color: var(--text-on-accent);
