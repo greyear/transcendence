@@ -17,9 +17,6 @@
 	transition: opacity 0.2s ease;
 	background-color: transparent;
 	border: none;
-	font-size: var(--fs-label);
-	font-weight: var(--fw-label);
-	line-height: var(--lh-label);
 	color: var(--text-primary);
 	text-decoration: none;
 	padding: 0 var(--space-xs);

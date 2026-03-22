@@ -25,6 +25,7 @@ export const PaginationItem = ({
 }: PaginationItemProps) => {
 	const className = [
 		"pagination-item",
+		"text-label",
 		`pagination-item--${variant}`,
 		active && "active",
 		disabled && "disabled",
