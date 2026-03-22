@@ -1,5 +1,5 @@
 import { Bell, Menu, Xmark } from "iconoir-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
 import "../assets/styles/header.css";
@@ -11,7 +11,7 @@ import { useScreenSize } from "~/composables/useScreenSize";
 
 const NavigationList = () => {
 	return (
-		<nav aria-label="Main">
+		<nav aria-label="Header main">
 			<ul className="header-navigation-list">
 				<li>
 					<TextIconButton size="body2" to="/" variant="inverted">
@@ -42,6 +42,8 @@ export const Header = () => {
 	const isDesktop = screenSize === "desktop";
 	const isMobile = screenSize === "mobile";
 
+	useEffect(() => setIsOpen(false), [isDesktop]);
+
 	return (
 		<header className="main-header">
 			<div className="header-top-row">
@@ -55,7 +57,7 @@ export const Header = () => {
 					<IconButton aria-label="Notifications">
 						<Bell />
 					</IconButton>
-					{!isDesktop && (
+					{!isDesktop ? (
 						<IconButton
 							onClick={handleMenuButtonClick}
 							aria-expanded={isOpen}
@@ -63,13 +65,14 @@ export const Header = () => {
 						>
 							{isOpen ? <Xmark /> : <Menu />}
 						</IconButton>
+					) : (
+						<MainButton variant="inverted">Sign Up</MainButton>
 					)}
 				</div>
 			</div>
 			{isOpen && !isDesktop && (
 				<>
 					<NavigationList />
-					{/* TODO: add the login state */}
 					<MainButton variant="inverted">Log in/Sign Up</MainButton>
 					<LanguageSelector isHeader />
 				</>
