@@ -70,14 +70,14 @@ export const Header = () => {
 							{isOpen ? <Xmark /> : <Menu />}
 						</IconButton>
 					) : (
-						<MainButton variant="inverted">Sign Up</MainButton>
+						<MainButton variant="inverted">Sign In</MainButton>
 					)}
 				</div>
 			</div>
 			{isOpen && !isDesktop && (
 				<>
 					<NavigationList />
-					<MainButton variant="inverted">Log in/Sign Up</MainButton>
+					<MainButton variant="inverted">Sign In</MainButton>
 					<LanguageSelector isHeader />
 				</>
 			)}
