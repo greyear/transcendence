@@ -55,6 +55,14 @@
 	gap: var(--space-s);
 }
 
+.user-card-header h3 {
+	text-align: center;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+}
+
 .user-card-button {
 	width: 100%;
 }
