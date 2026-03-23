@@ -1,0 +1,21 @@
+.recipe-card-list {
+	display: flex;
+	flex-direction: column;
+	list-style: none;
+	padding: 0;
+	gap: var(--space-s);
+}
+
+/* Adding 1024px as an exception because otherwise the cards are really small */
+@media (min-width: 1024px) {
+	.recipe-card-list {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(328px, 1fr));
+	}
+}
+
+@media (min-width: 1920px) {
+	.recipe-card-list {
+		grid-template-columns: repeat(3, minmax(328px, 1fr));
+	}
+}

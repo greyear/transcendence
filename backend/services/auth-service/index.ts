@@ -12,7 +12,7 @@ app.use(authRouter);
 app.use(authGetSet);
 
 //Connection port
-const port = 3000;
+const port = process.env.PORT ? parseInt(process.env.PORT) : 3001;
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

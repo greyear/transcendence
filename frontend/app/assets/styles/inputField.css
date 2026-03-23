@@ -1,0 +1,87 @@
+.input-wrapper {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	height: 44px;
+	border-radius: var(--radius-s);
+	background-color: var(--surface-primary);
+	border: 1px solid var(--borders-input);
+	padding: 12px;
+	gap: var(--space-s);
+	align-items: center;
+}
+
+.input-wrapper:focus-within {
+	border-color: var(--borders-action);
+}
+
+.input-field {
+	width: 100%;
+	padding: 0;
+	background-color: transparent;
+	color: var(--text-primary);
+	border: none;
+}
+
+.input-field:focus {
+	outline: none;
+}
+
+.input-field-container {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-s);
+	width: 100%;
+}
+
+.input-wrapper.error {
+	border-color: var(--surface-error);
+}
+
+.input-message {
+	color: var(--text-secondary);
+}
+
+.error-message {
+	color: var(--surface-error);
+}
+
+.icon-button.eye {
+	min-width: 32px;
+	height: 32px;
+	padding: 0;
+	background-color: transparent;
+	border: none;
+	color: var(--icons-dark);
+}
+
+.icon-button.eye svg {
+	width: var(--icon-size);
+	height: var(--icon-size);
+	color: var(--icons-dark);
+	stroke-width: 2;
+}
+
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+@media (min-width: 768px) {
+	.input-wrapper {
+		height: 48px;
+	}
+}
+
+@media (min-width: 1440px) {
+	.input-wrapper {
+		height: 56px;
+	}
+}

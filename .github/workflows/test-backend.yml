@@ -1,0 +1,111 @@
+name: Backend Tests (PR)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'package.json'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+jobs:
+  test-core-service:
+    name: Core Service Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: core_user
+          POSTGRES_PASSWORD: core_password
+          POSTGRES_DB: core_db
+        options: >-
+          --health-cmd "pg_isready -U core_user -d core_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+        ports:
+          - 5432:5432
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: core_db
+      POSTGRES_USER: core_user
+      POSTGRES_PASSWORD: core_password
+      DATABASE_URL: postgresql://core_user:core_password@localhost:5432/core_db
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'backend/services/core-service/package-lock.json'
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U core_user -d core_db; do
+            sleep 1
+          done
+        env:
+          PGPASSWORD: core_password
+
+      - name: Initialize core DB schema and seed
+        run: |
+          psql -h localhost -U core_user -d core_db -f backend/infrastructure/postgres/core/01-init-core.sql
+          psql -h localhost -U core_user -d core_db -f backend/infrastructure/postgres/core/02-seed-core.sql
+        env:
+          PGPASSWORD: core_password
+
+      - name: Install core-service dependencies
+        run: npm ci
+        working-directory: backend/services/core-service
+
+      - name: Run Jest tests
+        run: npm test
+        working-directory: backend/services/core-service
+
+  test-api-gateway:
+    name: API Gateway Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'backend/services/api-gateway/package-lock.json'
+
+      - name: Install api-gateway dependencies
+        run: npm ci
+        working-directory: backend/services/api-gateway
+
+      - name: Run Jest tests
+        run: npm test
+        working-directory: backend/services/api-gateway
+
+  test-summary:
+    name: All Tests Passed ✓
+    needs: [test-core-service, test-api-gateway]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          if [ "${{ needs.test-core-service.result }}" = "failure" ] || [ "${{ needs.test-api-gateway.result }}" = "failure" ]; then
+            echo "❌ Some tests failed"
+            exit 1
+          fi
+          echo "✅ All tests passed!"

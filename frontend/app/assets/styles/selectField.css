@@ -1,0 +1,109 @@
+.select-wrapper {
+	width: 100%;
+}
+
+.select-wrapper .react-select__control {
+	min-height: 44px;
+	border-radius: var(--radius-s);
+	background-color: var(--surface-primary);
+	border: 1px solid var(--borders-input);
+	cursor: pointer;
+}
+
+.select-wrapper .react-select__control--is-focused {
+	border-color: var(--borders-action);
+	box-shadow: none;
+}
+
+.react-select__value-container {
+	padding: 0 12px;
+}
+
+.select-wrapper .react-select__input-container {
+	color: var(--text-primary);
+	font-size: var(--fs-body3);
+	font-weight: var(--fw-body3);
+	cursor: text;
+}
+
+.react-select__single-value,
+.react-select__placeholder {
+	color: var(--text-primary);
+	font-size: var(--fs-body3);
+	font-weight: var(--fw-body3);
+}
+
+.react-select__placeholder {
+	opacity: 0.8;
+}
+
+.react-select__indicator-separator {
+	display: none;
+}
+
+.select-wrapper .react-select__dropdown-indicator {
+	padding: 0 12px;
+	color: var(--text-primary);
+	transition: transform 0.2s ease;
+}
+
+.react-select__control--menu-is-open .react-select__dropdown-indicator {
+	transform: rotate(180deg);
+}
+
+.react-select__menu {
+	margin-top: 2px;
+	border-radius: var(--radius-s);
+	background-color: var(--surface-primary);
+	border: 1px solid var(--borders-input);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+}
+
+.react-select__menu-list {
+	padding: 0;
+	max-height: 240px;
+}
+
+.select-wrapper .react-select__option {
+	padding: 12px;
+	font-size: var(--fs-caption-s);
+	font-weight: var(--fw-caption-s);
+	color: var(--text-primary);
+	background-color: transparent;
+	cursor: pointer;
+}
+
+.select-wrapper .react-select__option--is-focused {
+	background-color: var(--surface-hover);
+}
+
+.select-wrapper .react-select__option--is-selected {
+	color: var(--text-primary);
+	background-color: transparent;
+}
+
+.select-wrapper
+	.react-select__option--is-selected.react-select__option--is-focused {
+	background-color: var(--surface-hover);
+}
+
+.select-wrapper .react-select__menu-notice--no-options {
+	padding: 12px;
+	font-size: var(--fs-caption-s);
+	font-weight: var(--fw-caption-s);
+	color: var(--text-primary);
+	text-align: left;
+}
+
+@media (min-width: 768px) {
+	.select-wrapper .react-select__control {
+		min-height: 48px;
+	}
+}
+
+@media (min-width: 1440px) {
+	.select-wrapper .react-select__control {
+		min-height: 56px;
+	}
+}

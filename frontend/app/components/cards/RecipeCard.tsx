@@ -1,12 +1,24 @@
 import "../../assets/styles/recipeCard.css";
+import { StarSolid } from "iconoir-react";
 import { Link } from "react-router";
 import recipeImg from "../../assets/images/vegetable-side-dishes.jpg";
 import { FavoriteButton } from "../buttons/FavoriteButton";
 
-export const RecipeCard = () => {
-	const recipeId = 1;
+type RecipeCardProps = {
+	id: number;
+	title: string;
+	description: string;
+	rating: string;
+};
+
+export const RecipeCard = ({
+	id,
+	title,
+	description,
+	rating,
+}: RecipeCardProps) => {
 	return (
-		<Link to={`/recipe/${recipeId}`} className="recipe-card-link-wrapper">
+		<Link to={`/recipe/${id}`} className="recipe-card-link-wrapper">
 			<article className="recipe-card">
 				<img
 					className="recipe-card-image"
@@ -16,11 +28,14 @@ export const RecipeCard = () => {
 				<div className="recipe-card-container">
 					<div className="recipe-card-content-column">
 						<header className="recipe-card-header">
-							<h3 className="text-label">Title</h3>
-							<p className="text-caption-s">Short description</p>
+							<h3 className="text-label">{title}</h3>
+							<p className="text-caption-s">{description}</p>
 						</header>
 						<footer className="recipe-card-footer">
-							<span className="text-caption">smth</span>
+							<div className="rating-row">
+								<span className="text-caption">{rating}</span>
+								<StarSolid />
+							</div>
 							<FavoriteButton />
 						</footer>
 					</div>

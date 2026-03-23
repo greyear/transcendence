@@ -1,12 +1,15 @@
 import { Filter, Plus } from "iconoir-react";
 import { useTranslation } from "react-i18next";
+import { RecipesGrid } from "~/components/RecipesGrid";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
 import { ModerationButton } from "../components/buttons/ModerationButton";
 import { TextIconButton } from "../components/buttons/TextIconButton";
-import { RecipeCard } from "../components/cards/RecipeCard";
 import { UserCard } from "../components/cards/UserCard";
+import { InputField } from "../components/inputs/InputField";
+import { SearchField } from "../components/inputs/SearchField";
+import { SelectField } from "../components/inputs/SelectField";
 import { LanguageSelector } from "../components/LanguageSelector";
 
 const HomePage = () => {
@@ -16,7 +19,35 @@ const HomePage = () => {
 		<>
 			<h1>{t("homePage.title")}</h1>
 			<LanguageSelector isHeader={false} />
-			<RecipeCard />
+			<SearchField placeholder="Search..." />
+			<SearchField placeholder="Search..." mode="collapsible" />
+			<SelectField
+				inputId="ingredients"
+				placeholder="Select one"
+				options={[
+					{ label: "Tomato", value: "tomato" },
+					{ label: "Garlic", value: "garlic" },
+					{ label: "Onion", value: "onion" },
+				]}
+			/>
+			<InputField
+				id="email"
+				label="Email"
+				type="email"
+				placeholder="Enter your email"
+				required
+				hint="We’ll never share your email."
+			/>
+			<InputField
+				id="password-own-error"
+				label="Password"
+				type="password"
+				required
+				minLength={8}
+				hint="Password must include at least 8 characters."
+				error="Password too short!"
+			/>
+			<RecipesGrid />
 			<UserCard />
 			<FavoriteButton />
 			<ModerationButton action="approve" />
