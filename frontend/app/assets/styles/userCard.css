@@ -8,6 +8,10 @@
 		filter: brightness(var(--active-brightness));
 	}
 
+	&:hover {
+		filter: brightness(var(--hover-brightness));
+	}
+
 	&:has(.main-button:hover) {
 		filter: none;
 	}
