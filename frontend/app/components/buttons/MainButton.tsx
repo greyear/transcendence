@@ -1,7 +1,12 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import "../../assets/styles/mainButton.css";
 
-type MainButtonVariant = "primary" | "pill" | "danger" | "secondary";
+type MainButtonVariant =
+	| "primary"
+	| "pill"
+	| "danger"
+	| "secondary"
+	| "inverted";
 
 interface MainButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	children: ReactNode;
