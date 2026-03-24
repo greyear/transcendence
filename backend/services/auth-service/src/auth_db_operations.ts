@@ -5,20 +5,25 @@
 	jsonwebtoken is an encrypted way to pass sesson data client/server
 	zod is our parsing and field validation module
  */
-import {
-	type NextFunction,
-	type Request,
-	type Response,
-	Router,
-} from "express";
-import mongoose from "mongoose";
+import express, { Request, Response, NextFunction } from 'express';
+import mongoose from 'mongoose';
+import session from 'express-session';
+import cookieParser from 'cookie-parser';
 
 // Import of project modules
 //Location of userModel may or may not change later.
 import { userModel } from "./auth_schema.js";
 import * as help from "./authHelpers.js";
 
-export const authRouter = Router();
+export const authRouter = express();
+// Middleware setup
+authRouter.use(session({
+	secret: "placeholder",
+	resave: false,
+	saveUninitialized: true
+	})
+);
+authRouter.use(cookieParser());
 authRouter.use(help.errorHandler);
 
 //Connection part probably being moved later
