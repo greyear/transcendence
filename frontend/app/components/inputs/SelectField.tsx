@@ -24,6 +24,7 @@ export const SelectField = ({
 	return (
 		<div className="select-wrapper">
 			<Select
+				instanceId={inputId ?? "select"}
 				inputId={inputId}
 				name={name}
 				options={options}

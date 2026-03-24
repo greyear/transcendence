@@ -59,14 +59,22 @@
 	color: var(--text-primary);
 }
 
+.main-button.inverted {
+	background-color: var(--surface-primary);
+	color: var(--text-primary);
+	border-color: var(--borders-input);
+}
+
 @media (min-width: 768px) {
 	.main-button {
 		height: 48px;
 	}
+
 	.main-button.danger,
 	.main-button.secondary {
 		min-width: 296px;
 	}
+
 	.main-button.pill {
 		min-width: 146px;
 	}
@@ -76,6 +84,7 @@
 	.main-button {
 		height: 56px;
 	}
+
 	.main-button.pill {
 		min-width: 162px;
 	}
