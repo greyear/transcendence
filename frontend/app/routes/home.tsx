@@ -1,12 +1,12 @@
 import { Filter, Plus } from "iconoir-react";
 import { useTranslation } from "react-i18next";
 import { RecipesGrid } from "~/components/RecipesGrid";
+import { UsersGrid } from "~/components/UsersGrid";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
 import { ModerationButton } from "../components/buttons/ModerationButton";
 import { TextIconButton } from "../components/buttons/TextIconButton";
-import { UserCard } from "../components/cards/UserCard";
 import { InputField } from "../components/inputs/InputField";
 import { SearchField } from "../components/inputs/SearchField";
 import { SelectField } from "../components/inputs/SelectField";
@@ -47,8 +47,8 @@ const HomePage = () => {
 				hint="Password must include at least 8 characters."
 				error="Password too short!"
 			/>
+			<UsersGrid />
 			<RecipesGrid />
-			<UserCard />
 			<FavoriteButton />
 			<ModerationButton action="approve" />
 			<ModerationButton action="discard" />

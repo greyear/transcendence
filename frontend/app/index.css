@@ -74,6 +74,7 @@
 
 	--shadow-effect: 2px 2px 4px rgba(0, 0, 0, 0.15);
 
+	--user-card-width: 156px;
 	--desktop-content-width: 1248px;
 }
 
@@ -105,6 +106,8 @@
 		--lh-caption-s: 16px;
 		--fs-label: 24px;
 		--lh-label: 24px;
+
+		--user-card-width: 328px;
 	}
 }
 
@@ -136,6 +139,8 @@
 		--lh-caption-s: 20px;
 		--fs-label: 32px;
 		--lh-label: 32px;
+
+		--user-card-width: 394px;
 	}
 }
 
