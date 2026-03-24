@@ -7,8 +7,8 @@ import { ModerationButton } from "../components/buttons/ModerationButton";
 import { TextIconButton } from "../components/buttons/TextIconButton";
 import { RecipeCard } from "../components/cards/RecipeCard";
 import { UserCard } from "../components/cards/UserCard";
-import { SelectField } from "../components/inputs/SelectField";
 import { InputField } from "../components/inputs/InputField";
+import { SelectField } from "../components/inputs/SelectField";
 import { LanguageSelector } from "../components/LanguageSelector";
 
 const HomePage = () => {

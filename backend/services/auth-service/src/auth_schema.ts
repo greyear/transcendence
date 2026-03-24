@@ -1,5 +1,5 @@
 //Everyone seems to use mongoose, so I will too.
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 //auth_db schema
 //https://mongoosejs.com/docs/guide.html
@@ -8,30 +8,29 @@ import mongoose from 'mongoose';
 //_id will be created by default and have an ObjectId value
 // createdAt should be created automatically on document creation
 //email may be the same for Google ID, but we shall see
-const authSchema = new mongoose.Schema
-({
-  username: {
-	type: String,
-	required: true,
-	unique: true
-  },
-  email: {
-	type: String,
-	required: true,
-	unique: true
-  },
-  passwordHash: {
-    type: String,
-    required: true,
-    unique: false
-  },
-  realname: {
-    type: String,
-    required: true,
-    unique: false
-  }
+const authSchema = new mongoose.Schema({
+	username: {
+		type: String,
+		required: true,
+		unique: true,
+	},
+	email: {
+		type: String,
+		required: true,
+		unique: true,
+	},
+	passwordHash: {
+		type: String,
+		required: true,
+		unique: false,
+	},
+	realname: {
+		type: String,
+		required: true,
+		unique: false,
+	},
 });
 
 //Convert schema into a model that can be worked on
 //https://mongoosejs.com/docs/models.html
-export const userModel = mongoose.model('userModel', authSchema);
+export const userModel = mongoose.model("userModel", authSchema);

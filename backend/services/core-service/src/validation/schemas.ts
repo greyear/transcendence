@@ -39,7 +39,61 @@ const recipeIdSchema = intIdSchema;
 
 export const userIdIntSchema = intIdSchema;
 
-const recipeStatusSchema = z.enum(["draft", "published", "archived"]);
+export const recipeStatusSchema = z.enum([
+	"draft",
+	"moderation",
+	"published",
+	"archived",
+]);
+
+const recipeIngredientSchema = z.object({
+	ingredient_id: intIdSchema,
+	name: z.string().trim().min(1).max(128),
+	amount: z.coerce.number().positive(),
+	unit: z.string().min(1).max(16),
+});
+
+const recipeCategorySchema = z.object({
+	id: intIdSchema,
+	code: z.string().trim().min(1).max(32),
+	category_type_id: intIdSchema,
+	category_type_code: z.string().trim().min(1).max(32),
+	category_type_name: z.string().trim().min(1).max(64),
+});
+
+// TODO: add endpoint for autocomplete ingredients - returns list of { ingredient_id, name } matching search query
+const createRecipeIngredientInputSchema = z.object({
+	ingredient_id: intIdSchema,
+	amount: z.coerce.number().positive(),
+	unit: z.string().trim().min(1).max(16),
+});
+
+const createRecipeCategoryIdSchema = intIdSchema;
+
+const createRecipeInputSchema = z.object({
+	title: z.string().trim().min(1).max(256),
+	description: z.string().max(5000).optional().nullable(),
+	instructions: z.array(z.string().trim().min(1)).min(1),
+	servings: intIdSchema.optional().default(1),
+	spiciness: z.coerce.number().int().min(0).max(3).optional().default(0),
+	ingredients: z
+		.array(createRecipeIngredientInputSchema)
+		.min(1)
+		.refine(
+			(items) =>
+				new Set(items.map((item) => item.ingredient_id)).size === items.length,
+			"ingredient_id values must be unique",
+		),
+	category_ids: z
+		.array(createRecipeCategoryIdSchema)
+		.default([])
+		.refine(
+			(items) => new Set(items).size === items.length,
+			"category_ids must be unique",
+		),
+});
+
+export type CreateRecipeInput = z.infer<typeof createRecipeInputSchema>;
 
 type ValidationResult =
 	| { valid: true; value: number }
@@ -71,6 +125,36 @@ export const validateUserId = (id: unknown): ValidationResult => {
 	};
 };
 
+type CreateRecipeValidationResult =
+	| { valid: true; value: CreateRecipeInput }
+	| { valid: false; error: string };
+
+export const validateCreateRecipeInput = (
+	input: unknown,
+): CreateRecipeValidationResult => {
+	const result = createRecipeInputSchema.safeParse(input);
+
+	if (result.success) {
+		const description =
+			typeof result.data.description === "string"
+				? result.data.description.trim()
+				: result.data.description;
+
+		return {
+			valid: true,
+			value: {
+				...result.data,
+				description: description && description.length > 0 ? description : null,
+			},
+		};
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
 /**
  * TYPES (describes Recipe object structure)
  */
@@ -94,6 +178,8 @@ export const recipeSchema = z.object({
 	servings: z.number().int().positive(), // Servings is required (NOT NULL, default 1)
 	spiciness: z.number().int().min(0).max(3), // 0 to 3, NOT NULL DEFAULT 0
 	rating_avg: z.coerce.number().min(1).max(5).nullable(), // numeric(3,2) or null
+	ingredients: z.array(recipeIngredientSchema),
+	categories: z.array(recipeCategorySchema),
 });
 
 /**

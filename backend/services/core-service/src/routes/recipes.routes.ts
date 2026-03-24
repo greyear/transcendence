@@ -16,8 +16,16 @@ import {
 	type AuthenticatedRequest,
 	extractUser,
 } from "../middleware/extractUser.js";
-import { getAllRecipes, getRecipeById } from "../services/recipes.service.js";
-import { validateRecipeId } from "../validation/schemas.js";
+import {
+	createRecipe,
+	getAllRecipes,
+	getRecipeById,
+	publishRecipe,
+} from "../services/recipes.service.js";
+import {
+	validateCreateRecipeInput,
+	validateRecipeId,
+} from "../validation/schemas.js";
 
 interface CustomError extends Error {
 	statusCode?: number;
@@ -25,6 +33,82 @@ interface CustomError extends Error {
 
 // Create router for recipe endpoints
 export const recipesRouter: Router = Router();
+
+const createRecipeHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const validation = validateCreateRecipeInput(req.body);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const recipe = await createRecipe(req.userId, validation.value);
+		res.status(201).json({ data: recipe });
+	} catch (error) {
+		next(error);
+	}
+};
+
+const publishRecipeHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const validation = validateRecipeId(req.params.id);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const publishResult = await publishRecipe(validation.value, req.userId);
+
+		if (!publishResult.success) {
+			const error: CustomError =
+				publishResult.reason === "not-found"
+					? new Error("Recipe not found")
+					: publishResult.reason === "forbidden"
+						? new Error("No permission to publish this recipe")
+						: new Error(
+								`Recipe cannot be sent to moderation from status ${publishResult.currentStatus}`,
+							);
+
+			error.statusCode =
+				publishResult.reason === "not-found"
+					? 404
+					: publishResult.reason === "forbidden"
+						? 403
+						: 409;
+
+			throw error;
+		}
+
+		res.status(200).json({
+			data: publishResult.recipe,
+			message: "Recipe sent to moderation",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
 
 /**
  * GET /recipes - fetch all published recipes
@@ -90,5 +174,7 @@ const getRecipeByIdHandler = async (
 };
 
 // extractUser middleware extracts userId from X-User-Id header
+recipesRouter.post("/", extractUser, createRecipeHandler);
+recipesRouter.post("/:id/publish", extractUser, publishRecipeHandler);
 recipesRouter.get("/:id", extractUser, getRecipeByIdHandler);
 recipesRouter.get("/", getAllRecipesHandler);
