@@ -2,7 +2,7 @@
 	display: flex;
 	text-decoration: none;
 	color: unset;
-	width: fit-content;
+	width: 100%;
 
 	&:active {
 		filter: brightness(var(--active-brightness));
@@ -19,12 +19,12 @@
 
 .user-card {
 	--user-card-photo-size: 120px;
-	--user-card-width: 160px;
 	display: flex;
 	flex-direction: column;
 	position: relative;
 	align-items: center;
-	width: var(--user-card-width);
+	min-width: var(--user-card-width);
+	width: 100%;
 }
 
 .user-card-photo {
@@ -79,17 +79,14 @@
 @media (min-width: 768px) {
 	.user-card {
 		--user-card-photo-size: 200px;
-		--user-card-width: 328px;
+	}
+	.user-card-button {
+		width: 296px;
 	}
 }
 
 @media (min-width: 1440px) {
 	.user-card {
 		--user-card-photo-size: 212px;
-		--user-card-width: 394px;
-	}
-
-	.user-card-button {
-		width: 296px;
 	}
 }

@@ -1,26 +1,7 @@
 .user-card-list {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(var(--user-card-width), 1fr));
 	list-style: none;
 	padding: 0;
-	gap: var(--space-xs);
-	justify-items: center;
-}
-
-@media (min-width: 768px) {
-	.user-card-list {
-		grid-template-columns: repeat(2, 1fr);
-	}
-}
-
-@media (min-width: 1440px) {
-	.user-card-list {
-		grid-template-columns: repeat(3, 1fr);
-	}
-}
-
-@media (min-width: 1920px) {
-	.user-card-list {
-		grid-template-columns: repeat(4, 1fr);
-	}
+	gap: var(--space-l);
 }
