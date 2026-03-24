@@ -1,18 +1,18 @@
 import bcrypt from "bcrypt";
-import type { NextFunction, Request, Response } from "express";
-import jwt, { type JwtPayload } from "jsonwebtoken";
-import { ObjectId } from "mongoose";
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import z from "zod";
-//Location of userModel may or may not change later.
-import { userModel } from "./auth_schema.ts";
+import { NextFunction, Request, Response } from "express"; 
+
+import { userCounter } from './auth_schema.ts'; 
 
 //From auth_db_operations.ts
 //
 // Password hashing, using bcrypt. I think slightly simpler than others.
 //Concern with security of the salt.
 //Maybe change to argon2
-export const hashPassword = async (password: string) => {
-	const saltCost = 5;
+export const hashPassword = async (password: string) =>
+{
+	const saltCost = 12;
 
 	try {
 		const salt = await bcrypt.genSalt(saltCost);
@@ -76,8 +76,11 @@ export const validatePassword = (password: string) => {
 
 // Call this function after authentication success.
 // id is from userDocument._id and is ObjectId type
-export const generateToken = (id: string, username: string) => {
-	const JWTSecret = process.env.JWTSecret || "placeholder";
+export const generateToken = (id: string, username: string) =>
+{
+	const JWTSecret = process.env.JWT_SECRET;
+	if (!JWTSecret)
+        throw new Error("JWTSecret env variable is not set");
 
 	const payload = {
 		sub: id,
@@ -90,9 +93,12 @@ export const generateToken = (id: string, username: string) => {
 	});
 };
 
-export const decodeToken = (token: string) => {
+export const decodeToken = (token: string) =>
+{
 	try {
-		const JWTSecret = process.env.JWTSecret || "placeholder";
+		const JWTSecret = process.env.JWT_SECRET;
+		if (!JWTSecret)
+        	throw new Error("JWTSecret env variable is not set");
 
 		const decoded = jwt.verify(token, JWTSecret);
 
@@ -153,4 +159,15 @@ export const errorHandler = (
 	const message =
 		error instanceof Error ? error.message : "Internal Server Error";
 	res.status(500).json({ error: message });
+};
+
+//Create a sequential and unique userID
+export const makeID = async (): Promise<number> =>
+{
+    const counter = await userCounter.findOneAndUpdate(
+        { name: 'CounterDB' },
+        { $inc: { seq: 1 } },
+        { new: false, upsert: true, setDefaultsOnInsert: true }
+    );
+    return counter ? counter.seq : 1;
 };

@@ -72,13 +72,16 @@ authRouter.post(
 			if (!hashedPassword)
 				return res.status(500).json({ error: "Hashing failed" });
 
-			const newUser = new userModel({
-				username,
-				email,
-				passwordHash: hashedPassword,
-				realname,
-			});
-			const retPromise = await newUser.save();
+		const currentCount = await help.makeID();
+
+		const newUser = new userModel({
+										id:currentCount,
+										username,
+										email,
+										passwordHash:hashedPassword,
+										realname
+										});
+		await newUser.save();
 
 			return res.status(201).json({ username, email, realname });
 		} catch (error) {

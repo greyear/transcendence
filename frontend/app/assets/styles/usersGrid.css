@@ -1,0 +1,7 @@
+.user-card-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(var(--user-card-width), 1fr));
+	list-style: none;
+	padding: 0;
+	gap: var(--space-l);
+}

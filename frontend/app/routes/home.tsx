@@ -1,13 +1,14 @@
 import { Filter, Plus } from "iconoir-react";
 import { useTranslation } from "react-i18next";
+import { RecipesGrid } from "~/components/RecipesGrid";
+import { UsersGrid } from "~/components/UsersGrid";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
 import { ModerationButton } from "../components/buttons/ModerationButton";
 import { TextIconButton } from "../components/buttons/TextIconButton";
-import { RecipeCard } from "../components/cards/RecipeCard";
-import { UserCard } from "../components/cards/UserCard";
 import { InputField } from "../components/inputs/InputField";
+import { SearchField } from "../components/inputs/SearchField";
 import { SelectField } from "../components/inputs/SelectField";
 import { LanguageSelector } from "../components/LanguageSelector";
 
@@ -18,6 +19,8 @@ const HomePage = () => {
 		<>
 			<h1>{t("homePage.title")}</h1>
 			<LanguageSelector isHeader={false} />
+			<SearchField placeholder="Search..." />
+			<SearchField placeholder="Search..." mode="collapsible" />
 			<SelectField
 				inputId="ingredients"
 				placeholder="Select one"
@@ -26,6 +29,7 @@ const HomePage = () => {
 					{ label: "Garlic", value: "garlic" },
 					{ label: "Onion", value: "onion" },
 				]}
+			/>
 			<InputField
 				id="email"
 				label="Email"
@@ -43,8 +47,8 @@ const HomePage = () => {
 				hint="Password must include at least 8 characters."
 				error="Password too short!"
 			/>
-			<RecipeCard />
-			<UserCard />
+			<UsersGrid />
+			<RecipesGrid />
 			<FavoriteButton />
 			<ModerationButton action="approve" />
 			<ModerationButton action="discard" />

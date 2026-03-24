@@ -13,14 +13,16 @@
 	list-style: none;
 	margin: 0;
 	padding: 0;
-	gap: var(--space-xl);
+	row-gap: var(--space-xl);
 	column-gap: var(--space-s);
 }
 
 .nav-list-divider {
+	gap: var(--space-xs);
+
 	li:not(:last-child) {
 		border-right: 1px solid var(--text-primary);
-		padding-right: var(--space-s);
+		padding-right: var(--space-xs);
 	}
 }
 
@@ -43,6 +45,6 @@
 
 @media (min-width: 1440px) {
 	.divider-line {
-		width: 1248px;
+		width: var(--desktop-content-width);
 	}
 }

@@ -143,15 +143,17 @@ authGetSet.post(
 			const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
 			if (!decodedToken) throw Error("Invalid header");
 
-			const username = decodedToken.username;
-			const userDocument = await userModel.findOne({ username });
-			if (!userDocument)
-				return res.status(401).json({ error: "Invalid token" });
+		const username = decodedToken.username;
+		const userDocument = await userModel.findOne({$or: [{username}, {email:username}]});
+		if (!userDocument)
+			return res.status(401).json({ error: "Invalid token" });
 
-			const userID = userDocument.get("_id");
-			return res.status(200).json({ _id: userID });
-		} catch (error) {
-			next(error);
-		}
-	},
-);
+		const userID = userDocument.get('id');
+		if (!userID)
+            return res.status(500).json({ error: "User has no id" });
+		
+		return res.status(200).json({ id: userID });
+	} catch (error) {
+		next(error);
+	}
+});
