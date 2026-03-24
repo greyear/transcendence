@@ -75,11 +75,11 @@ export const Header = () => {
 				</div>
 			</div>
 			{isOpen && !isDesktop && (
-				<>
+				<div className="header-menu-overlay">
 					<NavigationList />
 					<MainButton variant="inverted">Sign In</MainButton>
 					<LanguageSelector isHeader />
-				</>
+				</div>
 			)}
 			{isDesktop && (
 				<div className="header-bottom-row">
