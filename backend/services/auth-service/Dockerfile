@@ -5,10 +5,10 @@ WORKDIR /app
 # Install MongoDB.
 # Add repos, install daemon and utilities, start service
 RUN \
-	apk update
+	apk update \
 	echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositories \
 	echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repositories \
-	apk add mongodb mongodb-tools
+	apk add mongodb mongodb-tools \
 	rc-update add mongodb default
 
 # Define default command.
