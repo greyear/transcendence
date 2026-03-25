@@ -41,54 +41,6 @@ authGetSet.delete(
 	},
 );
 
-//Fetch single user record
-//Return all but passwordHash
-authGetSet.get(
-	"/users/:username",
-	async (req: Request, res: Response, next: NextFunction) => {
-		try {
-			const username = req.params.username;
-
-			const userDocument = await userModel.findOne(
-				{ username },
-				{ username: 1, email: 1, realName: 1 },
-			);
-
-			if (!userDocument) {
-				res.status(404).json({ error: "User not found" });
-				return;
-			}
-
-			res.json(userDocument);
-		} catch (error) {
-			next(error);
-		}
-	},
-);
-
-//Fetch all user records
-//Return all but passwordHash
-authGetSet.get(
-	"/users",
-	async (_req: Request, res: Response, next: NextFunction) => {
-		try {
-			const userDocument = await userModel.find(
-				{},
-				{ username: 1, email: 1, realName: 1 },
-			);
-
-			if (!userDocument) {
-				res.status(404).json({ error: "Records not found" });
-				return;
-			}
-
-			res.json(userDocument);
-		} catch (error) {
-			next(error);
-		}
-	},
-);
-
 /*
 	Change user password. /users/:username endpoint
 		1. Attempt to validate JWT from header
