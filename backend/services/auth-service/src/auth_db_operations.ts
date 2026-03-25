@@ -15,8 +15,8 @@ import mongoose from "mongoose";
 
 // Import of project modules
 //Location of userModel may or may not change later.
-import { userModel } from "./auth_schema.ts";
-import * as help from "./authHelpers.ts";
+import { userModel } from "./auth_schema.js";
+import * as help from "./authHelpers.js";
 
 export const authRouter = Router();
 authRouter.use(help.errorHandler);
@@ -57,33 +57,41 @@ authRouter.post(
 				$or: [{ email }, { username }],
 			});
 
-			if (userDocument)
-				return res.status(409).json({ error: "Resource exists" });
+			if (userDocument) {
+				res.status(409).json({ error: "Resource exists" });
+				return;
+			}
 
-			if (!help.validateEmail(req.body.email))
-				return res.status(422).json({ error: "Invalid email address" });
+			if (!help.validateEmail(req.body.email)) {
+				res.status(422).json({ error: "Invalid email address" });
+				return;
+			}
 
-			if (!help.validatePassword(req.body.password))
-				return res.status(422).json({
+			if (!help.validatePassword(req.body.password)) {
+				res.status(422).json({
 					error: "The password doesn't match the password requirements",
 				});
+				return;
+			}
 
 			const hashedPassword = await help.hashPassword(password);
-			if (!hashedPassword)
-				return res.status(500).json({ error: "Hashing failed" });
+			if (!hashedPassword) {
+				res.status(500).json({ error: "Hashing failed" });
+				return;
+			}
 
-		const currentCount = await help.makeID();
+			const currentCount = await help.makeID();
 
-		const newUser = new userModel({
-										id:currentCount,
-										username,
-										email,
-										passwordHash:hashedPassword,
-										realname
-										});
-		await newUser.save();
+			const newUser = new userModel({
+				id: currentCount,
+				username,
+				email,
+				passwordHash: hashedPassword,
+				realname,
+			});
+			await newUser.save();
 
-			return res.status(201).json({ username, email, realname });
+			res.status(201).json({ username, email, realname });
 		} catch (error) {
 			next(error);
 		}
@@ -110,16 +118,20 @@ authRouter.post(
 				$or: [{ email: username }, { username }],
 			});
 
-			if (!userDocument)
-				return res.status(404).json({ error: "User not found" });
+			if (!userDocument) {
+				res.status(404).json({ error: "User not found" });
+				return;
+			}
 
 			const gotHash = userDocument.get("passwordHash");
 			const passwordMatch = await help.comparePassword(password, gotHash);
-			if (!passwordMatch)
-				return res.status(401).json({ error: "Password mismatch" });
+			if (!passwordMatch) {
+				res.status(401).json({ error: "Password mismatch" });
+				return;
+			}
 
 			const JWToken = help.generateToken(userDocument.get("_id"), username);
-			return res.status(200).json({
+			res.status(200).json({
 				token: JWToken,
 				message: "Login successful",
 			});

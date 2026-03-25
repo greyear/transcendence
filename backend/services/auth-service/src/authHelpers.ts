@@ -1,17 +1,16 @@
 import bcrypt from "bcrypt";
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import type { NextFunction, Request, Response } from "express";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 import z from "zod";
-import { NextFunction, Request, Response } from "express"; 
 
-import { userCounter } from './auth_schema.ts'; 
+import { userCounter } from "./auth_schema.js";
 
 //From auth_db_operations.ts
 //
 // Password hashing, using bcrypt. I think slightly simpler than others.
 //Concern with security of the salt.
 //Maybe change to argon2
-export const hashPassword = async (password: string) =>
-{
+export const hashPassword = async (password: string) => {
 	const saltCost = 12;
 
 	try {
@@ -76,11 +75,9 @@ export const validatePassword = (password: string) => {
 
 // Call this function after authentication success.
 // id is from userDocument._id and is ObjectId type
-export const generateToken = (id: string, username: string) =>
-{
+export const generateToken = (id: string, username: string) => {
 	const JWTSecret = process.env.JWT_SECRET;
-	if (!JWTSecret)
-        throw new Error("JWTSecret env variable is not set");
+	if (!JWTSecret) throw new Error("JWTSecret env variable is not set");
 
 	const payload = {
 		sub: id,
@@ -93,12 +90,10 @@ export const generateToken = (id: string, username: string) =>
 	});
 };
 
-export const decodeToken = (token: string) =>
-{
+export const decodeToken = (token: string) => {
 	try {
 		const JWTSecret = process.env.JWT_SECRET;
-		if (!JWTSecret)
-        	throw new Error("JWTSecret env variable is not set");
+		if (!JWTSecret) throw new Error("JWTSecret env variable is not set");
 
 		const decoded = jwt.verify(token, JWTSecret);
 
@@ -141,20 +136,20 @@ export const fetchDecodeToken = (req: Request) => {
 // Simple helper to validate JWT and check username
 export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 	const decodedJWT = fetchDecodeToken(req) as JwtPayload;
-	if (!decodedJWT) return res.status(401).json({ error: "Invalid token" });
-	if (decodedJWT.username !== req.params.username)
-		return res.status(401).json({ error: "Incorrect token" });
+	if (!decodedJWT) {
+		res.status(401).json({ error: "Invalid token" });
+		return;
+	}
+	if (decodedJWT.username !== req.params.username) {
+		res.status(401).json({ error: "Incorrect token" });
+		return;
+	}
 
 	next();
 };
 
 // the middleware (might be in a separate file).
-export const errorHandler = (
-	error: unknown,
-	req: Request,
-	res: Response,
-	next: NextFunction,
-) => {
+export const errorHandler = (error: unknown, _req: Request, res: Response) => {
 	console.error(error);
 	const message =
 		error instanceof Error ? error.message : "Internal Server Error";
@@ -162,12 +157,11 @@ export const errorHandler = (
 };
 
 //Create a sequential and unique userID
-export const makeID = async (): Promise<number> =>
-{
-    const counter = await userCounter.findOneAndUpdate(
-        { name: 'CounterDB' },
-        { $inc: { seq: 1 } },
-        { new: false, upsert: true, setDefaultsOnInsert: true }
-    );
-    return counter ? counter.seq : 1;
+export const makeID = async (): Promise<number> => {
+	const counter = await userCounter.findOneAndUpdate(
+		{ name: "CounterDB" },
+		{ $inc: { seq: 1 } },
+		{ new: false, upsert: true, setDefaultsOnInsert: true },
+	);
+	return counter ? counter.seq : 1;
 };

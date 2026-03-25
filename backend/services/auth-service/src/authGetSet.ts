@@ -7,8 +7,8 @@ import {
 import type { JwtPayload } from "jsonwebtoken";
 // Import of project modules
 //Location of userModel may or may not change later.
-import { userModel } from "./auth_schema.ts";
-import * as help from "./authHelpers.ts";
+import { userModel } from "./auth_schema.js";
+import * as help from "./authHelpers.js";
 
 export const authGetSet = Router();
 authGetSet.use(help.errorHandler);
@@ -29,54 +29,12 @@ authGetSet.delete(
 
 			const userDocument = await userModel.findOneAndDelete({ username });
 
-			if (!userDocument)
-				return res.status(404).json({ error: "User not found" });
+			if (!userDocument) {
+				res.status(404).json({ error: "User not found" });
+				return;
+			}
 
-			return res.json({ message: "User deleted" });
-		} catch (error) {
-			next(error);
-		}
-	},
-);
-
-//Fetch single user record
-//Return all but passwordHash
-authGetSet.get(
-	"/users/:username",
-	async (req: Request, res: Response, next: NextFunction) => {
-		try {
-			const username = req.params.username;
-
-			const userDocument = await userModel.findOne(
-				{ username },
-				{ username: 1, email: 1, realName: 1 },
-			);
-
-			if (!userDocument)
-				return res.status(404).json({ error: "User not found" });
-
-			return res.json(userDocument);
-		} catch (error) {
-			next(error);
-		}
-	},
-);
-
-//Fetch all user records
-//Return all but passwordHash
-authGetSet.get(
-	"/users",
-	async (req: Request, res: Response, next: NextFunction) => {
-		try {
-			const userDocument = await userModel.find(
-				{},
-				{ username: 1, email: 1, realName: 1 },
-			);
-
-			if (!userDocument)
-				return res.status(404).json({ error: "Records not found" });
-
-			return res.json(userDocument);
+			res.json({ message: "User deleted" });
 		} catch (error) {
 			next(error);
 		}
@@ -101,23 +59,31 @@ authGetSet.patch(
 			const { newPassword, password } = req.body;
 			const username = req.params.username;
 
-			if (!help.validatePassword(newPassword))
-				return res.status(422).json({
+			if (!help.validatePassword(newPassword)) {
+				res.status(422).json({
 					error: "The password doesn't match the password requirements",
 				});
+				return;
+			}
 
 			const userDocument = await userModel.findOne({ username });
-			if (!userDocument)
-				return res.status(404).json({ error: "User not found" });
+			if (!userDocument) {
+				res.status(404).json({ error: "User not found" });
+				return;
+			}
 
 			const gotHash = userDocument.get("passwordHash");
 			const passwordMatch = await help.comparePassword(password, gotHash);
-			if (!passwordMatch)
-				return res.status(401).json({ error: "Password mismatch" });
+			if (!passwordMatch) {
+				res.status(401).json({ error: "Password mismatch" });
+				return;
+			}
 
 			const hashedPassword = await help.hashPassword(newPassword);
-			if (!hashedPassword)
-				return res.status(500).json({ error: "Hashing failed" });
+			if (!hashedPassword) {
+				res.status(500).json({ error: "Hashing failed" });
+				return;
+			}
 
 			const updatedUser = await userModel.findOneAndUpdate(
 				{ username },
@@ -125,10 +91,12 @@ authGetSet.patch(
 				{ new: true },
 			);
 
-			if (updatedUser)
-				return res.json({ message: "Password updated successfully" });
+			if (updatedUser) {
+				res.json({ message: "Password updated successfully" });
+				return;
+			}
 
-			return res.status(404).json({ error: "User not found" });
+			res.status(404).json({ error: "User not found" });
 		} catch (error) {
 			next(error);
 		}
@@ -143,17 +111,24 @@ authGetSet.post(
 			const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
 			if (!decodedToken) throw Error("Invalid header");
 
-		const username = decodedToken.username;
-		const userDocument = await userModel.findOne({$or: [{username}, {email:username}]});
-		if (!userDocument)
-			return res.status(401).json({ error: "Invalid token" });
+			const username = decodedToken.username;
+			const userDocument = await userModel.findOne({
+				$or: [{ username }, { email: username }],
+			});
+			if (!userDocument) {
+				res.status(401).json({ error: "Invalid token" });
+				return;
+			}
 
-		const userID = userDocument.get('id');
-		if (!userID)
-            return res.status(500).json({ error: "User has no id" });
-		
-		return res.status(200).json({ id: userID });
-	} catch (error) {
-		next(error);
-	}
-});
+			const userID = userDocument.get("id");
+			if (!userID) {
+				res.status(500).json({ error: "User has no id" });
+				return;
+			}
+
+			res.status(200).json({ id: userID });
+		} catch (error) {
+			next(error);
+		}
+	},
+);
