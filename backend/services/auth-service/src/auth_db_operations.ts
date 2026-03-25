@@ -5,30 +5,37 @@
 	jsonwebtoken is an encrypted way to pass sesson data client/server
 	zod is our parsing and field validation module
  */
-import { Router, Request, Response, NextFunction } from 'express';
-import mongoose from 'mongoose';
+import {
+	type NextFunction,
+	type Request,
+	type Response,
+	Router,
+} from "express";
+import mongoose from "mongoose";
 
 // Import of project modules
 //Location of userModel may or may not change later.
-import { userModel } from './auth_schema.ts'; 
-import * as help from './authHelpers.ts';
+import { userModel } from "./auth_schema.js";
+import * as help from "./authHelpers.js";
 
 export const authRouter = Router();
 authRouter.use(help.errorHandler);
 
 //Connection part probably being moved later
-const MONGO_AUTH_URI = process.env.MONGODB_AUTH_URI || 'mongodb://127.0.0.1:27017/auth_db';
+const MONGO_AUTH_URI =
+	process.env.MONGODB_AUTH_URI || "mongodb://127.0.0.1:27017/auth_db";
 // Connect to MongoDB
 // https://mongoosejs.com/docs/connections.html
-mongoose.connect(MONGO_AUTH_URI).then(() =>
-{
-    console.log('Connected to MongoDB');
-    // Start the server after the database connection is established
-    
-}).catch((err) => {
-	console.error('Error connecting to MongoDB:', err);
-	process.exit(1);
-});
+mongoose
+	.connect(MONGO_AUTH_URI)
+	.then(() => {
+		console.log("Connected to MongoDB");
+		// Start the server after the database connection is established
+	})
+	.catch((err) => {
+		console.error("Error connecting to MongoDB:", err);
+		process.exit(1);
+	});
 
 /*
 	Create user if user does not exist.
@@ -40,48 +47,56 @@ mongoose.connect(MONGO_AUTH_URI).then(() =>
 		3. If not, attempt to hash password and create new user
 		4. Return relevant code
 */
-authRouter.post('/register', async (req: Request, res: Response, next: NextFunction) =>
-{
-	try {
-		const {username, email, realname, password} = req.body;
+authRouter.post(
+	"/register",
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const { username, email, realname, password } = req.body;
 
-		const userDocument = await userModel.findOne(
-			{ $or: [
-					{email},
-					{username}
-				   ]
-			} );
+			const userDocument = await userModel.findOne({
+				$or: [{ email }, { username }],
+			});
 
-		if (userDocument)
-			return res.status(409).json({error: 'Resource exists'});
+			if (userDocument) {
+				res.status(409).json({ error: "Resource exists" });
+				return;
+			}
 
-		if (!help.validateEmail(req.body.email))
-			return res.status(422).json({error: 'Invalid email address'});
+			if (!help.validateEmail(req.body.email)) {
+				res.status(422).json({ error: "Invalid email address" });
+				return;
+			}
 
-		if (!help.validatePassword(req.body.password))
-			return res.status(422).json({error: "The password doesn't match the password requirements"});
+			if (!help.validatePassword(req.body.password)) {
+				res.status(422).json({
+					error: "The password doesn't match the password requirements",
+				});
+				return;
+			}
 
-		const hashedPassword = await help.hashPassword(password);
-		if (!hashedPassword)
-			return res.status(500).json({error: 'Hashing failed'});
+			const hashedPassword = await help.hashPassword(password);
+			if (!hashedPassword) {
+				res.status(500).json({ error: "Hashing failed" });
+				return;
+			}
 
-		const currentCount = await help.makeID();
+			const currentCount = await help.makeID();
 
-		const newUser = new userModel({
-										id:currentCount,
-										username,
-										email,
-										passwordHash:hashedPassword,
-										realname
-										});
-		await newUser.save();
+			const newUser = new userModel({
+				id: currentCount,
+				username,
+				email,
+				passwordHash: hashedPassword,
+				realname,
+			});
+			await newUser.save();
 
-		return res.status(201).json({username, email, realname});
-
-	} catch (error) {
-		next(error);
-	}
-});
+			res.status(201).json({ username, email, realname });
+		} catch (error) {
+			next(error);
+		}
+	},
+);
 
 /*
 	Login with username/email and password.
@@ -93,33 +108,35 @@ authRouter.post('/register', async (req: Request, res: Response, next: NextFunct
 		3. If good, create JWT and return
 		4. Return relevant code
 */
-authRouter.post('/login', async (req: Request, res: Response, next: NextFunction) =>
-{
-	try {
-		const {username, password} = req.body;
+authRouter.post(
+	"/login",
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const { username, password } = req.body;
 
-		const userDocument = await userModel.findOne(
-			{ $or: [
-					{email: username},
-					{username}
-				   ]
-			} );
+			const userDocument = await userModel.findOne({
+				$or: [{ email: username }, { username }],
+			});
 
-		if (!userDocument)
-			return res.status(404).json({error: 'User not found'});
-			
-		const gotHash = userDocument.get('passwordHash');
-		const passwordMatch = await help.comparePassword(password, gotHash);
-		if (!passwordMatch)
-			return res.status(401).json({ error: 'Password mismatch' });
-		
-		const JWToken = help.generateToken(userDocument.get('_id'), username);
-		return res.status(200).json({ 
-					token: JWToken,
-					message: "Login successful" 
-		});
+			if (!userDocument) {
+				res.status(404).json({ error: "User not found" });
+				return;
+			}
 
-	} catch (error) {
-		next(error);
-	}
-});
+			const gotHash = userDocument.get("passwordHash");
+			const passwordMatch = await help.comparePassword(password, gotHash);
+			if (!passwordMatch) {
+				res.status(401).json({ error: "Password mismatch" });
+				return;
+			}
+
+			const JWToken = help.generateToken(userDocument.get("_id"), username);
+			res.status(200).json({
+				token: JWToken,
+				message: "Login successful",
+			});
+		} catch (error) {
+			next(error);
+		}
+	},
+);
