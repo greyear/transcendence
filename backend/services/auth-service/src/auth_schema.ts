@@ -23,32 +23,39 @@ const counterSchema = new mongoose.Schema({
 //https://www.slingacademy.com/article/mongodb-set-default-value-for-a-field-with-examples/
 //_id will be created by default and have an ObjectId value
 //email may be the same for Google ID, but we shall see
-const authSchema = new mongoose.Schema({
-	id: {
-		type: Number,
-		required: true,
-		unique: true,
-	},
-	username: {
-		type: String,
-		required: true,
-		unique: true,
-	},
-	email: {
-		type: String,
-		required: true,
-		unique: true,
-	},
-	passwordHash: {
-		type: String,
-		required: true,
-		unique: false,
-	},
-	realname: {
-		type: String,
-		required: true,
-		unique: false,
-	},
+//Google suggests using account Google ID rather than email for user search
+const authSchema = new mongoose.Schema
+({
+  id: {
+	type: Number,
+	required: true,
+	unique: true
+  },
+  username: {
+	type: String,
+	required: true,
+	unique: true
+  },
+  email: {
+	type: String,
+	required: true,
+	unique: true
+  },
+  passwordHash: {
+    type: String,
+    required: true,
+    unique: false
+  },
+  realname: {
+    type: String,
+    required: true,
+    unique: false
+  },
+  googleID: {
+    type: String,
+    required: false,
+    unique: true
+  }
 });
 
 //Convert schema into a model that can be worked on

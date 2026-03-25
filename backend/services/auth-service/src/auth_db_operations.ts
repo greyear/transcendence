@@ -9,6 +9,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
+import { OAuth2Client, TokenPayload } from 'google-auth-library';
 
 // Import of project modules
 //Location of userModel may or may not change later.
@@ -135,13 +136,81 @@ authRouter.post(
 				return;
 			}
 
-			const JWToken = help.generateToken(userDocument.get("_id"), username);
-			res.status(200).json({
-				token: JWToken,
-				message: "Login successful",
-			});
-		} catch (error) {
-			next(error);
+	} catch (error) {
+		next(error);
+	}
+});
+
+/*
+	Login/register with Google account.
+		1. Verify token using google-auth-library method verifyIdToken()
+			Failed verification should throw.
+			Assuming token is being sent in the authorisation header, for now.
+		2. Check for existance. Assuming I only need to check googleID.
+			findOne() because googleIDs are unique in the DB
+		3. Either create a new account, or login with existing account.
+	https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
+	https://www.w3tutorials.net/blog/google-sign-in-backend-verification/
+*/
+authRouter.post('/auth/google', async (req: Request, res: Response, next: NextFunction) =>
+{
+	try {
+		const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+		const client = new OAuth2Client(CLIENT_ID);
+		const token = help.sequenceHeader(req);
+		if (!token)
+			return res.status(401).json({error: 'Token not found'}); //401?
+
+		const ticket = await client.verifyIdToken({
+			idToken: token,
+			audience: CLIENT_ID
+		});
+		const payload = ticket.getPayload();
+		if (!payload)
+			return res.status(401).json({error: 'Payload not found'}); //401?
+  		const googleID = payload['sub'];
+		const {email, name} = payload;
+
+		/*
+			Repetiton here, which can be sorted out later.
+			Google accounts will not require a passwordHash, so just using "empty"
+			Using the Google account name field as username for now.
+			Not sure how correct any of this is, but making a start.
+		*/
+		const userDocument = await userModel.findOne({ googleID });
+		if (!userDocument)
+		{
+			const currentCount = await help.makeID();
+
+			const newUser = new userModel({
+											id:currentCount,
+											username:name,
+											email,
+											passwordHash:"empty",
+											realname:name
+											});
+			await newUser.save();
+
+			return res.status(201).json({googleID, email, name});
 		}
-	},
-);
+		else
+		{
+			const JWToken = help.generateToken(userDocument.get('_id'), name);
+
+			req.session.user = name;
+			console.log(req.session.user);
+			console.log(req.sessionID);
+			res.cookie("sessionId", req.sessionID);
+			console.log(res.cookie);
+			res.cookie("JWToken", JWToken);
+			console.log(res.cookie);
+			return res.status(200).json({ 
+						token: JWToken,
+						message: "Login successful"
+			});
+		}
+
+	} catch (error) {
+		next(error);
+	}
+});
