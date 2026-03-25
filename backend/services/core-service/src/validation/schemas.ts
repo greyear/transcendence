@@ -122,6 +122,21 @@ export const myRecipeListItemSchema = z.object({
 });
 
 /**
+ * SearchRecipeDocument - minimal published recipe payload for search indexing
+ *
+ * This is intentionally narrower than Recipe:
+ * - only fields needed by search-service
+ * - includes updated_at so search-service can track staleness
+ */
+export const searchRecipeDocumentSchema = z.object({
+	id: z.number().int().positive(),
+	title: z.string(),
+	description: z.string().nullable(),
+	instructions: z.array(z.string()),
+	updated_at: z.coerce.date(),
+});
+
+/**
  * z.infer<typeof recipeSchema> - "extract TypeScript type from Zod schema"
  *
  * This means Recipe type will contain all fields from recipeSchema above
@@ -142,3 +157,8 @@ export type RecipeListItem = z.infer<typeof recipeListItemSchema>;
  * MyRecipeListItem type - minimal recipe info for current user's recipes
  */
 export type MyRecipeListItem = z.infer<typeof myRecipeListItemSchema>;
+
+/**
+ * SearchRecipeDocument type - recipe payload exposed to search-service
+ */
+export type SearchRecipeDocument = z.infer<typeof searchRecipeDocumentSchema>;

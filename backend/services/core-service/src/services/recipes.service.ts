@@ -22,6 +22,8 @@ import {
 	type RecipeListItem,
 	recipeListItemSchema,
 	recipeSchema,
+	type SearchRecipeDocument,
+	searchRecipeDocumentSchema,
 } from "../validation/schemas.js";
 
 const parseRecipeRows = <T>(
@@ -225,6 +227,69 @@ export const getRecipeById = async (
 		return validation.data;
 	} catch (error) {
 		console.error("Database error in getRecipeById:", error);
+		throw error;
+	}
+};
+
+/**
+ * Get all published recipes for search indexing.
+ *
+ * This is an internal-only read model used by search-service.
+ * It exposes just enough data to build embeddings and track freshness.
+ */
+export const getSearchRecipes = async (): Promise<SearchRecipeDocument[]> => {
+	try {
+		const query = `
+      SELECT id, title, description, instructions, updated_at
+      FROM recipes
+      WHERE status = 'published'
+      ORDER BY updated_at DESC, id DESC
+    `;
+
+		const result = await pool.query(query);
+
+		return parseRecipeRows(
+			result.rows,
+			searchRecipeDocumentSchema,
+			"search recipe document",
+		);
+	} catch (error) {
+		console.error("Database error in getSearchRecipes:", error);
+		throw error;
+	}
+};
+
+/**
+ * Get one published recipe for targeted search reindex.
+ */
+export const getSearchRecipeById = async (
+	id: number,
+): Promise<SearchRecipeDocument | null> => {
+	try {
+		const query = `
+      SELECT id, title, description, instructions, updated_at
+      FROM recipes
+      WHERE id = $1 AND status = 'published'
+    `;
+
+		const result = await pool.query(query, [id]);
+
+		if (result.rows.length === 0) {
+			return null;
+		}
+
+		const validation = searchRecipeDocumentSchema.safeParse(result.rows[0]);
+		if (!validation.success) {
+			console.error(
+				`Invalid search recipe document for ID ${id}:`,
+				z.prettifyError(validation.error),
+			);
+			return null;
+		}
+
+		return validation.data;
+	} catch (error) {
+		console.error("Database error in getSearchRecipeById:", error);
 		throw error;
 	}
 };

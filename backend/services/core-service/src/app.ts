@@ -11,6 +11,7 @@ import cors from "cors";
 import express, { type Express } from "express";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { healthRouter } from "./routes/health.routes.js";
+import { internalSearchRouter } from "./routes/internalSearch.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
 
@@ -33,6 +34,8 @@ app.use(express.json());
 app.use("/health", healthRouter);
 // /recipes/* → recipesRouter
 app.use("/recipes", recipesRouter);
+// /internal/search/* → internalSearchRouter
+app.use("/internal/search", internalSearchRouter);
 // /users/* → usersRouter
 app.use("/users", usersRouter);
 
