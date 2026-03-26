@@ -158,18 +158,22 @@ authRouter.post('/auth/google', async (req: Request, res: Response, next: NextFu
 		const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 		const client = new OAuth2Client(CLIENT_ID);
 		const token = help.sequenceHeader(req);
-		if (!token)
-			return res.status(401).json({error: 'Token not found'}); //401?
+		if (!token) {
+			res.status(401).json({error: 'Token not found'}); //401?
+			return
+		}
 
 		const ticket = await client.verifyIdToken({
 			idToken: token,
 			audience: CLIENT_ID
 		});
 		const payload = ticket.getPayload();
-		if (!payload)
-			return res.status(401).json({error: 'Payload not found'}); //401?
-  		const googleID = payload['sub'];
-		const {email, name} = payload;
+		if (!payload){
+			res.status(401).json({error: 'Payload not found'}); //401?
+			return
+		}
+  		const googleID = payload.sub;
+		const { email, name } = payload;
 
 		/*
 			Repetiton here, which can be sorted out later.
@@ -184,30 +188,32 @@ authRouter.post('/auth/google', async (req: Request, res: Response, next: NextFu
 
 			const newUser = new userModel({
 											id:currentCount,
-											username:name,
 											email,
 											passwordHash:"empty",
-											realname:name
+											realname:name,
+											googleID
 											});
 			await newUser.save();
 
-			return res.status(201).json({googleID, email, name});
+			res.status(201).json({googleID, email, name});
+			return
 		}
 		else
 		{
-			const JWToken = help.generateToken(userDocument.get('_id'), name);
+			const JWToken = help.generateToken(userDocument.get('_id'), googleID);
 
-			req.session.user = name;
+			req.session.user = googleID;
 			console.log(req.session.user);
 			console.log(req.sessionID);
 			res.cookie("sessionId", req.sessionID);
 			console.log(res.cookie);
 			res.cookie("JWToken", JWToken);
 			console.log(res.cookie);
-			return res.status(200).json({ 
+			res.status(200).json({ 
 						token: JWToken,
 						message: "Login successful"
 			});
+			return
 		}
 
 	} catch (error) {
