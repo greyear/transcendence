@@ -15,16 +15,39 @@ export type PaginationProps = {
 	type?: "recipe" | "user";
 };
 
-function getPageWindow(current: number, total: number, size: number): number[] {
+const getPageWindow = (current: number, total: number, size: number): number[] => {
 	const clampedSize = Math.min(size, total);
 	const half = Math.floor(clampedSize / 2);
 	const start = Math.min(Math.max(1, current - half), total - clampedSize + 1);
 	return Array.from({ length: clampedSize }, (_, i) => start + i);
 }
 
+const getCurrentPage = (searchParams: URLSearchParams, totalPagesCount: number): number => {
+	const pageAttr = searchParams.get("page");
+    if (!pageAttr) {
+		return 1;
+	}
+
+    const page = Number(pageAttr);
+    if (Number.isNaN(page) || page < 1) {
+        return 1;
+    } 
+    
+    if (page > totalPagesCount) {
+        return totalPagesCount;
+    }
+
+    return page;
+}
+
 export const Pagination = ({ totalPagesCount }: PaginationProps) => {
+	if (totalPagesCount <= 1) {
+		// TODO: maybe not even call this component.
+		return null
+	}
+
 	const [searchParams] = useSearchParams();
-	const currentPage = Math.max(1, Number(searchParams.get("page") ?? 1));
+	const currentPage = Math.max(1, getCurrentPage(searchParams, totalPagesCount));
 
 	const buildPageUrl = (page: number) => {
 		const params = new URLSearchParams(searchParams);
