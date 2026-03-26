@@ -21,7 +21,7 @@ import { z } from "zod";
 const MAX_SIGNED_INT = 2147483647;
 
 /**
- * Positive Integer ID schema
+ * Positive Integer schema
  *
  * Single schema for both recipe IDs and user IDs
  * Logic:
@@ -33,11 +33,13 @@ const MAX_SIGNED_INT = 2147483647;
  * - Recipe ID: URL parameter req.params.id → number → getRecipeById(id: number)
  * - User ID: HTTP header X-User-Id → number → getRecipeById(userId?: number)
  */
-const intIdSchema = z.coerce.number().int().positive().max(MAX_SIGNED_INT);
+const positiveIntSchema = z.coerce
+	.number()
+	.int()
+	.positive()
+	.max(MAX_SIGNED_INT);
 
-const recipeIdSchema = intIdSchema;
-
-export const userIdIntSchema = intIdSchema;
+export const userIdSchema = positiveIntSchema;
 
 export const recipeStatusSchema = z.enum([
 	"draft",
@@ -47,35 +49,35 @@ export const recipeStatusSchema = z.enum([
 ]);
 
 const recipeIngredientSchema = z.object({
-	ingredient_id: intIdSchema,
+	ingredient_id: positiveIntSchema,
 	name: z.string().trim().min(1).max(128),
 	amount: z.coerce.number().positive(),
 	unit: z.string().min(1).max(16),
 });
 
 const recipeCategorySchema = z.object({
-	id: intIdSchema,
+	id: positiveIntSchema,
 	code: z.string().trim().min(1).max(32),
-	category_type_id: intIdSchema,
+	category_type_id: positiveIntSchema,
 	category_type_code: z.string().trim().min(1).max(32),
 	category_type_name: z.string().trim().min(1).max(64),
 });
 
 // TODO: add endpoint for autocomplete ingredients - returns list of { ingredient_id, name } matching search query
 const createRecipeIngredientInputSchema = z.object({
-	ingredient_id: intIdSchema,
+	ingredient_id: positiveIntSchema,
 	amount: z.coerce.number().positive(),
 	unit: z.string().trim().min(1).max(16),
 });
 
-const createRecipeCategoryIdSchema = intIdSchema;
+const createRecipeCategoryIdSchema = positiveIntSchema;
 
 const createRecipeInputSchema = z.object({
 	title: z.string().trim().min(1).max(256),
-	description: z.string().max(5000).optional().nullable(),
+	description: z.string().trim().max(5000).nullable(),
 	instructions: z.array(z.string().trim().min(1)).min(1),
-	servings: intIdSchema.optional().default(1),
-	spiciness: z.coerce.number().int().min(0).max(3).optional().default(0),
+	servings: positiveIntSchema,
+	spiciness: z.coerce.number().int().min(0).max(3),
 	ingredients: z
 		.array(createRecipeIngredientInputSchema)
 		.min(1)
@@ -95,12 +97,12 @@ const createRecipeInputSchema = z.object({
 
 export type CreateRecipeInput = z.infer<typeof createRecipeInputSchema>;
 
-type ValidationResult =
-	| { valid: true; value: number }
+type ValidationResult<T> =
+	| { valid: true; value: T }
 	| { valid: false; error: string };
 
-export const validateRecipeId = (id: unknown): ValidationResult => {
-	const result = recipeIdSchema.safeParse(id);
+const validateIntId = (id: unknown): ValidationResult<number> => {
+	const result = positiveIntSchema.safeParse(id);
 
 	if (result.success) {
 		return { valid: true, value: result.data };
@@ -112,41 +114,17 @@ export const validateRecipeId = (id: unknown): ValidationResult => {
 	};
 };
 
-export const validateUserId = (id: unknown): ValidationResult => {
-	const result = userIdIntSchema.safeParse(id);
+export const validateRecipeId = validateIntId;
 
-	if (result.success) {
-		return { valid: true, value: result.data };
-	}
-
-	return {
-		valid: false,
-		error: `Must be a positive integer in range 1..${MAX_SIGNED_INT}`,
-	};
-};
-
-type CreateRecipeValidationResult =
-	| { valid: true; value: CreateRecipeInput }
-	| { valid: false; error: string };
+export const validateUserId = validateIntId;
 
 export const validateCreateRecipeInput = (
 	input: unknown,
-): CreateRecipeValidationResult => {
+): ValidationResult<CreateRecipeInput> => {
 	const result = createRecipeInputSchema.safeParse(input);
 
 	if (result.success) {
-		const description =
-			typeof result.data.description === "string"
-				? result.data.description.trim()
-				: result.data.description;
-
-		return {
-			valid: true,
-			value: {
-				...result.data,
-				description: description && description.length > 0 ? description : null,
-			},
-		};
+		return { valid: true, value: result.data };
 	}
 
 	return {
@@ -171,7 +149,7 @@ export const validateCreateRecipeInput = (
 export const recipeSchema = z.object({
 	id: z.number().int().positive(), // ID must be positive integer
 	title: z.string(), // Title - string
-	author_id: userIdIntSchema.nullable(), // Author can be null (ON DELETE SET NULL)
+	author_id: userIdSchema.nullable(), // Author can be null (ON DELETE SET NULL)
 	status: recipeStatusSchema, // ONLY these statuses
 	description: z.string().nullable(), // Description can be null in DB
 	instructions: z.array(z.string()), // Instructions required (NOT NULL)
@@ -189,7 +167,7 @@ export const recipeSchema = z.object({
 export const recipeListItemSchema = z.object({
 	id: z.number().int().positive(),
 	title: z.string(),
-	author_id: userIdIntSchema.nullable(),
+	author_id: userIdSchema.nullable(),
 	description: z.string().nullable(),
 	rating_avg: z.coerce.number().min(1).max(5).nullable(),
 });
@@ -201,7 +179,7 @@ export const recipeListItemSchema = z.object({
 export const myRecipeListItemSchema = z.object({
 	id: z.number().int().positive(),
 	title: z.string(),
-	author_id: userIdIntSchema.nullable(), // Maybe delete this field from /users/me/recipes response since it's always the same as current user?
+	author_id: userIdSchema.nullable(), // Maybe delete this field from /users/me/recipes response since it's always the same as current user?
 	description: z.string().nullable(),
 	rating_avg: z.coerce.number().min(1).max(5).nullable(),
 	status: recipeStatusSchema,

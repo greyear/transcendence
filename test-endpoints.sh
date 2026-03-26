@@ -127,14 +127,14 @@ check_endpoint "/users/abc/recipes" "400" "GET /users/abc/recipes (invalid user 
 
 echo ""
 echo "POST Endpoints:"
-check_post_endpoint "/recipes" '{"title":"Smoke Recipe","description":"Created by smoke test","prep_time_minutes":10,"cook_time_minutes":20,"servings":2,"difficulty":"easy","ingredients":[{"ingredient_name":"Water","quantity":"1 cup"}]}' "401" "POST /recipes (no token -> 401)"
+check_post_endpoint "/recipes" '{"title":"Smoke Recipe","description":"Created by smoke test","instructions":["Mix ingredients"],"servings":2,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":100,"unit":"g"}],"category_ids":[]}' "401" "POST /recipes (no token -> 401)"
 check_post_endpoint "/recipes/1/publish" '{}' "401" "POST /recipes/1/publish (no token -> 401)"
 
 if [ -n "$SMOKE_BEARER_TOKEN" ]; then
   echo ""
   echo "POST Endpoints (authenticated):"
 
-  check_post_endpoint_auth "/recipes" '{"title":"Smoke Auth Recipe","description":"Created by authenticated smoke test","prep_time_minutes":10,"cook_time_minutes":20,"servings":2,"difficulty":"easy","ingredients":[{"ingredient_name":"Salt","quantity":"1 tsp"}]}' "201" "POST /recipes (with token -> 201)"
+  check_post_endpoint_auth "/recipes" '{"title":"Smoke Auth Recipe","description":"Created by authenticated smoke test","instructions":["Measure ingredients","Cook"],"servings":2,"spiciness":1,"ingredients":[{"ingredient_id":1,"amount":150,"unit":"g"}],"category_ids":[]}' "201" "POST /recipes (with token -> 201)"
 
   created_recipe_id=$(sed -n 's/.*"id"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' /tmp/test-resp.json | head -n 1)
 

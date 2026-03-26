@@ -14,7 +14,7 @@
 
 import type { NextFunction, Request, Response } from "express";
 import { z } from "zod";
-import { userIdIntSchema } from "../validation/schemas.js";
+import { userIdSchema } from "../validation/schemas.js";
 
 /**
  * Zod schema for validating userId from header
@@ -28,9 +28,9 @@ import { userIdIntSchema } from "../validation/schemas.js";
  * - must fit application INT range
  * - .optional() - or undefined
  */
-const userIdSchema = z.preprocess(
+const headerUserIdSchema = z.preprocess(
 	(val) => (Array.isArray(val) ? val[0] : val),
-	userIdIntSchema.optional(),
+	userIdSchema.optional(),
 );
 
 /**
@@ -58,7 +58,7 @@ export const extractUser = (
 ): void => {
 	// Validate userId with Zod (no type assertion needed!)
 	// z.preprocess handles the type coercion safely
-	const result = userIdSchema.safeParse(req.headers["x-user-id"]);
+	const result = headerUserIdSchema.safeParse(req.headers["x-user-id"]);
 
 	if (!result.success) {
 		// Validation failed - treat as guest

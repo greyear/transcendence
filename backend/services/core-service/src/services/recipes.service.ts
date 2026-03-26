@@ -44,6 +44,11 @@ const recipeVisibilityRowSchema = z.object({
 	status: recipeStatusSchema,
 });
 
+const rowIdSchema = z
+	.object({ id: z.union([z.number(), z.string()]) })
+	.transform((r) => r.id)
+	.catch("unknown");
+
 const getRecipeWithIngredientsQuery = `
 	SELECT
 		r.id,
@@ -105,15 +110,7 @@ const parseRecipeRows = <T>(
 		if (validation.success) {
 			acc.push(validation.data);
 		} else {
-			const maybeRow =
-				typeof row === "object" && row !== null
-					? (row as { id?: unknown })
-					: null;
-
-			const rowId =
-				typeof maybeRow?.id === "number" || typeof maybeRow?.id === "string"
-					? maybeRow.id
-					: "unknown";
+			const rowId = rowIdSchema.parse(row);
 
 			console.error(
 				`Skipping invalid ${rowLabel} ID ${rowId}:`,
@@ -286,28 +283,31 @@ export const createRecipe = async (
 
 		const recipeId = recipeIdParsed.data.id;
 
-		for (const ingredient of input.ingredients) {
-			await client.query(
-				`
-          INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit)
-          VALUES ($1, $2, $3, $4)
-        `,
-				[
-					recipeId,
-					ingredient.ingredient_id,
-					ingredient.amount,
-					ingredient.unit,
-				],
-			);
+		const ingredientIds: number[] = [];
+		const amounts: number[] = [];
+		const units: string[] = [];
+
+		for (const { ingredient_id, amount, unit } of input.ingredients) {
+			ingredientIds.push(ingredient_id);
+			amounts.push(amount);
+			units.push(unit);
 		}
 
-		for (const categoryId of input.category_ids) {
+		await client.query(
+			`
+          INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit)
+          SELECT $1, unnest($2::int[]), unnest($3::numeric[]), unnest($4::text[])
+        `,
+			[recipeId, ingredientIds, amounts, units],
+		);
+
+		if (input.category_ids.length > 0) {
 			await client.query(
 				`
           INSERT INTO recipe_category_map (recipe_id, category_id)
-          VALUES ($1, $2)
+          SELECT $1, unnest($2::int[])
         `,
-				[recipeId, categoryId],
+				[recipeId, input.category_ids],
 			);
 		}
 
@@ -332,48 +332,43 @@ export const publishRecipe = async (
 	userId: number,
 ): Promise<PublishRecipeResult> => {
 	try {
-		const existingResult = await pool.query(
-			`SELECT author_id, status FROM recipes WHERE id = $1`,
-			[recipeId],
-		);
-
-		if (existingResult.rowCount === 0) {
-			return { success: false, reason: "not-found" };
-		}
-
-		const existingRecipeParsed = recipeVisibilityRowSchema.safeParse(
-			existingResult.rows[0],
-		);
-		if (!existingRecipeParsed.success) {
-			throw new Error(z.prettifyError(existingRecipeParsed.error));
-		}
-
-		const existingRecipe = existingRecipeParsed.data;
-
-		if (existingRecipe.author_id !== userId) {
-			return { success: false, reason: "forbidden" };
-		}
-
-		if (existingRecipe.status !== "draft") {
-			return {
-				success: false,
-				reason: "invalid-status",
-				currentStatus: existingRecipe.status,
-			};
-		}
-
 		const updateResult = await pool.query(
 			`
       UPDATE recipes
       SET status = 'moderation', updated_at = now()
-      WHERE id = $1
+      WHERE id = $1 AND author_id = $2 AND status = 'draft'
       RETURNING id
     `,
-			[recipeId],
+			[recipeId, userId],
 		);
 
 		if (updateResult.rowCount === 0) {
-			return { success: false, reason: "not-found" };
+			const existingResult = await pool.query(
+				`SELECT author_id, status FROM recipes WHERE id = $1`,
+				[recipeId],
+			);
+
+			if (existingResult.rowCount === 0) {
+				return { success: false, reason: "not-found" };
+			}
+
+			const existingRecipeParsed = recipeVisibilityRowSchema.safeParse(
+				existingResult.rows[0],
+			);
+			if (!existingRecipeParsed.success) {
+				throw new Error(z.prettifyError(existingRecipeParsed.error));
+			}
+
+			const { author_id, status } = existingRecipeParsed.data;
+			if (author_id !== userId) {
+				return { success: false, reason: "forbidden" };
+			}
+
+			return {
+				success: false,
+				reason: "invalid-status",
+				currentStatus: status,
+			};
 		}
 
 		const recipe = await getRecipeWithIngredientsById(recipeId);

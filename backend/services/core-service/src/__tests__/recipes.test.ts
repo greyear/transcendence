@@ -167,8 +167,9 @@ describe("Recipes Routes", () => {
 			.post("/recipes")
 			.set("X-User-Id", "1")
 			.send({
-				title: "",
-				instructions: [],
+				title: "Missing Description",
+				instructions: ["Step 1"],
+				ingredients: [{ ingredient_id: 1, amount: 100, unit: "g" }],
 			});
 
 		expect(response.status).toBe(400);

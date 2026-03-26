@@ -82,21 +82,22 @@ const publishRecipeHandler = async (
 		const publishResult = await publishRecipe(validation.value, req.userId);
 
 		if (!publishResult.success) {
-			const error: CustomError =
-				publishResult.reason === "not-found"
-					? new Error("Recipe not found")
-					: publishResult.reason === "forbidden"
-						? new Error("No permission to publish this recipe")
-						: new Error(
-								`Recipe cannot be sent to moderation from status ${publishResult.currentStatus}`,
-							);
+			const error: CustomError = new Error();
 
-			error.statusCode =
-				publishResult.reason === "not-found"
-					? 404
-					: publishResult.reason === "forbidden"
-						? 403
-						: 409;
+			switch (publishResult.reason) {
+				case "not-found":
+					error.message = "Recipe not found";
+					error.statusCode = 404;
+					break;
+				case "forbidden":
+					error.message = "No permission to publish this recipe";
+					error.statusCode = 403;
+					break;
+				default:
+					error.message = `Recipe cannot be sent to moderation from status ${publishResult.currentStatus}`;
+					error.statusCode = 409;
+					break;
+			}
 
 			throw error;
 		}

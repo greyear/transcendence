@@ -131,8 +131,5 @@ const publishRecipeHandler: RequestHandler = async (req, res, _next) => {
 recipesRouter.post("/", requireAuth, createRecipeHandler);
 recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
 
-// Apply optionalAuth middleware to all GET routes in this router
-recipesRouter.use(optionalAuth);
-
-recipesRouter.get("/:id", getRecipeByIdHandler);
-recipesRouter.get("/", getRecipesHandler);
+recipesRouter.get("/:id", optionalAuth, getRecipeByIdHandler);
+recipesRouter.get("/", optionalAuth, getRecipesHandler);
