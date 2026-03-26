@@ -5,11 +5,16 @@
 	jsonwebtoken is an encrypted way to pass sesson data client/server
 	zod is our parsing and field validation module
  */
-import express, { Request, Response, NextFunction } from 'express';
-import mongoose from 'mongoose';
-import session from 'express-session';
-import cookieParser from 'cookie-parser';
-import { OAuth2Client, TokenPayload } from 'google-auth-library';
+
+import cookieParser from "cookie-parser";
+import express, {
+	type NextFunction,
+	type Request,
+	type Response,
+} from "express";
+import session from "express-session";
+import { OAuth2Client } from "google-auth-library";
+import mongoose from "mongoose";
 
 // Import of project modules
 //Location of userModel may or may not change later.
@@ -18,11 +23,12 @@ import * as help from "./authHelpers.js";
 
 export const authRouter = express();
 // Middleware setup
-authRouter.use(session({
-	secret: "placeholder",
-	resave: false,
-	saveUninitialized: true
-	})
+authRouter.use(
+	session({
+		secret: "placeholder",
+		resave: false,
+		saveUninitialized: true,
+	}),
 );
 authRouter.use(cookieParser());
 authRouter.use(help.errorHandler);
@@ -135,11 +141,11 @@ authRouter.post(
 				res.status(401).json({ error: "Password mismatch" });
 				return;
 			}
-
-	} catch (error) {
-		next(error);
-	}
-});
+		} catch (error) {
+			next(error);
+		}
+	},
+);
 
 /*
 	Login/register with Google account.
@@ -152,71 +158,69 @@ authRouter.post(
 	https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
 	https://www.w3tutorials.net/blog/google-sign-in-backend-verification/
 */
-authRouter.post('/auth/google', async (req: Request, res: Response, next: NextFunction) =>
-{
-	try {
-		const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-		const client = new OAuth2Client(CLIENT_ID);
-		const token = help.sequenceHeader(req);
-		if (!token) {
-			res.status(401).json({error: 'Token not found'}); //401?
-			return
-		}
+authRouter.post(
+	"/auth/google",
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+			const client = new OAuth2Client(CLIENT_ID);
+			const token = help.sequenceHeader(req);
+			if (!token) {
+				res.status(401).json({ error: "Token not found" }); //401?
+				return;
+			}
 
-		const ticket = await client.verifyIdToken({
-			idToken: token,
-			audience: CLIENT_ID
-		});
-		const payload = ticket.getPayload();
-		if (!payload){
-			res.status(401).json({error: 'Payload not found'}); //401?
-			return
-		}
-  		const googleID = payload.sub;
-		const { email, name } = payload;
+			const ticket = await client.verifyIdToken({
+				idToken: token,
+				audience: CLIENT_ID,
+			});
+			const payload = ticket.getPayload();
+			if (!payload) {
+				res.status(401).json({ error: "Payload not found" }); //401?
+				return;
+			}
+			const googleID = payload.sub;
+			const { email, name } = payload;
 
-		/*
+			/*
 			Repetiton here, which can be sorted out later.
 			Google accounts will not require a passwordHash, so just using "empty"
 			Using the Google account name field as username for now.
 			Not sure how correct any of this is, but making a start.
 		*/
-		const userDocument = await userModel.findOne({ googleID });
-		if (!userDocument)
-		{
-			const currentCount = await help.makeID();
+			const userDocument = await userModel.findOne({ googleID });
+			if (!userDocument) {
+				const currentCount = await help.makeID();
 
-			const newUser = new userModel({
-											id:currentCount,
-											email,
-											passwordHash:"empty",
-											realname:name,
-											googleID
-											});
-			await newUser.save();
+				const newUser = new userModel({
+					id: currentCount,
+					email,
+					passwordHash: "empty",
+					realname: name,
+					googleID,
+				});
+				await newUser.save();
 
-			res.status(201).json({googleID, email, name});
-			return
+				res.status(201).json({ googleID, email, name });
+				return;
+			} else {
+				const JWToken = help.generateToken(userDocument.get("_id"), googleID);
+
+				req.session.user = googleID;
+				console.log(req.session.user);
+				console.log(req.sessionID);
+				res.cookie("sessionId", req.sessionID);
+				console.log(res.cookie);
+				res.cookie("JWToken", JWToken);
+				console.log(res.cookie);
+				res.status(200).json({
+					token: JWToken,
+					message: "Login successful",
+				});
+				return;
+			}
+		} catch (error) {
+			next(error);
 		}
-		else
-		{
-			const JWToken = help.generateToken(userDocument.get('_id'), googleID);
-
-			req.session.user = googleID;
-			console.log(req.session.user);
-			console.log(req.sessionID);
-			res.cookie("sessionId", req.sessionID);
-			console.log(res.cookie);
-			res.cookie("JWToken", JWToken);
-			console.log(res.cookie);
-			res.status(200).json({ 
-						token: JWToken,
-						message: "Login successful"
-			});
-			return
-		}
-
-	} catch (error) {
-		next(error);
-	}
-});
+	},
+);

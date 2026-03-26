@@ -75,8 +75,7 @@ export const validatePassword = (password: string) => {
 
 // Call this function after authentication success.
 // id is from userDocument.id and is number type
-export const generateToken = (id: string, username: string) =>
-{
+export const generateToken = (id: string, username: string) => {
 	const JWTSecret = process.env.JWT_SECRET;
 	if (!JWTSecret) throw new Error("JWTSecret env variable is not set");
 
@@ -92,8 +91,7 @@ export const generateToken = (id: string, username: string) =>
 };
 
 //Decode the given JWT and return its origin JSON
-export const decodeToken = (token: string) =>
-{
+export const decodeToken = (token: string) => {
 	try {
 		const JWTSecret = process.env.JWT_SECRET;
 		if (!JWTSecret) throw new Error("JWTSecret env variable is not set");
@@ -109,8 +107,7 @@ export const decodeToken = (token: string) =>
 
 //Isolate and return the token part of req.headers.authorization.
 //Format: Bearer <token>
-export const sequenceHeader = (req: Request) =>
-{
+export const sequenceHeader = (req: Request) => {
 	try {
 		const authHeaders = req.headers.authorization;
 		if (!authHeaders) return null;
@@ -125,8 +122,7 @@ export const sequenceHeader = (req: Request) =>
 
 //Take req.headers.authorization and output a decoded JWT if possible
 //Uses decodeToken() and sequenceHeader()
-export const fetchDecodeToken = (req: Request) =>
-{
+export const fetchDecodeToken = (req: Request) => {
 	try {
 		const tokenHeader = sequenceHeader(req);
 		if (!tokenHeader)
