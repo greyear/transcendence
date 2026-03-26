@@ -17,25 +17,21 @@ const PeoplePage = () => {
 				<p className="people-page-total text-label">Total people: 37</p>
 			</header>
 
-			<div className="people-page-search">
-				<SearchField />
-			</div>
+			<SearchField />
 
-			<div className="people-page-filters">
-				<ul className="filter-list">
-					{filters.map((filter) => (
-						<li key={filter} className="filter-list-item">
-							<MainButton
-								variant="pill"
-								active={activeFilter === filter}
-								onClick={() => setActiveFilter(filter)}
-							>
-								{filter}
-							</MainButton>
-						</li>
-					))}
-				</ul>
-			</div>
+			<ul className="filter-list">
+				{filters.map((filter) => (
+					<li key={filter}>
+						<MainButton
+							variant="pill"
+							active={activeFilter === filter}
+							onClick={() => setActiveFilter(filter)}
+						>
+							{filter}
+						</MainButton>
+					</li>
+				))}
+			</ul>
 
 			<div className="people-page-controls">
 				<TextIconButton>
@@ -49,9 +45,7 @@ const PeoplePage = () => {
 				</TextIconButton>
 			</div>
 
-			<div className="people-page-grid">
-				<UsersGrid />
-			</div>
+			<UsersGrid />
 		</section>
 	);
 };
