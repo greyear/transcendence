@@ -1,6 +1,7 @@
-import express from 'express';
-import { authRouter } from './src/auth_db_operations.ts';
-import { authGetSet } from './src/authGetSet.ts';
+import express from "express";
+import "dotenv/config";
+import { authRouter } from "./src/auth_db_operations.js";
+import { authGetSet } from "./src/authGetSet.js";
 
 const app = express();
 
@@ -12,8 +13,8 @@ app.use(authRouter);
 app.use(authGetSet);
 
 //Connection port
-const port = process.env.PORT ? parseInt(process.env.PORT) : 3001;
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+	console.log(`Server is running on http://localhost:${port}`);
 });

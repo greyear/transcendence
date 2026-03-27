@@ -1,25 +1,31 @@
 {
-  "name": "auth-service",
-  "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "",
-  "type": "module",
-  "main": "index.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node index.ts"
-  },
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.2.3",
-    "zod": "^4.3.6"
-  },
-  "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
-    "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10"
-  }
+	"name": "auth-service",
+	"version": "1.0.0",
+	"description": "",
+	"license": "ISC",
+	"author": "",
+	"type": "module",
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "tsc",
+		"start": "node dist/index.js",
+		"dev": "tsx watch index.ts",
+		"type-check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"bcrypt": "^6.0.0",
+		"dotenv": "^17.3.1",
+		"express": "^5.2.1",
+		"jsonwebtoken": "^9.0.3",
+		"mongoose": "^9.2.3",
+		"zod": "^4.3.6"
+	},
+	"devDependencies": {
+		"@types/bcrypt": "^6.0.0",
+		"@types/express": "^5.0.6",
+		"@types/jsonwebtoken": "^9.0.10",
+		"@types/node": "^25.5.0",
+		"tsx": "^4.21.0",
+		"typescript": "^5.9.3"
+	}
 }

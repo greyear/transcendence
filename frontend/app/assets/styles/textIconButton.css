@@ -44,3 +44,7 @@
 		height: var(--lh-body2);
 	}
 }
+
+.text-button.inverted {
+	color: var(--text-on-accent);
+}

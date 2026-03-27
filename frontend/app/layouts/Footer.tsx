@@ -6,7 +6,7 @@ import "../assets/styles/footer.css";
 export const Footer = () => {
 	return (
 		<footer className="footer">
-			<nav aria-label="Main">
+			<nav aria-label="Footer main">
 				<ul className="nav-list">
 					<li>
 						<TextIconButton size="body2" to="/">
