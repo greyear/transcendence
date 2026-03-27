@@ -193,9 +193,8 @@ authRouter.post(
 			/*
 			Repetiton here, which can be sorted out later.
 			Google accounts will not require a passwordHash, so just using "empty"
-			Using the Google account name field as username for now.
 			Not sure how correct any of this is, but making a start.
-		*/
+			*/
 			const userDocument = await userModel.findOne({ googleID });
 			if (!userDocument) {
 				const currentCount = await help.makeID();
