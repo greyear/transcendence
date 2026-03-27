@@ -46,7 +46,7 @@ Table recipes {
   servings integer [not null, default: 1, note: 'Number of servings']
   spiciness smallint [note: '0 = none, 1 = mild, 2 = medium, 3 = hot; CHECK 0..3']
   author_id integer [null, note: 'Reference to users.id (auth service user ID)']
-  status varchar(16) [note: 'draft | published | archived; CHECK']
+  status varchar(16) [note: 'draft | moderation | published | archived; CHECK']
 
   rating_avg numeric(3,2) [note: 'Average rating (1.0–5.0); CHECK 1.00–5.00']
   rating_count integer [default: 0, note: 'Total number of ratings; CHECK >= 0']
