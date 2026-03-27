@@ -4,7 +4,7 @@ import {
 	NavArrowLeft,
 	NavArrowRight,
 } from "iconoir-react";
-import { useSearchParams } from "react-router";
+import { Navigate, useSearchParams } from "react-router";
 import "~/assets/styles/pagination.css";
 import { PaginationItem } from "./PaginationItem";
 
@@ -15,39 +15,52 @@ export type PaginationProps = {
 	type?: "recipe" | "user";
 };
 
-const getPageWindow = (current: number, total: number, size: number): number[] => {
+const getPageWindow = (
+	current: number,
+	total: number,
+	size: number,
+): number[] => {
 	const clampedSize = Math.min(size, total);
 	const half = Math.floor(clampedSize / 2);
 	const start = Math.min(Math.max(1, current - half), total - clampedSize + 1);
 	return Array.from({ length: clampedSize }, (_, i) => start + i);
-}
+};
 
-const getCurrentPage = (searchParams: URLSearchParams, totalPagesCount: number): number => {
+const getCurrentPage = (
+	searchParams: URLSearchParams,
+	totalPagesCount: number,
+): number => {
 	const pageAttr = searchParams.get("page");
-    if (!pageAttr) {
+	if (!pageAttr) {
 		return 1;
 	}
 
-    const page = Number(pageAttr);
-    if (Number.isNaN(page) || page < 1) {
-        return 1;
-    } 
-    
-    if (page > totalPagesCount) {
-        return totalPagesCount;
-    }
-
-    return page;
-}
-
-export const Pagination = ({ totalPagesCount }: PaginationProps) => {
-	if (totalPagesCount <= 1) {
-		// TODO: maybe not even call this component.
-		return null
+	const page = Number(pageAttr);
+	if (Number.isNaN(page) || !Number.isInteger(page) || page < 1) {
+		return 1;
 	}
 
+	if (page > totalPagesCount) {
+		return totalPagesCount;
+	}
+
+	return page;
+};
+
+export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 	const [searchParams] = useSearchParams();
-	const currentPage = Math.max(1, getCurrentPage(searchParams, totalPagesCount));
+	const currentPage = getCurrentPage(searchParams, totalPagesCount);
+
+	if (totalPagesCount <= 1) {
+		return null;
+	}
+
+	const pageAttr = searchParams.get("page");
+	if (pageAttr !== null && Number(pageAttr) !== currentPage) {
+		const correctedParams = new URLSearchParams(searchParams);
+		correctedParams.set("page", String(currentPage));
+		return <Navigate to={`?${correctedParams.toString()}`} replace />;
+	}
 
 	const buildPageUrl = (page: number) => {
 		const params = new URLSearchParams(searchParams);
