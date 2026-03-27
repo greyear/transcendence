@@ -68,7 +68,7 @@ mongoose
 		4. Return relevant code
 */
 authRouter.post(
-	"/register",
+	"/auth/register",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const { username, email, realname, password } = req.body;
@@ -129,7 +129,7 @@ authRouter.post(
 		4. Return relevant code
 */
 authRouter.post(
-	"/login",
+	"/auth/login",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const { username, password } = req.body;

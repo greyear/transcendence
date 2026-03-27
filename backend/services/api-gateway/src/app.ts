@@ -17,6 +17,7 @@ import "dotenv/config";
 import { healthRouter } from "./routes/health.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
+import { authRouter } from "./routes/auth.routes.js";
 import {
 	createResponseTimeoutMiddleware,
 	GATEWAY_RESPONSE_TIMEOUT_MS,
@@ -47,6 +48,8 @@ app.use("/health", healthRouter);
 app.use("/recipes", recipesRouter);
 // Mount users router
 app.use("/users", usersRouter);
+// Auth router
+app.use("/auth", authRouter);
 
 // Export app for use in index.ts and tests
 export { app };
