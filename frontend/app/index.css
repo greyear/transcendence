@@ -142,6 +142,9 @@
 
 		--user-card-width: 394px;
 	}
+	main {
+		padding: var(--space-l) 0;
+	}
 }
 
 body {
@@ -152,6 +155,13 @@ body {
 	font-weight: var(--fw-body3);
 	color: var(--text-primary);
 	background-color: var(--bg-main);
+}
+
+main {
+	width: 100%;
+	max-width: var(--desktop-content-width);
+	margin: 0 auto;
+	padding: var(--space-l);
 }
 
 h1,

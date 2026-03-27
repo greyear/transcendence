@@ -6,26 +6,29 @@ import "~/assets/styles/people.css";
 import { Filter, Sort } from "iconoir-react";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 
+const filters = ["All", "Followers", "Following"];
+
 const PeoplePage = () => {
-	const filters = ["All", "Followers", "Following"];
 	const [activeFilter, setActiveFilter] = useState("All");
 
 	return (
 		<section className="people-page">
 			<header className="people-page-header">
-				<h2 className="people-page-title">People</h2>
+				<h1 className="h2 people-page-title">People</h1>
 				<p className="people-page-total text-label">Total people: 37</p>
 			</header>
 
 			<SearchField />
 
-			<ul className="filter-list">
+			<ul className="filter-list" role="tablist">
 				{filters.map((filter) => (
 					<li key={filter}>
 						<MainButton
 							variant="pill"
 							active={activeFilter === filter}
 							onClick={() => setActiveFilter(filter)}
+							role="tab"
+							aria-selected={activeFilter === filter}
 						>
 							{filter}
 						</MainButton>

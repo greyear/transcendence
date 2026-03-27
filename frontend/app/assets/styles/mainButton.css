@@ -37,7 +37,7 @@
 
 .main-button.pill {
 	border-radius: var(--radius-full);
-	background-color: var(--surface-primary);
+	background-color: var(--bg-main);
 	color: var(--text-primary);
 	font-size: var(--fs-caption);
 	font-weight: var(--fw-caption);
