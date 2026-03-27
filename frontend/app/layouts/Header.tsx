@@ -1,5 +1,5 @@
 import { Bell, Menu, Xmark } from "iconoir-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
 import "../assets/styles/header.css";
@@ -36,6 +36,7 @@ const NavigationList = () => {
 export const Header = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const { screenSize } = useScreenSize();
+	const headerRef = useRef<HTMLElement>(null);
 
 	const handleMenuButtonClick = () => setIsOpen((prev) => !prev);
 
@@ -48,8 +49,27 @@ export const Header = () => {
 		}
 	}, [screenSize]);
 
+	useEffect(() => {
+		const header = headerRef.current;
+
+		if (!header) {
+			return;
+		}
+
+		const handleFocusOut = (e: FocusEvent) => {
+			if (
+				!(e.relatedTarget instanceof Node) ||
+				!header.contains(e.relatedTarget)
+			) {
+				setIsOpen(false);
+			}
+		};
+		header.addEventListener("focusout", handleFocusOut);
+		return () => header.removeEventListener("focusout", handleFocusOut);
+	}, []);
+
 	return (
-		<header className="main-header">
+		<header ref={headerRef} className="main-header">
 			<div className="header-top-row">
 				<Link to="/" aria-label="RCP – go to homepage" className="logo-link h2">
 					RCP
@@ -75,11 +95,11 @@ export const Header = () => {
 				</div>
 			</div>
 			{isOpen && !isDesktop && (
-				<>
+				<div className="header-menu-overlay">
 					<NavigationList />
 					<MainButton variant="inverted">Sign In</MainButton>
 					<LanguageSelector isHeader />
-				</>
+				</div>
 			)}
 			{isDesktop && (
 				<div className="header-bottom-row">
