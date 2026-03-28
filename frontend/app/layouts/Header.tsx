@@ -57,16 +57,27 @@ export const Header = () => {
 			return;
 		}
 
+		const handlePointerDown = (e: PointerEvent) => {
+		if (e.target instanceof Node && !header.contains(e.target)) {
+				setIsOpen(false);
+			}
+		};
+
 		const handleFocusOut = (e: FocusEvent) => {
 			if (
-				!(e.relatedTarget instanceof Node) ||
+				e.relatedTarget instanceof Node &&
 				!header.contains(e.relatedTarget)
 			) {
 				setIsOpen(false);
 			}
 		};
+
+		document.addEventListener("pointerdown", handlePointerDown);
 		header.addEventListener("focusout", handleFocusOut);
-		return () => header.removeEventListener("focusout", handleFocusOut);
+		return () => {
+			document.removeEventListener("pointerdown", handlePointerDown);
+			header.removeEventListener("focusout", handleFocusOut);
+		};
 	}, []);
 
 	return (
