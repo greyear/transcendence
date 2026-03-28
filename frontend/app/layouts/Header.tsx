@@ -9,22 +9,23 @@ import { SearchField } from "~/components/inputs/SearchField";
 import { LanguageSelector } from "~/components/LanguageSelector";
 import { useScreenSize } from "~/composables/useScreenSize";
 
+//TODO: add selected state for the buttons.
 const NavigationList = () => {
 	return (
 		<nav aria-label="Header main">
 			<ul className="header-navigation-list">
 				<li>
-					<TextIconButton size="body2" to="/" variant="inverted">
+					<TextIconButton size="body3" to="/" variant="inverted">
 						Home
 					</TextIconButton>
 				</li>
 				<li>
-					<TextIconButton size="body2" to="/recipes" variant="inverted">
+					<TextIconButton size="body3" to="/recipes" variant="inverted">
 						Recipes
 					</TextIconButton>
 				</li>
 				<li>
-					<TextIconButton size="body2" to="/users" variant="inverted">
+					<TextIconButton size="body3" to="/users" variant="inverted">
 						People
 					</TextIconButton>
 				</li>
@@ -71,9 +72,10 @@ export const Header = () => {
 	return (
 		<header ref={headerRef} className="main-header">
 			<div className="header-top-row">
-				<Link to="/" aria-label="RCP – go to homepage" className="logo-link h2">
+				<Link to="/" aria-label="RCP – go to homepage" className="logo-link h3">
 					RCP
 				</Link>
+				{isDesktop && <NavigationList />}
 				<div className="header-top-icon-row">
 					{!isMobile && (
 						<SearchField mode={isDesktop ? "always-open" : "collapsible"} />
@@ -90,7 +92,11 @@ export const Header = () => {
 							{isOpen ? <Xmark /> : <Menu />}
 						</IconButton>
 					) : (
-						<MainButton variant="inverted">Sign In</MainButton>
+						<>
+							{/* TODO: make a dropdown lang */}
+							<LanguageSelector isHeader />
+							<MainButton variant="inverted">Sign In</MainButton>
+						</>
 					)}
 				</div>
 			</div>
@@ -98,12 +104,6 @@ export const Header = () => {
 				<div className="header-menu-overlay">
 					<NavigationList />
 					<MainButton variant="inverted">Sign In</MainButton>
-					<LanguageSelector isHeader />
-				</div>
-			)}
-			{isDesktop && (
-				<div className="header-bottom-row">
-					<NavigationList />
 					<LanguageSelector isHeader />
 				</div>
 			)}

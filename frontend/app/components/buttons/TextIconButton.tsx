@@ -8,7 +8,7 @@ interface TextButtonProps {
 	children: ReactNode;
 	to?: string;
 	onClick?: () => void;
-	size?: "body1" | "body2";
+	size?: "body1" | "body2" | "body3";
 	className?: string;
 	variant?: TextButtonVariant;
 }

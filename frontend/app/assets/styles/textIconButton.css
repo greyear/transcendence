@@ -45,6 +45,16 @@
 	}
 }
 
+.text-button--body3 {
+	font-size: var(--fs-body3);
+	line-height: var(--lh-body3);
+
+	svg {
+		width: var(--lh-body3);
+		height: var(--lh-body3);
+	}
+}
+
 .text-button.inverted {
 	color: var(--text-on-accent);
 }
