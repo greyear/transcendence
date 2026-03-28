@@ -3,30 +3,46 @@ import { useEffect, useRef, useState } from "react";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
 import "../assets/styles/header.css";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SearchField } from "~/components/inputs/SearchField";
 import { LanguageSelector } from "~/components/LanguageSelector";
 import { handleDropdowClose } from "~/composables/closeDropdownHandler";
 import { useScreenSize } from "~/composables/useScreenSize";
 
-//TODO: add selected state for the buttons.
 const NavigationList = () => {
+	const { pathname } = useLocation();
+
 	return (
 		<nav aria-label="Header main">
 			<ul className="header-navigation-list">
 				<li>
-					<TextIconButton size="body3" to="/" variant="inverted">
+					<TextIconButton
+						size="body3"
+						to="/"
+						variant="inverted"
+						selected={pathname === "/"}
+					>
 						Home
 					</TextIconButton>
 				</li>
 				<li>
-					<TextIconButton size="body3" to="/recipes" variant="inverted">
+					<TextIconButton
+						size="body3"
+						to="/recipes"
+						variant="inverted"
+						selected={pathname.startsWith("/recipes")}
+					>
 						Recipes
 					</TextIconButton>
 				</li>
 				<li>
-					<TextIconButton size="body3" to="/users" variant="inverted">
+					<TextIconButton
+						size="body3"
+						to="/users"
+						variant="inverted"
+						selected={pathname.startsWith("/users")}
+					>
 						People
 					</TextIconButton>
 				</li>

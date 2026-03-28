@@ -212,3 +212,7 @@ h3,
 	line-height: var(--lh-label);
 	font-weight: var(--fw-label);
 }
+
+.text-selected {
+	font-weight: bold;
+}
