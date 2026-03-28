@@ -35,6 +35,7 @@ const NavigationList = () => {
 	);
 };
 
+// TODO: add the login state
 export const Header = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const { screenSize } = useScreenSize();
@@ -96,6 +97,7 @@ export const Header = () => {
 				<div className="header-menu-overlay">
 					<NavigationList />
 					<MainButton variant="inverted">Sign In</MainButton>
+					{isMobile && <SearchField placeholder="Search for..." />}
 					<LanguageSelector isHeader />
 				</div>
 			)}
