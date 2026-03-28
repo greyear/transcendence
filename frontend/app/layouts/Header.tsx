@@ -58,7 +58,7 @@ export const Header = () => {
 		}
 
 		const handlePointerDown = (e: PointerEvent) => {
-		if (e.target instanceof Node && !header.contains(e.target)) {
+			if (e.target instanceof Node && !header.contains(e.target)) {
 				setIsOpen(false);
 			}
 		};
@@ -91,7 +91,7 @@ export const Header = () => {
 					{!isMobile && (
 						<SearchField mode={isDesktop ? "always-open" : "collapsible"} />
 					)}
-					<IconButton aria-label="Notifications">
+					<IconButton aria-label="Notifications" variant="transparent">
 						<Bell />
 					</IconButton>
 					{!isDesktop ? (
@@ -99,6 +99,7 @@ export const Header = () => {
 							onClick={handleMenuButtonClick}
 							aria-expanded={isOpen}
 							aria-label="Toggle menu"
+							variant="transparent"
 						>
 							{isOpen ? <Xmark /> : <Menu />}
 						</IconButton>

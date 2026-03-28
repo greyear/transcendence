@@ -1,5 +1,6 @@
 import type { LangCodes } from "../LanguageSelector";
 import "../../assets/styles/languageSelector.css";
+import { IconButton } from "./IconButton";
 
 interface LangButtonProps {
 	langCode: LangCodes;
@@ -17,13 +18,13 @@ export const LanguageButton = ({
 	const activeClass = isActive ? "active" : "";
 	const location = isHeader ? "header" : "footer";
 	return (
-		<button
-			type="button"
+		<IconButton
 			onClick={onClick}
-			className={`icon-button language-button language-button--${location} ${activeClass}`}
+			className={`language-button--${location} ${activeClass}`}
 			aria-pressed={isActive}
+			variant="language"
 		>
 			{langCode}
-		</button>
+		</IconButton>
 	);
 };
