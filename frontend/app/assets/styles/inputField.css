@@ -69,19 +69,16 @@
 
 .input-wrapper.floating .input-field {
 	height: 100%;
-	padding-top: 24px;
-	padding-bottom: 6px;
-	padding-right: 36px;
+	padding: 24px 0 6px;
 }
 
 .floating-label {
 	position: absolute;
-	left: 14px;
 	top: 50%;
 	transform: translateY(-50%);
 	color: var(--text-secondary);
 	pointer-events: none;
-	background-color: none;
+	background-color: transparent;
 	padding: 0;
 	transition:
 		top 0.2s ease,
