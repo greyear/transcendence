@@ -38,6 +38,19 @@ const HomePage = () => {
 			/>
 			<InputField
 				id="email"
+				type="email"
+				placeholder="Floating label try"
+				required
+			/>
+
+			<InputField
+				id="password"
+				type="password"
+				placeholder="Password"
+				required
+			/>
+			<InputField
+				id="email"
 				label="Email"
 				type="email"
 				placeholder="Enter your email"

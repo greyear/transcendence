@@ -62,16 +62,40 @@
 	stroke-width: 2;
 }
 
-.sr-only {
+.input-wrapper.floating {
+	position: relative;
+	padding: 0 12px;
+}
+
+.input-wrapper.floating .input-field {
+	height: 100%;
+	padding: 24px 0 6px;
+}
+
+.floating-label {
 	position: absolute;
-	width: 1px;
-	height: 1px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--text-secondary);
+	pointer-events: none;
+	background-color: transparent;
 	padding: 0;
-	margin: -1px;
-	overflow: hidden;
-	clip: rect(0, 0, 0, 0);
-	white-space: nowrap;
-	border: 0;
+	transition:
+		top 0.2s ease,
+		font-size 0.2s ease,
+		color 0.2s ease,
+		transform 0.2s ease;
+}
+
+.input-wrapper.floating:focus-within .floating-label,
+.input-wrapper.floating .input-field:not(:placeholder-shown) + .floating-label {
+	top: 2px;
+	transform: none;
+	font-size: var(--fs-caption-s);
+}
+
+.input-wrapper.floating.error .floating-label {
+	color: var(--surface-error);
 }
 
 @media (min-width: 768px) {
