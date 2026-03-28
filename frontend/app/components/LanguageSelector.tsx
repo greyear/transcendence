@@ -74,6 +74,7 @@ export const LanguageSelector = ({
 									isHeader={isHeader}
 									isActive={i18n.resolvedLanguage === langCode}
 									onClick={() => handleLanguageButtonClick(langCode)}
+									className="language-dropdown__button"
 								/>
 							</li>
 						))}

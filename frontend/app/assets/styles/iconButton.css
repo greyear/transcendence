@@ -68,6 +68,18 @@
 	}
 }
 
+.icon-button.language.language-dropdown__button {
+	border: none;
+	border-radius: 0;
+	background-color: var(--surface-card);
+	color: var(--text-primary);
+
+	&.active {
+		background-color: var(--surface-primary);
+		color: var(--text-secondary);
+	}
+}
+
 .icon-button.language.language-button--footer {
 	border-color: var(--borders-action);
 	background-color: var(--bg-footer);

@@ -7,6 +7,7 @@ interface LangButtonProps {
 	isActive: boolean;
 	isHeader: boolean;
 	onClick: () => void;
+	className?: string;
 }
 
 export const LanguageButton = ({
@@ -14,13 +15,14 @@ export const LanguageButton = ({
 	isActive,
 	isHeader,
 	onClick,
+	className = "",
 }: LangButtonProps) => {
 	const activeClass = isActive ? "active" : "";
 	const location = isHeader ? "header" : "footer";
 	return (
 		<IconButton
 			onClick={onClick}
-			className={`language-button--${location} ${activeClass}`}
+			className={`language-button--${location} ${activeClass} ${className}`.trim()}
 			aria-pressed={isActive}
 			variant="language"
 		>
