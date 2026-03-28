@@ -9,6 +9,7 @@ export default [
 	layout("layouts/layout.tsx", [
 		index("routes/home.tsx"),
 		route("/recipe/:id", "routes/recipe.tsx"),
+		route("/users", "routes/people.tsx"),
 	]),
 	route("/set-locale", "routes/set-locale.ts"),
 ] satisfies RouteConfig;

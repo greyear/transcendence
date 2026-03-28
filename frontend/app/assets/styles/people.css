@@ -1,0 +1,31 @@
+.people-page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xl);
+}
+
+.people-page-header {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-m);
+}
+
+.people-page-title,
+.people-page-total {
+	margin: 0;
+}
+
+.filter-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-xs);
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.people-page-controls {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
