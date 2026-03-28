@@ -8,6 +8,7 @@ import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SearchField } from "~/components/inputs/SearchField";
 import { LanguageSelector } from "~/components/LanguageSelector";
 import { useScreenSize } from "~/composables/useScreenSize";
+import { handleDropdowClose } from "~/composables/closeDropdownHandler";
 
 //TODO: add selected state for the buttons.
 const NavigationList = () => {
@@ -57,27 +58,7 @@ export const Header = () => {
 			return;
 		}
 
-		const handlePointerDown = (e: PointerEvent) => {
-			if (e.target instanceof Node && !header.contains(e.target)) {
-				setIsOpen(false);
-			}
-		};
-
-		const handleFocusOut = (e: FocusEvent) => {
-			if (
-				e.relatedTarget instanceof Node &&
-				!header.contains(e.relatedTarget)
-			) {
-				setIsOpen(false);
-			}
-		};
-
-		document.addEventListener("pointerdown", handlePointerDown);
-		header.addEventListener("focusout", handleFocusOut);
-		return () => {
-			document.removeEventListener("pointerdown", handlePointerDown);
-			header.removeEventListener("focusout", handleFocusOut);
-		};
+		handleDropdowClose(header, setIsOpen);
 	}, []);
 
 	return (
@@ -105,7 +86,6 @@ export const Header = () => {
 						</IconButton>
 					) : (
 						<>
-							{/* TODO: make a dropdown lang */}
 							<LanguageSelector isHeader />
 							<MainButton variant="inverted">Sign In</MainButton>
 						</>
