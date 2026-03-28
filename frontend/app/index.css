@@ -3,6 +3,13 @@
 	margin: 0;
 }
 
+main {
+	width: 100%;
+	max-width: var(--desktop-content-width);
+	margin: 0 auto;
+	padding: var(--space-l);
+}
+
 :root {
 	--bg-main: #f2ece3;
 	--bg-footer: #fff8f0;
@@ -155,13 +162,6 @@ body {
 	font-weight: var(--fw-body3);
 	color: var(--text-primary);
 	background-color: var(--bg-main);
-}
-
-main {
-	width: 100%;
-	max-width: var(--desktop-content-width);
-	margin: 0 auto;
-	padding: var(--space-l);
 }
 
 h1,
