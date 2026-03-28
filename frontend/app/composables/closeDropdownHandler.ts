@@ -1,6 +1,6 @@
 export const handleDropdowClose = (
 	itemRef: HTMLElement,
-	setIsOpen: (isOpen: boolean) => void
+	setIsOpen: (isOpen: boolean) => void,
 ) => {
 	const handlePointerDown = (e: PointerEvent) => {
 		if (e.target instanceof Node && !itemRef.contains(e.target)) {
@@ -9,10 +9,7 @@ export const handleDropdowClose = (
 	};
 
 	const handleFocusOut = (e: FocusEvent) => {
-		if (
-			e.relatedTarget instanceof Node &&
-			!itemRef.contains(e.relatedTarget)
-		) {
+		if (e.relatedTarget instanceof Node && !itemRef.contains(e.relatedTarget)) {
 			setIsOpen(false);
 		}
 	};
@@ -23,4 +20,4 @@ export const handleDropdowClose = (
 		document.removeEventListener("pointerdown", handlePointerDown);
 		itemRef.removeEventListener("focusout", handleFocusOut);
 	};
-}
+};

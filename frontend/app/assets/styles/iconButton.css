@@ -54,14 +54,13 @@
 .icon-button.language {
 	font-family: "Nunito", system-ui, sans-serif;
 	text-transform: uppercase;
-	font-size: var(--fs-label);
+	font-size: var(--fs-body3);
 	border: 1px solid var(--borders-default);
 }
 
 .icon-button.language.language-button--header {
 	background-color: var(--surface-header);
 	color: var(--text-on-accent);
-	border-color: var(--borders-default);
 
 	&.active {
 		background-color: var(--surface-primary);

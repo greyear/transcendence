@@ -1,27 +1,29 @@
 import { useTranslation } from "react-i18next";
-import { LanguageButton } from "./buttons/LanguageButton";
 import { IconButton } from "./buttons/IconButton";
+import { LanguageButton } from "./buttons/LanguageButton";
 import "../assets/styles/languageSelector.css";
+import { NavArrowDown } from "iconoir-react";
 import type { HTMLAttributes } from "react";
 import { useEffect, useRef, useState } from "react";
-import { useScreenSize } from "~/composables/useScreenSize";
-import { NavArrowDown } from "iconoir-react";
 import { handleDropdowClose } from "~/composables/closeDropdownHandler";
 
 export type LangCodes = "en" | "fi" | "ru";
 const languages: LangCodes[] = ["en", "fi", "ru"];
 
+export type LanguageSelectorVariant = "default" | "dropdown";
+
 interface LanguageSelectorProps extends HTMLAttributes<HTMLUListElement> {
 	isHeader: boolean;
+	variant?: LanguageSelectorVariant;
 }
 
 export const LanguageSelector = ({
 	isHeader,
+	variant = "default",
 	className = "",
 	...props
 }: LanguageSelectorProps) => {
 	const { i18n } = useTranslation();
-	const { screenSize } = useScreenSize();
 	const classNames = `language-list ${className}`.trim();
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
@@ -32,7 +34,7 @@ export const LanguageSelector = ({
 	};
 
 	useEffect(() => {
-		if (screenSize !== "desktop") {
+		if (variant !== "dropdown") {
 			return;
 		}
 
@@ -42,16 +44,16 @@ export const LanguageSelector = ({
 		}
 
 		handleDropdowClose(dropdown, setIsOpen);
-	}, [screenSize]);
+	}, [variant]);
 
-	if (screenSize === "desktop") {
+	if (variant === "dropdown") {
 		return (
 			<div className="language-dropdown" ref={dropdownRef}>
 				<IconButton
 					className="language-button--header language-dropdown__trigger"
 					variant="language"
 					aria-expanded={isOpen}
-					aria-haspopup="listbox"
+					aria-haspopup="true"
 					onClick={() => setIsOpen((prev) => !prev)}
 				>
 					{i18n.resolvedLanguage}
@@ -60,13 +62,12 @@ export const LanguageSelector = ({
 					/>
 				</IconButton>
 				{isOpen && (
-					<ul className="language-dropdown__menu" role="listbox">
+					<ul className="language-dropdown__menu">
 						{languages.map((langCode) => (
 							<li
 								key={langCode}
 								className="language-dropdown__menu-item"
-								role="option"
-								aria-selected={i18n.resolvedLanguage === langCode}
+								role="none"
 							>
 								<LanguageButton
 									langCode={langCode}

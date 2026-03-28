@@ -7,8 +7,8 @@ import { Link } from "react-router";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SearchField } from "~/components/inputs/SearchField";
 import { LanguageSelector } from "~/components/LanguageSelector";
-import { useScreenSize } from "~/composables/useScreenSize";
 import { handleDropdowClose } from "~/composables/closeDropdownHandler";
+import { useScreenSize } from "~/composables/useScreenSize";
 
 //TODO: add selected state for the buttons.
 const NavigationList = () => {
@@ -86,7 +86,7 @@ export const Header = () => {
 						</IconButton>
 					) : (
 						<>
-							<LanguageSelector isHeader />
+							<LanguageSelector isHeader variant="dropdown" />
 							<MainButton variant="inverted">Sign In</MainButton>
 						</>
 					)}

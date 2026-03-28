@@ -73,6 +73,7 @@
 	--active-brightness: 0.9;
 
 	--shadow-effect: 2px 2px 4px rgba(0, 0, 0, 0.15);
+	--dropdown-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
 	--user-card-width: 156px;
 	--desktop-content-width: 1248px;
