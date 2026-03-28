@@ -42,7 +42,7 @@
 	font-size: var(--fs-caption);
 	font-weight: var(--fw-caption);
 	line-height: var(--lh-caption);
-	min-width: 114px;
+	padding: 0 var(--space-xl);
 }
 
 .main-button.pill.active {
@@ -74,18 +74,10 @@
 	.main-button.secondary {
 		min-width: 296px;
 	}
-
-	.main-button.pill {
-		min-width: 146px;
-	}
 }
 
 @media (min-width: 1440px) {
 	.main-button {
 		height: 56px;
-	}
-
-	.main-button.pill {
-		min-width: 162px;
 	}
 }
