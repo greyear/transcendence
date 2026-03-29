@@ -118,7 +118,9 @@ export const Header = () => {
 				<div className="header-menu-overlay">
 					<NavigationList />
 					<MainButton variant="inverted">{t("common.signInButton")}</MainButton>
-					{isMobile && <SearchField placeholder="Search for..." />}
+					{isMobile && (
+						<SearchField placeholder={t("common.searchPlaceholder")} />
+					)}
 					<LanguageSelector isHeader />
 				</div>
 			)}
