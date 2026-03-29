@@ -24,9 +24,9 @@ import * as help from "./authHelpers.js";
 //Internet told me to do this to make my problems go away
 //They went away.
 declare module "express-session" {
-  interface SessionData {
-    user: string;
-  }
+	interface SessionData {
+		user: string;
+	}
 }
 
 export const authRouter = express();

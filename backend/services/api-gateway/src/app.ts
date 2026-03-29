@@ -14,10 +14,10 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { type Express } from "express";
 import "dotenv/config";
+import { authRouter } from "./routes/auth.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
-import { authRouter } from "./routes/auth.routes.js";
 import {
 	createResponseTimeoutMiddleware,
 	GATEWAY_RESPONSE_TIMEOUT_MS,
