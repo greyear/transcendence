@@ -83,6 +83,7 @@
 .icon-button.language.language-button--footer {
 	border-color: var(--borders-action);
 	background-color: var(--bg-footer);
+	color: var(--text-primary);
 
 	&.active {
 		background-color: var(--surface-action-active);

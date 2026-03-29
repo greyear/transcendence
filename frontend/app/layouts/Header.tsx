@@ -7,7 +7,7 @@ import { Link, useLocation } from "react-router";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SearchField } from "~/components/inputs/SearchField";
 import { LanguageSelector } from "~/components/LanguageSelector";
-import { handleDropdowClose } from "~/composables/closeDropdownHandler";
+import { handleDropdownClose } from "~/composables/closeDropdownHandler";
 import { useScreenSize } from "~/composables/useScreenSize";
 
 const NavigationList = () => {
@@ -75,7 +75,7 @@ export const Header = () => {
 			return;
 		}
 
-		handleDropdowClose(header, setIsOpen);
+		handleDropdownClose(header, setIsOpen);
 	}, []);
 
 	return (

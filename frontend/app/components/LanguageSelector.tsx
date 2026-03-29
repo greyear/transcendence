@@ -5,7 +5,7 @@ import "../assets/styles/languageSelector.css";
 import { NavArrowDown } from "iconoir-react";
 import type { HTMLAttributes } from "react";
 import { useEffect, useRef, useState } from "react";
-import { handleDropdowClose } from "~/composables/closeDropdownHandler";
+import { handleDropdownClose } from "~/composables/closeDropdownHandler";
 
 export type LangCodes = "en" | "fi" | "ru";
 const languages: LangCodes[] = ["en", "fi", "ru"];
@@ -43,7 +43,7 @@ export const LanguageSelector = ({
 			return;
 		}
 
-		handleDropdowClose(dropdown, setIsOpen);
+		handleDropdownClose(dropdown, setIsOpen);
 	}, [variant]);
 
 	if (variant === "dropdown") {

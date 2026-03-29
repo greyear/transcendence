@@ -1,4 +1,4 @@
-export const handleDropdowClose = (
+export const handleDropdownClose = (
 	itemRef: HTMLElement,
 	setIsOpen: (isOpen: boolean) => void,
 ) => {
