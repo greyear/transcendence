@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
 import "../assets/styles/header.css";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SearchField } from "~/components/inputs/SearchField";
@@ -11,6 +12,7 @@ import { handleDropdownClose } from "~/composables/closeDropdownHandler";
 import { useScreenSize } from "~/composables/useScreenSize";
 
 const NavigationList = () => {
+	const { t } = useTranslation();
 	const { pathname } = useLocation();
 
 	return (
@@ -23,7 +25,7 @@ const NavigationList = () => {
 						variant="inverted"
 						selected={pathname === "/"}
 					>
-						Home
+						{t("layout.home")}
 					</TextIconButton>
 				</li>
 				<li>
@@ -33,7 +35,7 @@ const NavigationList = () => {
 						variant="inverted"
 						selected={pathname.startsWith("/recipes")}
 					>
-						Recipes
+						{t("layout.recipes")}
 					</TextIconButton>
 				</li>
 				<li>
@@ -43,7 +45,7 @@ const NavigationList = () => {
 						variant="inverted"
 						selected={pathname.startsWith("/users")}
 					>
-						People
+						{t("layout.authors")}
 					</TextIconButton>
 				</li>
 			</ul>
@@ -53,6 +55,7 @@ const NavigationList = () => {
 
 // TODO: add the login state
 export const Header = () => {
+	const { t } = useTranslation();
 	const [isOpen, setIsOpen] = useState(false);
 	const { screenSize } = useScreenSize();
 	const headerRef = useRef<HTMLElement>(null);
@@ -104,7 +107,9 @@ export const Header = () => {
 					) : (
 						<>
 							<LanguageSelector isHeader variant="dropdown" />
-							<MainButton variant="inverted">Sign In</MainButton>
+							<MainButton variant="inverted">
+								{t("common.signInButton")}
+							</MainButton>
 						</>
 					)}
 				</div>
@@ -112,7 +117,7 @@ export const Header = () => {
 			{isOpen && !isDesktop && (
 				<div className="header-menu-overlay">
 					<NavigationList />
-					<MainButton variant="inverted">Sign In</MainButton>
+					<MainButton variant="inverted">{t("common.signInButton")}</MainButton>
 					{isMobile && <SearchField placeholder="Search for..." />}
 					<LanguageSelector isHeader />
 				</div>
