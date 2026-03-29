@@ -21,6 +21,55 @@ describe("Users Routes", () => {
 		await pool.query(`UPDATE recipes SET author_id = 1 WHERE id = 1`);
 	});
 
+	describe("GET /users", () => {
+		it("should return list of users", async () => {
+			const response = await request(app).get("/users");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body).toHaveProperty("count");
+			expect(Array.isArray(response.body.data)).toBe(true);
+			expect(response.body.count).toBe(response.body.data.length);
+			if (response.body.data.length > 0) {
+				expect(response.body.data[0]).toHaveProperty("id");
+				expect(response.body.data[0]).toHaveProperty("username");
+				expect(response.body.data[0]).toHaveProperty("avatar");
+				expect(response.body.data[0]).toHaveProperty("recipes_count");
+				expect(response.body.data[0]).not.toHaveProperty("status");
+				expect(response.body.data[0]).not.toHaveProperty("role");
+			}
+		});
+	});
+
+	describe("GET /users/:id", () => {
+		it("should return user by id for existing user", async () => {
+			const response = await request(app).get("/users/1");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body.data).toHaveProperty("id", 1);
+			expect(response.body.data).toHaveProperty("username");
+			expect(response.body.data).toHaveProperty("avatar");
+			expect(response.body.data).toHaveProperty("status");
+			expect(response.body.data).toHaveProperty("role");
+			expect(response.body.data).toHaveProperty("recipes_count");
+		});
+
+		it("should return 400 for invalid user id", async () => {
+			const response = await request(app).get("/users/abc");
+
+			expect(response.status).toBe(400);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should return 404 for non-existent user", async () => {
+			const response = await request(app).get("/users/999999");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toHaveProperty("error");
+		});
+	});
+
 	describe("GET /users/:id/recipes", () => {
 		/**
 		 * Test: GET /users/:id/recipes returns list of published recipes
@@ -37,6 +86,15 @@ describe("Users Routes", () => {
 			expect(response.body).toHaveProperty("data");
 			expect(response.body).toHaveProperty("count");
 			expect(Array.isArray(response.body.data)).toBe(true);
+			expect(response.body.count).toBe(response.body.data.length);
+			if (response.body.data.length > 0) {
+				expect(response.body.data[0]).toHaveProperty("id");
+				expect(response.body.data[0]).toHaveProperty("title");
+				expect(response.body.data[0]).toHaveProperty("description");
+				expect(response.body.data[0]).toHaveProperty("author_id");
+				expect(response.body.data[0]).toHaveProperty("rating_avg");
+				expect(response.body.data[0]).not.toHaveProperty("status");
+			}
 		});
 
 		/**
@@ -89,6 +147,15 @@ describe("Users Routes", () => {
 			expect(response.body).toHaveProperty("data");
 			expect(response.body).toHaveProperty("count");
 			expect(Array.isArray(response.body.data)).toBe(true);
+			expect(response.body.count).toBe(response.body.data.length);
+			if (response.body.data.length > 0) {
+				expect(response.body.data[0]).toHaveProperty("id");
+				expect(response.body.data[0]).toHaveProperty("title");
+				expect(response.body.data[0]).toHaveProperty("description");
+				expect(response.body.data[0]).toHaveProperty("author_id");
+				expect(response.body.data[0]).toHaveProperty("rating_avg");
+				expect(response.body.data[0]).toHaveProperty("status");
+			}
 		});
 
 		/**

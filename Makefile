@@ -1,4 +1,4 @@
-.PHONY: help up down restart clean logs logs-db db-status db-reset wait-core-seed dev-api dev-core dev-all test-core test-biome test-jest-core test-jest-api test-jest-all test-all check-node
+.PHONY: help up down restart clean re logs logs-db db-status db-reset wait-core-seed dev-api dev-core dev-all test-core test-biome test-jest-core test-jest-api test-jest-all test-all check-node
 
 help:
 	@echo "Transcendence Development Commands:"
@@ -7,7 +7,8 @@ help:
 	@echo "  make up         - Start all services in Docker (databases and microservices)"
 	@echo "  make down       - Stop all services (keep data)"
 	@echo "  make restart    - Restart all services (keep data)"
-	@echo "  make clean      - Full reset (all services, all volumes)"
+	@echo "  make clean      - Stop and remove all services/volumes (no restart)"
+	@echo "  make re         - Full rebuild + restart (recreate containers and DB seed)"
 	@echo "  make logs       - View logs from all services"
 	@echo "  make logs-db    - View database logs (core-db and auth-db)"
 	@echo "  make db-status  - Check running containers and their health status"
@@ -42,11 +43,16 @@ restart:
 	@echo "✓ Services restarted"
 
 clean:
-	@echo "Cleaning volumes and restarting database..."
+	@echo "Cleaning services and volumes (no restart)..."
 	docker-compose down -v
-	docker-compose up -d
+	@echo "✓ Cleanup completed"
+
+re:
+	@echo "Rebuilding and restarting all services..."
+	docker-compose down -v
+	docker-compose up -d --build
 	@$(MAKE) wait-core-seed
-	@echo "✓ Fresh database initialized with seed data"
+	@echo "✓ Rebuild completed, services are up"
 
 logs:
 	docker-compose logs -f

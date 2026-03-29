@@ -41,6 +41,9 @@ const positiveIntSchema = z.coerce
 
 export const userIdSchema = positiveIntSchema;
 
+const userRoleSchema = z.enum(["guest", "user", "admin"]);
+const userPresenceStatusSchema = z.enum(["online", "offline"]);
+
 export const recipeStatusSchema = z.enum([
 	"draft",
 	"moderation",
@@ -186,6 +189,34 @@ export const myRecipeListItemSchema = z.object({
 });
 
 /**
+ * Zod schema for UserListItem - lightweight user data for list pages/cards
+ * Used by getAllUsers() endpoint
+ */
+export const userListItemSchema = z.object({
+	id: z.number().int().positive(),
+	username: z.string().trim().min(1).max(32),
+	avatar: z.string().nullable(),
+	recipes_count: z.coerce.number().int().min(0),
+});
+
+/**
+ * Zod schema for UserProfile - detailed user data for profile page
+ *
+ * Note:
+ * - Recipes are intentionally excluded from this schema
+ * - Recipes are fetched via GET /users/:id/recipes
+ * - This keeps profile payload stable and enables independent pagination/filtering later
+ */
+export const userProfileSchema = z.object({
+	id: z.number().int().positive(),
+	username: z.string().trim().min(1).max(32),
+	avatar: z.string().nullable(),
+	status: userPresenceStatusSchema.nullable(),
+	role: userRoleSchema,
+	recipes_count: z.coerce.number().int().min(0),
+});
+
+/**
  * z.infer<typeof recipeSchema> - "extract TypeScript type from Zod schema"
  *
  * This means Recipe type will contain all fields from recipeSchema above
@@ -206,3 +237,5 @@ export type RecipeListItem = z.infer<typeof recipeListItemSchema>;
  * MyRecipeListItem type - minimal recipe info for current user's recipes
  */
 export type MyRecipeListItem = z.infer<typeof myRecipeListItemSchema>;
+export type UserListItem = z.infer<typeof userListItemSchema>;
+export type UserProfile = z.infer<typeof userProfileSchema>;

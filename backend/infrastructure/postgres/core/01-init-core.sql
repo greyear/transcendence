@@ -1,7 +1,7 @@
 CREATE TABLE "users" (
   "id" integer PRIMARY KEY CHECK ("id" > 0),
   "username" varchar(32) UNIQUE NOT NULL,
-  "avatar" bytea,
+  "avatar" varchar(2048),
   "status" varchar(16)
     CHECK (status IN ('online', 'offline')),
   "role" varchar(16) NOT NULL
@@ -377,7 +377,7 @@ CREATE INDEX ON "recipe_reviews" ("recipe_id", "created_at");
 
 COMMENT ON COLUMN "users"."id" IS 'User ID from auth service (positive INT; CHECK > 0)';
 
-COMMENT ON COLUMN "users"."avatar" IS 'Original pic is stored in the DB, we need to set the limit for the size';
+COMMENT ON COLUMN "users"."avatar" IS 'Public URL to user avatar file (CDN/object storage)';
 
 COMMENT ON COLUMN "users"."status" IS 'online | offline (visible only to mutual followers)';
 
