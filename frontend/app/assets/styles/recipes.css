@@ -1,10 +1,10 @@
-.people-page {
+.recipes-page {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-xl);
 }
 
-.people-page-controls {
+.recipes-page-controls {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;

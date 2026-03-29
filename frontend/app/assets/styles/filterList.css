@@ -1,0 +1,8 @@
+.filter-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-xs);
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
