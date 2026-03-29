@@ -1,5 +1,16 @@
 {
+	"common": {
+		"signInButton": "Sign In",
+		"searchPlaceholder": "Search for ..."
+	},
 	"homePage": {
 		"title": "Home"
+	},
+	"layouts": {
+		"home": "Home",
+		"recipes": "Recipes",
+		"people": "Authors",
+		"terms": "Terms and Conditions",
+		"policy": "Privacy Policy"
 	}
 }
