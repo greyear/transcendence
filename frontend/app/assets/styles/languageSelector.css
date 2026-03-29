@@ -14,30 +14,77 @@
 	padding: 0;
 }
 
-.language-button {
-	font-family: "Nunito", system-ui, sans-serif;
-	text-transform: uppercase;
-	font-size: var(--fs-label);
-	line-height: var(--lh-label);
-	border: 1px solid var(--borders-default);
+.language-dropdown {
+	position: relative;
 }
 
-.language-button.language-button--header {
-	background-color: var(--surface-header);
-	color: var(--text-on-accent);
-	border-color: var(--borders-default);
-
-	&.active {
-		background-color: var(--surface-primary);
-		color: var(--text-primary);
-	}
+.icon-button.language.language-button--header.language-dropdown__trigger {
+	gap: var(--space-xs);
+	padding-inline: var(--space-s);
+	width: 80px;
+	border: none;
 }
 
-.language-button.language-button--footer {
-	border-color: var(--borders-action);
+.language-dropdown__chevron {
+	width: 16px;
+	height: 16px;
+	transition: transform 0.2s ease;
+	flex-shrink: 0;
+}
 
-	&.active {
-		background-color: var(--surface-action-active);
-		color: var(--text-on-accent);
-	}
+.language-dropdown__chevron--open {
+	transform: rotate(180deg);
+}
+
+.language-dropdown__menu {
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	z-index: 101;
+	top: calc(100% + var(--space-xs));
+	right: 0;
+	margin: 0;
+	list-style: none;
+	padding: 0;
+	background-color: var(--surface-primary);
+	border: 1px solid var(--borders-action);
+	border-radius: var(--radius-s);
+	width: 80px;
+	overflow: hidden;
+	box-shadow: var(--dropdown-shadow);
+}
+
+.language-dropdown__menu-item {
+	position: relative;
+	display: flex;
+	margin: 0;
+	padding: 0;
+}
+
+.language-dropdown__menu-item .icon-button {
+	width: 100%;
+}
+
+.language-dropdown__menu
+	.language-dropdown__menu-item:not(:first-child)
+	.language-dropdown__button {
+	border-top: 1px solid var(--borders-default);
+}
+
+.language-dropdown__menu
+	.language-dropdown__menu-item:not(:first-child)
+	.language-dropdown__button.active {
+	border-top: 1px solid var(--borders-action);
+}
+
+.language-dropdown__menu
+	.language-dropdown__menu-item:not(:last-child)
+	.language-dropdown__button.active {
+	border-bottom: 1px solid var(--borders-action);
+}
+
+.language-dropdown__menu-item:has(.language-dropdown__button.active)
+	+ .language-dropdown__menu-item
+	.language-dropdown__button {
+	border-top: none;
 }
