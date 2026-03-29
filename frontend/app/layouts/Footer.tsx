@@ -28,7 +28,7 @@ export const Footer = () => {
 				</nav>
 				{/* TODO: add the login state */}
 				<div className="footer-buttons-row">
-					<MainButton>Log In/Sign up</MainButton>
+					<MainButton>Sign In</MainButton>
 					<LanguageSelector isHeader={false} />
 				</div>
 			</div>

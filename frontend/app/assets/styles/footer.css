@@ -69,14 +69,8 @@
 }
 
 @media (min-width: 1440px) {
-	.divider-line {
-		width: var(--desktop-content-width);
-	}
-
-	.footer-top-row {
-		width: var(--desktop-content-width);
-	}
-
+	.divider-line,
+	.footer-top-row,
 	.legal-container {
 		width: var(--desktop-content-width);
 	}
