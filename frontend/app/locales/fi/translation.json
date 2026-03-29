@@ -6,10 +6,10 @@
 	"homePage": {
 		"title": "Etusivu"
 	},
-	"layouts": {
+	"layout": {
 		"home": "Etusivu",
 		"recipes": "Reseptit",
-		"people": "Tekijät",
+		"authors": "Tekijät",
 		"terms": "Käyttöehdot",
 		"policy": "Tietosuojaeloste"
 	}

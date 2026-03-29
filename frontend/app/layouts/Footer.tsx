@@ -2,8 +2,11 @@ import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { LanguageSelector } from "~/components/LanguageSelector";
 import "../assets/styles/footer.css";
+import { useTranslation } from "react-i18next";
 
 export const Footer = () => {
+	const { t } = useTranslation();
+
 	return (
 		<footer className="footer">
 			<div className="footer-top-row">
@@ -11,24 +14,24 @@ export const Footer = () => {
 					<ul className="nav-list">
 						<li>
 							<TextIconButton size="body2" to="/">
-								Home
+								{t("layout.home")}
 							</TextIconButton>
 						</li>
 						<li>
 							<TextIconButton size="body2" to="/recipes">
-								Recipes
+								{t("layout.recipes")}
 							</TextIconButton>
 						</li>
 						<li>
 							<TextIconButton size="body2" to="/users">
-								People
+								{t("layout.authors")}
 							</TextIconButton>
 						</li>
 					</ul>
 				</nav>
 				{/* TODO: add the login state */}
 				<div className="footer-buttons-row">
-					<MainButton>Sign In</MainButton>
+					<MainButton>{t("common.signInButton")}</MainButton>
 					<LanguageSelector isHeader={false} />
 				</div>
 			</div>
@@ -38,12 +41,12 @@ export const Footer = () => {
 					<ul className="nav-list nav-list-divider">
 						<li>
 							<TextIconButton size="body2" to="/terms">
-								Terms and Conditions
+								{t("layout.terms")}
 							</TextIconButton>
 						</li>
 						<li>
 							<TextIconButton size="body2" to="/policy">
-								Privacy Policy
+								{t("layout.policy")}
 							</TextIconButton>
 						</li>
 					</ul>

@@ -6,10 +6,10 @@
 	"homePage": {
 		"title": "Home"
 	},
-	"layouts": {
+	"layout": {
 		"home": "Home",
 		"recipes": "Recipes",
-		"people": "Authors",
+		"authors": "Authors",
 		"terms": "Terms and Conditions",
 		"policy": "Privacy Policy"
 	}
