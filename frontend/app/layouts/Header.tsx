@@ -59,6 +59,7 @@ export const Header = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const { screenSize } = useScreenSize();
 	const headerRef = useRef<HTMLElement>(null);
+	const { pathname } = useLocation();
 
 	const handleMenuButtonClick = () => setIsOpen((prev) => !prev);
 
@@ -71,14 +72,17 @@ export const Header = () => {
 		}
 	}, [screenSize]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: pathname is an intentional trigger, not a value used inside the effect
+	useEffect(() => {
+		setIsOpen(false);
+	}, [pathname]);
+
 	useEffect(() => {
 		const header = headerRef.current;
-
 		if (!header) {
 			return;
 		}
-
-		handleDropdownClose(header, setIsOpen);
+		return handleDropdownClose(header, setIsOpen);
 	}, []);
 
 	return (
