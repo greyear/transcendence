@@ -206,3 +206,19 @@ export type RecipeListItem = z.infer<typeof recipeListItemSchema>;
  * MyRecipeListItem type - minimal recipe info for current user's recipes
  */
 export type MyRecipeListItem = z.infer<typeof myRecipeListItemSchema>;
+
+/**
+ * User List Item schema - minimal user info for list view
+ * Used by GET /users, GET /users/:id/followers, GET /users/:id/following
+ */
+export const userListItemSchema = z.object({
+	id: z.number().int().positive(),
+	username: z.string(),
+	avatar: z.string().max(2048).nullable(),
+	recipes_count: z.coerce.number().int().min(0),
+});
+
+/**
+ * User List Item type
+ */
+export type UserListItem = z.infer<typeof userListItemSchema>;

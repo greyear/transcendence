@@ -5,7 +5,7 @@
 Table users {
   id integer [primary key, note: 'User ID from auth service (positive INT; CHECK > 0)']
   username varchar(32) [not null, unique]
-  avatar bytea [note: 'Original pic is stored in the DB, we need to set the limit for the size']
+  avatar varchar(2048) [note: 'Avatar URL or path, max 2048 characters']
   status varchar(16) [note: 'online | offline (visible only to mutual followers)']
   role varchar(16) [not null, note: 'admin | user | guest']
   created_at timestamptz [default: `now()`]

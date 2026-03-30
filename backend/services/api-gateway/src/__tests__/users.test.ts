@@ -132,4 +132,98 @@ describe("API Gateway - Users Routes", () => {
 			);
 		});
 	});
+
+	describe("GET /users/:id/followers", () => {
+		/**
+		 * Test: Proxy GET /users/:id/followers
+		 */
+		it("should proxy to core-service and forward the response", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 200,
+				json: async () => ({
+					data: [{ id: 2, username: "follower_user", avatar: null, recipes_count: 5 }],
+					count: 1,
+				}),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users/1/followers");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({
+				data: [{ id: 2, username: "follower_user", avatar: null, recipes_count: 5 }],
+				count: 1,
+			});
+			expect(fetchSpy).toHaveBeenCalledWith(
+				expect.stringContaining("/users/1/followers"),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						"Content-Type": "application/json",
+					}),
+					signal: expect.any(AbortSignal),
+				}),
+			);
+		});
+
+		/**
+		 * Test: Forward 404 from core-service when user not found
+		 */
+		it("should forward 404 from core-service", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 404,
+				json: async () => ({ error: "User not found" }),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users/999999/followers");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toEqual({ error: "User not found" });
+		});
+	});
+
+	describe("GET /users/:id/following", () => {
+		/**
+		 * Test: Proxy GET /users/:id/following
+		 */
+		it("should proxy to core-service and forward the response", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 200,
+				json: async () => ({
+					data: [{ id: 3, username: "followed_user", avatar: null, recipes_count: 10 }],
+					count: 1,
+				}),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users/1/following");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({
+				data: [{ id: 3, username: "followed_user", avatar: null, recipes_count: 10 }],
+				count: 1,
+			});
+			expect(fetchSpy).toHaveBeenCalledWith(
+				expect.stringContaining("/users/1/following"),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						"Content-Type": "application/json",
+					}),
+					signal: expect.any(AbortSignal),
+				}),
+			);
+		});
+
+		/**
+		 * Test: Forward 404 from core-service when user not found
+		 */
+		it("should forward 404 from core-service", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 404,
+				json: async () => ({ error: "User not found" }),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users/999999/following");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toEqual({ error: "User not found" });
+		});
+	});
 });
