@@ -2,13 +2,12 @@
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
-	gap: var(--space-m);
 }
 
 .page-header__content {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-m);
+	gap: var(--space-s);
 }
 
 .page-header__title,
