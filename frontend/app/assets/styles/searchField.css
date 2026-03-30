@@ -61,6 +61,7 @@ search {
 	.search-wrapper {
 		height: 48px;
 	}
+
 	.icon-button.magnifier-toggle {
 		--magnifier-toggle-size: 48px;
 	}
@@ -70,6 +71,7 @@ search {
 	.search-wrapper {
 		height: 56px;
 	}
+
 	.icon-button.magnifier-toggle {
 		--magnifier-toggle-size: 56px;
 	}

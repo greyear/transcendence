@@ -11,7 +11,6 @@
 
 main {
 	width: 100%;
-	max-width: var(--desktop-content-width);
 	margin: 0 auto;
 	padding: var(--space-l);
 }
@@ -159,6 +158,13 @@ main {
 
 	main {
 		padding: var(--space-l) 0;
+		max-width: var(--desktop-content-width);
+	}
+}
+
+@media (min-width: 1920px) {
+	:root {
+		--desktop-content-width: 1800px;
 	}
 }
 
