@@ -1,3 +1,7 @@
+search {
+	width: 100%;
+}
+
 .search-wrapper {
 	display: flex;
 	flex-direction: row;
