@@ -1,5 +1,16 @@
 {
+	"common": {
+		"signInButton": "Вход",
+		"searchPlaceholder": "Искать ..."
+	},
 	"homePage": {
 		"title": "Главная"
+	},
+	"layout": {
+		"home": "Главная",
+		"recipes": "Рецепты",
+		"users": "Пользователи",
+		"terms": "Условия Пользования",
+		"policy": "Конфиденциальность"
 	}
 }

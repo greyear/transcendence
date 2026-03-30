@@ -1,5 +1,16 @@
 {
+	"common": {
+		"signInButton": "Kirjaudu",
+		"searchPlaceholder": "Hae ..."
+	},
 	"homePage": {
 		"title": "Etusivu"
+	},
+	"layout": {
+		"home": "Etusivu",
+		"recipes": "Reseptit",
+		"users": "Käyttäjät",
+		"terms": "Käyttöehdot",
+		"policy": "Tietosuojaseloste"
 	}
 }

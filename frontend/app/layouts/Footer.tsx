@@ -2,44 +2,51 @@ import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { LanguageSelector } from "~/components/LanguageSelector";
 import "../assets/styles/footer.css";
+import { useTranslation } from "react-i18next";
 
 export const Footer = () => {
+	const { t } = useTranslation();
+
 	return (
 		<footer className="footer">
-			<nav aria-label="Footer main">
-				<ul className="nav-list">
-					<li>
-						<TextIconButton size="body2" to="/">
-							Home
-						</TextIconButton>
-					</li>
-					<li>
-						<TextIconButton size="body2" to="/recipes">
-							Recipes
-						</TextIconButton>
-					</li>
-					<li>
-						<TextIconButton size="body2" to="/users">
-							People
-						</TextIconButton>
-					</li>
-				</ul>
-			</nav>
-			{/* TODO: add the login state */}
-			<MainButton>Log In/Sign up</MainButton>
-			<LanguageSelector isHeader={false} />
+			<div className="footer-top-row">
+				<nav aria-label="Footer main">
+					<ul className="nav-list">
+						<li>
+							<TextIconButton size="body2" to="/">
+								{t("layout.home")}
+							</TextIconButton>
+						</li>
+						<li>
+							<TextIconButton size="body2" to="/recipes">
+								{t("layout.recipes")}
+							</TextIconButton>
+						</li>
+						<li>
+							<TextIconButton size="body2" to="/users">
+								{t("layout.users")}
+							</TextIconButton>
+						</li>
+					</ul>
+				</nav>
+				{/* TODO: add the login state */}
+				<div className="footer-buttons-row">
+					<MainButton>{t("common.signInButton")}</MainButton>
+					<LanguageSelector isHeader={false} />
+				</div>
+			</div>
 			<div className="divider-line" aria-hidden="true" />
 			<div className="legal-container">
 				<nav aria-label="Legal">
 					<ul className="nav-list nav-list-divider">
 						<li>
 							<TextIconButton size="body2" to="/terms">
-								Terms and Conditions
+								{t("layout.terms")}
 							</TextIconButton>
 						</li>
 						<li>
 							<TextIconButton size="body2" to="/policy">
-								Privacy Policy
+								{t("layout.policy")}
 							</TextIconButton>
 						</li>
 					</ul>
