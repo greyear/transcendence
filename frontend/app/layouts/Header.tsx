@@ -94,7 +94,10 @@ export const Header = () => {
 				{isDesktop && <NavigationList />}
 				<div className="header-top-icon-row">
 					{!isMobile && (
-						<SearchField mode={isDesktop ? "always-open" : "collapsible"} />
+						<SearchField
+							mode={isDesktop ? "always-open" : "collapsible"}
+							placeholder={t("common.searchPlaceholder")}
+						/>
 					)}
 					<IconButton aria-label="Notifications" variant="transparent">
 						<Bell />

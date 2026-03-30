@@ -12,5 +12,15 @@
 		"users": "Users",
 		"terms": "Terms and Conditions",
 		"policy": "Privacy Policy"
+	},
+	"recipesPage": {
+		"title": "Recipes",
+		"totalCount": "Total recipes: ",
+		"createButton": "Create new",
+		"sortButton": "Sort",
+		"filterButton": "Filter",
+		"tabAll": "All",
+		"tabMy": "My recipes",
+		"tabSaved": "Saved recipes"
 	}
 }

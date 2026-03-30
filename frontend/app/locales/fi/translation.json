@@ -12,5 +12,15 @@
 		"users": "Käyttäjät",
 		"terms": "Käyttöehdot",
 		"policy": "Tietosuojaseloste"
+	},
+	"recipesPage": {
+		"title": "Reseptit",
+		"totalCount": "Reseptejä yhteensä: ",
+		"createButton": "Luo uusi",
+		"sortButton": "Järjestä",
+		"filterButton": "Suodata",
+		"tabAll": "Kaikki",
+		"tabMy": "Omat reseptit",
+		"tabSaved": "Tallennetut"
 	}
 }

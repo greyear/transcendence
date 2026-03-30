@@ -8,29 +8,35 @@ import { Pagination } from "~/components/pagination/Pagination";
 import { RecipesGrid } from "~/components/RecipesGrid";
 import "~/assets/styles/recipes.css";
 import { Filter, Sort } from "iconoir-react";
+import { useTranslation } from "react-i18next";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { getCurrentPage } from "~/composables/getCurrentPage";
 
-const filters = ["All", "My Recipes", "Favorites"];
 const PER_PAGE = 12;
 
 const RecipesPage = () => {
-	const [activeFilter, setActiveFilter] = useState("All");
+	const { t } = useTranslation();
+	const [activeFilter, setActiveFilter] = useState(t("recipesPage.tabAll"));
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams] = useSearchParams();
 
+	const filters = [
+		t("recipesPage.tabAll"),
+		t("recipesPage.tabMy"),
+		t("recipesPage.tabSaved"),
+	];
 	const totalPages = Math.max(1, Math.ceil(totalCount / PER_PAGE));
 	const page = getCurrentPage(searchParams, totalPages);
 
 	return (
 		<section className="recipes-page">
 			<PageHeader
-				title="Recipes"
-				totalLabel={`Total recipes: ${totalCount}`}
-				action={<MainButton>+ Create new</MainButton>}
+				title={t("recipesPage.title")}
+				totalLabel={`${t("recipesPage.totalCount")}${totalCount}`}
+				action={<MainButton>{t("recipesPage.createButton")}</MainButton>}
 			/>
 
-			<SearchField />
+			<SearchField placeholder={t("common.searchPlaceholder")} />
 
 			<FilterList
 				filters={filters}
@@ -40,12 +46,12 @@ const RecipesPage = () => {
 
 			<div className="recipes-page-controls">
 				<TextIconButton>
-					Sort
+					{t("recipesPage.sortButton")}
 					<Sort />
 				</TextIconButton>
 
 				<TextIconButton>
-					Filter
+					{t("recipesPage.filterButton")}
 					<Filter />
 				</TextIconButton>
 			</div>
