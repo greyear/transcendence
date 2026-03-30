@@ -45,7 +45,7 @@ const NavigationList = () => {
 						variant="inverted"
 						selected={pathname.startsWith("/users")}
 					>
-						{t("layout.authors")}
+						{t("layout.users")}
 					</TextIconButton>
 				</li>
 			</ul>

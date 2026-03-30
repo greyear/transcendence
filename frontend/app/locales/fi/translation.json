@@ -9,8 +9,8 @@
 	"layout": {
 		"home": "Etusivu",
 		"recipes": "Reseptit",
-		"authors": "Tekijät",
+		"users": "Käyttäjät",
 		"terms": "Käyttöehdot",
-		"policy": "Tietosuojaeloste"
+		"policy": "Tietosuojaseloste"
 	}
 }

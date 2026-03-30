@@ -24,7 +24,7 @@ export const Footer = () => {
 						</li>
 						<li>
 							<TextIconButton size="body2" to="/users">
-								{t("layout.authors")}
+								{t("layout.users")}
 							</TextIconButton>
 						</li>
 					</ul>
