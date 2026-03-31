@@ -17,6 +17,9 @@ services:
     volumes:
       - ./backend/infrastructure/mongo/auth/init-auth.js:/docker-entrypoint-initdb.d/init-auth.js:ro
 
+    networks:
+      - transcendence-network
+
   core-db:
     image: postgres:15
     container_name: core-postgres

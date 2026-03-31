@@ -43,7 +43,9 @@ authRouter.use(help.errorHandler);
 
 //Connection part probably being moved later
 const MONGO_AUTH_URI =
-	process.env.MONGODB_AUTH_URI || "mongodb://127.0.0.1:27017/auth_db";
+	process.env.MONGODB_URI ||
+	process.env.MONGODB_AUTH_URI ||
+	"mongodb://127.0.0.1:27017/auth_db";
 // Connect to MongoDB
 // https://mongoosejs.com/docs/connections.html
 mongoose
