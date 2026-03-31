@@ -7,18 +7,30 @@ import { PageHeader } from "~/components/PageHeader";
 import { Pagination } from "~/components/pagination/Pagination";
 import { RecipesGrid } from "~/components/RecipesGrid";
 import "~/assets/styles/recipes.css";
-import { Filter, Sort } from "iconoir-react";
+import { Filter } from "iconoir-react";
 import { useTranslation } from "react-i18next";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
+import { SortMenu, type SortOption } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";
+import { useSortParam } from "~/composables/useSortParam";
 
 const PER_PAGE = 12;
 
 const RecipesPage = () => {
+	const SORT_OPTIONS: SortOption[] = [
+		{ label: "Name A→Z", value: "name-asc" },
+		{ label: "Name Z→A", value: "name-desc" },
+		// { label: "Newer", value: "date-newer" },
+		// { label: "Older", value: "date-older" }
+	];
+
+	const DEFAULT_SORT = SORT_OPTIONS[0].value;
+
 	const { t } = useTranslation();
 	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams] = useSearchParams();
+	const [sortValue, setSort] = useSortParam(DEFAULT_SORT);
 
 	const filters = [
 		t("recipesPage.tabAll"),
@@ -47,10 +59,7 @@ const RecipesPage = () => {
 			/>
 
 			<div className="recipes-page-controls">
-				<TextIconButton>
-					{t("common.sortButton")}
-					<Sort />
-				</TextIconButton>
+				<SortMenu options={SORT_OPTIONS} value={sortValue} onChange={setSort} />
 
 				<TextIconButton>
 					{t("common.filterButton")}
@@ -58,7 +67,12 @@ const RecipesPage = () => {
 				</TextIconButton>
 			</div>
 
-			<RecipesGrid page={page} perPage={PER_PAGE} onLoad={setTotalCount} />
+			<RecipesGrid
+				page={page}
+				perPage={PER_PAGE}
+				onLoad={setTotalCount}
+				sortValue={sortValue}
+			/>
 
 			<Pagination
 				totalElementsCount={totalCount}

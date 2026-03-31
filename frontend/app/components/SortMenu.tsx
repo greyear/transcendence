@@ -2,6 +2,7 @@ import { Sort } from "iconoir-react";
 import { useEffect, useRef, useState } from "react";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import "~/assets/styles/sortMenu.css";
+import { useTranslation } from "react-i18next";
 
 export type SortOption = {
 	label: string;
@@ -17,17 +18,27 @@ type SortMenuProps = {
 export const SortMenu = ({ options, value, onChange }: SortMenuProps) => {
 	const [open, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
+	const { t } = useTranslation();
 
 	useEffect(() => {
-		if (!open) return;
+		if (!open) {
+			return;
+		}
 
 		const handleOutside = (e: MouseEvent) => {
-			if (ref.current && !ref.current.contains(e.target as Node)) {
+			if (!ref.current) {
+				return;
+			}
+
+			if (e.target instanceof Node && !ref.current.contains(e.target)) {
 				setOpen(false);
 			}
 		};
+
 		const handleEscape = (e: KeyboardEvent) => {
-			if (e.key === "Escape") setOpen(false);
+			if (e.key === "Escape") {
+				setOpen(false);
+			}
 		};
 
 		document.addEventListener("mousedown", handleOutside);
@@ -41,7 +52,7 @@ export const SortMenu = ({ options, value, onChange }: SortMenuProps) => {
 	return (
 		<div className="sort-menu" ref={ref}>
 			<TextIconButton onClick={() => setOpen((prev) => !prev)}>
-				Sort
+				{t("recipesPage.sortButton")}
 				<Sort />
 			</TextIconButton>
 
