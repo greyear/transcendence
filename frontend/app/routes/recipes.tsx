@@ -16,7 +16,7 @@ const PER_PAGE = 12;
 
 const RecipesPage = () => {
 	const { t } = useTranslation();
-	const [activeFilter, setActiveFilter] = useState(t("recipesPage.tabAll"));
+	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams] = useSearchParams();
 
@@ -40,8 +40,10 @@ const RecipesPage = () => {
 
 			<FilterList
 				filters={filters}
-				activeFilter={activeFilter}
-				onFilterChange={setActiveFilter}
+				activeFilter={filters[activeFilterIndex]}
+				onFilterChange={(filter) =>
+					setActiveFilterIndex(filters.indexOf(filter))
+				}
 			/>
 
 			<div className="recipes-page-controls">
