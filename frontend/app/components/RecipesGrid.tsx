@@ -27,9 +27,9 @@ const sortRecipes = (
 			return sorted.sort((a, b) => a.title.localeCompare(b.title));
 		case "name-desc":
 			return sorted.sort((a, b) => b.title.localeCompare(a.title));
-		// case "date-newer":
+		// case "date-desc":
 		// 	return sorted.sort((a, b) => a.created_at.localeCompare(b.created_at));
-		// case "date-older":
+		// case "date-asc":
 		// 	return sorted.sort((a, b) => b.created_at.localeCompare(a.created_at));
 		default:
 			return sorted;

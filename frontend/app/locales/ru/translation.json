@@ -21,7 +21,13 @@
 		"createButton": "Создать",
 		"tabAll": "Все",
 		"tabMy": "Мои рецепты",
-		"tabSaved": "Сохраненные рецепты"
+		"tabSaved": "Сохраненные рецепты",
+		"sortOptions": {
+			"nameAsc": "По названию А→Я",
+			"nameDesc": "По названию Я→А",
+			"dateAsc": "Сначала старые",
+			"dateDesc": "Сначала новые"
+		}
 	},
 	"usersPage": {
 		"title": "Пользователи",

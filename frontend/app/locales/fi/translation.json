@@ -21,7 +21,13 @@
 		"createButton": "Luo uusi",
 		"tabAll": "Kaikki",
 		"tabMy": "Omat reseptit",
-		"tabSaved": "Tallennetut"
+		"tabSaved": "Tallennetut",
+		"sortOptions": {
+			"nameAsc": "Nimi A→Ö",
+			"nameDesc": "Nimi Ö→А",
+			"dateAsc": "Vanhimmat ensin",
+			"dateDesc": "Uusimmat ensin"
+		}
 	},
 	"usersPage": {
 		"title": "Käyttäjät",

@@ -21,7 +21,13 @@
 		"createButton": "Create new",
 		"tabAll": "All",
 		"tabMy": "My recipes",
-		"tabSaved": "Saved recipes"
+		"tabSaved": "Saved recipes",
+		"sortOptions": {
+			"nameAsc": "Name A→Z",
+			"nameDesc": "Name Z→A",
+			"dateAsc": "Old first",
+			"dateDesc": "New first"
+		}
 	},
 	"usersPage": {
 		"title": "Users",

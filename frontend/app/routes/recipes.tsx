@@ -17,19 +17,20 @@ import { useSortParam } from "~/composables/useSortParam";
 const PER_PAGE = 12;
 
 const RecipesPage = () => {
-	const SORT_OPTIONS: SortOption[] = [
-		{ label: "Name A→Z", value: "name-asc" },
-		{ label: "Name Z→A", value: "name-desc" },
-		// { label: "Newer", value: "date-newer" },
-		// { label: "Older", value: "date-older" }
-	];
-
-	const DEFAULT_SORT = SORT_OPTIONS[0].value;
-
 	const { t } = useTranslation();
 	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams] = useSearchParams();
+
+	const SORT_OPTIONS: SortOption[] = [
+		{ label: t("recipesPage.sortOptions.nameAsc"), value: "name-asc" },
+		{ label: t("recipesPage.sortOptions.nameDesc"), value: "name-desc" },
+		// { label: t("recipesPage.sortOptions.dateAsc"), value: "date-asc" }
+		// { label: t("recipesPage.sortOptions.dateDesc"), value: "date-desc" },
+	];
+
+	const DEFAULT_SORT = SORT_OPTIONS[0].value;
+
 	const [sortValue, setSort] = useSortParam(DEFAULT_SORT);
 
 	const filters = [
