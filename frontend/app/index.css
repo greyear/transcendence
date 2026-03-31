@@ -55,9 +55,10 @@ main {
 	/* Typography (fs=fontsize, lh=lineheight, fw=fontweight) === */
 	--fs-h-big: 36px;
 	--lh-h-big: 36px;
+	--fw-h-big: 400;
 	--fs-h1: 32px;
 	--lh-h1: 32px;
-	--fw-h1: 400;
+	--fw-h1: 700;
 	--fs-h2: 24px;
 	--lh-h2: 24px;
 	--fw-h2: 700;
