@@ -53,14 +53,16 @@ main {
 	--space-xxl: 48px;
 
 	/* Typography (fs=fontsize, lh=lineheight, fw=fontweight) === */
-	--fs-h1: 36px;
-	--lh-h1: 36px;
+	--fs-h-big: 36px;
+	--lh-h-big: 36px;
+	--fs-h1: 32px;
+	--lh-h1: 32px;
 	--fw-h1: 400;
-	--fs-h2: 32px;
-	--lh-h2: 32px;
+	--fs-h2: 24px;
+	--lh-h2: 24px;
 	--fw-h2: 700;
-	--fs-h3: 24px;
-	--lh-h3: 24px;
+	--fs-h3: 20px;
+	--lh-h3: 20px;
 	--fw-h3: 700;
 	--fs-body1: 24px;
 	--lh-body1: 24px;
@@ -101,12 +103,14 @@ main {
 		--space-xl: 32px;
 		--space-xxl: 64px;
 
-		--fs-h1: 64px;
-		--lh-h1: 64px;
-		--fs-h2: 48px;
-		--lh-h2: 48px;
-		--fs-h3: 36px;
-		--lh-h3: 36px;
+		--fs-h-big: 64px;
+		--lh-h-big: 64px;
+		--fs-h1: 48px;
+		--lh-h1: 48px;
+		--fs-h2: 36px;
+		--lh-h2: 36px;
+		--fs-h3: 24px;
+		--lh-h3: 24px;
 		--fs-body1: 32px;
 		--lh-body1: 32px;
 		--fs-body2: 24px;
@@ -134,12 +138,14 @@ main {
 		--space-xl: 48px;
 		--space-xxl: 72px;
 
-		--fs-h1: 96px;
-		--lh-h1: 96px;
-		--fs-h2: 72px;
-		--lh-h2: 72px;
-		--fs-h3: 48px;
-		--lh-h3: 48px;
+		--fs-h-big: 96px;
+		--lh-h-big: 96px;
+		--fs-h1: 72px;
+		--lh-h1: 72px;
+		--fs-h2: 48px;
+		--lh-h2: 48px;
+		--fs-h3: 32px;
+		--lh-h3: 32px;
 		--fs-body1: 36px;
 		--lh-body1: 36px;
 		--fs-body2: 32px;
@@ -183,6 +189,11 @@ h1,
 	font-size: var(--fs-h1);
 	line-height: var(--lh-h1);
 	font-weight: var(--fw-h1);
+}
+
+.big-title {
+	font-size: var(--fs-h-big);
+	line-height: var(--lh-h-big);
 }
 
 h2,
