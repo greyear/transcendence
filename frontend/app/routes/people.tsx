@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { MainButton } from "~/components/buttons/MainButton";
+import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
+import { PageHeader } from "~/components/PageHeader";
 import { UsersGrid } from "~/components/UsersGrid";
 import "~/assets/styles/people.css";
 import { Filter, Sort } from "iconoir-react";
@@ -13,28 +14,15 @@ const PeoplePage = () => {
 
 	return (
 		<section className="people-page">
-			<header className="people-page-header">
-				<h1 className="h2 people-page-title">People</h1>
-				<p className="people-page-total text-label">Total people: 37</p>
-			</header>
+			<PageHeader title="People" totalLabel="Total people: 37" />
 
 			<SearchField />
 
-			<ul className="filter-list" role="tablist">
-				{filters.map((filter) => (
-					<li key={filter}>
-						<MainButton
-							variant="pill"
-							active={activeFilter === filter}
-							onClick={() => setActiveFilter(filter)}
-							role="tab"
-							aria-selected={activeFilter === filter}
-						>
-							{filter}
-						</MainButton>
-					</li>
-				))}
-			</ul>
+			<FilterList
+				filters={filters}
+				activeFilter={activeFilter}
+				onFilterChange={setActiveFilter}
+			/>
 
 			<div className="people-page-controls">
 				<TextIconButton>

@@ -59,6 +59,7 @@ export const Header = () => {
 	const [isOpen, setIsOpen] = useState(false);
 	const { screenSize } = useScreenSize();
 	const headerRef = useRef<HTMLElement>(null);
+	const { pathname } = useLocation();
 
 	const handleMenuButtonClick = () => setIsOpen((prev) => !prev);
 
@@ -71,14 +72,17 @@ export const Header = () => {
 		}
 	}, [screenSize]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: pathname is an intentional trigger, not a value used inside the effect
+	useEffect(() => {
+		setIsOpen(false);
+	}, [pathname]);
+
 	useEffect(() => {
 		const header = headerRef.current;
-
 		if (!header) {
 			return;
 		}
-
-		handleDropdownClose(header, setIsOpen);
+		return handleDropdownClose(header, setIsOpen);
 	}, []);
 
 	return (
@@ -90,7 +94,10 @@ export const Header = () => {
 				{isDesktop && <NavigationList />}
 				<div className="header-top-icon-row">
 					{!isMobile && (
-						<SearchField mode={isDesktop ? "always-open" : "collapsible"} />
+						<SearchField
+							mode={isDesktop ? "always-open" : "collapsible"}
+							placeholder={t("common.searchPlaceholder")}
+						/>
 					)}
 					<IconButton aria-label="Notifications" variant="transparent">
 						<Bell />

@@ -6,6 +6,7 @@ import {
 } from "iconoir-react";
 import { Navigate, useSearchParams } from "react-router";
 import "~/assets/styles/pagination.css";
+import { getCurrentPage } from "~/composables/getCurrentPage";
 import { PaginationItem } from "./PaginationItem";
 
 export type PaginationProps = {
@@ -24,27 +25,6 @@ const getPageWindow = (
 	const half = Math.floor(clampedSize / 2);
 	const start = Math.min(Math.max(1, current - half), total - clampedSize + 1);
 	return Array.from({ length: clampedSize }, (_, i) => start + i);
-};
-
-const getCurrentPage = (
-	searchParams: URLSearchParams,
-	totalPagesCount: number,
-): number => {
-	const pageAttr = searchParams.get("page");
-	if (!pageAttr) {
-		return 1;
-	}
-
-	const page = Number(pageAttr);
-	if (Number.isNaN(page) || !Number.isInteger(page) || page < 1) {
-		return 1;
-	}
-
-	if (page > totalPagesCount) {
-		return totalPagesCount;
-	}
-
-	return page;
 };
 
 export const Pagination = ({ totalPagesCount }: PaginationProps) => {

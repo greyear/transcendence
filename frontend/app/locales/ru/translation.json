@@ -12,5 +12,15 @@
 		"users": "Пользователи",
 		"terms": "Условия Пользования",
 		"policy": "Конфиденциальность"
+	},
+	"recipesPage": {
+		"title": "Рецепты",
+		"totalCount": "Всего рецептов: ",
+		"createButton": "Создать",
+		"sortButton": "Сортировка",
+		"filterButton": "Фильтр",
+		"tabAll": "Все",
+		"tabMy": "Мои рецепты",
+		"tabSaved": "Сохраненные рецепты"
 	}
 }

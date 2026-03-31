@@ -52,7 +52,6 @@
 }
 
 .icon-button.language {
-	font-family: "Nunito", system-ui, sans-serif;
 	text-transform: uppercase;
 	font-size: var(--fs-body3);
 	border: 1px solid var(--borders-default);

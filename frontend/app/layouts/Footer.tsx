@@ -38,7 +38,7 @@ export const Footer = () => {
 			<div className="divider-line" aria-hidden="true" />
 			<div className="legal-container">
 				<nav aria-label="Legal">
-					<ul className="nav-list nav-list-divider">
+					<ul className="nav-list nav-list-legal">
 						<li>
 							<TextIconButton size="body2" to="/terms">
 								{t("layout.terms")}
