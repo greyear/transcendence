@@ -1,4 +1,4 @@
-.cooks-grid {
+.cooks-row {
 	display: flex;
 	flex-wrap: nowrap;
 	gap: var(--space-l);

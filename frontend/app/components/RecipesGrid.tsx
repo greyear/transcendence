@@ -7,7 +7,6 @@ type RecipeCardResponse = {
 	title: string;
 	description: string;
 	rating_avg: string;
-	rating_count: number;
 };
 
 type RecipesGridProps = {

@@ -31,7 +31,7 @@ export const CooksRow = ({ cooks = cookList }: CooksRowProps) => {
 	const visibleCooks = [...cooks].sort((a, b) => b.recipeCount - a.recipeCount);
 
 	return (
-		<ul className="cooks-grid">
+		<ul className="cooks-row">
 			{visibleCooks.map((cook) => (
 				<li key={cook.id}>
 					<CookCard {...cook} />
