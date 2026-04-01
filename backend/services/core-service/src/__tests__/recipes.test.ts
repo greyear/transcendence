@@ -263,6 +263,24 @@ describe("Recipes Routes", () => {
 		expect(response.body).toHaveProperty("error");
 	});
 
+	it("should return 400 for POST /recipes/:id/publish with invalid recipe id", async () => {
+		const response = await request(app)
+			.post("/recipes/abc/publish")
+			.set("X-User-Id", "1");
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 404 for POST /recipes/:id/publish when recipe does not exist", async () => {
+		const response = await request(app)
+			.post("/recipes/999999/publish")
+			.set("X-User-Id", "1");
+
+		expect(response.status).toBe(404);
+		expect(response.body).toHaveProperty("error");
+	});
+
 	/**
 	 * Test: Non-owner cannot publish recipe (403)
 	 *
