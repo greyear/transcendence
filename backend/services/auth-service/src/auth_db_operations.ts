@@ -7,7 +7,7 @@
  */
 
 import cookieParser from "cookie-parser";
-import express, {
+import express, { Router,
 	type NextFunction,
 	type Request,
 	type Response,
@@ -29,7 +29,7 @@ declare module "express-session" {
 	}
 }
 
-export const authRouter = express();
+export const authRouter = Router();
 // Middleware setup
 authRouter.use(
 	session({
@@ -39,7 +39,6 @@ authRouter.use(
 	}),
 );
 authRouter.use(cookieParser());
-authRouter.use(help.errorHandler);
 
 //Connection part probably being moved later
 const MONGO_AUTH_URI =
@@ -70,7 +69,7 @@ mongoose
 		4. Return relevant code
 */
 authRouter.post(
-	"/auth/register",
+	"/register",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const { username, email, realname, password } = req.body;
@@ -131,7 +130,7 @@ authRouter.post(
 		4. Return relevant code
 */
 authRouter.post(
-	"/auth/login",
+	"/login",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const { username, password } = req.body;
@@ -151,6 +150,16 @@ authRouter.post(
 				res.status(401).json({ error: "Password mismatch" });
 				return;
 			}
+
+			// Send success response
+			const JWToken = help.generateToken(userDocument.get("_id"), username);
+			req.session.user = username;
+			res.cookie("sessionId", req.sessionID);
+			res.cookie("JWToken", JWToken);
+			res.status(200).json({
+				token: JWToken,
+				message: "Login successful",
+			});
 		} catch (error) {
 			next(error);
 		}
@@ -169,7 +178,7 @@ authRouter.post(
 	https://www.w3tutorials.net/blog/google-sign-in-backend-verification/
 */
 authRouter.post(
-	"/auth/google",
+	"/google",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;

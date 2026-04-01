@@ -27,14 +27,15 @@ const postAuthRegisterHandler: RequestHandler = async (
 		const response = await fetch(`${AUTH_SERVICE_URL}/register`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: req.body,
+			body: JSON.stringify(req.body),
 		});
 		console.log(response);
 		const data = await response.json();
 		console.log(data);
 		res.status(response.status).json(data);
 	} catch (error) {
-		console.log("Error happened within regsiter handler");
+		console.log("Error happened within register handler");
+		next(error);
 	}
 };
 
@@ -48,7 +49,7 @@ const postLoginHandler: RequestHandler = async (
 		const response = await fetch(`${AUTH_SERVICE_URL}/login`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: req.body,
+			body: JSON.stringify(req.body),
 		});
 		console.log(response);
 		const data = await response.json();
@@ -56,6 +57,7 @@ const postLoginHandler: RequestHandler = async (
 		res.status(response.status).json(data);
 	} catch (error) {
 		console.log("Error happened within login handler");
+		next(error);
 	}
 };
 
@@ -69,7 +71,7 @@ const postGoogleHandler: RequestHandler = async (
 		const response = await fetch(`${AUTH_SERVICE_URL}/google`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: req.body,
+			body: JSON.stringify(req.body),
 		});
 		console.log(response);
 		const data = await response.json();
@@ -77,6 +79,7 @@ const postGoogleHandler: RequestHandler = async (
 		res.status(response.status).json(data);
 	} catch (error) {
 		console.log("Error happened within google handler");
+		next(error);
 	}
 };
 
