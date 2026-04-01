@@ -1,96 +1,49 @@
-import { Filter, Plus } from "iconoir-react";
-import { useTranslation } from "react-i18next";
-import { Pagination } from "~/components/pagination/Pagination";
+import { TextIconButton } from "~/components/buttons/TextIconButton";
+import { CooksRow } from "~/components/CooksRow";
 import { RecipesGrid } from "~/components/RecipesGrid";
-import { UsersGrid } from "~/components/UsersGrid";
-import { FavoriteButton } from "../components/buttons/FavoriteButton";
-import { IconButton } from "../components/buttons/IconButton";
-import { MainButton } from "../components/buttons/MainButton";
-import { ModerationButton } from "../components/buttons/ModerationButton";
-import { TextIconButton } from "../components/buttons/TextIconButton";
-import { InputField } from "../components/inputs/InputField";
-import { SearchField } from "../components/inputs/SearchField";
-import { SelectField } from "../components/inputs/SelectField";
-import { LanguageSelector } from "../components/LanguageSelector";
+import { useScreenSize } from "~/composables/useScreenSize";
+import "../assets/styles/home.css";
+import { NavArrowRight } from "iconoir-react";
+import { useTranslation } from "react-i18next";
+import heroImage from "~/assets/images/hero-image.jpg";
 
 const HomePage = () => {
 	const { t } = useTranslation();
+	const { screenSize } = useScreenSize();
+	const recipesPerPage = screenSize === "mobile" ? 4 : 6;
 
 	return (
-		<>
-			<h1 className="big-title">{t("homePage.title")}</h1>
-			<LanguageSelector isHeader={false} />
-			<Pagination
-				totalElementsCount={100}
-				elementsPerPage={16}
-				totalPagesCount={120}
-			/>
-			<SearchField placeholder="Search..." />
-			<SearchField placeholder="Search..." mode="collapsible" />
-			<SelectField
-				inputId="ingredients"
-				placeholder="Select one"
-				options={[
-					{ label: "Tomato", value: "tomato" },
-					{ label: "Garlic", value: "garlic" },
-					{ label: "Onion", value: "onion" },
-				]}
-			/>
-			<InputField
-				id="email"
-				type="email"
-				placeholder="Floating label try"
-				required
-			/>
-
-			<InputField
-				id="password"
-				type="password"
-				placeholder="Password"
-				required
-			/>
-			<InputField
-				id="email"
-				label="Email"
-				type="email"
-				placeholder="Enter your email"
-				required
-				hint="We’ll never share your email."
-			/>
-			<InputField
-				id="password-own-error"
-				label="Password"
-				type="password"
-				required
-				minLength={8}
-				hint="Password must include at least 8 characters."
-				error="Password too short!"
-			/>
-			<UsersGrid />
-			<RecipesGrid />
-			<FavoriteButton />
-			<ModerationButton action="approve" />
-			<ModerationButton action="discard" />
-
-			<FavoriteButton disabled />
-			<ModerationButton action="discard" disabled />
-			<MainButton>
-				<Plus />
-				Create new
-			</MainButton>
-			<MainButton>Log in/sign up</MainButton>
-			<MainButton disabled>Disabled</MainButton>
-			<TextIconButton>
-				Filter
-				<Filter />
-			</TextIconButton>
-			<TextIconButton to="recipes">All recipes</TextIconButton>
-			<div>
-				<IconButton>
-					<Filter />
-				</IconButton>
+		<section className="home-page">
+			<div
+				className="home-page-hero"
+				style={{ backgroundImage: `url(${heroImage})` }}
+			>
+				<div className="home-page-hero-overlay">
+					<h1>{t("homePage.heroTitle")}</h1>
+					<p className="text-caption">{t("homePage.heroDescription")}</p>
+				</div>
 			</div>
-		</>
+
+			<div className="home-page-recipe-header">
+				<h2>{t("homePage.topRecipes")}</h2>
+				<TextIconButton to="/recipes" className="text-body2">
+					{t("homePage.all")}
+					<NavArrowRight />
+				</TextIconButton>
+			</div>
+
+			<RecipesGrid sort="top" page={1} perPage={recipesPerPage} />
+
+			<div className="home-page-cooks-header">
+				<h2>{t("homePage.followCooks")}</h2>
+				<TextIconButton to="/users" className="text-body2">
+					{t("homePage.all")}
+					<NavArrowRight />
+				</TextIconButton>
+			</div>
+
+			<CooksRow />
+		</section>
 	);
 };
 

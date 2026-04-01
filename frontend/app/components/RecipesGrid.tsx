@@ -7,18 +7,21 @@ type RecipeCardResponse = {
 	title: string;
 	description: string;
 	rating_avg: string;
+	rating_count: number;
 };
 
 type RecipesGridProps = {
 	page?: number;
 	perPage?: number;
 	onLoad?: (totalCount: number) => void;
+	sort?: "top";
 };
 
 export const RecipesGrid = ({
 	page = 1,
 	perPage = 12,
 	onLoad,
+	sort,
 }: RecipesGridProps) => {
 	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
 
@@ -32,12 +35,18 @@ export const RecipesGrid = ({
 				return res.json();
 			})
 			.then((body) => {
-				const allRecipes: RecipeCardResponse[] = body.data ?? [];
+				let allRecipes: RecipeCardResponse[] = body.data ?? [];
+
+				if (sort === "top") {
+					allRecipes = [...allRecipes].sort(
+						(a, b) => Number(b.rating_avg) - Number(a.rating_avg),
+					);
+				}
 				onLoad?.(allRecipes.length);
 				setRecipeList(allRecipes);
 			})
 			.catch(console.error);
-	}, [onLoad]);
+	}, [onLoad, sort]);
 
 	const start = (page - 1) * perPage;
 	const pageRecipes = recipeList.slice(start, start + perPage);
