@@ -56,16 +56,34 @@ export const getAllUsers = async (): Promise<UserListItem[]> => {
 
 export const getUserById = async (
 	userId: number,
+	requesterId?: number,
 ): Promise<UserProfile | null> => {
 	try {
+		// requesterId is optional: guests call this endpoint without X-User-Id,
+		// so we pass null to the SQL check and keep status hidden for them.
 		const result = await pool.query(
 			`
 			SELECT
 				u.id,
 				u.username,
 				u.avatar,
-				u.status,
-				u.role,
+				CASE
+					WHEN $2::int IS NOT NULL
+						AND EXISTS (
+							SELECT 1
+							FROM followers f1
+							WHERE f1.user_id = $2
+								AND f1.followed_id = u.id
+						)
+						AND EXISTS (
+							SELECT 1
+							FROM followers f2
+							WHERE f2.user_id = u.id
+								AND f2.followed_id = $2
+						)
+					THEN u.status
+					ELSE NULL
+				END AS status,
 				(
 					SELECT COUNT(*)::int
 					FROM recipes r2
@@ -75,7 +93,7 @@ export const getUserById = async (
 			WHERE u.id = $1
 			LIMIT 1
     `,
-			[userId],
+			[userId, requesterId ?? null],
 		);
 
 		if (result.rowCount === 0) {

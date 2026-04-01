@@ -18,6 +18,31 @@ describe("Users Routes", () => {
 		await pool.query(
 			`INSERT INTO users (id, username, role, status) VALUES (1, 'test_user', 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
 		);
+		await pool.query(
+			`INSERT INTO users (id, username, role, status)
+			 VALUES (10001, 'mutual_target', 'user', 'online')
+			 ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, role = EXCLUDED.role, status = EXCLUDED.status`,
+		);
+		await pool.query(
+			`INSERT INTO users (id, username, role, status)
+			 VALUES (10002, 'mutual_viewer', 'user', 'offline')
+			 ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, role = EXCLUDED.role, status = EXCLUDED.status`,
+		);
+		await pool.query(
+			`INSERT INTO users (id, username, role, status)
+			 VALUES (10003, 'oneway_target', 'user', 'online')
+			 ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, role = EXCLUDED.role, status = EXCLUDED.status`,
+		);
+		await pool.query(
+			`INSERT INTO users (id, username, role, status)
+			 VALUES (10004, 'oneway_viewer', 'user', 'offline')
+			 ON CONFLICT (id) DO UPDATE SET username = EXCLUDED.username, role = EXCLUDED.role, status = EXCLUDED.status`,
+		);
+		await pool.query(
+			`INSERT INTO followers (user_id, followed_id)
+			 VALUES (10001, 10002), (10002, 10001), (10004, 10003)
+			 ON CONFLICT (user_id, followed_id) DO NOTHING`,
+		);
 		await pool.query(`UPDATE recipes SET author_id = 1 WHERE id = 1`);
 	});
 
@@ -42,7 +67,7 @@ describe("Users Routes", () => {
 	});
 
 	describe("GET /users/:id", () => {
-		it("should return user by id for existing user", async () => {
+		it("should return public user profile without role and hidden status for anonymous requester", async () => {
 			const response = await request(app).get("/users/1");
 
 			expect(response.status).toBe(200);
@@ -50,9 +75,33 @@ describe("Users Routes", () => {
 			expect(response.body.data).toHaveProperty("id", 1);
 			expect(response.body.data).toHaveProperty("username");
 			expect(response.body.data).toHaveProperty("avatar");
-			expect(response.body.data).toHaveProperty("status");
-			expect(response.body.data).toHaveProperty("role");
+			expect(response.body.data).toHaveProperty("status", null);
+			expect(response.body.data).not.toHaveProperty("role");
 			expect(response.body.data).toHaveProperty("recipes_count");
+		});
+
+		it("should return status for mutual followers", async () => {
+			const response = await request(app)
+				.get("/users/10001")
+				.set("X-User-Id", "10002");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body.data).toHaveProperty("id", 10001);
+			expect(response.body.data).toHaveProperty("status", "online");
+			expect(response.body.data).not.toHaveProperty("role");
+		});
+
+		it("should hide status when follow is not mutual", async () => {
+			const response = await request(app)
+				.get("/users/10003")
+				.set("X-User-Id", "10004");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body.data).toHaveProperty("id", 10003);
+			expect(response.body.data).toHaveProperty("status", null);
+			expect(response.body.data).not.toHaveProperty("role");
 		});
 
 		it("should return 400 for invalid user id", async () => {

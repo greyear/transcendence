@@ -41,7 +41,6 @@ const positiveIntSchema = z.coerce
 
 export const userIdSchema = positiveIntSchema;
 
-const userRoleSchema = z.enum(["guest", "user", "admin"]);
 const userPresenceStatusSchema = z.enum(["online", "offline"]);
 
 export const recipeStatusSchema = z.enum([
@@ -212,7 +211,6 @@ export const userProfileSchema = z.object({
 	username: z.string().trim().min(1).max(32),
 	avatar: z.string().nullable(),
 	status: userPresenceStatusSchema.nullable(),
-	role: userRoleSchema,
 	recipes_count: z.coerce.number().int().min(0),
 });
 

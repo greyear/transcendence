@@ -12,6 +12,9 @@
 	},
 	"license": "ISC",
 	"author": "",
+	"engines": {
+		"node": ">=20"
+	},
 	"type": "module",
 	"scripts": {
 		"check": "npx @biomejs/biome check",

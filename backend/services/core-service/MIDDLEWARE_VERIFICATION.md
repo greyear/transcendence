@@ -32,6 +32,7 @@ Current routes in core-service are read endpoints only.
 
 `/users` router (`src/routes/users.routes.ts`):
 - `GET /users/:id/recipes` -> no `extractUser` (public profile recipes)
+- `GET /users/:id` -> uses `extractUser` before handler (user profile with visibility rules)
 - `GET /users/me/recipes` -> uses `extractUser` before handler
 
 Health router (`src/routes/health.routes.ts`):
@@ -102,6 +103,25 @@ Flow:
 
 Notes:
 - Public endpoint.
+
+### GET /users/:id
+
+Flow:
+1. CORS
+2. JSON parser
+3. `extractUser` (parses optional `X-User-Id`)
+4. Validate `:id` (`validateUserId`)
+5. Service call `getUserById(userId, req.userId?)`
+6. Return `200`, `400`, or `404`
+
+Notes:
+- Public endpoint (unauthenticated users can access).
+- `extractUser` is applied because `status` visibility depends on mutual follow relationship.
+- Response always excludes `role`.
+- Response includes `status` only if:
+  - User is authenticated (`X-User-Id` present), AND
+  - User and target follow each other (mutual follow)
+- Otherwise, `status` is `null`.
 
 ### GET /users/me/recipes
 

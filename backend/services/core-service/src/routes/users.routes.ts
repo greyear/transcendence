@@ -35,7 +35,7 @@ const getAllUsersHandler = async (
 };
 
 const getUserByIdHandler = async (
-	req: Request,
+	req: AuthenticatedRequest,
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
@@ -47,7 +47,7 @@ const getUserByIdHandler = async (
 			throw error;
 		}
 
-		const user = await getUserById(validation.value);
+		const user = await getUserById(validation.value, req.userId);
 		if (!user) {
 			const error: CustomError = new Error("User not found");
 			error.statusCode = 404;
@@ -120,5 +120,5 @@ const getMyRecipesHandler = async (
 
 usersRouter.get("/me/recipes", extractUser, getMyRecipesHandler);
 usersRouter.get("/:id/recipes", getUserRecipesHandler);
-usersRouter.get("/:id", getUserByIdHandler);
+usersRouter.get("/:id", extractUser, getUserByIdHandler);
 usersRouter.get("/", getAllUsersHandler);
