@@ -13,9 +13,15 @@ import { app } from "../app.js";
 
 describe("API Gateway - Users Routes", () => {
 	const fetchSpy = jest.spyOn(global, "fetch");
+	let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
+
+	beforeEach(() => {
+		consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+	});
 
 	afterEach(() => {
 		fetchSpy.mockReset();
+		consoleErrorSpy.mockRestore();
 	});
 
 	afterAll(() => {
@@ -34,7 +40,15 @@ describe("API Gateway - Users Routes", () => {
 			fetchSpy.mockResolvedValueOnce({
 				status: 200,
 				json: async () => ({
-					data: [{ id: 1, title: "Public Recipe" }],
+					data: [
+						{
+							id: 1,
+							title: "Public Recipe",
+							description: null,
+							author_id: 1,
+							rating_avg: null,
+						},
+					],
 					count: 1,
 				}),
 			} as unknown as Response);
@@ -43,7 +57,15 @@ describe("API Gateway - Users Routes", () => {
 
 			expect(response.status).toBe(200);
 			expect(response.body).toEqual({
-				data: [{ id: 1, title: "Public Recipe" }],
+				data: [
+					{
+						id: 1,
+						title: "Public Recipe",
+						description: null,
+						author_id: 1,
+						rating_avg: null,
+					},
+				],
 				count: 1,
 			});
 			expect(fetchSpy).toHaveBeenCalledWith(
@@ -55,6 +77,202 @@ describe("API Gateway - Users Routes", () => {
 					signal: expect.any(AbortSignal),
 				}),
 			);
+		});
+
+		it("should forward 400 from core-service for invalid user id", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 400,
+				json: async () => ({
+					error: "Must be a positive integer in range 1..2147483647",
+				}),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users/abc/recipes");
+
+			expect(response.status).toBe(400);
+			expect(response.body).toEqual({
+				error: "Must be a positive integer in range 1..2147483647",
+			});
+		});
+
+		it("should forward 404 from core-service when user does not exist", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 404,
+				json: async () => ({ error: "User not found" }),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users/999999/recipes");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toEqual({ error: "User not found" });
+		});
+
+		it("should return 504 when downstream user recipes request times out", async () => {
+			const timeoutError = new Error("Request timed out");
+			timeoutError.name = "TimeoutError";
+			fetchSpy.mockRejectedValueOnce(timeoutError);
+
+			const response = await request(app).get("/users/1/recipes");
+
+			expect(response.status).toBe(504);
+			expect(response.body).toEqual({ error: "Gateway Timeout" });
+		});
+
+		it("should return 500 on unexpected proxy error for user recipes", async () => {
+			fetchSpy.mockRejectedValueOnce(new Error("boom"));
+
+			const response = await request(app).get("/users/1/recipes");
+
+			expect(response.status).toBe(500);
+			expect(response.body).toEqual({
+				error: "Failed to fetch user recipes from core-service",
+			});
+		});
+	});
+
+	describe("GET /users", () => {
+		it("should proxy to core-service and forward users list", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 200,
+				json: async () => ({
+					data: [
+						{ id: 1, username: "test_user", avatar: null, recipes_count: 2 },
+					],
+					count: 1,
+				}),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({
+				data: [
+					{ id: 1, username: "test_user", avatar: null, recipes_count: 2 },
+				],
+				count: 1,
+			});
+			expect(fetchSpy).toHaveBeenCalledWith(
+				expect.stringContaining("/users"),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						"Content-Type": "application/json",
+					}),
+					signal: expect.any(AbortSignal),
+				}),
+			);
+		});
+
+		it("should return 504 when downstream users list request times out", async () => {
+			const timeoutError = new Error("Request timed out");
+			timeoutError.name = "TimeoutError";
+			fetchSpy.mockRejectedValueOnce(timeoutError);
+
+			const response = await request(app).get("/users");
+
+			expect(response.status).toBe(504);
+			expect(response.body).toEqual({ error: "Gateway Timeout" });
+		});
+
+		it("should return 500 on unexpected proxy error for users list", async () => {
+			fetchSpy.mockRejectedValueOnce(new Error("boom"));
+
+			const response = await request(app).get("/users");
+
+			expect(response.status).toBe(500);
+			expect(response.body).toEqual({
+				error: "Failed to fetch users from core-service",
+			});
+		});
+	});
+
+	describe("GET /users/:id", () => {
+		it("should proxy to core-service and forward user by id", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 200,
+				json: async () => ({
+					data: {
+						id: 1,
+						username: "test_user",
+						avatar: null,
+						status: "offline",
+						role: "user",
+						recipes_count: 2,
+					},
+				}),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users/1");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({
+				data: {
+					id: 1,
+					username: "test_user",
+					avatar: null,
+					status: "offline",
+					role: "user",
+					recipes_count: 2,
+				},
+			});
+			expect(fetchSpy).toHaveBeenCalledWith(
+				expect.stringContaining("/users/1"),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						"Content-Type": "application/json",
+					}),
+					signal: expect.any(AbortSignal),
+				}),
+			);
+		});
+
+		it("should forward 400 from core-service for invalid user id", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 400,
+				json: async () => ({
+					error: "Must be a positive integer in range 1..2147483647",
+				}),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users/abc");
+
+			expect(response.status).toBe(400);
+			expect(response.body).toEqual({
+				error: "Must be a positive integer in range 1..2147483647",
+			});
+		});
+
+		it("should forward 404 from core-service when user does not exist", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 404,
+				json: async () => ({ error: "User not found" }),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users/999999");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toEqual({ error: "User not found" });
+		});
+
+		it("should return 504 when downstream user profile request times out", async () => {
+			const timeoutError = new Error("Request timed out");
+			timeoutError.name = "TimeoutError";
+			fetchSpy.mockRejectedValueOnce(timeoutError);
+
+			const response = await request(app).get("/users/1");
+
+			expect(response.status).toBe(504);
+			expect(response.body).toEqual({ error: "Gateway Timeout" });
+		});
+
+		it("should return 500 on unexpected proxy error for user profile", async () => {
+			fetchSpy.mockRejectedValueOnce(new Error("boom"));
+
+			const response = await request(app).get("/users/1");
+
+			expect(response.status).toBe(500);
+			expect(response.body).toEqual({
+				error: "Failed to fetch user from core-service",
+			});
 		});
 	});
 
@@ -94,7 +312,16 @@ describe("API Gateway - Users Routes", () => {
 			fetchSpy.mockResolvedValueOnce({
 				status: 200,
 				json: async () => ({
-					data: [{ id: 2, title: "My Private Recipe" }],
+					data: [
+						{
+							id: 2,
+							title: "My Private Recipe",
+							description: null,
+							author_id: 42,
+							rating_avg: null,
+							status: "draft",
+						},
+					],
 					count: 1,
 				}),
 			} as unknown as Response);
@@ -105,7 +332,16 @@ describe("API Gateway - Users Routes", () => {
 
 			expect(response.status).toBe(200);
 			expect(response.body).toEqual({
-				data: [{ id: 2, title: "My Private Recipe" }],
+				data: [
+					{
+						id: 2,
+						title: "My Private Recipe",
+						description: null,
+						author_id: 42,
+						rating_avg: null,
+						status: "draft",
+					},
+				],
 				count: 1,
 			});
 
@@ -130,6 +366,44 @@ describe("API Gateway - Users Routes", () => {
 					signal: expect.any(AbortSignal),
 				}),
 			);
+		});
+
+		it("should return 504 when downstream my-recipes request times out", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			const timeoutError = new Error("Request timed out");
+			timeoutError.name = "TimeoutError";
+			fetchSpy.mockRejectedValueOnce(timeoutError);
+
+			const response = await request(app)
+				.get("/users/me/recipes")
+				.set("Authorization", "Bearer faketoken123");
+
+			expect(response.status).toBe(504);
+			expect(response.body).toEqual({ error: "Gateway Timeout" });
+		});
+
+		it("should return 500 on unexpected proxy error for my-recipes", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			fetchSpy.mockRejectedValueOnce(new Error("boom"));
+
+			const response = await request(app)
+				.get("/users/me/recipes")
+				.set("Authorization", "Bearer faketoken123");
+
+			expect(response.status).toBe(500);
+			expect(response.body).toEqual({
+				error: "Failed to fetch current user recipes from core-service",
+			});
 		});
 	});
 
