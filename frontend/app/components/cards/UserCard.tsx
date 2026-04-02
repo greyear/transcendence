@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import userPhoto from "../../assets/images/user-photo.jpg";
 import "../../assets/styles/userCard.css";
 import { Link } from "react-router";
@@ -11,6 +12,7 @@ type UserCardProps = {
 };
 
 export const UserCard = ({ id, name, recipeCount }: UserCardProps) => {
+	const { t } = useTranslation();
 	const [isActive, setIsActive] = useState(false);
 	const onClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		e.stopPropagation();
@@ -25,13 +27,13 @@ export const UserCard = ({ id, name, recipeCount }: UserCardProps) => {
 				<div className="user-card-container">
 					<header className="user-card-header">
 						<h3>{name}</h3>
-						<p className="text-body3">{recipeCount} recipes</p>
+						<p className="text-body3">{recipeCount} {t("userCard.recipes")}</p>
 					</header>
 					<MainButton
 						onClick={onClick}
 						className={`user-card-button ${isActive ? "unfollow" : ""}`}
 					>
-						{isActive ? "Unfollow" : "Follow"}
+						{isActive ? t("userCard.unfollow") : t("userCard.follow")}
 					</MainButton>
 				</div>
 			</article>
