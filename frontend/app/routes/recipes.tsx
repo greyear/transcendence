@@ -48,12 +48,12 @@ const RecipesPage = () => {
 
 			<div className="recipes-page-controls">
 				<TextIconButton>
-					{t("recipesPage.sortButton")}
+					{t("common.sortButton")}
 					<Sort />
 				</TextIconButton>
 
 				<TextIconButton>
-					{t("recipesPage.filterButton")}
+					{t("common.filterButton")}
 					<Filter />
 				</TextIconButton>
 			</div>

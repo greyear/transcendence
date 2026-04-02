@@ -1,7 +1,9 @@
 {
 	"common": {
 		"signInButton": "Kirjaudu",
-		"searchPlaceholder": "Hae ..."
+		"searchPlaceholder": "Hae ...",
+		"sortButton": "Järjestä",
+		"filterButton": "Suodata"
 	},
 	"homePage": {
 		"title": "Etusivu"
@@ -17,10 +19,15 @@
 		"title": "Reseptit",
 		"totalCount": "Reseptejä yhteensä: ",
 		"createButton": "Luo uusi",
-		"sortButton": "Järjestä",
-		"filterButton": "Suodata",
 		"tabAll": "Kaikki",
 		"tabMy": "Omat reseptit",
 		"tabSaved": "Tallennetut"
+	},
+	"usersPage": {
+		"title": "Käyttäjät",
+		"totalCount": "Käyttäjiä yhteensä: ",
+		"tabAll": "Kaikki",
+		"tabFollowers": "Seuraajat",
+		"tabFollowing": "Seuratut"
 	}
 }

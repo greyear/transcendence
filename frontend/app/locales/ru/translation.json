@@ -1,7 +1,9 @@
 {
 	"common": {
 		"signInButton": "Вход",
-		"searchPlaceholder": "Искать ..."
+		"searchPlaceholder": "Искать ...",
+		"sortButton": "Сортировка",
+		"filterButton": "Фильтр"
 	},
 	"homePage": {
 		"title": "Главная"
@@ -17,10 +19,15 @@
 		"title": "Рецепты",
 		"totalCount": "Всего рецептов: ",
 		"createButton": "Создать",
-		"sortButton": "Сортировка",
-		"filterButton": "Фильтр",
 		"tabAll": "Все",
 		"tabMy": "Мои рецепты",
 		"tabSaved": "Сохраненные рецепты"
+	},
+	"usersPage": {
+		"title": "Пользователи",
+		"totalCount": "Всего пользователей: ",
+		"tabAll": "Все",
+		"tabFollowers": "Подписчики",
+		"tabFollowing": "Подписки"
 	}
 }
