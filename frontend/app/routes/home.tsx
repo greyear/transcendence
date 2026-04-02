@@ -1,3 +1,4 @@
+import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { CooksRow } from "~/components/CooksRow";
 import { RecipesGrid } from "~/components/RecipesGrid";
@@ -23,6 +24,10 @@ const HomePage = () => {
 					<p className="text-caption">{t("homePage.heroDescription")}</p>
 				</div>
 			</div>
+
+			<MainButton className="home-page-view-button text-label" to="/recipes">
+				{t("homePage.viewAllRecipes")}
+			</MainButton>
 
 			<div className="home-page-recipe-header">
 				<h2>{t("homePage.topRecipes")}</h2>

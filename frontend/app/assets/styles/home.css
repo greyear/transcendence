@@ -41,14 +41,28 @@
 	color: var(--text-on-accent);
 }
 
+.home-page-view-button {
+	align-self: center;
+	width: 100%;
+	max-width: 328px;
+}
+
 @media (min-width: 768px) {
 	.home-page-hero {
 		min-height: 310px;
+	}
+
+	.home-page-view-button {
+		width: 300px;
 	}
 }
 
 @media (min-width: 1440px) {
 	.home-page-hero {
 		min-height: 440px;
+	}
+
+	.home-page-view-button {
+		width: 280px;
 	}
 }
