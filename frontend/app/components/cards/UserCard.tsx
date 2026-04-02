@@ -27,7 +27,9 @@ export const UserCard = ({ id, name, recipeCount }: UserCardProps) => {
 				<div className="user-card-container">
 					<header className="user-card-header">
 						<h3>{name}</h3>
-						<p className="text-body3">{recipeCount} {t("userCard.recipes")}</p>
+						<p className="text-body3">
+							{recipeCount} {t("userCard.recipes")}
+						</p>
 					</header>
 					<MainButton
 						onClick={onClick}

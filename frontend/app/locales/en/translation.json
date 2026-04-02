@@ -29,8 +29,7 @@
 		"tabAll": "All",
 		"tabFollowers": "Followers",
 		"tabFollowing": "Following"
-	}
-	,
+	},
 	"userCard": {
 		"recipes": "recipes",
 		"follow": "Follow",
