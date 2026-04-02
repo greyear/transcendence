@@ -7,10 +7,11 @@
  */
 
 import cookieParser from "cookie-parser";
-import express, { Router,
+import {
 	type NextFunction,
 	type Request,
 	type Response,
+	Router,
 } from "express";
 import session from "express-session";
 import { OAuth2Client } from "google-auth-library";

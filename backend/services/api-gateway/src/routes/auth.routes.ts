@@ -23,18 +23,14 @@ const postAuthRegisterHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		console.log("Enter register handler");
 		const response = await fetch(`${AUTH_SERVICE_URL}/register`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(req.body),
 		});
-		console.log(response);
 		const data = await response.json();
-		console.log(data);
 		res.status(response.status).json(data);
 	} catch (error) {
-		console.log("Error happened within register handler");
 		next(error);
 	}
 };
@@ -45,18 +41,14 @@ const postLoginHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		console.log("Enter login handler");
 		const response = await fetch(`${AUTH_SERVICE_URL}/login`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(req.body),
 		});
-		console.log(response);
 		const data = await response.json();
-		console.log(data);
 		res.status(response.status).json(data);
 	} catch (error) {
-		console.log("Error happened within login handler");
 		next(error);
 	}
 };
@@ -83,6 +75,122 @@ const postGoogleHandler: RequestHandler = async (
 	}
 };
 
+const postValidateHandler: RequestHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		console.log("Enter validate handler");
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
+		// Forward Authorization header if present
+		if (req.headers.authorization) {
+			headers.authorization = req.headers.authorization;
+		}
+		const response = await fetch(`${AUTH_SERVICE_URL}/validate`, {
+			method: "POST",
+			headers,
+			body: JSON.stringify(req.body),
+		});
+		console.log(response);
+		const data = await response.json();
+		console.log(data);
+		res.status(response.status).json(data);
+		console.log("End of validate handler");
+	} catch (error) {
+		console.log("Error happened within validate handler");
+		next(error);
+	}
+};
+
+const postValidateGoogleHandler: RequestHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
+		// Forward Authorization header if present
+		if (req.headers.authorization) {
+			headers.authorization = req.headers.authorization;
+		}
+		const response = await fetch(`${AUTH_SERVICE_URL}/validate/google`, {
+			method: "POST",
+			headers,
+			body: JSON.stringify(req.body),
+		});
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		next(error);
+	}
+};
+
+const deleteUserHandler: RequestHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const { username } = req.params;
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
+		// Forward Authorization header if present
+		if (req.headers.authorization) {
+			headers.authorization = req.headers.authorization;
+		}
+		const response = await fetch(`${AUTH_SERVICE_URL}/delete/${username}`, {
+			method: "DELETE",
+			headers,
+		});
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		next(error);
+	}
+};
+
+const patchChangePasswordHandler: RequestHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const { username } = req.params;
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
+		// Forward Authorization header if present
+		if (req.headers.authorization) {
+			headers.authorization = req.headers.authorization;
+		}
+		const response = await fetch(
+			`${AUTH_SERVICE_URL}/change-password/${username}`,
+			{
+				method: "PATCH",
+				headers,
+				body: JSON.stringify(req.body),
+			},
+		);
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		next(error);
+	}
+};
+
+//auth_db_operations.ts handlers
 authRouter.post("/register", postAuthRegisterHandler);
 authRouter.post("/login", postLoginHandler);
 authRouter.post("/google", postGoogleHandler);
+
+//authGetSet.ts handlers
+authRouter.post("/validate", postValidateHandler);
+authRouter.post("/validate/google", postValidateGoogleHandler);
+authRouter.delete("/delete/:username", deleteUserHandler);
+authRouter.patch("/change-password/:username", patchChangePasswordHandler);

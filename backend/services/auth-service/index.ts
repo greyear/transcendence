@@ -11,7 +11,7 @@ const app = express();
 app.use(express.json());
 
 app.use(authRouter);
-app.use("/auth", authGetSet);
+app.use(authGetSet);
 
 // Error handler LAST
 app.use(help.errorHandler);

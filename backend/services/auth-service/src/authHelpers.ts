@@ -154,7 +154,12 @@ export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 };
 
 // Error handling middleware
-export const errorHandler = (error: unknown, _req: Request, res: Response) => {
+export const errorHandler = (
+	error: unknown,
+	_req: Request,
+	res: Response,
+	_next: NextFunction,
+) => {
 	console.error(error);
 	const message =
 		error instanceof Error ? error.message : "Internal Server Error";
