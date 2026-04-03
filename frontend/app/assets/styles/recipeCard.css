@@ -37,8 +37,6 @@
 	--recipe-card-container-height: 160px;
 	display: flex;
 	background-color: var(--surface-card);
-	margin-top: var(--space-l);
-	margin-bottom: var(--space-l);
 	padding: var(--space-l);
 	border-radius: var(--radius-l);
 	width: calc(100% - var(--recipe-card-image-size) / 2);

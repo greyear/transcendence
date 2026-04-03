@@ -4,6 +4,7 @@
 	list-style: none;
 	padding: 0;
 	gap: var(--space-s);
+	width: 100%;
 }
 
 /* Adding 1024px as an exception because otherwise the cards are really small */

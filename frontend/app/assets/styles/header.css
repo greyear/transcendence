@@ -45,7 +45,7 @@
 	flex-direction: column;
 	align-items: center;
 	padding: var(--space-l);
-	gap: var(--space-l);
+	gap: var(--space-xl);
 	z-index: 10;
 }
 

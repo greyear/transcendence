@@ -18,7 +18,7 @@ const HomePage = () => {
 
 	return (
 		<>
-			<h1>{t("homePage.title")}</h1>
+			<h1 className="big-title">{t("homePage.title")}</h1>
 			<LanguageSelector isHeader={false} />
 			<Pagination
 				totalElementsCount={100}

@@ -42,7 +42,7 @@
 	font-size: var(--fs-caption);
 	font-weight: var(--fw-caption);
 	line-height: var(--lh-caption);
-	padding: 0 var(--space-xl);
+	padding: 0 var(--space-l);
 }
 
 .main-button.pill.active {

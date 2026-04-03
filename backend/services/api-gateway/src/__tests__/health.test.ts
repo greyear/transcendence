@@ -11,9 +11,15 @@ import { app } from "../app.js";
 
 describe("API Gateway - Health Routes", () => {
 	const fetchSpy = jest.spyOn(global, "fetch");
+	let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
+
+	beforeEach(() => {
+		consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+	});
 
 	afterEach(() => {
 		fetchSpy.mockReset();
+		consoleErrorSpy.mockRestore();
 	});
 
 	afterAll(() => {
@@ -61,5 +67,27 @@ describe("API Gateway - Health Routes", () => {
 
 		expect(response.status).toBe(504);
 		expect(response.body).toEqual({ error: "Gateway Timeout" });
+	});
+
+	it("should return 500 on unexpected proxy error for GET /health", async () => {
+		fetchSpy.mockRejectedValue(new Error("boom"));
+
+		const response = await request(app).get("/health");
+
+		expect(response.status).toBe(500);
+		expect(response.body).toEqual({
+			error: "Failed to fetch health from core-service",
+		});
+	});
+
+	it("should return 500 on unexpected proxy error for GET /health/db", async () => {
+		fetchSpy.mockRejectedValue(new Error("boom"));
+
+		const response = await request(app).get("/health/db");
+
+		expect(response.status).toBe(500);
+		expect(response.body).toEqual({
+			error: "Failed to fetch health/db from core-service",
+		});
 	});
 });

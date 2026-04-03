@@ -377,7 +377,7 @@ CREATE INDEX ON "recipe_reviews" ("recipe_id", "created_at");
 
 COMMENT ON COLUMN "users"."id" IS 'User ID from auth service (positive INT; CHECK > 0)';
 
-COMMENT ON COLUMN "users"."avatar" IS 'Avatar URL or path, max 2048 characters';
+COMMENT ON COLUMN "users"."avatar" IS 'Public URL to user avatar file (CDN/object storage)';
 
 COMMENT ON COLUMN "users"."status" IS 'online | offline (visible only to mutual followers)';
 

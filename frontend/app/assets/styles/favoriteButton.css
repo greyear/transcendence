@@ -1,10 +1,10 @@
-.favorite-button {
+.icon-button.favorite-button {
 	background: var(--surface-favorite);
 	color: var(--icons-default);
 	border: none;
 }
 
-.favorite-button.active svg {
+.icon-button.favorite-button.active svg {
 	fill: var(--icons-heart-active);
 	color: var(--borders-heart-active);
 }

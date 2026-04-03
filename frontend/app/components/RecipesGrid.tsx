@@ -2,11 +2,6 @@ import { RecipeCard } from "./cards/RecipeCard";
 import "../assets/styles/recipesGrid.css";
 import { useEffect, useState } from "react";
 
-// TODO: add count for pagination
-// type RecipesGridProps = {
-// 	count?: string;
-// };
-
 type RecipeCardResponse = {
 	id: number;
 	title: string;
@@ -14,7 +9,17 @@ type RecipeCardResponse = {
 	rating_avg: string;
 };
 
-export const RecipesGrid = () => {
+type RecipesGridProps = {
+	page?: number;
+	perPage?: number;
+	onLoad?: (totalCount: number) => void;
+};
+
+export const RecipesGrid = ({
+	page = 1,
+	perPage = 12,
+	onLoad,
+}: RecipesGridProps) => {
 	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
 
 	useEffect(() => {
@@ -26,13 +31,20 @@ export const RecipesGrid = () => {
 				}
 				return res.json();
 			})
-			.then((body) => setRecipeList(body.data))
+			.then((body) => {
+				const allRecipes: RecipeCardResponse[] = body.data ?? [];
+				onLoad?.(allRecipes.length);
+				setRecipeList(allRecipes);
+			})
 			.catch(console.error);
-	}, []);
+	}, [onLoad]);
+
+	const start = (page - 1) * perPage;
+	const pageRecipes = recipeList.slice(start, start + perPage);
 
 	return (
 		<ul className="recipe-card-list">
-			{recipeList.map(({ id, title, description, rating_avg }) => (
+			{pageRecipes.map(({ id, title, description, rating_avg }) => (
 				<li key={id}>
 					<RecipeCard
 						id={id}
