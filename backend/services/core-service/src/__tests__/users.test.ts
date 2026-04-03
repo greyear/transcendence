@@ -139,6 +139,79 @@ describe("Users Routes", () => {
 		});
 	});
 
+	describe("GET /users", () => {
+		it("should return list of users", async () => {
+			const response = await request(app).get("/users");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body).toHaveProperty("count");
+			expect(Array.isArray(response.body.data)).toBe(true);
+			expect(response.body.count).toBe(response.body.data.length);
+			if (response.body.data.length > 0) {
+				expect(response.body.data[0]).toHaveProperty("id");
+				expect(response.body.data[0]).toHaveProperty("username");
+				expect(response.body.data[0]).toHaveProperty("avatar");
+				expect(response.body.data[0]).toHaveProperty("recipes_count");
+				expect(response.body.data[0]).not.toHaveProperty("status");
+				expect(response.body.data[0]).not.toHaveProperty("role");
+			}
+		});
+	});
+
+	describe("GET /users/:id", () => {
+		it("should return public user profile without role and hidden status for anonymous requester", async () => {
+			const response = await request(app).get("/users/1");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body.data).toHaveProperty("id", 1);
+			expect(response.body.data).toHaveProperty("username");
+			expect(response.body.data).toHaveProperty("avatar");
+			expect(response.body.data).toHaveProperty("status", null);
+			expect(response.body.data).not.toHaveProperty("role");
+			expect(response.body.data).toHaveProperty("recipes_count");
+		});
+
+		it("should return status for mutual followers", async () => {
+			const response = await request(app)
+				.get("/users/10001")
+				.set("X-User-Id", "10002");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body.data).toHaveProperty("id", 10001);
+			expect(response.body.data).toHaveProperty("status", "online");
+			expect(response.body.data).not.toHaveProperty("role");
+		});
+
+		it("should hide status when follow is not mutual", async () => {
+			const response = await request(app)
+				.get("/users/10003")
+				.set("X-User-Id", "10004");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body.data).toHaveProperty("id", 10003);
+			expect(response.body.data).toHaveProperty("status", null);
+			expect(response.body.data).not.toHaveProperty("role");
+		});
+
+		it("should return 400 for invalid user id", async () => {
+			const response = await request(app).get("/users/abc");
+
+			expect(response.status).toBe(400);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should return 404 for non-existent user", async () => {
+			const response = await request(app).get("/users/999999");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toHaveProperty("error");
+		});
+	});
+
 	describe("GET /users/:id/recipes", () => {
 		/**
 		 * Test: GET /users/:id/recipes returns list of published recipes
