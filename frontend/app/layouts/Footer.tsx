@@ -10,7 +10,7 @@ export const Footer = () => {
 	return (
 		<footer className="footer">
 			<div className="footer-top-row">
-				<nav aria-label="Footer main">
+				<nav aria-label={t("ariaLabels.footerMain")}>
 					<ul className="nav-list">
 						<li>
 							<TextIconButton size="body2" to="/">
@@ -37,7 +37,7 @@ export const Footer = () => {
 			</div>
 			<div className="divider-line" aria-hidden="true" />
 			<div className="legal-container">
-				<nav aria-label="Legal">
+				<nav aria-label={t("ariaLabels.legal")}>
 					<ul className="nav-list nav-list-legal">
 						<li>
 							<TextIconButton size="body2" to="/terms">

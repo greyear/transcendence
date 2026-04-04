@@ -34,5 +34,29 @@
 		"recipes": "recipes",
 		"follow": "Follow",
 		"unfollow": "Unfollow"
+	},
+	"ariaLabels": {
+		"addToFavorites": "Add to favorites",
+		"removeFromFavorites": "Remove from favorites",
+		"approve": "Approve",
+		"discard": "Discard",
+		"hidePassword": "Hide password",
+		"showPassword": "Show password",
+		"search": "Search",
+		"openSearch": "Open search",
+		"closeSearch": "Close search",
+		"clearSearch": "Clear search",
+		"firstPage": "First page",
+		"previousPage": "Previous page",
+		"nextPage": "Next page",
+		"lastPage": "Last page",
+		"page": "Page {{page}}",
+		"pagination": "Pagination",
+		"footerMain": "Footer main",
+		"legal": "Legal",
+		"headerMain": "Header main",
+		"goHome": "Go to homepage",
+		"notifications": "Notifications",
+		"toggleMenu": "Toggle menu"
 	}
 }

@@ -34,5 +34,29 @@
 		"recipes": "reseptiä",
 		"follow": "Seuraa",
 		"unfollow": "Lopeta seuraaminen"
+	},
+	"ariaLabels": {
+		"addToFavorites": "Lisää suosikkeihin",
+		"removeFromFavorites": "Poista suosikeista",
+		"approve": "Hyväksy",
+		"discard": "Hylkää",
+		"hidePassword": "Piilota salasana",
+		"showPassword": "Näytä salasana",
+		"search": "Hae",
+		"openSearch": "Avaa haku",
+		"closeSearch": "Sulje haku",
+		"clearSearch": "Tyhjennä haku",
+		"firstPage": "Ensimmäinen sivu",
+		"previousPage": "Edellinen sivu",
+		"nextPage": "Seuraava sivu",
+		"lastPage": "Viimeinen sivu",
+		"page": "Sivu {{page}}",
+		"pagination": "Sivunumerointi",
+		"footerMain": "Alatunnisteen päänavigaatio",
+		"legal": "Oikeudelliset tiedot",
+		"headerMain": "Ylätunnisteen päänavigaatio",
+		"goHome": "Siirry etusivulle",
+		"notifications": "Ilmoitukset",
+		"toggleMenu": "Vaihda valikon tila"
 	}
 }

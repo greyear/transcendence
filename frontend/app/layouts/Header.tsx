@@ -16,7 +16,7 @@ const NavigationList = () => {
 	const { pathname } = useLocation();
 
 	return (
-		<nav aria-label="Header main">
+		<nav aria-label={t("ariaLabels.headerMain")}>
 			<ul className="header-navigation-list">
 				<li>
 					<TextIconButton
@@ -88,7 +88,11 @@ export const Header = () => {
 	return (
 		<header ref={headerRef} className="main-header">
 			<div className="header-top-row">
-				<Link to="/" aria-label="RCP – go to homepage" className="logo-link h3">
+				<Link
+					to="/"
+					aria-label={`RCP – ${t("ariaLabels.goHome")}`}
+					className="logo-link h3"
+				>
 					RCP
 				</Link>
 				{isDesktop && <NavigationList />}
@@ -99,14 +103,17 @@ export const Header = () => {
 							placeholder={t("common.searchPlaceholder")}
 						/>
 					)}
-					<IconButton aria-label="Notifications" variant="transparent">
+					<IconButton
+						aria-label={t("ariaLabels.notifications")}
+						variant="transparent"
+					>
 						<Bell />
 					</IconButton>
 					{!isDesktop ? (
 						<IconButton
 							onClick={handleMenuButtonClick}
 							aria-expanded={isOpen}
-							aria-label="Toggle menu"
+							aria-label={t("ariaLabels.toggleMenu")}
 							variant="transparent"
 						>
 							{isOpen ? <Xmark /> : <Menu />}
