@@ -6,6 +6,7 @@ import {
 } from "iconoir-react";
 import { Navigate, useSearchParams } from "react-router";
 import "~/assets/styles/pagination.css";
+import { useTranslation } from "react-i18next";
 import { getCurrentPage } from "~/composables/getCurrentPage";
 import { PaginationItem } from "./PaginationItem";
 
@@ -28,6 +29,7 @@ const getPageWindow = (
 };
 
 export const Pagination = ({ totalPagesCount }: PaginationProps) => {
+	const { t } = useTranslation();
 	const [searchParams] = useSearchParams();
 	const currentPage = getCurrentPage(searchParams, totalPagesCount);
 
@@ -52,14 +54,14 @@ export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 	const mobilePageSet = new Set(getPageWindow(currentPage, totalPagesCount, 3));
 
 	return (
-		<nav className="pagination" aria-label="Pagination">
+		<nav className="pagination" aria-label={t("ariaLabels.pagination")}>
 			<ul className="pagination__list">
 				<li className="pagination__item">
 					<PaginationItem
 						to={buildPageUrl(1)}
 						variant="nav"
 						disabled={currentPage <= 1}
-						ariaLabel="First page"
+						ariaLabel={t("ariaLabels.firstPage")}
 					>
 						<FastArrowLeft />
 					</PaginationItem>
@@ -70,7 +72,7 @@ export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 						to={buildPageUrl(currentPage - 1)}
 						variant="nav"
 						disabled={currentPage <= 1}
-						ariaLabel="Previous page"
+						ariaLabel={t("ariaLabels.previousPage")}
 					>
 						<NavArrowLeft />
 					</PaginationItem>
@@ -90,7 +92,7 @@ export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 							to={buildPageUrl(page)}
 							variant="page"
 							active={page === currentPage}
-							ariaLabel={`Page ${page}`}
+							ariaLabel={t("ariaLabels.page", { page })}
 							ariaCurrentPage={page === currentPage}
 						>
 							{page}
@@ -103,7 +105,7 @@ export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 						to={buildPageUrl(currentPage + 1)}
 						variant="nav"
 						disabled={currentPage >= totalPagesCount}
-						ariaLabel="Next page"
+						ariaLabel={t("ariaLabels.nextPage")}
 					>
 						<NavArrowRight />
 					</PaginationItem>
@@ -114,7 +116,7 @@ export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 						to={buildPageUrl(totalPagesCount)}
 						variant="nav"
 						disabled={currentPage >= totalPagesCount}
-						ariaLabel="Last page"
+						ariaLabel={t("ariaLabels.lastPage")}
 					>
 						<FastArrowRight />
 					</PaginationItem>

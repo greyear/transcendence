@@ -22,5 +22,29 @@
 		"tabAll": "Все",
 		"tabMy": "Мои рецепты",
 		"tabSaved": "Сохраненные рецепты"
+	},
+	"ariaLabels": {
+		"addToFavorites": "Добавить в избранное",
+		"removeFromFavorites": "Удалить из избранного",
+		"approve": "Одобрить",
+		"discard": "Отклонить",
+		"hidePassword": "Скрыть пароль",
+		"showPassword": "Показать пароль",
+		"search": "Поиск",
+		"openSearch": "Открыть поиск",
+		"closeSearch": "Закрыть поиск",
+		"clearSearch": "Очистить поиск",
+		"firstPage": "Первая страница",
+		"previousPage": "Предыдущая страница",
+		"nextPage": "Следующая страница",
+		"lastPage": "Последняя страница",
+		"page": "Страница {{page}}",
+		"pagination": "Навигация по страницам",
+		"footerMain": "Основная навигация в подвале",
+		"legal": "Правовая информация",
+		"headerMain": "Основная навигация в шапке",
+		"goHome": "Перейти на главную страницу",
+		"notifications": "Уведомления",
+		"toggleMenu": "Переключить меню"
 	}
 }
