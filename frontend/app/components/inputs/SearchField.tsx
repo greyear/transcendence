@@ -1,6 +1,7 @@
 import "../../assets/styles/searchField.css";
 import { ArrowLeft, Search, Xmark } from "iconoir-react";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { IconButton } from "../buttons/IconButton";
 
 type SearchProps = {
@@ -13,12 +14,15 @@ type SearchProps = {
 export const SearchField = ({
 	placeholder = "Search for ...",
 	className = "",
-	ariaLabel = "Search",
+	ariaLabel,
 	mode = "always-open",
 }: SearchProps) => {
+	const { t } = useTranslation();
 	const [value, setValue] = useState("");
 	const [isOpen, setIsOpen] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
+
+	const translatedAriaLabel = ariaLabel ?? t("ariaLabels.search");
 
 	const showSearch = mode === "always-open" || isOpen;
 
@@ -45,7 +49,7 @@ export const SearchField = ({
 			<IconButton
 				className={`magnifier-toggle ${className}`.trim()}
 				type="button"
-				aria-label="Open search"
+				aria-label={t("ariaLabels.openSearch")}
 				onClick={openSearch}
 			>
 				<Search />
@@ -63,7 +67,7 @@ export const SearchField = ({
 					<IconButton
 						className="search-inline-button"
 						type="button"
-						aria-label="Close search"
+						aria-label={t("ariaLabels.closeSearch")}
 						onClick={closeSearch}
 					>
 						<ArrowLeft />
@@ -72,7 +76,7 @@ export const SearchField = ({
 					<IconButton
 						className="search-inline-button"
 						type="submit"
-						aria-label="Search"
+						aria-label={t("ariaLabels.search")}
 					>
 						<Search />
 					</IconButton>
@@ -84,7 +88,7 @@ export const SearchField = ({
 					type="text"
 					value={value}
 					placeholder={placeholder}
-					aria-label={ariaLabel}
+					aria-label={translatedAriaLabel}
 					onChange={(e) => setValue(e.target.value)}
 					onKeyDown={(e) => {
 						if (e.key === "Escape") {
@@ -101,7 +105,7 @@ export const SearchField = ({
 					<IconButton
 						className="cross"
 						type="button"
-						aria-label="Clear search"
+						aria-label={t("ariaLabels.clearSearch")}
 						onClick={() => {
 							setValue("");
 							inputRef.current?.focus();

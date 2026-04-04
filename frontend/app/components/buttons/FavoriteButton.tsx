@@ -2,12 +2,14 @@ import { Heart } from "iconoir-react";
 import { useState } from "react";
 import { IconButton } from "./IconButton";
 import "../../assets/styles/favoriteButton.css";
+import { useTranslation } from "react-i18next";
 
 type Props = {
 	disabled?: boolean;
 };
 
 export const FavoriteButton = ({ disabled = false }: Props) => {
+	const { t } = useTranslation();
 	const [isActive, setIsActive] = useState(false);
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		e.stopPropagation();
@@ -20,7 +22,11 @@ export const FavoriteButton = ({ disabled = false }: Props) => {
 			className={`favorite-button ${isActive ? "active" : ""}`}
 			onClick={(e) => handleClick(e)}
 			aria-pressed={isActive}
-			aria-label={isActive ? "Remove from favorites" : "Add to favorites"}
+			aria-label={
+				isActive
+					? t("ariaLabels.removeFromFavorites")
+					: t("ariaLabels.addToFavorites")
+			}
 			disabled={disabled}
 		>
 			<Heart />
