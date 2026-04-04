@@ -9,6 +9,8 @@ type SearchProps = {
 	className?: string;
 	ariaLabel?: string;
 	mode?: "always-open" | "collapsible";
+	defaultValue?: string;
+	onSubmit?: (query: string) => void;
 };
 
 export const SearchField = ({
@@ -16,9 +18,11 @@ export const SearchField = ({
 	className = "",
 	ariaLabel,
 	mode = "always-open",
+	defaultValue = "",
+	onSubmit: onSubmitProp,
 }: SearchProps) => {
 	const { t } = useTranslation();
-	const [value, setValue] = useState("");
+	const [value, setValue] = useState(defaultValue);
 	const [isOpen, setIsOpen] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -41,7 +45,7 @@ export const SearchField = ({
 
 		const query = value.trim();
 		if (!query) return;
-		// later navigation/search logic comes here
+		onSubmitProp?.(query);
 	};
 
 	if (!showSearch) {

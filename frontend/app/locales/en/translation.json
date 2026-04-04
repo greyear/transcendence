@@ -68,6 +68,12 @@
 		"ratingOption": "{{value}} out of 5 stars",
 		"submit": "Submit"
 	},
+	"searchPage": {
+		"title": "Search",
+		"totalCount": "Results:",
+		"recipesTab": "Recipes",
+		"usersTab": "Users"
+	},
 	"usersPage": {
 		"title": "Users",
 		"totalCount": "Total users:",

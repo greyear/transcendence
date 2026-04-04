@@ -1,0 +1,13 @@
+.search-page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xl);
+	align-items: center;
+}
+
+.search-page-controls {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+}

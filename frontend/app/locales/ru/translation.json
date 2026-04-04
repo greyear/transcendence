@@ -68,6 +68,12 @@
 		"ratingOption": "{{value}} из 5 звезд",
 		"submit": "Отправить"
 	},
+	"searchPage": {
+		"title": "Поиск",
+		"totalCount": "Результатов:",
+		"recipesTab": "Рецепты",
+		"usersTab": "Пользователи"
+	},
 	"usersPage": {
 		"title": "Авторы рецептов",
 		"totalCount": "Всего авторов:",

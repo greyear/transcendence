@@ -68,6 +68,12 @@
 		"ratingOption": "{{value}} tähteä viidestä",
 		"submit": "Lähetä"
 	},
+	"searchPage": {
+		"title": "Haku",
+		"totalCount": "Tuloksia:",
+		"recipesTab": "Reseptit",
+		"usersTab": "Käyttäjät"
+	},
 	"usersPage": {
 		"title": "Käyttäjät",
 		"totalCount": "Käyttäjiä yhteensä:",
