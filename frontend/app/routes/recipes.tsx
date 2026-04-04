@@ -40,10 +40,8 @@ const RecipesPage = () => {
 
 			<FilterList
 				filters={filters}
-				activeFilter={filters[activeFilterIndex]}
-				onFilterChange={(filter) =>
-					setActiveFilterIndex(filters.indexOf(filter))
-				}
+				activeIndex={activeFilterIndex}
+				onFilterChange={setActiveFilterIndex}
 			/>
 
 			<div className="recipes-page-controls">

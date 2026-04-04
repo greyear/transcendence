@@ -29,10 +29,8 @@ const UsersPage = () => {
 
 			<FilterList
 				filters={filters}
-				activeFilter={filters[activeFilterIndex]}
-				onFilterChange={(filter) =>
-					setActiveFilterIndex(filters.indexOf(filter))
-				}
+				activeIndex={activeFilterIndex}
+				onFilterChange={setActiveFilterIndex}
 			/>
 
 			<div className="users-page-controls">
