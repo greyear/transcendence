@@ -1,7 +1,9 @@
 {
 	"common": {
 		"signInButton": "Вход",
-		"searchPlaceholder": "Искать ..."
+		"searchPlaceholder": "Искать ...",
+		"sortButton": "Сортировка",
+		"filterButton": "Фильтр"
 	},
 	"homePage": {
 		"title": "Главная"
@@ -15,13 +17,23 @@
 	},
 	"recipesPage": {
 		"title": "Рецепты",
-		"totalCount": "Всего рецептов: ",
+		"totalCount": "Всего рецептов:",
 		"createButton": "Создать",
-		"sortButton": "Сортировка",
-		"filterButton": "Фильтр",
 		"tabAll": "Все",
 		"tabMy": "Мои рецепты",
 		"tabSaved": "Сохраненные рецепты"
+	},
+	"usersPage": {
+		"title": "Пользователи",
+		"totalCount": "Всего пользователей:",
+		"tabAll": "Все",
+		"tabFollowers": "Подписчики",
+		"tabFollowing": "Подписки"
+	},
+	"userCard": {
+		"recipes": "рецептов",
+		"follow": "Подписаться",
+		"unfollow": "Отписаться"
 	},
 	"ariaLabels": {
 		"addToFavorites": "Добавить в избранное",

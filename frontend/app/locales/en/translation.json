@@ -1,7 +1,9 @@
 {
 	"common": {
 		"signInButton": "Sign In",
-		"searchPlaceholder": "Search for ..."
+		"searchPlaceholder": "Search for ...",
+		"sortButton": "Sort",
+		"filterButton": "Filter"
 	},
 	"homePage": {
 		"title": "Home"
@@ -15,13 +17,23 @@
 	},
 	"recipesPage": {
 		"title": "Recipes",
-		"totalCount": "Total recipes: ",
+		"totalCount": "Total recipes:",
 		"createButton": "Create new",
-		"sortButton": "Sort",
-		"filterButton": "Filter",
 		"tabAll": "All",
 		"tabMy": "My recipes",
 		"tabSaved": "Saved recipes"
+	},
+	"usersPage": {
+		"title": "Users",
+		"totalCount": "Total users:",
+		"tabAll": "All",
+		"tabFollowers": "Followers",
+		"tabFollowing": "Following"
+	},
+	"userCard": {
+		"recipes": "recipes",
+		"follow": "Follow",
+		"unfollow": "Unfollow"
 	},
 	"ariaLabels": {
 		"addToFavorites": "Add to favorites",
