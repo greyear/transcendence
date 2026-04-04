@@ -17,7 +17,7 @@
 	},
 	"recipesPage": {
 		"title": "Рецепты",
-		"totalCount": "Всего рецептов: ",
+		"totalCount": "Всего рецептов:",
 		"createButton": "Создать",
 		"tabAll": "Все",
 		"tabMy": "Мои рецепты",
@@ -25,7 +25,7 @@
 	},
 	"usersPage": {
 		"title": "Пользователи",
-		"totalCount": "Всего пользователей: ",
+		"totalCount": "Всего пользователей:",
 		"tabAll": "Все",
 		"tabFollowers": "Подписчики",
 		"tabFollowing": "Подписки"

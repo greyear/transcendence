@@ -17,7 +17,7 @@
 	},
 	"recipesPage": {
 		"title": "Reseptit",
-		"totalCount": "Reseptejä yhteensä: ",
+		"totalCount": "Reseptejä yhteensä:",
 		"createButton": "Luo uusi",
 		"tabAll": "Kaikki",
 		"tabMy": "Omat reseptit",
@@ -25,7 +25,7 @@
 	},
 	"usersPage": {
 		"title": "Käyttäjät",
-		"totalCount": "Käyttäjiä yhteensä: ",
+		"totalCount": "Käyttäjiä yhteensä:",
 		"tabAll": "Kaikki",
 		"tabFollowers": "Seuraajat",
 		"tabFollowing": "Seuratut"

@@ -17,7 +17,7 @@
 	},
 	"recipesPage": {
 		"title": "Recipes",
-		"totalCount": "Total recipes: ",
+		"totalCount": "Total recipes:",
 		"createButton": "Create new",
 		"tabAll": "All",
 		"tabMy": "My recipes",
@@ -25,7 +25,7 @@
 	},
 	"usersPage": {
 		"title": "Users",
-		"totalCount": "Total users: ",
+		"totalCount": "Total users:",
 		"tabAll": "All",
 		"tabFollowers": "Followers",
 		"tabFollowing": "Following"

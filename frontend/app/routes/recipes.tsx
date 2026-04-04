@@ -32,7 +32,7 @@ const RecipesPage = () => {
 		<section className="recipes-page">
 			<PageHeader
 				title={t("recipesPage.title")}
-				totalLabel={`${t("recipesPage.totalCount")}${totalCount}`}
+				totalLabel={`${t("recipesPage.totalCount")} ${totalCount}`}
 				action={<MainButton>{t("recipesPage.createButton")}</MainButton>}
 			/>
 
