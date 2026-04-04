@@ -6,7 +6,7 @@
 	position: absolute;
 	top: calc(100% + var(--space-s));
 	left: 0;
-	z-index: 100;
+	z-index: 10;
 	list-style: none;
 	margin: 0;
 	padding: var(--space-s);
@@ -30,7 +30,7 @@
 	line-height: var(--lh-body1);
 	color: var(--text-primary);
 	cursor: pointer;
-	transition: filter 0.15s ease;
+	transition: filter 0.2s ease;
 	white-space: nowrap;
 }
 
