@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { MainButton } from "~/components/buttons/MainButton";
 import { FilterList } from "~/components/FilterList";
@@ -22,22 +22,28 @@ const RecipesPage = () => {
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams] = useSearchParams();
 
-	const SORT_OPTIONS: SortOption[] = [
-		{ label: t("recipesPage.sortOptions.nameAsc"), value: "name-asc" },
-		{ label: t("recipesPage.sortOptions.nameDesc"), value: "name-desc" },
-		// { label: t("recipesPage.sortOptions.dateAsc"), value: "date-asc" }
-		// { label: t("recipesPage.sortOptions.dateDesc"), value: "date-desc" },
-	];
+	const SORT_OPTIONS: SortOption[] = useMemo(
+		() => [
+			{ label: t("recipesPage.sortOptions.nameAsc"), value: "name-asc" },
+			{ label: t("recipesPage.sortOptions.nameDesc"), value: "name-desc" },
+			// { label: t("recipesPage.sortOptions.dateAsc"), value: "date-asc" }
+			// { label: t("recipesPage.sortOptions.dateDesc"), value: "date-desc" },
+		],
+		[t],
+	);
 
 	const DEFAULT_SORT = SORT_OPTIONS[0].value;
 
 	const [sortValue, setSort] = useSortParam(DEFAULT_SORT);
 
-	const filters = [
-		t("recipesPage.tabAll"),
-		t("recipesPage.tabMy"),
-		t("recipesPage.tabSaved"),
-	];
+	const filters = useMemo(
+		() => [
+			t("recipesPage.tabAll"),
+			t("recipesPage.tabMy"),
+			t("recipesPage.tabSaved"),
+		],
+		[t],
+	);
 	const totalPages = Math.max(1, Math.ceil(totalCount / PER_PAGE));
 	const page = getCurrentPage(searchParams, totalPages);
 

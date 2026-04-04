@@ -1,20 +1,20 @@
 import { RecipeCard } from "./cards/RecipeCard";
 import "../assets/styles/recipesGrid.css";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type RecipeCardResponse = {
 	id: number;
 	title: string;
 	description: string;
 	rating_avg: string;
-	created_at?: string;
+	// created_at: string;
 };
 
 type RecipesGridProps = {
+	sortValue: string;
 	page?: number;
 	perPage?: number;
 	onLoad?: (totalCount: number) => void;
-	sortValue?: string;
 };
 
 const sortRecipes = (
@@ -27,9 +27,9 @@ const sortRecipes = (
 			return sorted.sort((a, b) => a.title.localeCompare(b.title));
 		case "name-desc":
 			return sorted.sort((a, b) => b.title.localeCompare(a.title));
-		// case "date-desc":
-		// 	return sorted.sort((a, b) => a.created_at.localeCompare(b.created_at));
 		// case "date-asc":
+		// 	return sorted.sort((a, b) => a.created_at.localeCompare(b.created_at));
+		// case "date-desc":
 		// 	return sorted.sort((a, b) => b.created_at.localeCompare(a.created_at));
 		default:
 			return sorted;
@@ -40,7 +40,7 @@ export const RecipesGrid = ({
 	page = 1,
 	perPage = 12,
 	onLoad,
-	sortValue = "name-asc",
+	sortValue,
 }: RecipesGridProps) => {
 	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
 
@@ -61,7 +61,10 @@ export const RecipesGrid = ({
 			.catch(console.error);
 	}, [onLoad]);
 
-	const sortedList = sortRecipes(recipeList, sortValue);
+	const sortedList = useMemo(
+		() => sortRecipes(recipeList, sortValue),
+		[recipeList, sortValue],
+	);
 
 	const start = (page - 1) * perPage;
 	const pageRecipes = sortedList.slice(start, start + perPage);
