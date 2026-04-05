@@ -3,7 +3,17 @@
 		"signInButton": "Вход",
 		"searchPlaceholder": "Искать ...",
 		"sortButton": "Сортировка",
-		"filterButton": "Фильтр"
+		"filterButton": "Фильтр",
+		"sortOptions": {
+			"nameAsc": "По имени А→Я",
+			"nameDesc": "По имени Я→А",
+			"titleAsc": "По названию А→Я",
+			"titleDesc": "По названию Я→А",
+			"dateAsc": "Сначала старые",
+			"dateDesc": "Сначала новые",
+			"recipesCountAsc": "Меньше рецептов",
+			"recipesCountDesc": "Больше рецептов"
+		}
 	},
 	"homePage": {
 		"heroTitle": "Место для любителей еды",
@@ -64,6 +74,7 @@
 		"notifications": "Уведомления",
 		"toggleMenu": "Переключить меню",
 		"allRecipes": "Все рецепты",
-		"allUsers": "Все пользователи"
+		"allUsers": "Все пользователи",
+		"sortBy": "Сортировать по"
 	}
 }

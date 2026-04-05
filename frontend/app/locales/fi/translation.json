@@ -3,7 +3,17 @@
 		"signInButton": "Kirjaudu",
 		"searchPlaceholder": "Hae ...",
 		"sortButton": "Järjestä",
-		"filterButton": "Suodata"
+		"filterButton": "Suodata",
+		"sortOptions": {
+			"nameAsc": "Nimi A→Ö",
+			"nameDesc": "Nimi Ö→А",
+			"titleAsc": "Otsikko A→Ö",
+			"titleDesc": "Otsikko Ö→А",
+			"dateAsc": "Vanhimmat ensin",
+			"dateDesc": "Uusimmat ensin",
+			"recipesCountAsc": "Vähiten reseptejä",
+			"recipesCountDesc": "Eniten reseptejä"
+		}
 	},
 	"homePage": {
 		"heroTitle": "Paikka ruoan ystäville",
@@ -64,6 +74,7 @@
 		"notifications": "Ilmoitukset",
 		"toggleMenu": "Vaihda valikon tila",
 		"allRecipes": "Kaikki reseptit",
-		"allUsers": "Kaikki käyttäjät"
+		"allUsers": "Kaikki käyttäjät",
+		"sortBy": "Järjestä"
 	}
 }

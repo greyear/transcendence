@@ -3,7 +3,17 @@
 		"signInButton": "Sign In",
 		"searchPlaceholder": "Search for ...",
 		"sortButton": "Sort",
-		"filterButton": "Filter"
+		"filterButton": "Filter",
+		"sortOptions": {
+			"nameAsc": "Name A→Z",
+			"nameDesc": "Name Z→A",
+			"titleAsc": "Title A→Z",
+			"titleDesc": "Title Z→A",
+			"dateAsc": "Old first",
+			"dateDesc": "New first",
+			"recipesCountAsc": "Fewest recipes",
+			"recipesCountDesc": "Most recipes"
+		}
 	},
 	"homePage": {
 		"heroTitle": "A place for food lovers",
@@ -64,6 +74,7 @@
 		"notifications": "Notifications",
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
-		"allUsers": "All users"
+		"allUsers": "All users",
+		"sortBy": "Sort by"
 	}
 }
