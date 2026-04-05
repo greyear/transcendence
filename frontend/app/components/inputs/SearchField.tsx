@@ -64,11 +64,8 @@ export const SearchField = ({
 	}
 
 	return (
-		<search>
-			<form
-				className={`search-wrapper ${className}`.trim()}
-				onSubmit={handleSubmit}
-			>
+		<search className={className}>
+			<form className="search-wrapper" onSubmit={handleSubmit}>
 				{mode === "collapsible" ? (
 					<IconButton
 						className="search-inline-button"

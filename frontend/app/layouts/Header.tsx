@@ -125,6 +125,7 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 				<div className="header-top-icon-row">
 					{!isMobile && (
 						<SearchField
+							className="header-search"
 							mode={isDesktop ? "always-open" : "collapsible"}
 							placeholder={t("common.searchPlaceholder")}
 							onSubmit={handleSearch}
