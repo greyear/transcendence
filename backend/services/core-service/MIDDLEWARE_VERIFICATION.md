@@ -1,276 +1,159 @@
 # Core Service Middleware Chain Verification
 
-## Middleware Order & Execution Flow
+This document is synced with the current code in:
+- `src/app.ts`
+- `src/routes/*.ts`
+- `src/middleware/errorHandler.ts`
+- `src/middleware/extractUser.ts`
 
-The core-service has a properly structured middleware chain. All endpoints correctly use all middlewares.
+## 1) Global Middleware Order
 
-### Global Middlewares (runs for EVERY request)
+Global chain in `src/app.ts` is:
 
-**File: `src/index.ts`**
-
-```
-Request → CORS → JSON Parser → Routes → Error Handlers
-```
-
-1. **CORS Middleware** (line 24-28)
-   - Runs first
-   - Allows cross-origin requests
-   - Configured for security
-
-2. **JSON Parser** (line 29)
-   - Parses request body as JSON
-   - Required for POST/PUT requests with JSON body
-
-3. **Routes** (line 31-33)
-   - Routes requests to specific routers
-   - `/health` → healthRouter
-   - `/recipes` → recipesRouter
-
-4. **Error Handlers** (line 36-38)
-   - Must be LAST
-   - Catches all errors from routes/middlewares above
-   - Catches 404 (notFoundHandler)
-   - Catches other errors (errorHandler)
-
----
-
-## Endpoint Verification
-
-### ✅ GET /health
-
-**Route**: `healthRouter.get("/", ...)`  
-**File**: `src/routes/health.routes.ts:30`
-
-```
-Request
-  ↓
-CORS middleware ✓
-  ↓
-JSON Parser ✓
-  ↓
-Route Handler (synchronous)
-  → res.status(200).json()
-  → No error handler needed (no errors possible)
-  ✓ Covered by errorHandler if any error occurs
+```text
+Request -> CORS -> express.json() -> Routers -> notFoundHandler -> errorHandler
 ```
 
-**Verification**: ✅
-- Handler is synchronous, sends response
-- Any unexpected errors caught by errorHandler
+Verification:
+- `cors(...)` is mounted before all routers.
+- `express.json()` is mounted before all routers.
+- `notFoundHandler` is mounted after all routers.
+- `errorHandler` is mounted last.
 
----
+This order is correct for Express.
 
-### ✅ GET /health/db
+## 2) Router-Level Middleware Usage
 
-**Route**: `healthRouter.get("/db", async ...):`  
-**File**: `src/routes/health.routes.ts:45-52`
+Current routes in core-service are read endpoints only.
 
-```
-Request
-  ↓
-CORS middleware ✓
-  ↓
-JSON Parser ✓
-  ↓
-Route Handler (async)
-  → try: pool.query()
-    ✓ Response sent
-  → catch: next(error)
-    ✓ Error passed to errorHandler
-```
+`/recipes` router (`src/routes/recipes.routes.ts`):
+- `GET /recipes` -> no `extractUser` (public list of published recipes)
+- `GET /recipes/:id` -> uses `extractUser` before handler
 
-**Verification**: ✅
-- Handler is async, uses try/catch
-- Errors from pool.query() → caught → next(error) → errorHandler
-- errorHandler sends proper HTTP response
+`/users` router (`src/routes/users.routes.ts`):
+- `GET /users/:id/recipes` -> no `extractUser` (public profile recipes)
+- `GET /users/:id` -> uses `extractUser` before handler (user profile with visibility rules)
+- `GET /users/me/recipes` -> uses `extractUser` before handler
 
----
+Health router (`src/routes/health.routes.ts`):
+- `GET /health`
+- `GET /health/db`
 
-### ✅ GET /recipes
+## 3) Endpoint-by-Endpoint Flow
 
-**Route**: `recipesRouter.get("/", getAllRecipes)`  
-**File**: `src/routes/recipes.routes.ts:36`
+### GET /health
 
-```
-Request
-  ↓
-CORS middleware ✓
-  ↓
-JSON Parser ✓
-  ↓
-extractUser middleware ✓ (router.use on line 26)
-  → Sets req.userId (string | undefined)
-  ↓
-Route Handler: getAllRecipes (async)
-  → try: getAllRecipesService()
-    ✓ Response sent
-  → catch: next(error)
-    ✓ Error passed to errorHandler
-```
+Flow:
+1. CORS
+2. JSON parser
+3. `healthRouter.get("/")`
+4. Response `200`
 
-**Verification**: ✅
-- extractUser middleware runs before handler
-- Sets userId from X-User-Id header
-- Handler is async, uses try/catch
-- Errors → errorHandler
+Notes:
+- No DB calls.
+- No auth middleware required.
 
-**File**: `src/routes/recipes.routes.ts:22-30` (2-layer: routes handle logic directly)
+### GET /health/db
 
----
+Flow:
+1. CORS
+2. JSON parser
+3. `healthRouter.get("/db")`
+4. `pool.query("SELECT 1")`
+5. Success `200` or `next(error)`
 
-### ✅ GET /recipes/:id
+Notes:
+- Uses async handler with `try/catch` and forwards errors correctly.
 
-**Route**: `recipesRouter.get("/:id", getRecipeById)`  
-**File**: `src/routes/recipes.routes.ts:59`
+### GET /recipes
 
-```
-Request
-  ↓
-CORS middleware ✓
-  ↓
-JSON Parser ✓
-  ↓
-extractUser middleware ✓ (router.use on line 26)
-  → Sets req.userId (string | undefined)
-  ↓
-Route Handler: getRecipeById (async)
-  → try:
-      1. validateRecipeId(id)
-         → if invalid: throw CustomError (statusCode: 400)
-      2. getRecipeByIdService(id, userId)
-      3. Check if recipe exists
-         → if null: throw CustomError (statusCode: 404)
-      4. Check if recipe restricted
-         → if restricted: throw CustomError (statusCode: 403)
-      5. Response sent ✓
-    ✓ All paths covered
-  → catch: next(error)
-    ✓ Error passed to errorHandler
-```
+Flow:
+1. CORS
+2. JSON parser
+3. `recipesRouter.get("/")`
+4. `getAllRecipes()` service call
+5. Success `200` or `next(error)`
 
-**Verification**: ✅
-- extractUser middleware runs before handler
-- Handler has comprehensive error handling
-- All possible errors (400, 403, 404) are explicitly handled
-- Errors → errorHandler
+Notes:
+- Public endpoint by design.
+- Does not need user context.
 
-**File**: `src/routes/recipes.routes.ts:35-78` (2-layer: routes handle logic directly)
+### GET /recipes/:id
 
----
+Flow:
+1. CORS
+2. JSON parser
+3. `extractUser` (parses optional `X-User-Id`)
+4. Validate `id` (`validateRecipeId`)
+5. Service call `getRecipeById(id, req.userId)`
+6. Return `200`, `400`, `403`, or `404`
+7. Unexpected errors go to `next(error)`
 
-## Error Handler Coverage
+Notes:
+- `extractUser` is applied only where visibility depends on user context.
 
-### notFoundHandler
+### GET /users/:id/recipes
 
-**Location**: `src/middleware/errorHandler.ts:56-61`  
-**Triggered**: When no route matches request
+Flow:
+1. CORS
+2. JSON parser
+3. Validate `:id` (`validateUserId`)
+4. Service call `getPublishedRecipesByUserId`
+5. Return `200`, `400`, or `404`
 
-```
-Request to /unknown
-  ↓
-CORS ✓
-  ↓
-JSON Parser ✓
-  ↓
-healthRouter: no match
-  ↓
-recipesRouter: no match
-  ↓
-notFoundHandler (line 37 in index.ts)
-  → res.status(404).json({ error: "Route not found" }) ✓
-```
+Notes:
+- Public endpoint.
 
-**Verification**: ✅
-- Catches all unmatched routes
-- Returns proper 404 response
+### GET /users/:id
 
-### errorHandler
+Flow:
+1. CORS
+2. JSON parser
+3. `extractUser` (parses optional `X-User-Id`)
+4. Validate `:id` (`validateUserId`)
+5. Service call `getUserById(userId, req.userId?)`
+6. Return `200`, `400`, or `404`
 
-**Location**: `src/middleware/errorHandler.ts:28-46`  
-**Triggered**: When next(error) is called
+Notes:
+- Public endpoint (unauthenticated users can access).
+- `extractUser` is applied because `status` visibility depends on mutual follow relationship.
+- Response always excludes `role`.
+- Response includes `status` only if:
+  - User is authenticated (`X-User-Id` present), AND
+  - User and target follow each other (mutual follow)
+- Otherwise, `status` is `null`.
 
-```
-Handler throws/calls next(error)
-  ↓
-errorHandler (line 38 in index.ts)
-  → Extracts statusCode from error (defaults to 500)
-  → Extracts message from error
-  → Logs: console.error()
-  → Response: res.status(statusCode).json({ error: message }) ✓
-```
+### GET /users/me/recipes
 
-**Verification**: ✅
-- Catches all errors from route handlers
-- Handles custom statusCode (400, 403, 404, 500)
-- Logs for debugging
-- Returns proper JSON response
+Flow:
+1. CORS
+2. JSON parser
+3. `extractUser`
+4. If `req.userId` is missing -> `401`
+5. Service call `getMyRecipes(req.userId)`
+6. Return `200`
 
----
+Notes:
+- Requires API gateway to forward `X-User-Id`.
 
-## Middleware Chain Diagram
+## 4) Error Handling Coverage
 
-```
-┌─────────────────────────────────────────┐
-│         Incoming Request                │
-└────────────────┬────────────────────────┘
-                 │
-     ┌───────────▼──────────┐
-     │  CORS Middleware     │ (src/index.ts:24-28)
-     └───────────┬──────────┘
-                 │
-     ┌───────────▼──────────┐
-     │  JSON Parser         │ (src/index.ts:29)
-     └───────────┬──────────┘
-                 │
-     ┌───────────▼──────────┐
-     │  /health Route       │ (src/routes/health.routes.ts)
-     │  + Handler Logic     │
-     │  ├─ GET /           │ ✓
-     │  └─ GET /db         │ ✓
-     └───────────┬──────────┘
-                 │
-     ┌───────────▼──────────┐
-     │  /recipes Route      │ (src/routes/recipes.routes.ts)
-     │  + extractUser (✓)   │ (src/middleware/extractUser.ts)
-     │  + Handler Logic     │
-     │  ├─ GET /           │ ✓
-     │  └─ GET /:id        │ ✓
-     └───────────┬──────────┘
-                 │
-        ┌────────▼────────┐
-        │   Error Occurs? │
-        └────────┬────────┘
-          Yes ✓  │  No ✓
-             ┌───▼───────┐
-             │ errorHandler  │ (src/middleware/errorHandler.ts)
-             │ OR            │
-             │ notFoundHandler│
-             └───┬───────┘
-                 │
-     ┌───────────▼──────────┐
-     │  JSON Response to    │
-     │  Client              │
-     └──────────────────────┘
-```
+`notFoundHandler` (`src/middleware/errorHandler.ts`):
+- Handles unmatched routes.
+- Returns JSON `404` with `Route not found`.
 
----
+`errorHandler` (`src/middleware/errorHandler.ts`):
+- Handles errors passed with `next(error)`.
+- Uses `err.statusCode` if provided; otherwise `500`.
+- Returns JSON error payload.
 
-## Summary
+## 5) Verification Summary
 
-✅ **All endpoints use all middlewares correctly**
+Status: middleware chain is correct and consistent.
 
-| Endpoint | CORS | JSON Parser | extractUser | Error Handler | Status |
-|----------|------|-------------|-------------|---------------|--------|
-| GET /health | ✓ | ✓ | - | ✓ | OK |
-| GET /health/db | ✓ | ✓ | - | ✓ | OK |
-| GET /recipes | ✓ | ✓ | ✓ | ✓ | OK |
-| GET /recipes/:id | ✓ | ✓ | ✓ | ✓ | OK |
-| Unknown route | ✓ | ✓ | - | ✓ (404) | OK |
-
-### Key Points:
-1. **Middleware order is correct** - CORS and JSON Parser run first, error handlers last
-2. **All routes are covered** - Global middlewares apply to all routes
-3. **Router-level middleware works** - extractUser runs only for /recipes routes
-4. **Error handling is complete** - All error paths (400, 403, 404, 500) are caught
-5. **No sync issues** - All async operations use try/catch with next(error)
-6. **2-layer architecture** - Routes handle HTTP concerns (validation, error handling, responses) and call services for business logic
+Key points:
+1. Global middleware order is correct.
+2. `extractUser` is applied only to routes that need user context.
+3. Route handlers consistently use `try/catch` + `next(error)`.
+4. 404 and generic error handling are correctly mounted last.
+5. Current document reflects `src/app.ts` (not `src/index.ts`).

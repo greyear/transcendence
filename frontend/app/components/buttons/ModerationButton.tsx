@@ -1,6 +1,7 @@
 import { CheckCircle, XmarkCircle } from "iconoir-react";
 import { IconButton } from "./IconButton";
 import "../../assets/styles/moderationButton.css";
+import { useTranslation } from "react-i18next";
 
 type ModerationAction = "approve" | "discard";
 
@@ -15,6 +16,7 @@ export const ModerationButton = ({
 	onClick,
 	disabled = false,
 }: Props) => {
+	const { t } = useTranslation();
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 		e.stopPropagation();
 		e.preventDefault();
@@ -27,7 +29,7 @@ export const ModerationButton = ({
 		<IconButton
 			className={`moderation-button ${isApprove ? "approve" : "discard"}`}
 			onClick={(e) => handleClick(e)}
-			aria-label={isApprove ? "Approve" : "Discard"}
+			aria-label={isApprove ? t("ariaLabels.approve") : t("ariaLabels.discard")}
 			disabled={disabled}
 		>
 			{isApprove ? <CheckCircle /> : <XmarkCircle />}

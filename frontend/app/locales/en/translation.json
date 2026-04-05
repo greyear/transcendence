@@ -1,7 +1,9 @@
 {
 	"common": {
 		"signInButton": "Sign In",
-		"searchPlaceholder": "Search for ..."
+		"searchPlaceholder": "Search for ...",
+		"sortButton": "Sort",
+		"filterButton": "Filter"
 	},
 	"homePage": {
 		"heroTitle": "A place for food lovers",
@@ -20,12 +22,46 @@
 	},
 	"recipesPage": {
 		"title": "Recipes",
-		"totalCount": "Total recipes: ",
+		"totalCount": "Total recipes:",
 		"createButton": "Create new",
-		"sortButton": "Sort",
-		"filterButton": "Filter",
 		"tabAll": "All",
 		"tabMy": "My recipes",
 		"tabSaved": "Saved recipes"
+	},
+	"usersPage": {
+		"title": "Users",
+		"totalCount": "Total users:",
+		"tabAll": "All",
+		"tabFollowers": "Followers",
+		"tabFollowing": "Following"
+	},
+	"userCard": {
+		"recipes": "recipes",
+		"follow": "Follow",
+		"unfollow": "Unfollow"
+	},
+	"ariaLabels": {
+		"addToFavorites": "Add to favorites",
+		"removeFromFavorites": "Remove from favorites",
+		"approve": "Approve",
+		"discard": "Discard",
+		"hidePassword": "Hide password",
+		"showPassword": "Show password",
+		"search": "Search",
+		"openSearch": "Open search",
+		"closeSearch": "Close search",
+		"clearSearch": "Clear search",
+		"firstPage": "First page",
+		"previousPage": "Previous page",
+		"nextPage": "Next page",
+		"lastPage": "Last page",
+		"page": "Page {{page}}",
+		"pagination": "Pagination",
+		"footerMain": "Footer main",
+		"legal": "Legal",
+		"headerMain": "Header main",
+		"goHome": "Go to homepage",
+		"notifications": "Notifications",
+		"toggleMenu": "Toggle menu"
 	}
 }

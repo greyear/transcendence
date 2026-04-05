@@ -153,7 +153,6 @@ const getRecipeByIdHandler = async (
 		}
 
 		const recipe = await getRecipeById(validation.value, req.userId);
-
 		if (!recipe) {
 			const error: CustomError = new Error("Recipe not found");
 			error.statusCode = 404;
