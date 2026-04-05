@@ -15,6 +15,7 @@ type RecipesGridProps = {
 	page?: number;
 	perPage?: number;
 	onLoad?: (totalCount: number) => void;
+	sort?: "top";
 };
 
 const sortRecipes = (
@@ -40,6 +41,7 @@ export const RecipesGrid = ({
 	page = 1,
 	perPage = 12,
 	onLoad,
+	sort,
 	sortValue,
 }: RecipesGridProps) => {
 	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
@@ -54,12 +56,18 @@ export const RecipesGrid = ({
 				return res.json();
 			})
 			.then((body) => {
-				const allRecipes: RecipeCardResponse[] = body.data ?? [];
+				let allRecipes: RecipeCardResponse[] = body.data ?? [];
+
+				if (sort === "top") {
+					allRecipes = [...allRecipes].sort(
+						(a, b) => Number(b.rating_avg) - Number(a.rating_avg),
+					);
+				}
 				onLoad?.(allRecipes.length);
 				setRecipeList(allRecipes);
 			})
 			.catch(console.error);
-	}, [onLoad]);
+	}, [onLoad, sort]);
 
 	const sortedList = useMemo(
 		() => sortRecipes(recipeList, sortValue),

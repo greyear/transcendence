@@ -16,7 +16,12 @@
 		}
 	},
 	"homePage": {
-		"title": "Home"
+		"heroTitle": "A place for food lovers",
+		"heroDescription": "Explore new recipes, follow your favorite cooks, and share your own creations. From quick everyday meals to something a bit more special, find ideas that inspire you.",
+		"viewAllRecipes": "View all recipes",
+		"topRecipes": "Top recipes",
+		"followCooks": "Follow our cooks",
+		"all": "all"
 	},
 	"layout": {
 		"home": "Home",
@@ -68,6 +73,8 @@
 		"goHome": "Go to homepage",
 		"notifications": "Notifications",
 		"toggleMenu": "Toggle menu",
+		"allRecipes": "All recipes",
+		"allUsers": "All users",
 		"sortBy": "Sort by"
 	}
 }

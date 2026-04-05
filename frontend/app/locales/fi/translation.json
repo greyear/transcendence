@@ -16,7 +16,12 @@
 		}
 	},
 	"homePage": {
-		"title": "Etusivu"
+		"heroTitle": "Paikka ruoan ystäville",
+		"heroDescription": "Tutustu uusiin resepteihin, seuraa lempikokkejasi ja jaa omia luomuksiasi. Löydä arkeen sopivia nopeita ruokia ja hieman erityisempiä annoksia, jotka inspiroivat kokeilemaan uutta.",
+		"viewAllRecipes": "Näytä kaikki reseptit",
+		"topRecipes": "Parhaat reseptit",
+		"followCooks": "Seuraa kokkejamme",
+		"all": "kaikki"
 	},
 	"layout": {
 		"home": "Etusivu",
@@ -68,6 +73,8 @@
 		"goHome": "Siirry etusivulle",
 		"notifications": "Ilmoitukset",
 		"toggleMenu": "Vaihda valikon tila",
+		"allRecipes": "Kaikki reseptit",
+		"allUsers": "Kaikki käyttäjät",
 		"sortBy": "Järjestä"
 	}
 }
