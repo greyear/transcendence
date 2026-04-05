@@ -32,7 +32,7 @@ const RecipesPage = () => {
 		<section className="recipes-page">
 			<PageHeader
 				title={t("recipesPage.title")}
-				totalLabel={`${t("recipesPage.totalCount")}${totalCount}`}
+				totalLabel={`${t("recipesPage.totalCount")} ${totalCount}`}
 				action={<MainButton>{t("recipesPage.createButton")}</MainButton>}
 			/>
 
@@ -48,12 +48,12 @@ const RecipesPage = () => {
 
 			<div className="recipes-page-controls">
 				<TextIconButton>
-					{t("recipesPage.sortButton")}
+					{t("common.sortButton")}
 					<Sort />
 				</TextIconButton>
 
 				<TextIconButton>
-					{t("recipesPage.filterButton")}
+					{t("common.filterButton")}
 					<Filter />
 				</TextIconButton>
 			</div>

@@ -2,6 +2,7 @@ import type { InputHTMLAttributes } from "react";
 import { useRef, useState } from "react";
 import "../../assets/styles/inputField.css";
 import { Eye, EyeClosed } from "iconoir-react";
+import { useTranslation } from "react-i18next";
 import { IconButton } from "../buttons/IconButton";
 
 type BaseProps = Omit<InputHTMLAttributes<HTMLInputElement>, "placeholder"> & {
@@ -35,6 +36,7 @@ export const InputField = ({
 	onInvalid,
 	...props
 }: InputFieldProps) => {
+	const { t } = useTranslation();
 	const [showPassword, setShowPassword] = useState(false);
 	const [visibleError, setVisibleError] = useState("");
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -138,7 +140,11 @@ export const InputField = ({
 						type="button"
 						onMouseDown={handleMouseDown}
 						onClick={handleClick}
-						aria-label={showPassword ? "Hide password" : "Show password"}
+						aria-label={
+							showPassword
+								? t("ariaLabels.hidePassword")
+								: t("ariaLabels.showPassword")
+						}
 					>
 						{showPassword ? <EyeClosed /> : <Eye />}
 					</IconButton>
