@@ -62,6 +62,8 @@
 		"headerMain": "Header main",
 		"goHome": "Go to homepage",
 		"notifications": "Notifications",
-		"toggleMenu": "Toggle menu"
+		"toggleMenu": "Toggle menu",
+		"allRecipes": "All recipes",
+		"allUsers": "All users"
 	}
 }

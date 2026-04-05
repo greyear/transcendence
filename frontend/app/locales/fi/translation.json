@@ -62,6 +62,8 @@
 		"headerMain": "Ylätunnisteen päänavigaatio",
 		"goHome": "Siirry etusivulle",
 		"notifications": "Ilmoitukset",
-		"toggleMenu": "Vaihda valikon tila"
+		"toggleMenu": "Vaihda valikon tila",
+		"allRecipes": "Kaikki reseptit",
+		"allUsers": "Kaikki käyttäjät"
 	}
 }

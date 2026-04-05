@@ -16,7 +16,7 @@
 .cook-card-image {
 	width: var(--cook-image-size);
 	height: var(--cook-image-size);
-	border-radius: 50%;
+	border-radius: var(--radius-full);
 	object-fit: cover;
 	box-shadow: var(--shadow-effect);
 }
