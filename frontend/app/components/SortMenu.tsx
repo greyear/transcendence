@@ -57,7 +57,7 @@ export const SortMenu = ({ options, value, onChange }: SortMenuProps) => {
 			</TextIconButton>
 
 			{open && (
-				<ul className="sort-menu__dropdown" aria-label="Sort by">
+				<ul className="sort-menu__dropdown" aria-label={t("ariaLabels.sortBy")}>
 					{options.map((option) => (
 						<li key={option.value}>
 							<button

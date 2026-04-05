@@ -67,6 +67,7 @@
 		"headerMain": "Header main",
 		"goHome": "Go to homepage",
 		"notifications": "Notifications",
-		"toggleMenu": "Toggle menu"
+		"toggleMenu": "Toggle menu",
+		"sortBy": "Sort by"
 	}
 }
