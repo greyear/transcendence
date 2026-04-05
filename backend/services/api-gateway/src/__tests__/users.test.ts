@@ -415,7 +415,14 @@ describe("API Gateway - Users Routes", () => {
 			fetchSpy.mockResolvedValueOnce({
 				status: 200,
 				json: async () => ({
-					data: [{ id: 2, username: "follower_user", avatar: null, recipes_count: 5 }],
+					data: [
+						{
+							id: 2,
+							username: "follower_user",
+							avatar: null,
+							recipes_count: 5,
+						},
+					],
 					count: 1,
 				}),
 			} as unknown as Response);
@@ -424,7 +431,9 @@ describe("API Gateway - Users Routes", () => {
 
 			expect(response.status).toBe(200);
 			expect(response.body).toEqual({
-				data: [{ id: 2, username: "follower_user", avatar: null, recipes_count: 5 }],
+				data: [
+					{ id: 2, username: "follower_user", avatar: null, recipes_count: 5 },
+				],
 				count: 1,
 			});
 			expect(fetchSpy).toHaveBeenCalledWith(
@@ -462,7 +471,14 @@ describe("API Gateway - Users Routes", () => {
 			fetchSpy.mockResolvedValueOnce({
 				status: 200,
 				json: async () => ({
-					data: [{ id: 3, username: "followed_user", avatar: null, recipes_count: 10 }],
+					data: [
+						{
+							id: 3,
+							username: "followed_user",
+							avatar: null,
+							recipes_count: 10,
+						},
+					],
 					count: 1,
 				}),
 			} as unknown as Response);
@@ -471,7 +487,9 @@ describe("API Gateway - Users Routes", () => {
 
 			expect(response.status).toBe(200);
 			expect(response.body).toEqual({
-				data: [{ id: 3, username: "followed_user", avatar: null, recipes_count: 10 }],
+				data: [
+					{ id: 3, username: "followed_user", avatar: null, recipes_count: 10 },
+				],
 				count: 1,
 			});
 			expect(fetchSpy).toHaveBeenCalledWith(

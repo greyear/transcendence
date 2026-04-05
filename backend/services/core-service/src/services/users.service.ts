@@ -1,5 +1,5 @@
-import { pool } from "../db/database.js";
 import { z } from "zod";
+import { pool } from "../db/database.js";
 import {
 	type UserListItem,
 	type UserProfile,
@@ -14,10 +14,9 @@ import {
  */
 export const getFollowers = async (userId: number) => {
 	// First, verify that the user exists
-	const userExists = await pool.query(
-		"SELECT id FROM users WHERE id = $1",
-		[userId],
-	);
+	const userExists = await pool.query("SELECT id FROM users WHERE id = $1", [
+		userId,
+	]);
 
 	if (userExists.rows.length === 0) {
 		throw new Error("User not found");
@@ -48,10 +47,9 @@ export const getFollowers = async (userId: number) => {
  */
 export const getFollowing = async (userId: number) => {
 	// First, verify that the user exists
-	const userExists = await pool.query(
-		"SELECT id FROM users WHERE id = $1",
-		[userId],
-	);
+	const userExists = await pool.query("SELECT id FROM users WHERE id = $1", [
+		userId,
+	]);
 
 	if (userExists.rows.length === 0) {
 		throw new Error("User not found");

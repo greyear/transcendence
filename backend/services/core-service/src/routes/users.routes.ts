@@ -12,8 +12,12 @@ import {
 	getMyRecipes,
 	getPublishedRecipesByUserId,
 } from "../services/recipes.service.js";
-import { getFollowers, getFollowing } from "../services/users.service.js";
-import { getAllUsers, getUserById } from "../services/users.service.js";
+import {
+	getAllUsers,
+	getFollowers,
+	getFollowing,
+	getUserById,
+} from "../services/users.service.js";
 import { validateUserId } from "../validation/schemas.js";
 
 interface CustomError extends Error {
