@@ -1,36 +1,79 @@
 import { Filter, Sort } from "iconoir-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
+import { RecipeCard } from "~/components/cards/RecipeCard";
+import { UserCard } from "~/components/cards/UserCard";
 import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
 import { Pagination } from "~/components/pagination/Pagination";
-import { RecipesGrid } from "~/components/RecipesGrid";
-import { UsersGrid } from "~/components/UsersGrid";
 import { getCurrentPage } from "~/composables/getCurrentPage";
+import "~/assets/styles/recipesGrid.css";
+import "~/assets/styles/usersGrid.css";
 import "~/assets/styles/search.css";
 
+const API_BASE = "http://localhost:3000";
 const PER_PAGE = 12;
+
+type SearchRecipeItem = {
+	id: number;
+	title: string;
+	description: string;
+	rating_avg: string;
+};
+
+type SearchUserItem = {
+	id: number;
+	name: string;
+	recipeCount: number;
+};
+
+type SearchResponse =
+	| { type: "recipes"; data: SearchRecipeItem[]; total: number }
+	| { type: "users"; data: SearchUserItem[]; total: number };
 
 const SearchPage = () => {
 	const { t } = useTranslation();
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
-	const [totalCount, setTotalCount] = useState(0);
 
 	const query = searchParams.get("q") ?? "";
-	const typeParam = searchParams.get("type") ?? "recipes";
-	const isUsers = typeParam === "users";
+	const rawType = searchParams.get("type") ?? "recipes";
+	const typeParam = rawType === "users" ? "users" : "recipes";
 
 	const recipesTab = t("searchPage.recipesTab");
 	const usersTab = t("searchPage.usersTab");
 	const tabs = [recipesTab, usersTab];
-	const activeTab = isUsers ? usersTab : recipesTab;
+	const activeTab = typeParam === "users" ? usersTab : recipesTab;
 
-	const totalPages = Math.max(1, Math.ceil(totalCount / PER_PAGE));
+	const [results, setResults] = useState<SearchResponse | null>(null);
+
+	const total = results?.total ?? 0;
+	const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 	const page = getCurrentPage(searchParams, totalPages);
+
+	useEffect(() => {
+		if (!query) {
+			setResults(null);
+			return;
+		}
+
+		const params = new URLSearchParams({
+			q: query,
+			type: typeParam,
+			page: String(page),
+			perPage: String(PER_PAGE),
+		});
+
+		fetch(`${API_BASE}/search?${params}`)
+			.then((res) =>
+				res.ok ? res.json() : { type: typeParam, data: [], total: 0 },
+			)
+			.then((body: SearchResponse) => setResults(body))
+			.catch(console.error);
+	}, [query, typeParam, page]);
 
 	const handleSearch = (newQuery: string) => {
 		const params = new URLSearchParams(searchParams);
@@ -46,7 +89,7 @@ const SearchPage = () => {
 		navigate(`/search?${params.toString()}`);
 	};
 
-	const totalLabel = query ? `${t("searchPage.totalCount")} ${totalCount}` : "";
+	const totalLabel = query ? `${t("searchPage.totalCount")} ${total}` : "";
 
 	return (
 		<section className="search-page">
@@ -77,23 +120,37 @@ const SearchPage = () => {
 				</TextIconButton>
 			</div>
 
-			{isUsers ? (
-				<UsersGrid key={`users-${query}`} />
-			) : (
-				<RecipesGrid
-					key={`recipes-${query}`}
-					page={page}
-					perPage={PER_PAGE}
-					onLoad={setTotalCount}
-				/>
-			)}
+			{query && results && (
+				<>
+					{results.type === "recipes" ? (
+						<ul className="recipe-card-list">
+							{results.data.map(({ id, title, description, rating_avg }) => (
+								<li key={id}>
+									<RecipeCard
+										id={id}
+										title={title}
+										description={description}
+										rating={rating_avg}
+									/>
+								</li>
+							))}
+						</ul>
+					) : (
+						<ul className="user-card-list">
+							{results.data.map(({ id, name, recipeCount }) => (
+								<li key={id}>
+									<UserCard id={id} name={name} recipeCount={recipeCount} />
+								</li>
+							))}
+						</ul>
+					)}
 
-			{!isUsers && (
-				<Pagination
-					totalElementsCount={totalCount}
-					elementsPerPage={PER_PAGE}
-					totalPagesCount={totalPages}
-				/>
+					<Pagination
+						totalElementsCount={total}
+						elementsPerPage={PER_PAGE}
+						totalPagesCount={totalPages}
+					/>
+				</>
 			)}
 		</section>
 	);

@@ -44,7 +44,9 @@ export const SearchField = ({
 		e.preventDefault();
 
 		const query = value.trim();
-		if (!query) return;
+		if (!query) {
+			return;
+		}
 		onSubmitProp?.(query);
 	};
 
