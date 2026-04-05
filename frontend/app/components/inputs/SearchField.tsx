@@ -1,6 +1,6 @@
 import "../../assets/styles/searchField.css";
 import { ArrowLeft, Search, Xmark } from "iconoir-react";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../buttons/IconButton";
 
@@ -22,6 +22,7 @@ export const SearchField = ({
 	onSubmit: onSubmitProp,
 }: SearchProps) => {
 	const { t } = useTranslation();
+	const id = useId();
 	const [value, setValue] = useState(defaultValue);
 	const [isOpen, setIsOpen] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -65,7 +66,7 @@ export const SearchField = ({
 
 	return (
 		<search className={className}>
-			<form className="search-wrapper" onSubmit={handleSubmit}>
+			<form id={id} className="search-wrapper" onSubmit={handleSubmit}>
 				{mode === "collapsible" ? (
 					<IconButton
 						className="search-inline-button"
