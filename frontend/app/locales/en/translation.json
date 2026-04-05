@@ -7,6 +7,8 @@
 		"sortOptions": {
 			"nameAsc": "Name A→Z",
 			"nameDesc": "Name Z→A",
+			"titleAsc": "Title A→Z",
+			"titleDesc": "Title Z→A",
 			"dateAsc": "Old first",
 			"dateDesc": "New first",
 			"recipesCountAsc": "Fewest recipes",

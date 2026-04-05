@@ -5,8 +5,10 @@
 		"sortButton": "Сортировка",
 		"filterButton": "Фильтр",
 		"sortOptions": {
-			"nameAsc": "По названию А→Я",
-			"nameDesc": "По названию Я→А",
+			"nameAsc": "По имени А→Я",
+			"nameDesc": "По имени Я→А",
+			"titleAsc": "По названию А→Я",
+			"titleDesc": "По названию Я→А",
 			"dateAsc": "Сначала старые",
 			"dateDesc": "Сначала новые",
 			"recipesCountAsc": "Меньше рецептов",
