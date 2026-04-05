@@ -3,7 +3,13 @@
 		"signInButton": "Вход",
 		"searchPlaceholder": "Искать ...",
 		"sortButton": "Сортировка",
-		"filterButton": "Фильтр"
+		"filterButton": "Фильтр",
+		"sortOptions": {
+			"nameAsc": "По названию А→Я",
+			"nameDesc": "По названию Я→А",
+			"dateAsc": "Сначала старые",
+			"dateDesc": "Сначала новые"
+		}
 	},
 	"homePage": {
 		"title": "Главная"
@@ -21,13 +27,7 @@
 		"createButton": "Создать",
 		"tabAll": "Все",
 		"tabMy": "Мои рецепты",
-		"tabSaved": "Сохраненные рецепты",
-		"sortOptions": {
-			"nameAsc": "По названию А→Я",
-			"nameDesc": "По названию Я→А",
-			"dateAsc": "Сначала старые",
-			"dateDesc": "Сначала новые"
-		}
+		"tabSaved": "Сохраненные рецепты"
 	},
 	"usersPage": {
 		"title": "Пользователи",

@@ -3,7 +3,13 @@
 		"signInButton": "Sign In",
 		"searchPlaceholder": "Search for ...",
 		"sortButton": "Sort",
-		"filterButton": "Filter"
+		"filterButton": "Filter",
+		"sortOptions": {
+			"nameAsc": "Name A→Z",
+			"nameDesc": "Name Z→A",
+			"dateAsc": "Old first",
+			"dateDesc": "New first"
+		}
 	},
 	"homePage": {
 		"title": "Home"
@@ -21,13 +27,7 @@
 		"createButton": "Create new",
 		"tabAll": "All",
 		"tabMy": "My recipes",
-		"tabSaved": "Saved recipes",
-		"sortOptions": {
-			"nameAsc": "Name A→Z",
-			"nameDesc": "Name Z→A",
-			"dateAsc": "Old first",
-			"dateDesc": "New first"
-		}
+		"tabSaved": "Saved recipes"
 	},
 	"usersPage": {
 		"title": "Users",

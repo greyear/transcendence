@@ -10,8 +10,9 @@ import "~/assets/styles/recipes.css";
 import { Filter } from "iconoir-react";
 import { useTranslation } from "react-i18next";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
-import { SortMenu, type SortOption } from "~/components/SortMenu";
+import { SortMenu } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";
+import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
 
 const PER_PAGE = 12;
@@ -22,17 +23,8 @@ const RecipesPage = () => {
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams] = useSearchParams();
 
-	const SORT_OPTIONS: SortOption[] = useMemo(
-		() => [
-			{ label: t("recipesPage.sortOptions.nameAsc"), value: "name-asc" },
-			{ label: t("recipesPage.sortOptions.nameDesc"), value: "name-desc" },
-			// { label: t("recipesPage.sortOptions.dateAsc"), value: "date-asc" }
-			// { label: t("recipesPage.sortOptions.dateDesc"), value: "date-desc" },
-		],
-		[t],
-	);
-
-	const DEFAULT_SORT = SORT_OPTIONS[0].value;
+	const sortOptions = useSortOptions(true);
+	const DEFAULT_SORT = sortOptions[0].value;
 
 	const [sortValue, setSort] = useSortParam(DEFAULT_SORT);
 
@@ -66,7 +58,7 @@ const RecipesPage = () => {
 			/>
 
 			<div className="recipes-page-controls">
-				<SortMenu options={SORT_OPTIONS} value={sortValue} onChange={setSort} />
+				<SortMenu options={sortOptions} value={sortValue} onChange={setSort} />
 
 				<TextIconButton>
 					{t("common.filterButton")}
