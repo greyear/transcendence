@@ -24,11 +24,15 @@ This order is correct for Express.
 
 ## 2) Router-Level Middleware Usage
 
-Current routes in core-service are read endpoints only.
+Current routes in core-service include read and write endpoints.
 
 `/recipes` router (`src/routes/recipes.routes.ts`):
 - `GET /recipes` -> no `extractUser` (public list of published recipes)
 - `GET /recipes/:id` -> uses `extractUser` before handler
+- `POST /recipes` -> uses `extractUser`, requires `req.userId`
+- `POST /recipes/:id/publish` -> uses `extractUser`, requires `req.userId`
+- `PUT /recipes/:id` -> uses `extractUser`, requires `req.userId`
+- `DELETE /recipes/:id` -> uses `extractUser`, requires `req.userId`
 
 `/users` router (`src/routes/users.routes.ts`):
 - `GET /users/:id/recipes` -> no `extractUser` (public profile recipes)
@@ -92,6 +96,68 @@ Flow:
 Notes:
 - `extractUser` is applied only where visibility depends on user context.
 
+### POST /recipes
+
+Flow:
+1. CORS
+2. JSON parser
+3. `extractUser`
+4. If `req.userId` is missing -> `401`
+5. Validate request body (`validateCreateRecipeInput`)
+6. Service call `createRecipe(req.userId, payload)`
+7. Return `201` or `400`
+8. Unexpected errors go to `next(error)`
+
+Notes:
+- Authentication is required (via API Gateway forwarded `X-User-Id`).
+
+### POST /recipes/:id/publish
+
+Flow:
+1. CORS
+2. JSON parser
+3. `extractUser`
+4. If `req.userId` is missing -> `401`
+5. Validate `:id` (`validateRecipeId`)
+6. Service call `publishRecipe(id, req.userId)`
+7. Return `200`, `400`, `403`, `404`, or `409`
+8. Unexpected errors go to `next(error)`
+
+Notes:
+- Publishes only from valid status transition according to service rules.
+
+### PUT /recipes/:id
+
+Flow:
+1. CORS
+2. JSON parser
+3. `extractUser`
+4. If `req.userId` is missing -> `401`
+5. Validate `:id` (`validateRecipeId`)
+6. Validate body (`validateUpdateRecipeInput`)
+7. Service call `updateRecipe(id, req.userId, payload)`
+8. Return `200`, `400`, `403`, `404`, or `409`
+9. Unexpected errors go to `next(error)`
+
+Notes:
+- Endpoint updates recipe content and relations (ingredients/categories) in one transaction.
+
+### DELETE /recipes/:id
+
+Flow:
+1. CORS
+2. JSON parser
+3. `extractUser`
+4. If `req.userId` is missing -> `401`
+5. Validate `:id` (`validateRecipeId`)
+6. Service call `archiveRecipe(id, req.userId)`
+7. Return `200`, `400`, `403`, `404`, or `409`
+8. Unexpected errors go to `next(error)`
+
+Notes:
+- This is soft delete: recipe status is changed to `archived`.
+- Author can archive own recipe, admin can archive any recipe.
+
 ### GET /users/:id/recipes
 
 Flow:
@@ -153,7 +219,7 @@ Status: middleware chain is correct and consistent.
 
 Key points:
 1. Global middleware order is correct.
-2. `extractUser` is applied only to routes that need user context.
+2. `extractUser` is applied only to routes that need user context or authentication checks.
 3. Route handlers consistently use `try/catch` + `next(error)`.
 4. 404 and generic error handling are correctly mounted last.
 5. Current document reflects `src/app.ts` (not `src/index.ts`).
