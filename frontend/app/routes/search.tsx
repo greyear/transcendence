@@ -1,4 +1,4 @@
-import { Filter, Sort } from "iconoir-react";
+import { Filter } from "iconoir-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
@@ -9,10 +9,12 @@ import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
 import { Pagination } from "~/components/pagination/Pagination";
+import { SortMenu } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";
 import "~/assets/styles/recipesGrid.css";
 import "~/assets/styles/usersGrid.css";
 import "~/assets/styles/search.css";
+import { useSortOptions } from "~/composables/useSortOptions";
 
 const API_BASE = "http://localhost:3000";
 const PER_PAGE = 12;
@@ -42,6 +44,9 @@ const SearchPage = () => {
 	const query = searchParams.get("q") ?? "";
 	const rawType = searchParams.get("type") ?? "recipes";
 	const typeParam = rawType === "users" ? "users" : "recipes";
+	const sort = searchParams.get("sort") ?? "";
+
+	const sortOptions = useSortOptions(typeParam);
 
 	const recipesTab = t("searchPage.recipesTab");
 	const usersTab = t("searchPage.usersTab");
@@ -65,6 +70,7 @@ const SearchPage = () => {
 			type: typeParam,
 			page: String(page),
 			perPage: String(PER_PAGE),
+			...(sort && { sort }),
 		});
 
 		fetch(`${API_BASE}/search?${params}`)
@@ -73,7 +79,7 @@ const SearchPage = () => {
 			)
 			.then((body: SearchResponse) => setResults(body))
 			.catch(console.error);
-	}, [query, typeParam, page]);
+	}, [query, typeParam, page, sort]);
 
 	const handleSearch = (newQuery: string) => {
 		const params = new URLSearchParams(searchParams);
@@ -85,6 +91,14 @@ const SearchPage = () => {
 	const handleTabChange = (tab: string) => {
 		const params = new URLSearchParams(searchParams);
 		params.set("type", tab === usersTab ? "users" : "recipes");
+		params.delete("page");
+		params.delete("sort");
+		navigate(`/search?${params.toString()}`);
+	};
+
+	const handleSortChange = (value: string) => {
+		const params = new URLSearchParams(searchParams);
+		params.set("sort", value);
 		params.delete("page");
 		navigate(`/search?${params.toString()}`);
 	};
@@ -109,13 +123,14 @@ const SearchPage = () => {
 			/>
 
 			<div className="search-page-controls">
-				<TextIconButton>
-					{t("recipesPage.sortButton")}
-					<Sort />
-				</TextIconButton>
+				<SortMenu
+					options={sortOptions}
+					value={sort}
+					onChange={handleSortChange}
+				/>
 
 				<TextIconButton>
-					{t("recipesPage.filterButton")}
+					{t("common.filterButton")}
 					<Filter />
 				</TextIconButton>
 			</div>

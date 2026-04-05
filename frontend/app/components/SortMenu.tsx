@@ -53,7 +53,7 @@ export const SortMenu = ({ options, value, onChange }: SortMenuProps) => {
 		<div className="sort-menu" ref={ref}>
 			<TextIconButton onClick={() => setOpen((prev) => !prev)}>
 				{t("common.sortButton")}
-				<Sort />
+				<Sort aria-hidden />
 			</TextIconButton>
 
 			{open && (
