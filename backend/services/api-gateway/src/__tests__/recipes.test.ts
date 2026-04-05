@@ -264,8 +264,8 @@ describe("API Gateway - Recipes Routes", () => {
 		fetchSpy.mockResolvedValueOnce({
 			status: 200,
 			json: async () => ({
-				data: { id: 77, status: "moderation" },
-				message: "Recipe sent to moderation",
+				data: { id: 77, status: "published" },
+				message: "Recipe published",
 			}),
 		} as unknown as Response);
 
@@ -275,8 +275,8 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(response.status).toBe(200);
 		expect(response.body).toEqual({
-			data: { id: 77, status: "moderation" },
-			message: "Recipe sent to moderation",
+			data: { id: 77, status: "published" },
+			message: "Recipe published",
 		});
 
 		expect(fetchSpy).toHaveBeenNthCalledWith(
@@ -354,7 +354,7 @@ describe("API Gateway - Recipes Routes", () => {
 		fetchSpy.mockResolvedValueOnce({
 			status: 409,
 			json: async () => ({
-				error: "Recipe cannot be sent to moderation from status moderation",
+				error: "Recipe cannot be published from status published",
 			}),
 		} as unknown as Response);
 
@@ -364,7 +364,7 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(response.status).toBe(409);
 		expect(response.body).toEqual({
-			error: "Recipe cannot be sent to moderation from status moderation",
+			error: "Recipe cannot be published from status published",
 		});
 	});
 

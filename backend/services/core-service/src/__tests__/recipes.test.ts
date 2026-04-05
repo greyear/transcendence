@@ -328,13 +328,13 @@ describe("Recipes Routes", () => {
 	});
 
 	/**
-	 * Test: Author publishes draft -> moderation, second publish -> 409
+	 * Test: Author publishes draft -> published, second publish -> 409
 	 *
 	 * What we're testing:
-	 * - Valid status transition draft -> moderation
+	 * - Valid status transition draft -> published
 	 * - Repeated publish is rejected as invalid state transition
 	 */
-	it("should move recipe from draft to moderation on publish", async () => {
+	it("should move recipe from draft to published on publish", async () => {
 		const userId = 2004;
 		let recipeId: number | null = null;
 
@@ -358,13 +358,13 @@ describe("Recipes Routes", () => {
 
 			expect(publishResponse.status).toBe(200);
 			expect(publishResponse.body).toHaveProperty("message");
-			expect(publishResponse.body.data).toHaveProperty("status", "moderation");
+			expect(publishResponse.body.data).toHaveProperty("status", "published");
 
 			const dbStatus = await pool.query(
 				`SELECT status FROM recipes WHERE id = $1`,
 				[recipeId],
 			);
-			expect(dbStatus.rows[0].status).toBe("moderation");
+			expect(dbStatus.rows[0].status).toBe("published");
 
 			const secondPublishResponse = await request(app)
 				.post(`/recipes/${recipeId}/publish`)

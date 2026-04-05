@@ -94,7 +94,7 @@ const publishRecipeHandler = async (
 					error.statusCode = 403;
 					break;
 				default:
-					error.message = `Recipe cannot be sent to moderation from status ${publishResult.currentStatus}`;
+					error.message = `Recipe cannot be published from status ${publishResult.currentStatus}`;
 					error.statusCode = 409;
 					break;
 			}
@@ -104,7 +104,7 @@ const publishRecipeHandler = async (
 
 		res.status(200).json({
 			data: publishResult.recipe,
-			message: "Recipe sent to moderation",
+			message: "Recipe published",
 		});
 	} catch (error) {
 		next(error);

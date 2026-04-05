@@ -335,7 +335,7 @@ export const publishRecipe = async (
 		const updateResult = await pool.query(
 			`
       UPDATE recipes
-      SET status = 'moderation', updated_at = now()
+      SET status = 'published', updated_at = now()
       WHERE id = $1 AND author_id = $2 AND status = 'draft'
       RETURNING id
     `,
