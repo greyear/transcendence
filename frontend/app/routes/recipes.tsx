@@ -23,7 +23,7 @@ const RecipesPage = () => {
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams] = useSearchParams();
 
-	const sortOptions = useSortOptions(true);
+	const sortOptions = useSortOptions("recipes");
 	const DEFAULT_SORT = sortOptions[0].value;
 
 	const [sortValue, setSort] = useSortParam(DEFAULT_SORT);

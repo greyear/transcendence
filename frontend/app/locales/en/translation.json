@@ -8,7 +8,9 @@
 			"nameAsc": "Name A→Z",
 			"nameDesc": "Name Z→A",
 			"dateAsc": "Old first",
-			"dateDesc": "New first"
+			"dateDesc": "New first",
+			"recipesCountAsc": "Fewest recipes",
+			"recipesCountDesc": "Most recipes"
 		}
 	},
 	"homePage": {

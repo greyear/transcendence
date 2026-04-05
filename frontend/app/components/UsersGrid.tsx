@@ -21,6 +21,10 @@ const sortUsers = (
 			return sorted.sort((a, b) => a.name.localeCompare(b.name));
 		case "name-desc":
 			return sorted.sort((a, b) => b.name.localeCompare(a.name));
+		case "recipes-asc":
+			return sorted.sort((a, b) => a.recipeCount - b.recipeCount);
+		case "recipes-desc":
+			return sorted.sort((a, b) => b.recipeCount - a.recipeCount);
 		default:
 			return sorted;
 	}

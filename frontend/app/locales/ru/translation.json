@@ -8,7 +8,9 @@
 			"nameAsc": "По названию А→Я",
 			"nameDesc": "По названию Я→А",
 			"dateAsc": "Сначала старые",
-			"dateDesc": "Сначала новые"
+			"dateDesc": "Сначала новые",
+			"recipesCountAsc": "Меньше рецептов",
+			"recipesCountDesc": "Больше рецептов"
 		}
 	},
 	"homePage": {

@@ -14,7 +14,7 @@ import { useSortParam } from "~/composables/useSortParam";
 const UsersPage = () => {
 	const { t } = useTranslation();
 	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
-	const sortOptions = useSortOptions(false);
+	const sortOptions = useSortOptions("users");
 	const [sortValue, setSort] = useSortParam(sortOptions[0].value);
 
 	const filters = [
@@ -49,7 +49,7 @@ const UsersPage = () => {
 				</TextIconButton>
 			</div>
 
-			<UsersGrid />
+			<UsersGrid sortValue={sortValue} />
 		</section>
 	);
 };
