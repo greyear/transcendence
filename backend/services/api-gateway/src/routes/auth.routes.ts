@@ -47,6 +47,11 @@ const postLoginHandler: RequestHandler = async (
 			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
+		// Forward Set-Cookie headers from auth service to client
+		const setCookieHeader = response.headers.get('set-cookie');
+		if (setCookieHeader) {
+			res.set('Set-Cookie', setCookieHeader);
+		}
 		res.status(response.status).json(data);
 	} catch (error) {
 		next(error);
@@ -59,18 +64,19 @@ const postGoogleHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		console.log("Enter google handler");
 		const response = await fetch(`${AUTH_SERVICE_URL}/google`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(req.body),
 		});
-		console.log(response);
 		const data = await response.json();
-		console.log(data);
+		// Forward Set-Cookie headers from auth service to client
+		const setCookieHeader = response.headers.get('set-cookie');
+		if (setCookieHeader) {
+			res.set('Set-Cookie', setCookieHeader);
+		}
 		res.status(response.status).json(data);
 	} catch (error) {
-		console.log("Error happened within google handler");
 		next(error);
 	}
 };
@@ -81,7 +87,6 @@ const postValidateHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		console.log("Enter validate handler");
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
 		};
@@ -94,13 +99,9 @@ const postValidateHandler: RequestHandler = async (
 			headers,
 			body: JSON.stringify(req.body),
 		});
-		console.log(response);
 		const data = await response.json();
-		console.log(data);
 		res.status(response.status).json(data);
-		console.log("End of validate handler");
 	} catch (error) {
-		console.log("Error happened within validate handler");
 		next(error);
 	}
 };

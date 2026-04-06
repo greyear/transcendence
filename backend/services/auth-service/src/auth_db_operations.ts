@@ -6,14 +6,12 @@
 	zod is our parsing and field validation module
  */
 
-import cookieParser from "cookie-parser";
 import {
 	type NextFunction,
 	type Request,
 	type Response,
 	Router,
 } from "express";
-import session from "express-session";
 import { OAuth2Client } from "google-auth-library";
 import mongoose from "mongoose";
 
@@ -22,24 +20,8 @@ import mongoose from "mongoose";
 import { userModel } from "./auth_schema.js";
 import * as help from "./authHelpers.js";
 
-//Internet told me to do this to make my problems go away
-//They went away.
-declare module "express-session" {
-	interface SessionData {
-		user: string;
-	}
-}
 
 export const authRouter = Router();
-// Middleware setup
-authRouter.use(
-	session({
-		secret: "placeholder",
-		resave: false,
-		saveUninitialized: true,
-	}),
-);
-authRouter.use(cookieParser());
 
 //Connection part probably being moved later
 const MONGO_AUTH_URI =
@@ -153,10 +135,16 @@ authRouter.post(
 			}
 
 			// Send success response
+			//https://howhttpworks.com/guides/cookie-security
+			//https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
+			//secure = lax seems fine for our use case.
 			const JWToken = help.generateToken(userDocument.get("_id"), username);
-			req.session.user = username;
-			res.cookie("sessionId", req.sessionID);
-			res.cookie("JWToken", JWToken);
+			res.cookie("token", JWToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				maxAge: 60 * 60 * 1000, //1 hour in ms
+			});
 			res.status(200).json({
 				token: JWToken,
 				message: "Login successful",
@@ -225,13 +213,12 @@ authRouter.post(
 			} else {
 				const JWToken = help.generateToken(userDocument.get("_id"), googleID);
 
-				req.session.user = googleID;
-				console.log(req.session.user);
-				console.log(req.sessionID);
-				res.cookie("sessionId", req.sessionID);
-				console.log(res.cookie);
-				res.cookie("JWToken", JWToken);
-				console.log(res.cookie);
+				res.cookie("token", JWToken, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === "production",
+					sameSite: "lax",
+					maxAge: 60 * 60 * 1000,
+				});
 				res.status(200).json({
 					token: JWToken,
 					message: "Login successful",
