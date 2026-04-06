@@ -14,6 +14,7 @@ import {
 	createTimeoutSignal,
 	isTimeoutError,
 } from "../utils/timeouts.js";
+import { ratingsRouter } from "./ratings.routes.js";
 
 // Service URL for core-service
 const CORE_SERVICE_URL =
@@ -133,3 +134,5 @@ recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
 
 recipesRouter.get("/:id", optionalAuth, getRecipeByIdHandler);
 recipesRouter.get("/", optionalAuth, getRecipesHandler);
+
+recipesRouter.use("/:id/rating", ratingsRouter);
