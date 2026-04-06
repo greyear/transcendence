@@ -15,6 +15,7 @@
 import path from "node:path";
 import {
 	type NextFunction,
+	type Request,
 	type Response,
 	Router,
 } from "express";
@@ -60,12 +61,31 @@ const avatarUpload = multer({
 		if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
 			cb(null, true);
 		} else {
-			cb(new Error("Only JPEG, PNG and WebP images are allowed"));
+			const err = new multer.MulterError("LIMIT_UNEXPECTED_FILE");
+			err.message = "Only JPEG, PNG and WebP images are allowed";
+			cb(err);
 		}
 	},
 });
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Multer error handler
+ */
+const handleMulterError = (
+	err: unknown,
+	_req: Request,
+	res: Response,
+	next: NextFunction,
+): void => {
+	if (err instanceof multer.MulterError) {
+		res.status(400).json({ error: err.message });
+		return;
+	}
+
+	next(err);
+};
 
 /**
  * GET /profile  – get authenticated user's profile (id, username, avatar)
@@ -158,8 +178,9 @@ profileRouter.get("/", extractUser, getProfileHandler);
 // avatarUpload.single("avatar") processes the multipart field named "avatar"
 // It runs before the handler, so req.file is available if a file was uploaded
 profileRouter.put(
-	"/",
-	extractUser,
-	avatarUpload.single("avatar"),
-	updateProfileHandler,
+    "/",
+    extractUser,
+    avatarUpload.single("avatar"),
+    handleMulterError,
+    updateProfileHandler,
 );
