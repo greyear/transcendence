@@ -215,6 +215,53 @@ export const userProfileSchema = z.object({
 });
 
 /**
+ * ProfileData schema - slim profile shape returned by GET/PUT /profile
+ * Only the fields the user can see and edit about themselves.
+ */
+export const profileDataSchema = z.object({
+	id: z.number().int().positive(),
+	username: z.string().trim().min(1).max(32),
+	avatar: z.string().nullable(),
+});
+ 
+export type ProfileData = z.infer<typeof profileDataSchema>;
+ 
+/**
+ * UpdateProfileInput schema - body for PUT /profile
+ *
+ * Both fields are optional so the user can update just one at a time.
+ * avatar is a string here because multer resolves the file and the route
+ * injects the public URL path before validation runs.
+ * At least one field must be present.
+ */
+const updateProfileInputSchema = z
+	.object({
+		username: z.string().trim().min(1).max(32).optional(),
+		avatar: z.string().nullable().optional(),
+	})
+	.refine(
+		(data) => data.username !== undefined || data.avatar !== undefined,
+		"At least one field (username or avatar) must be provided",
+	);
+ 
+export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
+ 
+export const validateUpdateProfileInput = (
+	input: unknown,
+): ValidationResult<UpdateProfileInput> => {
+	const result = updateProfileInputSchema.safeParse(input);
+ 
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+ 
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+/**
  * z.infer<typeof recipeSchema> - "extract TypeScript type from Zod schema"
  *
  * This means Recipe type will contain all fields from recipeSchema above

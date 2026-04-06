@@ -43,13 +43,13 @@ const getProfileHandler: RequestHandler = async (req, res, _next) => {
 
 const updateProfileHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		// Forward the raw request body as-is (multipart for avatar handled by core-service)
 		const response = await fetch(`${CORE_SERVICE_URL}/profile`, {
 			method: "PUT",
-			headers: getInternalHeaders(req),
-			body: JSON.stringify(req.body),
-			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
-		});
+			headers: getInternalHeaders(req), // forwards Content-Type: multipart/form-data
+			body: req,
+			duplex: "half",
+		} as RequestInit,
+		);
 		const data = await response.json();
 		res.status(response.status).json(data);
 	} catch (error) {
