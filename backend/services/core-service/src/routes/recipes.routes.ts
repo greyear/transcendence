@@ -26,6 +26,7 @@ import {
 	validateCreateRecipeInput,
 	validateRecipeId,
 } from "../validation/schemas.js";
+import { ratingsRouter } from "./ratings.routes.js";
 
 interface CustomError extends Error {
 	statusCode?: number;
@@ -178,3 +179,5 @@ recipesRouter.post("/", extractUser, createRecipeHandler);
 recipesRouter.post("/:id/publish", extractUser, publishRecipeHandler);
 recipesRouter.get("/:id", extractUser, getRecipeByIdHandler);
 recipesRouter.get("/", getAllRecipesHandler);
+
+recipesRouter.use("/:id/rating", ratingsRouter);
