@@ -136,6 +136,12 @@ echo ""
 echo "POST Endpoints:"
 check_post_endpoint "/recipes" '{"title":"Smoke Recipe","description":"Created by smoke test","instructions":["Mix ingredients"],"servings":2,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":100,"unit":"g"}],"category_ids":[]}' "401" "POST /recipes (no token -> 401)"
 check_post_endpoint "/recipes/1/publish" '{}' "401" "POST /recipes/1/publish (no token -> 401)"
+check_post_endpoint "/recipes/1/reviews" '{"body":"Smoke review"}' "401" "POST /recipes/1/reviews (no token -> 401)"
+
+echo ""
+echo "Review Endpoints:"
+check_endpoint "/recipes/1/reviews" "200" "GET /recipes/1/reviews"
+check_endpoint "/recipes/999999/reviews" "404" "GET /recipes/999999/reviews (non-existent recipe)"
 
 if [ -n "$SMOKE_BEARER_TOKEN" ]; then
   echo ""

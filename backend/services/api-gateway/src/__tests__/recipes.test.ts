@@ -403,4 +403,110 @@ describe("API Gateway - Recipes Routes", () => {
 		expect(response.status).toBe(500);
 		expect(response.body).toEqual({ error: "Failed to publish recipe" });
 	});
+
+	it("should reject POST /recipes/:id/reviews without authentication", async () => {
+		const response = await request(app)
+			.post("/recipes/77/reviews")
+			.send({ body: "Great" });
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy POST /recipes/:id/reviews to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 201,
+			json: async () => ({
+				data: { recipe_id: 77, review_id: 501 },
+				message: "Review published",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.post("/recipes/77/reviews")
+			.set("Authorization", "Bearer validtoken")
+			.send({ body: "Great" });
+
+		expect(response.status).toBe(201);
+		expect(response.body).toEqual({
+			data: { recipe_id: 77, review_id: 501 },
+			message: "Review published",
+		});
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining("/recipes/77/reviews"),
+			expect.objectContaining({
+				method: "POST",
+				headers: expect.objectContaining({
+					"Content-Type": "application/json",
+					"x-user-id": "42",
+				}),
+				body: JSON.stringify({ body: "Great" }),
+				signal: expect.any(AbortSignal),
+			}),
+		);
+	});
+
+	it("should forward 400 from core-service for invalid review payload", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 400,
+			json: async () => ({ error: "Invalid review body" }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.post("/recipes/77/reviews")
+			.set("Authorization", "Bearer validtoken")
+			.send({ body: "x".repeat(1001) });
+
+		expect(response.status).toBe(400);
+		expect(response.body).toEqual({ error: "Invalid review body" });
+	});
+
+	it("should proxy GET /recipes/:id/reviews to core-service", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 200,
+			json: async () => ({
+				data: [{ id: 501, body: "Great" }],
+				count: 1,
+			}),
+		} as unknown as Response);
+
+		const response = await request(app).get("/recipes/77/reviews");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: [{ id: 501, body: "Great" }],
+			count: 1,
+		});
+		expect(fetchSpy).toHaveBeenCalledWith(
+			expect.stringContaining("/recipes/77/reviews"),
+			expect.objectContaining({ signal: expect.any(AbortSignal) }),
+		);
+	});
+
+	it("should forward 404 from core-service for GET /recipes/:id/reviews", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 404,
+			json: async () => ({ error: "Recipe not found" }),
+		} as unknown as Response);
+
+		const response = await request(app).get("/recipes/999999/reviews");
+
+		expect(response.status).toBe(404);
+		expect(response.body).toEqual({ error: "Recipe not found" });
+	});
 });

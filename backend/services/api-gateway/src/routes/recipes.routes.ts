@@ -128,8 +128,56 @@ const publishRecipeHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
+const leaveRecipeReviewHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/recipes/${req.params.id}/reviews`,
+			{
+				method: "POST",
+				headers: getInternalHeaders(req),
+				body: JSON.stringify(req.body),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to leave recipe review" });
+	}
+};
+
+const getRecipeReviewsHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/recipes/${req.params.id}/reviews`,
+			{
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to fetch recipe reviews" });
+	}
+};
+
 recipesRouter.post("/", requireAuth, createRecipeHandler);
 recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
+recipesRouter.post("/:id/reviews", requireAuth, leaveRecipeReviewHandler);
 
+recipesRouter.get("/:id/reviews", optionalAuth, getRecipeReviewsHandler);
 recipesRouter.get("/:id", optionalAuth, getRecipeByIdHandler);
 recipesRouter.get("/", optionalAuth, getRecipesHandler);

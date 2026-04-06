@@ -18,11 +18,14 @@ import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
 	type CreateRecipeInput,
+	type CreateRecipeReviewInput,
 	type MyRecipeListItem,
 	myRecipeListItemSchema,
 	type Recipe,
 	type RecipeListItem,
+	type RecipeReviewListItem,
 	recipeListItemSchema,
+	recipeReviewListItemSchema,
 	recipeSchema,
 	recipeStatusSchema,
 } from "../validation/schemas.js";
@@ -34,6 +37,10 @@ type PublishRecipeResult =
 			reason: "not-found" | "forbidden" | "invalid-status";
 			currentStatus?: string;
 	  };
+
+type LeaveRecipeReviewResult =
+	| { success: true; reviewId: number }
+	| { success: false; reason: "not-found" };
 
 const recipeIdRowSchema = z.object({
 	id: z.coerce.number().int().positive(),
@@ -152,6 +159,15 @@ const userExists = async (userId: number): Promise<boolean> => {
 	const result = await pool.query(`SELECT 1 FROM users WHERE id = $1 LIMIT 1`, [
 		userId,
 	]);
+
+	return result.rowCount === 1;
+};
+
+const recipeExists = async (recipeId: number): Promise<boolean> => {
+	const result = await pool.query(
+		`SELECT 1 FROM recipes WHERE id = $1 LIMIT 1`,
+		[recipeId],
+	);
 
 	return result.rowCount === 1;
 };
@@ -379,6 +395,77 @@ export const publishRecipe = async (
 		return { success: true, recipe };
 	} catch (error) {
 		console.error("Database error in publishRecipe:", error);
+		throw error;
+	}
+};
+
+export const leaveRecipeReview = async (
+	recipeId: number,
+	userId: number,
+	input: CreateRecipeReviewInput,
+): Promise<LeaveRecipeReviewResult> => {
+	try {
+		const exists = await recipeExists(recipeId);
+		if (!exists) {
+			return { success: false, reason: "not-found" };
+		}
+
+		const result = await pool.query(
+			`
+			INSERT INTO recipe_reviews (recipe_id, author_id, body)
+			VALUES ($1, $2, $3)
+			RETURNING id
+		`,
+			[recipeId, userId, input.body],
+		);
+
+		const reviewIdParsed = recipeIdRowSchema.safeParse(result.rows[0]);
+		if (!reviewIdParsed.success) {
+			throw new Error(z.prettifyError(reviewIdParsed.error));
+		}
+
+		return { success: true, reviewId: reviewIdParsed.data.id };
+	} catch (error) {
+		console.error("Database error in leaveRecipeReview:", error);
+		throw error;
+	}
+};
+
+export const getRecipeReviews = async (
+	recipeId: number,
+): Promise<RecipeReviewListItem[] | null> => {
+	try {
+		const exists = await recipeExists(recipeId);
+		if (!exists) {
+			return null;
+		}
+
+		const result = await pool.query(
+			`
+			SELECT
+				rr.id,
+				rr.recipe_id,
+				rr.author_id,
+				u.username,
+				u.avatar,
+				rr.body,
+				rr.created_at,
+				rr.updated_at
+			FROM recipe_reviews rr
+			LEFT JOIN users u ON u.id = rr.author_id
+			WHERE rr.recipe_id = $1 AND rr.is_deleted = false
+			ORDER BY rr.created_at DESC
+		`,
+			[recipeId],
+		);
+
+		return parseRecipeRows(
+			result.rows,
+			recipeReviewListItemSchema,
+			"recipe review",
+		);
+	} catch (error) {
+		console.error("Database error in getRecipeReviews:", error);
 		throw error;
 	}
 };

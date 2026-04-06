@@ -19,6 +19,7 @@ import { z } from "zod";
  * Maximum value for PostgreSQL INTEGER type (2^31 - 1)
  */
 const MAX_SIGNED_INT = 2147483647;
+const MAX_REVIEW_BODY_LENGTH = 1000;
 
 /**
  * Positive Integer schema
@@ -97,7 +98,14 @@ const createRecipeInputSchema = z.object({
 		),
 });
 
+const createRecipeReviewInputSchema = z.object({
+	body: z.string().trim().min(1).max(MAX_REVIEW_BODY_LENGTH),
+});
+
 export type CreateRecipeInput = z.infer<typeof createRecipeInputSchema>;
+export type CreateRecipeReviewInput = z.infer<
+	typeof createRecipeReviewInputSchema
+>;
 
 type ValidationResult<T> =
 	| { valid: true; value: T }
@@ -124,6 +132,21 @@ export const validateCreateRecipeInput = (
 	input: unknown,
 ): ValidationResult<CreateRecipeInput> => {
 	const result = createRecipeInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+export const validateCreateRecipeReviewInput = (
+	input: unknown,
+): ValidationResult<CreateRecipeReviewInput> => {
+	const result = createRecipeReviewInputSchema.safeParse(input);
 
 	if (result.success) {
 		return { valid: true, value: result.data };
@@ -187,6 +210,17 @@ export const myRecipeListItemSchema = z.object({
 	status: recipeStatusSchema,
 });
 
+export const recipeReviewListItemSchema = z.object({
+	id: z.number().int().positive(),
+	recipe_id: z.number().int().positive(),
+	author_id: userIdSchema.nullable(),
+	username: z.string().trim().min(1).max(32).nullable(),
+	avatar: z.string().nullable(),
+	body: z.string(),
+	created_at: z.coerce.date().transform((value) => value.toISOString()),
+	updated_at: z.coerce.date().transform((value) => value.toISOString()),
+});
+
 /**
  * Zod schema for UserListItem - lightweight user data for list pages/cards
  * Used by getAllUsers() endpoint
@@ -235,5 +269,6 @@ export type RecipeListItem = z.infer<typeof recipeListItemSchema>;
  * MyRecipeListItem type - minimal recipe info for current user's recipes
  */
 export type MyRecipeListItem = z.infer<typeof myRecipeListItemSchema>;
+export type RecipeReviewListItem = z.infer<typeof recipeReviewListItemSchema>;
 export type UserListItem = z.infer<typeof userListItemSchema>;
 export type UserProfile = z.infer<typeof userProfileSchema>;
