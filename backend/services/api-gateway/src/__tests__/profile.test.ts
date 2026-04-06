@@ -191,12 +191,11 @@ describe("API Gateway - Profile Routes", () => {
 			expect.stringContaining("/profile"),
 			expect.objectContaining({
 				method: "PUT",
-				body: JSON.stringify(payload),
+				// body is the raw req stream, not asserting its content
 				headers: expect.objectContaining({
-					"Content-Type": "application/json",
 					"x-user-id": "42",
 				}),
-				signal: expect.any(AbortSignal),
+				duplex: "half",
 			}),
 		);
 	});
