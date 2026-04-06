@@ -14,6 +14,7 @@ import { useSortParam } from "~/composables/useSortParam";
 const UsersPage = () => {
 	const { t } = useTranslation();
 	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
+	const [totalCount, setTotalCount] = useState(0);
 	const sortOptions = useSortOptions("users");
 	const [sortValue, setSort] = useSortParam(sortOptions[0].value);
 
@@ -27,7 +28,7 @@ const UsersPage = () => {
 		<section className="users-page">
 			<PageHeader
 				title={t("usersPage.title")}
-				totalLabel={`${t("usersPage.totalCount")} 37`}
+				totalLabel={`${t("usersPage.totalCount")} ${totalCount}`}
 			/>
 
 			<SearchField placeholder={t("common.searchPlaceholder")} />
@@ -49,7 +50,7 @@ const UsersPage = () => {
 				</TextIconButton>
 			</div>
 
-			<UsersGrid sortValue={sortValue} />
+			<UsersGrid sortValue={sortValue} onLoad={setTotalCount} />
 		</section>
 	);
 };
