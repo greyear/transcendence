@@ -1,7 +1,7 @@
 CREATE TABLE "users" (
   "id" integer PRIMARY KEY CHECK ("id" > 0),
   "username" varchar(32) UNIQUE NOT NULL,
-  "avatar" bytea,
+  "avatar" varchar(2048),
   "status" varchar(16)
     CHECK (status IN ('online', 'offline')),
   "role" varchar(16) NOT NULL
@@ -38,7 +38,7 @@ CREATE TABLE "recipes" (
   "spiciness" smallint NOT NULL DEFAULT 0 CHECK (spiciness BETWEEN 0 AND 3),
   "author_id" integer NULL,
   "status" varchar(16) NOT NULL
-    CHECK (status IN ('draft', 'published', 'archived')),
+    CHECK (status IN ('draft', 'moderation', 'published', 'archived')),
   "rating_avg" numeric(3,2)
     CHECK (rating_avg BETWEEN 1.00 AND 5.00),
   "rating_count" integer NOT NULL DEFAULT 0
@@ -377,7 +377,7 @@ CREATE INDEX ON "recipe_reviews" ("recipe_id", "created_at");
 
 COMMENT ON COLUMN "users"."id" IS 'User ID from auth service (positive INT; CHECK > 0)';
 
-COMMENT ON COLUMN "users"."avatar" IS 'Original pic is stored in the DB, we need to set the limit for the size';
+COMMENT ON COLUMN "users"."avatar" IS 'Public URL to user avatar file (CDN/object storage)';
 
 COMMENT ON COLUMN "users"."status" IS 'online | offline (visible only to mutual followers)';
 
@@ -397,7 +397,7 @@ COMMENT ON COLUMN "recipes"."spiciness" IS '0 = none, 1 = mild, 2 = medium, 3 = 
 
 COMMENT ON COLUMN "recipes"."author_id" IS 'Reference to users.id (auth service user ID)';
 
-COMMENT ON COLUMN "recipes"."status" IS 'draft | published | archived';
+COMMENT ON COLUMN "recipes"."status" IS 'draft | moderation | published | archived';
 
 COMMENT ON COLUMN "recipes"."rating_avg" IS 'Average rating (1.0–5.0)';
 

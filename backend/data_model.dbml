@@ -5,7 +5,7 @@
 Table users {
   id integer [primary key, note: 'User ID from auth service (positive INT; CHECK > 0)']
   username varchar(32) [not null, unique]
-  avatar bytea [note: 'Original pic is stored in the DB, we need to set the limit for the size']
+  avatar varchar(2048) [note: 'Public URL to avatar file in object storage/CDN']
   status varchar(16) [note: 'online | offline (visible only to mutual followers)']
   role varchar(16) [not null, note: 'admin | user | guest']
   created_at timestamptz [default: `now()`]
@@ -46,7 +46,7 @@ Table recipes {
   servings integer [not null, default: 1, note: 'Number of servings']
   spiciness smallint [note: '0 = none, 1 = mild, 2 = medium, 3 = hot; CHECK 0..3']
   author_id integer [null, note: 'Reference to users.id (auth service user ID)']
-  status varchar(16) [note: 'draft | published | archived; CHECK']
+  status varchar(16) [note: 'draft | moderation | published | archived; CHECK']
 
   rating_avg numeric(3,2) [note: 'Average rating (1.0–5.0); CHECK 1.00–5.00']
   rating_count integer [default: 0, note: 'Total number of ratings; CHECK >= 0']

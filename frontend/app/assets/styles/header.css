@@ -1,10 +1,13 @@
 .main-header {
 	display: flex;
 	flex-direction: column;
+	position: sticky;
+	top: 0;
 	background-color: var(--surface-header);
 	padding: var(--space-l);
-	gap: var(--space-xl);
+	gap: var(--space-l);
 	align-items: center;
+	z-index: 100;
 }
 
 .logo-link {
@@ -30,6 +33,20 @@
 	flex-direction: row;
 	gap: var(--space-s);
 	align-items: center;
+}
+
+.header-menu-overlay {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	background-color: var(--surface-header);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: var(--space-l);
+	gap: var(--space-xl);
+	z-index: 10;
 }
 
 .header-navigation-list {

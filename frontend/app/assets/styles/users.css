@@ -1,0 +1,11 @@
+.users-page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xl);
+}
+
+.users-page-controls {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}

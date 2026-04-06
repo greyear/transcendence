@@ -1,5 +1,80 @@
 {
+	"common": {
+		"signInButton": "Вход",
+		"searchPlaceholder": "Искать ...",
+		"sortButton": "Сортировка",
+		"filterButton": "Фильтр",
+		"sortOptions": {
+			"nameAsc": "По имени А→Я",
+			"nameDesc": "По имени Я→А",
+			"titleAsc": "По названию А→Я",
+			"titleDesc": "По названию Я→А",
+			"dateAsc": "Сначала старые",
+			"dateDesc": "Сначала новые",
+			"recipesCountAsc": "Меньше рецептов",
+			"recipesCountDesc": "Больше рецептов"
+		}
+	},
 	"homePage": {
-		"title": "Главная"
+		"heroTitle": "Место для любителей еды",
+		"heroDescription": "Открывайте новые рецепты, следите за любимыми поварами и делитесь своими блюдами. От быстрых повседневных блюд до чего-то особенного, находите идеи, которые вдохновляют готовить.",
+		"viewAllRecipes": "Посмотреть все рецепты",
+		"topRecipes": "Лучшие рецепты",
+		"followCooks": "Следите за нашими поварами",
+		"all": "все"
+	},
+	"layout": {
+		"home": "Главная",
+		"recipes": "Рецепты",
+		"users": "Пользователи",
+		"terms": "Условия Пользования",
+		"policy": "Конфиденциальность"
+	},
+	"recipesPage": {
+		"title": "Рецепты",
+		"totalCount": "Всего рецептов:",
+		"createButton": "Создать",
+		"tabAll": "Все",
+		"tabMy": "Мои рецепты",
+		"tabSaved": "Сохраненные рецепты"
+	},
+	"usersPage": {
+		"title": "Пользователи",
+		"totalCount": "Всего пользователей:",
+		"tabAll": "Все",
+		"tabFollowers": "Подписчики",
+		"tabFollowing": "Подписки"
+	},
+	"userCard": {
+		"recipes": "рецептов",
+		"follow": "Подписаться",
+		"unfollow": "Отписаться"
+	},
+	"ariaLabels": {
+		"addToFavorites": "Добавить в избранное",
+		"removeFromFavorites": "Удалить из избранного",
+		"approve": "Одобрить",
+		"discard": "Отклонить",
+		"hidePassword": "Скрыть пароль",
+		"showPassword": "Показать пароль",
+		"search": "Поиск",
+		"openSearch": "Открыть поиск",
+		"closeSearch": "Закрыть поиск",
+		"clearSearch": "Очистить поиск",
+		"firstPage": "Первая страница",
+		"previousPage": "Предыдущая страница",
+		"nextPage": "Следующая страница",
+		"lastPage": "Последняя страница",
+		"page": "Страница {{page}}",
+		"pagination": "Навигация по страницам",
+		"footerMain": "Основная навигация в футере",
+		"legal": "Правовая информация",
+		"headerMain": "Основная навигация в шапке",
+		"goHome": "Перейти на главную страницу",
+		"notifications": "Уведомления",
+		"toggleMenu": "Переключить меню",
+		"allRecipes": "Все рецепты",
+		"allUsers": "Все пользователи",
+		"sortBy": "Сортировать по"
 	}
 }

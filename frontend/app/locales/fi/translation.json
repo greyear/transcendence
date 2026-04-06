@@ -1,5 +1,80 @@
 {
+	"common": {
+		"signInButton": "Kirjaudu",
+		"searchPlaceholder": "Hae ...",
+		"sortButton": "Järjestä",
+		"filterButton": "Suodata",
+		"sortOptions": {
+			"nameAsc": "Nimi A→Ö",
+			"nameDesc": "Nimi Ö→А",
+			"titleAsc": "Otsikko A→Ö",
+			"titleDesc": "Otsikko Ö→А",
+			"dateAsc": "Vanhimmat ensin",
+			"dateDesc": "Uusimmat ensin",
+			"recipesCountAsc": "Vähiten reseptejä",
+			"recipesCountDesc": "Eniten reseptejä"
+		}
+	},
 	"homePage": {
-		"title": "Etusivu"
+		"heroTitle": "Paikka ruoan ystäville",
+		"heroDescription": "Tutustu uusiin resepteihin, seuraa lempikokkejasi ja jaa omia luomuksiasi. Löydä arkeen sopivia nopeita ruokia ja hieman erityisempiä annoksia, jotka inspiroivat kokeilemaan uutta.",
+		"viewAllRecipes": "Näytä kaikki reseptit",
+		"topRecipes": "Parhaat reseptit",
+		"followCooks": "Seuraa kokkejamme",
+		"all": "kaikki"
+	},
+	"layout": {
+		"home": "Etusivu",
+		"recipes": "Reseptit",
+		"users": "Käyttäjät",
+		"terms": "Käyttöehdot",
+		"policy": "Tietosuojaseloste"
+	},
+	"recipesPage": {
+		"title": "Reseptit",
+		"totalCount": "Reseptejä yhteensä:",
+		"createButton": "Luo uusi",
+		"tabAll": "Kaikki",
+		"tabMy": "Omat reseptit",
+		"tabSaved": "Tallennetut"
+	},
+	"usersPage": {
+		"title": "Käyttäjät",
+		"totalCount": "Käyttäjiä yhteensä:",
+		"tabAll": "Kaikki",
+		"tabFollowers": "Seuraajat",
+		"tabFollowing": "Seuratut"
+	},
+	"userCard": {
+		"recipes": "reseptiä",
+		"follow": "Seuraa",
+		"unfollow": "Lopeta seuraaminen"
+	},
+	"ariaLabels": {
+		"addToFavorites": "Lisää suosikkeihin",
+		"removeFromFavorites": "Poista suosikeista",
+		"approve": "Hyväksy",
+		"discard": "Hylkää",
+		"hidePassword": "Piilota salasana",
+		"showPassword": "Näytä salasana",
+		"search": "Hae",
+		"openSearch": "Avaa haku",
+		"closeSearch": "Sulje haku",
+		"clearSearch": "Tyhjennä haku",
+		"firstPage": "Ensimmäinen sivu",
+		"previousPage": "Edellinen sivu",
+		"nextPage": "Seuraava sivu",
+		"lastPage": "Viimeinen sivu",
+		"page": "Sivu {{page}}",
+		"pagination": "Sivunumerointi",
+		"footerMain": "Alatunnisteen päänavigaatio",
+		"legal": "Oikeudelliset tiedot",
+		"headerMain": "Ylätunnisteen päänavigaatio",
+		"goHome": "Siirry etusivulle",
+		"notifications": "Ilmoitukset",
+		"toggleMenu": "Vaihda valikon tila",
+		"allRecipes": "Kaikki reseptit",
+		"allUsers": "Kaikki käyttäjät",
+		"sortBy": "Järjestä"
 	}
 }

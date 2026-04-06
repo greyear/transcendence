@@ -8,10 +8,6 @@ import {
 	ScrollRestoration,
 	useLoaderData,
 } from "react-router";
-import "@fontsource/nunito/300.css";
-import "@fontsource/nunito/400.css";
-import "@fontsource/nunito/500.css";
-import "@fontsource/nunito/700.css";
 import "./index.css";
 import type { Route } from "./+types/root";
 import i18next from "./i18next.server";

@@ -42,6 +42,8 @@ describe("Recipes Routes", () => {
 		expect(response.body).toHaveProperty("data");
 		expect(response.body.data).toHaveProperty("id", 1);
 		expect(response.body.data).toHaveProperty("title");
+		expect(Array.isArray(response.body.data.ingredients)).toBe(true);
+		expect(Array.isArray(response.body.data.categories)).toBe(true);
 	});
 
 	/**
@@ -132,5 +134,249 @@ describe("Recipes Routes", () => {
 
 		expect(response.status).toBe(404);
 		expect(response.body).toHaveProperty("error");
+	});
+
+	/**
+	 * Test: POST /recipes without auth returns 401
+	 *
+	 * Why this matters:
+	 * - Creating recipes must be available only for authenticated users
+	 * - Missing X-User-Id means request is treated as guest
+	 */
+	it("should return 401 for POST /recipes without authentication", async () => {
+		const response = await request(app)
+			.post("/recipes")
+			.send({
+				title: "No Auth Recipe",
+				instructions: ["Step 1"],
+			});
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	/**
+	 * Test: POST /recipes with invalid payload returns 400
+	 *
+	 * Why this matters:
+	 * - Verifies createRecipeInput Zod validation in route layer
+	 * - Prevents writing malformed draft data to database
+	 */
+	it("should return 400 for POST /recipes with invalid payload", async () => {
+		const response = await request(app)
+			.post("/recipes")
+			.set("X-User-Id", "1")
+			.send({
+				title: "Missing Description",
+				instructions: ["Step 1"],
+				ingredients: [{ ingredient_id: 1, amount: 100, unit: "g" }],
+			});
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	/**
+	 * Test: POST /recipes creates draft with ingredients and categories
+	 *
+	 * What we're testing:
+	 * - Authenticated request can create recipe
+	 * - Recipe is created with default draft status
+	 * - Related ingredients/categories are persisted and returned
+	 */
+	it("should create recipe as draft for authenticated user", async () => {
+		const userId = 2001;
+		let createdRecipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "create_draft_user"],
+			);
+
+			const ingredientResult = await pool.query(
+				`SELECT id FROM ingredients ORDER BY id LIMIT 1`,
+			);
+			const ingredientId = ingredientResult.rows[0].id as number;
+
+			const categoryResult = await pool.query(
+				`SELECT id FROM recipe_categories ORDER BY id LIMIT 1`,
+			);
+			const categoryId = categoryResult.rows[0].id as number;
+
+			const response = await request(app)
+				.post("/recipes")
+				.set("X-User-Id", String(userId))
+				.send({
+					title: "Draft Recipe",
+					description: "Created in tests",
+					instructions: ["Prepare ingredients", "Mix and cook"],
+					servings: 2,
+					spiciness: 1,
+					ingredients: [
+						{ ingredient_id: ingredientId, amount: 150, unit: "g" },
+					],
+					category_ids: [categoryId],
+				});
+
+			expect(response.status).toBe(201);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body.data).toHaveProperty("status", "draft");
+			expect(response.body.data).toHaveProperty("author_id", userId);
+			expect(Array.isArray(response.body.data.ingredients)).toBe(true);
+			expect(response.body.data.ingredients).toHaveLength(1);
+			expect(response.body.data.ingredients[0]).toHaveProperty(
+				"ingredient_id",
+				ingredientId,
+			);
+			expect(response.body.data.ingredients[0]).toHaveProperty("amount", 150);
+			expect(response.body.data.ingredients[0]).toHaveProperty("unit", "g");
+			expect(Array.isArray(response.body.data.categories)).toBe(true);
+			expect(response.body.data.categories).toHaveLength(1);
+			expect(response.body.data.categories[0]).toHaveProperty("id", categoryId);
+			expect(response.body.data.categories[0]).toHaveProperty("code");
+			expect(response.body.data.categories[0]).toHaveProperty(
+				"category_type_code",
+			);
+
+			createdRecipeId = response.body.data.id as number;
+		} finally {
+			if (createdRecipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [
+					createdRecipeId,
+				]);
+			}
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	/**
+	 * Test: POST /recipes/:id/publish without auth returns 401
+	 *
+	 * Why this matters:
+	 * - Publishing is protected operation and requires authenticated user
+	 */
+	it("should return 401 for POST /recipes/:id/publish without authentication", async () => {
+		const response = await request(app).post("/recipes/1/publish");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 400 for POST /recipes/:id/publish with invalid recipe id", async () => {
+		const response = await request(app)
+			.post("/recipes/abc/publish")
+			.set("X-User-Id", "1");
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 404 for POST /recipes/:id/publish when recipe does not exist", async () => {
+		const response = await request(app)
+			.post("/recipes/999999/publish")
+			.set("X-User-Id", "1");
+
+		expect(response.status).toBe(404);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	/**
+	 * Test: Non-owner cannot publish recipe (403)
+	 *
+	 * Why this matters:
+	 * - Only recipe author can move draft to moderation
+	 */
+	it("should return 403 when non-owner tries to publish recipe", async () => {
+		const ownerId = 2002;
+		const intruderId = 2003;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[ownerId, "publish_owner"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[intruderId, "publish_intruder"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Publish Target', ARRAY['step'], 'draft', $1)
+				 RETURNING id`,
+				[ownerId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.post(`/recipes/${recipeId}/publish`)
+				.set("X-User-Id", String(intruderId));
+
+			expect(response.status).toBe(403);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				ownerId,
+				intruderId,
+			]);
+		}
+	});
+
+	/**
+	 * Test: Author publishes draft -> moderation, second publish -> 409
+	 *
+	 * What we're testing:
+	 * - Valid status transition draft -> moderation
+	 * - Repeated publish is rejected as invalid state transition
+	 */
+	it("should move recipe from draft to moderation on publish", async () => {
+		const userId = 2004;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "publish_owner_success"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Draft For Moderation', ARRAY['step'], 'draft', $1)
+				 RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const publishResponse = await request(app)
+				.post(`/recipes/${recipeId}/publish`)
+				.set("X-User-Id", String(userId));
+
+			expect(publishResponse.status).toBe(200);
+			expect(publishResponse.body).toHaveProperty("message");
+			expect(publishResponse.body.data).toHaveProperty("status", "moderation");
+
+			const dbStatus = await pool.query(
+				`SELECT status FROM recipes WHERE id = $1`,
+				[recipeId],
+			);
+			expect(dbStatus.rows[0].status).toBe("moderation");
+
+			const secondPublishResponse = await request(app)
+				.post(`/recipes/${recipeId}/publish`)
+				.set("X-User-Id", String(userId));
+
+			expect(secondPublishResponse.status).toBe(409);
+			expect(secondPublishResponse.body).toHaveProperty("error");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
 	});
 });

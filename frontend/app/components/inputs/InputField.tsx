@@ -2,6 +2,7 @@ import type { InputHTMLAttributes } from "react";
 import { useRef, useState } from "react";
 import "../../assets/styles/inputField.css";
 import { Eye, EyeClosed } from "iconoir-react";
+import { useTranslation } from "react-i18next";
 import { IconButton } from "../buttons/IconButton";
 
 type BaseProps = Omit<InputHTMLAttributes<HTMLInputElement>, "placeholder"> & {
@@ -35,12 +36,15 @@ export const InputField = ({
 	onInvalid,
 	...props
 }: InputFieldProps) => {
+	const { t } = useTranslation();
 	const [showPassword, setShowPassword] = useState(false);
 	const [visibleError, setVisibleError] = useState("");
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const isPassword = type === "password";
 	const inputType = isPassword && showPassword ? "text" : type;
+	const isFloating = !label && !!placeholder;
+	const labelText = label || placeholder;
 
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		e.stopPropagation();
@@ -95,17 +99,26 @@ export const InputField = ({
 
 	return (
 		<div className={`input-field-container ${className}`.trim()}>
-			<label htmlFor={id} className={label ? "text-label" : "sr-only"}>
-				{label || placeholder}
-			</label>
-
-			<div className={`input-wrapper ${visibleError ? "error" : ""}`.trim()}>
+			{label && (
+				<label htmlFor={id} className="text-label">
+					{label}
+				</label>
+			)}
+			<div
+				className={[
+					"input-wrapper",
+					isFloating && "floating",
+					visibleError && "error",
+				]
+					.filter(Boolean)
+					.join(" ")}
+			>
 				<input
 					ref={inputRef}
 					id={id}
 					className="input-field text-body3"
 					type={inputType}
-					placeholder={placeholder}
+					placeholder={isFloating ? " " : placeholder}
 					aria-invalid={visibleError ? "true" : "false"}
 					aria-describedby={
 						visibleError ? `${id}-error` : hint ? `${id}-hint` : undefined
@@ -115,6 +128,11 @@ export const InputField = ({
 					onInvalid={handleInvalid}
 					{...props}
 				/>
+				{isFloating && (
+					<label htmlFor={id} className="floating-label">
+						{labelText}
+					</label>
+				)}
 
 				{isPassword && (
 					<IconButton
@@ -122,7 +140,11 @@ export const InputField = ({
 						type="button"
 						onMouseDown={handleMouseDown}
 						onClick={handleClick}
-						aria-label={showPassword ? "Hide password" : "Show password"}
+						aria-label={
+							showPassword
+								? t("ariaLabels.hidePassword")
+								: t("ariaLabels.showPassword")
+						}
 					>
 						{showPassword ? <EyeClosed /> : <Eye />}
 					</IconButton>

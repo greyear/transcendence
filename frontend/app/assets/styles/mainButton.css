@@ -5,6 +5,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	text-decoration: none;
 	cursor: pointer;
 	transition: filter 0.2s ease;
 	gap: var(--space-xs);
@@ -37,12 +38,12 @@
 
 .main-button.pill {
 	border-radius: var(--radius-full);
-	background-color: var(--surface-primary);
+	background-color: var(--bg-main);
 	color: var(--text-primary);
 	font-size: var(--fs-caption);
 	font-weight: var(--fw-caption);
 	line-height: var(--lh-caption);
-	min-width: 114px;
+	padding: 0 var(--space-l);
 }
 
 .main-button.pill.active {
@@ -74,18 +75,10 @@
 	.main-button.secondary {
 		min-width: 296px;
 	}
-
-	.main-button.pill {
-		min-width: 146px;
-	}
 }
 
 @media (min-width: 1440px) {
 	.main-button {
 		height: 56px;
-	}
-
-	.main-button.pill {
-		min-width: 162px;
 	}
 }
