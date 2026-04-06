@@ -49,7 +49,7 @@ clean:
 
 re:
 	@echo "Rebuilding and restarting all services..."
-	docker-compose down -v
+	docker-compose down -v --remove-orphans
 	docker-compose up -d --build
 	@$(MAKE) wait-core-seed
 	@echo "✓ Rebuild completed, services are up"

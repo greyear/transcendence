@@ -9,6 +9,7 @@ import {
 	extractUser,
 } from "../middleware/extractUser.js";
 import {
+	getMyFavoriteRecipes,
 	getMyRecipes,
 	getPublishedRecipesByUserId,
 } from "../services/recipes.service.js";
@@ -35,7 +36,7 @@ const getAllUsersHandler = async (
 };
 
 const getUserByIdHandler = async (
-	req: AuthenticatedRequest,
+	req: Request,
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
@@ -47,7 +48,7 @@ const getUserByIdHandler = async (
 			throw error;
 		}
 
-		const user = await getUserById(validation.value, req.userId);
+		const user = await getUserById(validation.value);
 		if (!user) {
 			const error: CustomError = new Error("User not found");
 			error.statusCode = 404;
@@ -118,7 +119,33 @@ const getMyRecipesHandler = async (
 	}
 };
 
+/**
+ * GET /users/me/favorites - fetch all favorite recipes of current user
+ *
+ * Errors:
+ * - 401 Unauthorized - if user is not authenticated
+ */
+const getMyFavoritesHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const favorites = await getMyFavoriteRecipes(req.userId);
+		res.status(200).json({ data: favorites, count: favorites.length });
+	} catch (error) {
+		next(error);
+	}
+};
+
 usersRouter.get("/me/recipes", extractUser, getMyRecipesHandler);
+usersRouter.get("/me/favorites", extractUser, getMyFavoritesHandler);
 usersRouter.get("/:id/recipes", getUserRecipesHandler);
-usersRouter.get("/:id", extractUser, getUserByIdHandler);
+usersRouter.get("/:id", getUserByIdHandler);
 usersRouter.get("/", getAllUsersHandler);

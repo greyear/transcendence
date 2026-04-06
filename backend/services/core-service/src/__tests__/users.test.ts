@@ -67,7 +67,7 @@ describe("Users Routes", () => {
 	});
 
 	describe("GET /users/:id", () => {
-		it("should return public user profile without role and hidden status for anonymous requester", async () => {
+		it("should return public user profile", async () => {
 			const response = await request(app).get("/users/1");
 
 			expect(response.status).toBe(200);
@@ -80,7 +80,7 @@ describe("Users Routes", () => {
 			expect(response.body.data).toHaveProperty("recipes_count");
 		});
 
-		it("should return status for mutual followers", async () => {
+		it("should ignore requester context and keep status hidden for public profile", async () => {
 			const response = await request(app)
 				.get("/users/10001")
 				.set("X-User-Id", "10002");
@@ -88,7 +88,7 @@ describe("Users Routes", () => {
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("data");
 			expect(response.body.data).toHaveProperty("id", 10001);
-			expect(response.body.data).toHaveProperty("status", "online");
+			expect(response.body.data).toHaveProperty("status", null);
 			expect(response.body.data).not.toHaveProperty("role");
 		});
 

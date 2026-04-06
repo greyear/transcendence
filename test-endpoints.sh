@@ -100,6 +100,27 @@ check_post_endpoint_auth() {
   fi
 }
 
+check_delete_endpoint() {
+  local path="$1"
+  local expected_status="$2"
+  local description="${3:-DELETE $path}"
+  
+  local url="$BASE_URL$path"
+  local actual_status
+  
+  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" -X DELETE "$url" 2>/dev/null || echo "000")
+  
+  if [ "$actual_status" = "$expected_status" ]; then
+    echo -e "${GREEN}✓${NC} $description -> $actual_status"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+  else
+    echo -e "${RED}✗${NC} $description -> got $actual_status, expected $expected_status"
+    echo "   Response: $(head -c 100 /tmp/test-resp.json)"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    FAIL=1
+  fi
+}
+
 echo "Health Checks:"
 check_endpoint "/health" "200" "GET /health"
 check_endpoint "/health/db" "200" "GET /health/db"
@@ -136,6 +157,12 @@ echo ""
 echo "POST Endpoints:"
 check_post_endpoint "/recipes" '{"title":"Smoke Recipe","description":"Created by smoke test","instructions":["Mix ingredients"],"servings":2,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":100,"unit":"g"}],"category_ids":[]}' "401" "POST /recipes (no token -> 401)"
 check_post_endpoint "/recipes/1/publish" '{}' "401" "POST /recipes/1/publish (no token -> 401)"
+
+echo ""
+echo "Favorites Endpoints (public):"
+check_post_endpoint "/recipes/1/favorite" '{}' "401" "POST /recipes/1/favorite (no token -> 401)"
+check_delete_endpoint "/recipes/1/favorite" "401" "DELETE /recipes/1/favorite (no token -> 401)"
+check_endpoint "/users/me/favorites" "401" "GET /users/me/favorites (no token -> 401)"
 
 if [ -n "$SMOKE_BEARER_TOKEN" ]; then
   echo ""
