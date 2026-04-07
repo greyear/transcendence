@@ -405,15 +405,17 @@ describe("API Gateway - Recipes Routes", () => {
 	});
 
 	it("should reject PUT /recipes/:id without authentication", async () => {
-		const response = await request(app).put("/recipes/77").send({
-			title: "Updated",
-			description: "Updated",
-			instructions: ["step"],
-			servings: 2,
-			spiciness: 1,
-			ingredients: [{ ingredient_id: 1, amount: 100, unit: "g" }],
-			category_ids: [],
-		});
+		const response = await request(app)
+			.put("/recipes/77")
+			.send({
+				title: "Updated",
+				description: "Updated",
+				instructions: ["step"],
+				servings: 2,
+				spiciness: 1,
+				ingredients: [{ ingredient_id: 1, amount: 100, unit: "g" }],
+				category_ids: [],
+			});
 
 		expect(response.status).toBe(401);
 		expect(response.body).toEqual({ error: "Authentication required" });
@@ -506,7 +508,9 @@ describe("API Gateway - Recipes Routes", () => {
 			});
 
 		expect(response.status).toBe(403);
-		expect(response.body).toEqual({ error: "No permission to update this recipe" });
+		expect(response.body).toEqual({
+			error: "No permission to update this recipe",
+		});
 	});
 
 	it("should return 504 when downstream update request times out", async () => {

@@ -381,15 +381,17 @@ describe("Recipes Routes", () => {
 	});
 
 	it("should return 401 for PUT /recipes/:id without authentication", async () => {
-		const response = await request(app).put("/recipes/1").send({
-			title: "Updated",
-			description: "Updated description",
-			instructions: ["step"],
-			servings: 2,
-			spiciness: 1,
-			ingredients: [{ ingredient_id: 1, amount: 100, unit: "g" }],
-			category_ids: [],
-		});
+		const response = await request(app)
+			.put("/recipes/1")
+			.send({
+				title: "Updated",
+				description: "Updated description",
+				instructions: ["step"],
+				servings: 2,
+				spiciness: 1,
+				ingredients: [{ ingredient_id: 1, amount: 100, unit: "g" }],
+				category_ids: [],
+			});
 
 		expect(response.status).toBe(401);
 		expect(response.body).toHaveProperty("error");
@@ -548,7 +550,10 @@ describe("Recipes Routes", () => {
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("message", "Recipe updated");
 			expect(response.body.data).toHaveProperty("title", "New Title");
-			expect(response.body.data).toHaveProperty("description", "New Description");
+			expect(response.body.data).toHaveProperty(
+				"description",
+				"New Description",
+			);
 			expect(response.body.data.ingredients[0]).toHaveProperty("amount", 200);
 
 			const dbRecipe = await pool.query(

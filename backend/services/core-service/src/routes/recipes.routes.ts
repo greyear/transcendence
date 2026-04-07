@@ -26,8 +26,8 @@ import {
 } from "../services/recipes.service.js";
 import {
 	validateCreateRecipeInput,
-	validateUpdateRecipeInput,
 	validateRecipeId,
+	validateUpdateRecipeInput,
 } from "../validation/schemas.js";
 
 interface CustomError extends Error {

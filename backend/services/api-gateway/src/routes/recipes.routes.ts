@@ -130,12 +130,15 @@ const publishRecipeHandler: RequestHandler = async (req, res, _next) => {
 
 const updateRecipeHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		const response = await fetch(`${CORE_SERVICE_URL}/recipes/${req.params.id}`, {
-			method: "PUT",
-			headers: getInternalHeaders(req),
-			body: JSON.stringify(req.body),
-			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
-		});
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/recipes/${req.params.id}`,
+			{
+				method: "PUT",
+				headers: getInternalHeaders(req),
+				body: JSON.stringify(req.body),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
 		const data = await response.json();
 		res.status(response.status).json(data);
 	} catch (error) {
@@ -151,11 +154,14 @@ const updateRecipeHandler: RequestHandler = async (req, res, _next) => {
 
 const deleteRecipeHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		const response = await fetch(`${CORE_SERVICE_URL}/recipes/${req.params.id}`, {
-			method: "DELETE",
-			headers: getInternalHeaders(req),
-			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
-		});
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/recipes/${req.params.id}`,
+			{
+				method: "DELETE",
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
 		const data = await response.json();
 		res.status(response.status).json(data);
 	} catch (error) {
@@ -168,7 +174,6 @@ const deleteRecipeHandler: RequestHandler = async (req, res, _next) => {
 		res.status(500).json({ error: "Failed to archive recipe" });
 	}
 };
-
 
 recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
 
