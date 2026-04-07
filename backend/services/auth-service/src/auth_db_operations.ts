@@ -166,6 +166,7 @@ authRouter.post(
 	https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
 	https://www.w3tutorials.net/blog/google-sign-in-backend-verification/
 */
+/*
 authRouter.post(
 	"/google",
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -190,11 +191,9 @@ authRouter.post(
 			const googleID = payload.sub;
 			const { email, name } = payload;
 
-			/*
-			Repetiton here, which can be sorted out later.
-			Google accounts will not require a passwordHash, so just using "empty"
-			Not sure how correct any of this is, but making a start.
-			*/
+			//Repetiton here, which can be sorted out later.
+			//Google accounts will not require a passwordHash, so just using "empty"
+			//Not sure how correct any of this is, but making a start.
 			const userDocument = await userModel.findOne({ googleID });
 			if (!userDocument) {
 				const currentCount = await help.makeID();
@@ -230,3 +229,4 @@ authRouter.post(
 		}
 	},
 );
+*/

@@ -14,8 +14,7 @@ services:
     ports:
       - "27017:27017"
 
-    volumes:
-      - ./backend/infrastructure/mongo/auth/init-auth.js:/docker-entrypoint-initdb.d/init-auth.js:ro
+	  #We had volumes here, but we removed it.
 
     networks:
       - transcendence-network

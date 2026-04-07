@@ -134,6 +134,7 @@ authGetSet.post(
 
 // /auth/validate/google endpoint to specifically validate a JWT of a google account
 // within the header.
+/*
 authGetSet.post(
 	"/validate/google",
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -160,3 +161,4 @@ authGetSet.post(
 		}
 	},
 );
+*/
