@@ -13,7 +13,12 @@ import {
 	getMyRecipes,
 	getPublishedRecipesByUserId,
 } from "../services/recipes.service.js";
-import { getAllUsers, getUserById } from "../services/users.service.js";
+import {
+	getAllUsers,
+	getFollowers,
+	getFollowing,
+	getUserById,
+} from "../services/users.service.js";
 import { validateUserId } from "../validation/schemas.js";
 
 interface CustomError extends Error {
@@ -36,7 +41,7 @@ const getAllUsersHandler = async (
 };
 
 const getUserByIdHandler = async (
-	req: Request,
+	req: AuthenticatedRequest,
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
@@ -48,7 +53,7 @@ const getUserByIdHandler = async (
 			throw error;
 		}
 
-		const user = await getUserById(validation.value);
+		const user = await getUserById(validation.value, req.userId);
 		if (!user) {
 			const error: CustomError = new Error("User not found");
 			error.statusCode = 404;
@@ -144,8 +149,80 @@ const getMyFavoritesHandler = async (
 	}
 };
 
+/**
+ * GET /users/:id/followers - fetch all followers of a user
+ *
+ * Errors:
+ * - 400 Bad Request - if user ID is not a valid positive integer
+ * - 404 Not Found - if user doesn't exist
+ */
+const getFollowersHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		const validation = validateUserId(req.params.id);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const followers = await getFollowers(validation.value);
+		res.status(200).json({ data: followers, count: followers.length });
+	} catch (error) {
+		if (error instanceof Error && error.message === "User not found") {
+			const customError: CustomError = new Error(error.message);
+			customError.statusCode = 404;
+			next(customError);
+		} else {
+			next(error);
+		}
+	}
+};
+
+/**
+ * GET /users/:id/following - fetch all users that a user is following
+ *
+ * Errors:
+ * - 400 Bad Request - if user ID is not a valid positive integer
+ * - 404 Not Found - if user doesn't exist
+ */
+const getFollowingHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		const validation = validateUserId(req.params.id);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const following = await getFollowing(validation.value);
+		res.status(200).json({ data: following, count: following.length });
+	} catch (error) {
+		if (error instanceof Error && error.message === "User not found") {
+			const customError: CustomError = new Error(error.message);
+			customError.statusCode = 404;
+			next(customError);
+		} else {
+			next(error);
+		}
+	}
+};
+
+// Register more specific routes FIRST, then less specific
+// /me/recipes is most specific
 usersRouter.get("/me/recipes", extractUser, getMyRecipesHandler);
 usersRouter.get("/me/favorites", extractUser, getMyFavoritesHandler);
+// /:id/followers and /:id/following are more specific than /:id/recipes
+usersRouter.get("/:id/followers", getFollowersHandler);
+usersRouter.get("/:id/following", getFollowingHandler);
+// /:id/recipes is less specific, should be last
 usersRouter.get("/:id/recipes", getUserRecipesHandler);
-usersRouter.get("/:id", getUserByIdHandler);
+usersRouter.get("/:id", extractUser, getUserByIdHandler);
 usersRouter.get("/", getAllUsersHandler);
