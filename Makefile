@@ -127,11 +127,11 @@ test-core:
 
 test-jest-core:
 	@echo "Running Jest tests for core-service..."
-	cd backend/services/core-service && npm test
+	cd backend/services/core-service && npm i && npm test
 
 test-jest-api:
 	@echo "Running Jest tests for api-gateway..."
-	cd backend/services/api-gateway && npm test
+	cd backend/services/api-gateway && npm i && npm test
 
 test-jest-all:
 	@echo "Running all Jest tests..."
