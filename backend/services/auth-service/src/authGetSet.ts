@@ -11,7 +11,6 @@ import { userModel } from "./auth_schema.js";
 import * as help from "./authHelpers.js";
 
 export const authGetSet = Router();
-authGetSet.use(help.errorHandler);
 
 /*
 	Delete user. /users/:username endpoint
@@ -21,7 +20,7 @@ authGetSet.use(help.errorHandler);
 	As of now does not require the current password.
 */
 authGetSet.delete(
-	"/users/:username",
+	"/delete/:username",
 	help.compareJWT,
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
@@ -52,7 +51,7 @@ authGetSet.delete(
 		6. Return relevant code
 */
 authGetSet.patch(
-	"/users/:username/change-password",
+	"/change-password/:username",
 	help.compareJWT,
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
@@ -105,7 +104,7 @@ authGetSet.patch(
 
 // /auth/validate endpoint to specifically validate a JWT within the header.
 authGetSet.post(
-	"/auth/validate",
+	"/validate",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
@@ -132,3 +131,34 @@ authGetSet.post(
 		}
 	},
 );
+
+// /auth/validate/google endpoint to specifically validate a JWT of a google account
+// within the header.
+/*
+authGetSet.post(
+	"/validate/google",
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
+			if (!decodedToken) throw Error("Invalid header");
+
+			const googleID = decodedToken.googleID;
+			const userDocument = await userModel.findOne({ googleID });
+			if (!userDocument) {
+				res.status(401).json({ error: "Invalid token" });
+				return;
+			}
+
+			const userID = userDocument.get("id");
+			if (!userID) {
+				res.status(500).json({ error: "User has no id" });
+				return;
+			}
+
+			res.status(200).json({ id: userID });
+		} catch (error) {
+			next(error);
+		}
+	},
+);
+*/
