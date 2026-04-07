@@ -123,6 +123,13 @@ check_endpoint "/users/999/recipes" "404" "GET /users/999/recipes (non-existent 
 check_endpoint "/users/me/recipes" "401" "GET /users/me/recipes (no token -> 401)"
 
 echo ""
+echo "User Social Endpoints:"
+check_endpoint "/users/1/followers" "200" "GET /users/1/followers (list of followers)"
+check_endpoint "/users/1/following" "200" "GET /users/1/following (list being followed)"
+check_endpoint "/users/999/followers" "404" "GET /users/999/followers (non-existent user)"
+check_endpoint "/users/999/following" "404" "GET /users/999/following (non-existent user)"
+
+echo ""
 echo "Validation Tests:"
 check_endpoint "/recipes/abc" "400" "GET /recipes/abc (invalid ID)"
 check_endpoint "/recipes/12.4" "400" "GET /recipes/12.4 (decimal)"
@@ -131,6 +138,8 @@ check_endpoint "/recipes/.1" "400" "GET /recipes/.1 (starts with dot)"
 check_endpoint "/recipes/40a" "400" "GET /recipes/40a (alphanumeric)"
 check_endpoint "/users/abc" "400" "GET /users/abc (invalid user ID)"
 check_endpoint "/users/abc/recipes" "400" "GET /users/abc/recipes (invalid user ID)"
+check_endpoint "/users/abc/followers" "400" "GET /users/abc/followers (invalid user ID for followers)"
+check_endpoint "/users/abc/following" "400" "GET /users/abc/following (invalid user ID for following)"
 
 echo ""
 echo "POST Endpoints:"
