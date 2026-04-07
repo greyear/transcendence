@@ -3,10 +3,25 @@
 		"signInButton": "Sign In",
 		"searchPlaceholder": "Search for ...",
 		"sortButton": "Sort",
-		"filterButton": "Filter"
+		"filterButton": "Filter",
+		"sortOptions": {
+			"nameAsc": "Name A→Z",
+			"nameDesc": "Name Z→A",
+			"titleAsc": "Title A→Z",
+			"titleDesc": "Title Z→A",
+			"dateAsc": "Old first",
+			"dateDesc": "New first",
+			"recipesCountAsc": "Fewest recipes",
+			"recipesCountDesc": "Most recipes"
+		}
 	},
 	"homePage": {
-		"title": "Home"
+		"heroTitle": "A place for food lovers",
+		"heroDescription": "Explore new recipes, follow your favorite cooks, and share your own creations. From quick everyday meals to something a bit more special, find ideas that inspire you.",
+		"viewAllRecipes": "View all recipes",
+		"topRecipes": "Top recipes",
+		"followCooks": "Follow our cooks",
+		"all": "all"
 	},
 	"layout": {
 		"home": "Home",
@@ -57,6 +72,9 @@
 		"headerMain": "Header main",
 		"goHome": "Go to homepage",
 		"notifications": "Notifications",
-		"toggleMenu": "Toggle menu"
+		"toggleMenu": "Toggle menu",
+		"allRecipes": "All recipes",
+		"allUsers": "All users",
+		"sortBy": "Sort by"
 	}
 }

@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { MouseEventHandler, ReactNode } from "react";
+import { Link } from "react-router";
 import "../../assets/styles/mainButton.css";
 
 type MainButtonVariant =
@@ -8,23 +9,52 @@ type MainButtonVariant =
 	| "secondary"
 	| "inverted";
 
-interface MainButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+type MainButtonProps = {
 	children: ReactNode;
 	variant?: MainButtonVariant;
 	active?: boolean;
-}
+	className?: string;
+	to?: string;
+	onClick?: MouseEventHandler<HTMLElement>;
+	"aria-label"?: string;
+	disabled?: boolean;
+	type?: "button" | "submit" | "reset";
+};
 
 export const MainButton = ({
 	children,
 	className = "",
 	variant = "primary",
 	active = false,
-	...props
+	to,
+	onClick,
+	"aria-label": ariaLabel,
+	disabled = false,
+	type = "button",
 }: MainButtonProps) => {
+	const combinedClasses =
+		`main-button ${variant} ${active ? "active" : ""} ${className}`.trim();
+
+	if (to) {
+		return (
+			<Link
+				to={to}
+				className={combinedClasses}
+				onClick={onClick}
+				aria-label={ariaLabel}
+			>
+				{children}
+			</Link>
+		);
+	}
+
 	return (
 		<button
-			className={`main-button ${variant} ${active ? "active" : ""} ${className}`}
-			{...props}
+			type={type}
+			className={combinedClasses}
+			onClick={onClick}
+			aria-label={ariaLabel}
+			disabled={disabled}
 		>
 			{children}
 		</button>

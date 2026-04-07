@@ -4,13 +4,19 @@ import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
 import { UsersGrid } from "~/components/UsersGrid";
 import "~/assets/styles/users.css";
-import { Filter, Sort } from "iconoir-react";
+import { Filter } from "iconoir-react";
 import { useTranslation } from "react-i18next";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
+import { SortMenu } from "~/components/SortMenu";
+import { useSortOptions } from "~/composables/useSortOptions";
+import { useSortParam } from "~/composables/useSortParam";
 
 const UsersPage = () => {
 	const { t } = useTranslation();
 	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
+	const [totalCount, setTotalCount] = useState(0);
+	const sortOptions = useSortOptions("users");
+	const [sortValue, setSort] = useSortParam(sortOptions[0].value);
 
 	const filters = [
 		t("usersPage.tabAll"),
@@ -22,7 +28,7 @@ const UsersPage = () => {
 		<section className="users-page">
 			<PageHeader
 				title={t("usersPage.title")}
-				totalLabel={`${t("usersPage.totalCount")} 37`}
+				totalLabel={`${t("usersPage.totalCount")} ${totalCount}`}
 			/>
 
 			<SearchField placeholder={t("common.searchPlaceholder")} />
@@ -36,10 +42,7 @@ const UsersPage = () => {
 			/>
 
 			<div className="users-page-controls">
-				<TextIconButton>
-					{t("common.sortButton")}
-					<Sort />
-				</TextIconButton>
+				<SortMenu options={sortOptions} value={sortValue} onChange={setSort} />
 
 				<TextIconButton>
 					{t("common.filterButton")}
@@ -47,7 +50,7 @@ const UsersPage = () => {
 				</TextIconButton>
 			</div>
 
-			<UsersGrid />
+			<UsersGrid sortValue={sortValue} onLoad={setTotalCount} />
 		</section>
 	);
 };
