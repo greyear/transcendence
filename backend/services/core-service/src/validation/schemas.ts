@@ -223,9 +223,9 @@ export const profileDataSchema = z.object({
 	username: z.string().trim().min(1).max(32),
 	avatar: z.string().nullable(),
 });
- 
+
 export type ProfileData = z.infer<typeof profileDataSchema>;
- 
+
 /**
  * UpdateProfileInput schema - body for PUT /profile
  *
@@ -243,18 +243,18 @@ const updateProfileInputSchema = z
 		(data) => data.username !== undefined || data.avatar !== undefined,
 		"At least one field (username or avatar) must be provided",
 	);
- 
+
 export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
- 
+
 export const validateUpdateProfileInput = (
 	input: unknown,
 ): ValidationResult<UpdateProfileInput> => {
 	const result = updateProfileInputSchema.safeParse(input);
- 
+
 	if (result.success) {
 		return { valid: true, value: result.data };
 	}
- 
+
 	return {
 		valid: false,
 		error: z.prettifyError(result.error),

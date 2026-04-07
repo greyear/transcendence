@@ -10,8 +10,8 @@ import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
 	type ProfileData,
-	type UpdateProfileInput,
 	profileDataSchema,
+	type UpdateProfileInput,
 } from "../validation/schemas.js";
 
 // ── Result types ──────────────────────────────────────────────────────────────

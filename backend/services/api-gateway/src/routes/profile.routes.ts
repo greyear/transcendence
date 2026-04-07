@@ -48,8 +48,7 @@ const updateProfileHandler: RequestHandler = async (req, res, _next) => {
 			headers: getInternalHeaders(req), // forwards Content-Type: multipart/form-data
 			body: req,
 			duplex: "half",
-		} as RequestInit,
-		);
+		} as RequestInit);
 		const data = await response.json();
 		res.status(response.status).json(data);
 	} catch (error) {

@@ -45,11 +45,12 @@ const avatarStorage = multer.diskStorage({
 	},
 	filename: (req: AuthenticatedRequest, _file, cb) => {
 		// Use userId as filename to automatically overwrite old avatar
-		const ext = _file.mimetype === "image/png"
-			? "png"
-			: _file.mimetype === "image/webp"
-				? "webp"
-				: "jpg";
+		const ext =
+			_file.mimetype === "image/png"
+				? "png"
+				: _file.mimetype === "image/webp"
+					? "webp"
+					: "jpg";
 		cb(null, `${req.userId}.${ext}`);
 	},
 });
@@ -131,9 +132,7 @@ const updateProfileHandler = async (
 		}
 
 		// If a file was uploaded, build the public avatar URL from the saved filename
-		const avatarUrl = req.file
-			? `/avatars/${req.file.filename}`
-			: undefined;
+		const avatarUrl = req.file ? `/avatars/${req.file.filename}` : undefined;
 
 		// Merge text fields from body with avatar URL if present
 		const rawInput = {
@@ -178,9 +177,9 @@ profileRouter.get("/", extractUser, getProfileHandler);
 // avatarUpload.single("avatar") processes the multipart field named "avatar"
 // It runs before the handler, so req.file is available if a file was uploaded
 profileRouter.put(
-    "/",
-    extractUser,
-    avatarUpload.single("avatar"),
-    handleMulterError,
-    updateProfileHandler,
+	"/",
+	extractUser,
+	avatarUpload.single("avatar"),
+	handleMulterError,
+	updateProfileHandler,
 );
