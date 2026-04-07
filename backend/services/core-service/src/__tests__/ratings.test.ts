@@ -38,14 +38,11 @@ const insertPublishedRecipe = async (authorId: number): Promise<number> => {
 };
 
 const deleteRecipe = (id: number | null) => {
-  if (id !== null) {
-    return pool.query(
-      `DELETE FROM recipes WHERE id = $1`,
-      [id]
-    );
-  }
+	if (id !== null) {
+		return pool.query(`DELETE FROM recipes WHERE id = $1`, [id]);
+	}
 
-  return null;
+	return null;
 };
 
 const insertRating = (recipeId: number, userId: number, rating: number) =>

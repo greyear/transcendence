@@ -143,17 +143,16 @@ export const validateRatingInput = (
 	input: unknown,
 ): ValidationResult<RatingInput> => {
 	const result = ratingInputSchema.safeParse(input);
- 
+
 	if (result.success) {
 		return { valid: true, value: result.data };
 	}
- 
+
 	return {
 		valid: false,
 		error: z.prettifyError(result.error),
 	};
 };
- 
 
 /**
  * TYPES (describes Recipe object structure)

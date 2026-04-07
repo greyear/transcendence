@@ -121,7 +121,9 @@ describe("API Gateway - Recipe Ratings Routes", () => {
 			.send({ rating: 5 });
 
 		expect(response.status).toBe(409);
-		expect(response.body).toEqual({ error: "You have already rated this recipe" });
+		expect(response.body).toEqual({
+			error: "You have already rated this recipe",
+		});
 	});
 
 	it("should return 504 when downstream POST rating request times out", async () => {

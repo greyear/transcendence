@@ -10,11 +10,7 @@
  * DELETE /recipes/:id/rating  – remove rating
  */
 
-import {
-	type NextFunction,
-	type Response,
-	Router,
-} from "express";
+import { type NextFunction, type Response, Router } from "express";
 import {
 	type AuthenticatedRequest,
 	extractUser,
@@ -24,7 +20,10 @@ import {
 	deleteRating,
 	updateRating,
 } from "../services/ratings.service.js";
-import { validateRatingInput, validateRecipeId } from "../validation/schemas.js";
+import {
+	validateRatingInput,
+	validateRecipeId,
+} from "../validation/schemas.js";
 
 interface CustomError extends Error {
 	statusCode?: number;
