@@ -18,6 +18,8 @@ import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
 	type CreateRecipeInput,
+	type FavoriteRecipeListItem,
+	favoriteRecipeListItemSchema,
 	type MyRecipeListItem,
 	myRecipeListItemSchema,
 	type Recipe,
@@ -57,6 +59,14 @@ type FailedRecipeMutationResult = {
 	reason: "not-found" | "forbidden" | "invalid-status";
 	currentStatus?: string;
 };
+
+type AddFavoriteResult =
+	| { success: true; recipeId: number }
+	| { success: false; reason: "not-found" | "already-favorited" };
+
+type RemoveFavoriteResult =
+	| { success: true; recipeId: number }
+	| { success: false; reason: "not-found" | "not-favorited" };
 
 const recipeIdRowSchema = z.object({
 	id: z.coerce.number().int().positive(),
@@ -245,6 +255,24 @@ const isForeignKeyViolation = (error: unknown): boolean => {
 
 	// This means a referenced row does not exist (e.g. unknown ingredient/category id).
 	return "code" in error && error.code === PG_FOREIGN_KEY_VIOLATION;
+};
+
+const UNIQUE_VIOLATION = "23505";
+const isUniqueViolation = (error: unknown): boolean => {
+	if (!error || typeof error !== "object") {
+		return false;
+	}
+
+	return "code" in error && error.code === UNIQUE_VIOLATION;
+};
+
+const publishedRecipeExists = async (recipeId: number): Promise<boolean> => {
+	const result = await pool.query(
+		`SELECT 1 FROM recipes WHERE id = $1 AND status = 'published' LIMIT 1`,
+		[recipeId],
+	);
+
+	return result.rowCount === 1;
 };
 
 /**
@@ -600,6 +628,84 @@ export const archiveRecipe = async (
 		return { success: true, recipe };
 	} catch (error) {
 		console.error("Database error in archiveRecipe:", error);
+		throw error;
+	}
+};
+
+export const addRecipeToFavorites = async (
+	recipeId: number,
+	userId: number,
+): Promise<AddFavoriteResult> => {
+	try {
+		const recipeExists = await publishedRecipeExists(recipeId);
+		if (!recipeExists) {
+			return { success: false, reason: "not-found" };
+		}
+
+		await pool.query(
+			`INSERT INTO favorites (user_id, recipe_id) VALUES ($1, $2)`,
+			[userId, recipeId],
+		);
+
+		return { success: true, recipeId };
+	} catch (error) {
+		if (isUniqueViolation(error)) {
+			return { success: false, reason: "already-favorited" };
+		}
+
+		console.error("Database error in addRecipeToFavorites:", error);
+		throw error;
+	}
+};
+
+export const removeRecipeFromFavorites = async (
+	recipeId: number,
+	userId: number,
+): Promise<RemoveFavoriteResult> => {
+	try {
+		const recipeExists = await publishedRecipeExists(recipeId);
+		if (!recipeExists) {
+			return { success: false, reason: "not-found" };
+		}
+
+		const deleteResult = await pool.query(
+			`DELETE FROM favorites WHERE user_id = $1 AND recipe_id = $2 RETURNING recipe_id`,
+			[userId, recipeId],
+		);
+
+		if (deleteResult.rowCount === 0) {
+			return { success: false, reason: "not-favorited" };
+		}
+
+		return { success: true, recipeId };
+	} catch (error) {
+		console.error("Database error in removeRecipeFromFavorites:", error);
+		throw error;
+	}
+};
+
+export const getMyFavoriteRecipes = async (
+	userId: number,
+): Promise<FavoriteRecipeListItem[]> => {
+	try {
+		const query = `
+	SELECT r.id, r.title, r.description, u.avatar
+      FROM favorites f
+      JOIN recipes r ON r.id = f.recipe_id
+      LEFT JOIN users u ON u.id = r.author_id
+      WHERE f.user_id = $1 AND r.status = 'published'
+      ORDER BY f.created_at DESC
+    `;
+
+		const result = await pool.query(query, [userId]);
+
+		return parseRecipeRows(
+			result.rows,
+			favoriteRecipeListItemSchema,
+			"favorite recipe",
+		);
+	} catch (error) {
+		console.error("Database error in getMyFavoriteRecipes:", error);
 		throw error;
 	}
 };

@@ -175,7 +175,55 @@ const deleteRecipeHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
+const favoriteRecipeHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/recipes/${req.params.id}/favorite`,
+			{
+				method: "POST",
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to add recipe to favorites" });
+	}
+};
+
+const unfavoriteRecipeHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/recipes/${req.params.id}/favorite`,
+			{
+				method: "DELETE",
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to remove recipe from favorites" });
+	}
+};
+
 recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
+recipesRouter.post("/:id/favorite", requireAuth, favoriteRecipeHandler);
+recipesRouter.delete("/:id/favorite", requireAuth, unfavoriteRecipeHandler);
 
 recipesRouter.get("/:id", optionalAuth, getRecipeByIdHandler);
 recipesRouter.put("/:id", requireAuth, updateRecipeHandler);

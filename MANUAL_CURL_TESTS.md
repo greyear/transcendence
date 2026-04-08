@@ -141,7 +141,40 @@ curl -i -X DELETE "http://localhost:3000/recipes/abc" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-## 11. Expected Status Quick Map
+## 11. Favorites (Protected)
+
+Replace RECIPE_ID with an existing published recipe id.
+
+```bash
+RECIPE_ID=1
+
+# should return 401 without token
+curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/favorite"
+curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite"
+curl -i "http://localhost:3000/users/me/favorites"
+
+# add to favorites
+curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
+  -H "Authorization: Bearer $TOKEN"
+
+# duplicate add should return 409
+curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
+  -H "Authorization: Bearer $TOKEN"
+
+# list my favorites
+curl -i "http://localhost:3000/users/me/favorites" \
+  -H "Authorization: Bearer $TOKEN"
+
+# remove from favorites
+curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
+  -H "Authorization: Bearer $TOKEN"
+
+# second remove should return 409 (not in favorites)
+curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## 12. Expected Status Quick Map
 
 - GET /health -> 200
 - GET /health/db -> 200
@@ -153,7 +186,15 @@ curl -i -X DELETE "http://localhost:3000/recipes/abc" \
 - GET /users/abc -> 400
 - GET /users/:id/recipes -> 200 or 404
 - GET /users/me/recipes (no token) -> 401
+- GET /users/me/favorites (no token) -> 401
+
 - POST /recipes (no token) -> 401
 - POST /recipes/:id/publish (no token) -> 401
+- POST /recipes/:id/favorite (no token) -> 401
+- POST /recipes/:id/favorite (with token) -> 200 or 404 or 409
+
 - PUT /recipes/:id -> 200 or 400 or 401 or 403 or 404 or 409
+
 - DELETE /recipes/:id -> 200 or 400 or 401 or 403 or 404 or 409
+- DELETE /recipes/:id/favorite (no token) -> 401
+- DELETE /recipes/:id/favorite (with token) -> 200 or 404 or 409
