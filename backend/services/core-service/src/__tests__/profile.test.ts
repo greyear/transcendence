@@ -157,7 +157,10 @@ describe("PUT /profile", () => {
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("message", "Profile updated");
 			expect(response.body.data).toHaveProperty("id", userId);
-			expect(response.body.data).toHaveProperty("username", "profile_put_newname");
+			expect(response.body.data).toHaveProperty(
+				"username",
+				"profile_put_newname",
+			);
 
 			// Verify DB was actually updated
 			const dbResult = await pool.query(
@@ -196,11 +199,11 @@ describe("PUT /profile", () => {
 		// Create a minimal valid JPEG buffer (1x1 pixel)
 		const minimalJpeg = Buffer.from(
 			"/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8U" +
-			"HRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgN" +
-			"DRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy" +
-			"MjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAA" +
-			"AAAAAAAAAAAAAAAAAP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/xAAUEQEAAAAAAAAAAAAAAAAA" +
-			"AAAA/9oADAMBAAIRAxEAPwCwABmX/9k=",
+				"HRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgN" +
+				"DRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy" +
+				"MjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAA" +
+				"AAAAAAAAAAAAAAAAAP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/xAAUEQEAAAAAAAAAAAAAAAAA" +
+				"AAAA/9oADAMBAAIRAxEAPwCwABmX/9k=",
 			"base64",
 		);
 
@@ -263,11 +266,11 @@ describe("PUT /profile", () => {
 
 		const minimalJpeg = Buffer.from(
 			"/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8U" +
-			"HRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgN" +
-			"DRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy" +
-			"MjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAA" +
-			"AAAAAAAAAAAAAAAAAP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/xAAUEQEAAAAAAAAAAAAAAAAA" +
-			"AAAA/9oADAMBAAIRAxEAPwCwABmX/9k=",
+				"HRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgN" +
+				"DRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy" +
+				"MjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAA" +
+				"AAAAAAAAAAAAAAAAAP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/xAAUEQEAAAAAAAAAAAAAAAAA" +
+				"AAAA/9oADAMBAAIRAxEAPwCwABmX/9k=",
 			"base64",
 		);
 
@@ -282,7 +285,10 @@ describe("PUT /profile", () => {
 				});
 
 			expect(response.status).toBe(200);
-			expect(response.body.data).toHaveProperty("username", "profile_combo_new");
+			expect(response.body.data).toHaveProperty(
+				"username",
+				"profile_combo_new",
+			);
 			expect(response.body.data.avatar).toMatch(/^\/avatars\//);
 
 			// Cleanup uploaded file

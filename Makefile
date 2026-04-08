@@ -21,7 +21,7 @@ help:
 	@echo ""
 	@echo "Tests:"
 	@echo "  make test-core       - Run core-service endpoint smoke tests"
-	@echo "  make test-biome      - Run Biome autofix, then smoke tests"
+	@echo "  make test-biome      - Run Biome autofix only"
 	@echo "  make test-jest-core  - Run Jest unit/integration tests for core-service"
 	@echo "  make test-jest-api   - Run Jest unit/integration tests for api-gateway"
 	@echo "  make test-jest-all   - Run all Jest tests (core + gateway)"
@@ -107,11 +107,11 @@ dev-all:
 	@echo "Or use tmux/screen to run them in one window"
 
 # ===== Code Quality & Formatting =====
-# Biome autofix + smoke tests for code consistency
+# Biome check for code consistency
 
 test-biome:
-	@echo "Running Biome autofix + core-service endpoint smoke tests..."
-	npm run test:fix
+	@echo "Running Biome check..."
+	npm run check
 
 # ===== Smoke Tests =====
 # Functional black-box tests using bash scripts
@@ -127,11 +127,11 @@ test-core:
 
 test-jest-core:
 	@echo "Running Jest tests for core-service..."
-	cd backend/services/core-service && npm test
+	cd backend/services/core-service && npm i && npm test
 
 test-jest-api:
 	@echo "Running Jest tests for api-gateway..."
-	cd backend/services/api-gateway && npm test
+	cd backend/services/api-gateway && npm i && npm test
 
 test-jest-all:
 	@echo "Running all Jest tests..."

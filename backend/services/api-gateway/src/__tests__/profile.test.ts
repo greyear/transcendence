@@ -209,7 +209,9 @@ describe("API Gateway - Profile Routes", () => {
 
 		fetchSpy.mockResolvedValueOnce({
 			status: 400,
-			json: async () => ({ error: "Username must be between 1 and 32 characters" }),
+			json: async () => ({
+				error: "Username must be between 1 and 32 characters",
+			}),
 		} as unknown as Response);
 
 		const response = await request(app)
