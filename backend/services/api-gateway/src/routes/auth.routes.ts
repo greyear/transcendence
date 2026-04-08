@@ -64,9 +64,16 @@ const postGoogleHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
+		// Forward Authorization header if present
+		if (req.headers.authorization) {
+			headers.authorization = req.headers.authorization;
+		}
 		const response = await fetch(`${AUTH_SERVICE_URL}/google`, {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers,
 			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();

@@ -20,7 +20,6 @@ import mongoose from "mongoose";
 import { userModel } from "./auth_schema.js";
 import * as help from "./authHelpers.js";
 
-
 export const authRouter = Router();
 
 //Connection part probably being moved later
@@ -47,9 +46,10 @@ mongoose
 			findOne() because usernames/emails are unique in the DB
 			Login name request can be either email or username so both fields
 				need checking individually.
-		2. Validate email address and password.
-		3. If not, attempt to hash password and create new user
-		4. Return relevant code
+		2. If user exists check for Google-only account and return relevant message
+		3. If not, attempt to validate email, username and password format
+		4. Attempt to create user in DB
+		5. Return relevant code
 */
 authRouter.post(
 	"/register",
@@ -62,19 +62,30 @@ authRouter.post(
 			});
 
 			if (userDocument) {
+				// Check if it's a Google-only account
+				if (userDocument.get("googleID")) {
+					res.status(409).json({ 
+						error: "Email already registered with Google Sign-In. Please use Google login." 
+					});
+					return;
+				}
 				res.status(409).json({ error: "Resource exists" });
 				return;
 			}
 
-			if (!help.validateEmail(req.body.email)) {
+			if (!help.validateEmail(email)) {
 				res.status(422).json({ error: "Invalid email address" });
+				return;
+			}
+
+			if (!help.validateUsername(username)) {
+				res.status(422).json({ error: "Invalid username" });
 				return;
 			}
 
 			if (!help.validatePassword(req.body.password)) {
 				res.status(422).json({
-					error: "The password doesn't match the password requirements",
-				});
+					error: "The password doesn't match the password requirements" });
 				return;
 			}
 
@@ -108,9 +119,10 @@ authRouter.post(
 			findOne() because usernames/emails are unique in the DB
 			Login name request can be either email or username so both fields
 				need checking individually.
-		2. If so, check password using bcrypt
-		3. If good, create JWT and return
-		4. Return relevant code
+		2. If user exists check for Google-only account and return relevant message
+		3. If so, check password using bcrypt
+		4. If good, create JWT and return
+		5. Return relevant code
 */
 authRouter.post(
 	"/login",
@@ -127,6 +139,13 @@ authRouter.post(
 				return;
 			}
 
+			// Check if user is a Google-only account
+			const googleID = userDocument.get("googleID");
+			if (googleID){
+				res.status(401).json({ error: "This account uses Google Sign-In only. Please use the Google login option." });
+				return;
+			}
+			
 			const gotHash = userDocument.get("passwordHash");
 			const passwordMatch = await help.comparePassword(password, gotHash);
 			if (!passwordMatch) {
@@ -166,12 +185,11 @@ authRouter.post(
 	https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
 	https://www.w3tutorials.net/blog/google-sign-in-backend-verification/
 */
-/*
 authRouter.post(
 	"/google",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+			const CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "443643296362-p5t0avftu3eu6nf78p9pv6ot5adomors.apps.googleusercontent.com";
 			const client = new OAuth2Client(CLIENT_ID);
 			const token = help.sequenceHeader(req);
 			if (!token) {
@@ -190,7 +208,19 @@ authRouter.post(
 			}
 			const googleID = payload.sub;
 			const { email, name } = payload;
+			
+			// Ensure realname has a value
+			const realname = name || email?.split('@')[0] || 'Google User';
 
+			// Check if email already exists as normal account
+			const existingEmailUser = await userModel.findOne({ email });
+			if (existingEmailUser && !existingEmailUser.get("googleID")) {
+				res.status(409).json({ 
+					error: "Email already registered with password login. Please use normal login instead." 
+				});
+				return;
+			}
+			
 			//Repetiton here, which can be sorted out later.
 			//Google accounts will not require a passwordHash, so just using "empty"
 			//Not sure how correct any of this is, but making a start.
@@ -202,7 +232,7 @@ authRouter.post(
 					id: currentCount,
 					email,
 					passwordHash: "empty",
-					realname: name,
+					realname,
 					googleID,
 				});
 				await newUser.save();
@@ -229,4 +259,3 @@ authRouter.post(
 		}
 	},
 );
-*/

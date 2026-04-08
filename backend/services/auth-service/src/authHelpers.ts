@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import type { NextFunction, Request, Response } from "express";
 import jwt, { type JwtPayload } from "jsonwebtoken";
-import z from "zod";
+import z, { refine } from "zod";
 
 import { userCounter } from "./auth_schema.js";
 
@@ -32,6 +32,22 @@ export const comparePassword = async (password: string, hash: string) => {
 		console.error(error);
 	}
 	return false;
+};
+
+/*
+	Validate username using Zod library
+	https://zod.dev/basics
+	Username rules: 3-20 chars, alphanumeric and underscores only
+*/
+export const validateUsername = (username: string) => {
+	const usernamePattern = z
+		.string()
+		.min(3, "Username must be at least 3 characters")
+		.max(20, "Username must be at most 20 characters")
+		.regex(/^[a-zA-Z0-9_]+$/, "Username can only contain alphanumeric characters and underscores");
+
+	const result = usernamePattern.safeParse(username);
+	return result.success;
 };
 
 //Validate email using Zod library

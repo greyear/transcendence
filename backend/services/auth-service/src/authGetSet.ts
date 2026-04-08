@@ -108,7 +108,10 @@ authGetSet.post(
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
-			if (!decodedToken) throw Error("Invalid header");
+			if (!decodedToken) {
+				res.status(401).json({ error: "Invalid token" });
+				return;
+			}
 
 			const username = decodedToken.username;
 			const userDocument = await userModel.findOne({
@@ -134,15 +137,17 @@ authGetSet.post(
 
 // /auth/validate/google endpoint to specifically validate a JWT of a google account
 // within the header.
-/*
 authGetSet.post(
 	"/validate/google",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
-			if (!decodedToken) throw Error("Invalid header");
+			if (!decodedToken) {
+				res.status(401).json({ error: "Invalid token" });
+				return;
+			}
 
-			const googleID = decodedToken.googleID;
+			const googleID = decodedToken.username; // googleID is stored as username in the JWT
 			const userDocument = await userModel.findOne({ googleID });
 			if (!userDocument) {
 				res.status(401).json({ error: "Invalid token" });
@@ -161,4 +166,3 @@ authGetSet.post(
 		}
 	},
 );
-*/
