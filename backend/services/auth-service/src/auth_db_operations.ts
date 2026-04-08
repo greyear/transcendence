@@ -25,12 +25,11 @@ export const authRouter = Router();
 //Connection part probably being moved later
 const MONGO_AUTH_URI =
 	process.env.MONGODB_URI ||
-	process.env.MONGODB_AUTH_URI ||
-	"mongodb://127.0.0.1:27017/auth_db";
+	process.env.MONGODB_AUTH_URI;
 // Connect to MongoDB
 // https://mongoosejs.com/docs/connections.html
 mongoose
-	.connect(MONGO_AUTH_URI)
+	.connect(MONGO_AUTH_URI as string)
 	.then(() => {
 		console.log("Connected to MongoDB");
 		// Start the server after the database connection is established
@@ -189,7 +188,11 @@ authRouter.post(
 	"/google",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "443643296362-p5t0avftu3eu6nf78p9pv6ot5adomors.apps.googleusercontent.com";
+			const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+			if (!CLIENT_ID) {
+				throw new Error("Missing GOOGLE_CLIENT_ID in environment variables");
+			}
+			
 			const client = new OAuth2Client(CLIENT_ID);
 			const token = help.sequenceHeader(req);
 			if (!token) {
