@@ -43,6 +43,20 @@
 		"tabMy": "Omat reseptit",
 		"tabSaved": "Tallennetut"
 	},
+	"recipePage": {
+		"loading": "Ladataan...",
+		"invalidRecipe": "Virheellinen resepti.",
+		"error": "Reseptin haku epäonnistui (tila: {{status}}).",
+		"errorLoadingRecipe": "Reseptin lataaminen epäonnistui.",
+		"recipeNotFound": "Reseptiä ei löytynyt.",
+		"rate": "Arvioi",
+		"ingredients": "Ainekset",
+		"noIngredientsAvailable": "Tälle reseptille ei ole saatavilla aineksia.",
+		"instructions": "Ohjeet",
+		"noInstructionsAvailable": "Tälle reseptille ei ole saatavilla ohjeita.",
+		"step": "Vaihe {{number}}",
+		"share": "Jaa"
+	},
 	"usersPage": {
 		"title": "Käyttäjät",
 		"totalCount": "Käyttäjiä yhteensä:",
@@ -80,6 +94,8 @@
 		"toggleMenu": "Vaihda valikon tila",
 		"allRecipes": "Kaikki reseptit",
 		"allUsers": "Kaikki käyttäjät",
-		"sortBy": "Järjestä"
+		"sortBy": "Järjestä",
+		"shareRecipe": "Jaa resepti",
+		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet"
 	}
 }

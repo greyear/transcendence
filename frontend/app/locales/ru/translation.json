@@ -43,6 +43,20 @@
 		"tabMy": "Мои рецепты",
 		"tabSaved": "Сохраненные рецепты"
 	},
+	"recipePage": {
+		"loading": "Загрузка...",
+		"invalidRecipe": "Неверный рецепт.",
+		"error": "Не удалось загрузить рецепт (статус: {{status}}).",
+		"errorLoadingRecipe": "Не удалось загрузить рецепт.",
+		"recipeNotFound": "Рецепт не найден.",
+		"rate": "Оценить",
+		"ingredients": "Ингредиенты",
+		"noIngredientsAvailable": "Для этого рецепта нет доступных ингредиентов.",
+		"instructions": "Инструкции",
+		"noInstructionsAvailable": "Для этого рецепта нет доступных инструкций.",
+		"step": "Шаг {{number}}",
+		"share": "Поделиться"
+	},
 	"usersPage": {
 		"title": "Пользователи",
 		"totalCount": "Всего пользователей:",
@@ -80,6 +94,8 @@
 		"toggleMenu": "Переключить меню",
 		"allRecipes": "Все рецепты",
 		"allUsers": "Все пользователи",
-		"sortBy": "Сортировать по"
+		"sortBy": "Сортировать по",
+		"shareRecipe": "Поделиться рецептом",
+		"ingredientsAndInstructions": "Ингредиенты и инструкции рецепта"
 	}
 }

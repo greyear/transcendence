@@ -43,6 +43,20 @@
 		"tabMy": "My recipes",
 		"tabSaved": "Saved recipes"
 	},
+	"recipePage": {
+		"loading": "Loading...",
+		"invalidRecipe": "Invalid recipe.",
+		"error": "Failed to fetch recipe (status: {{status}}).",
+		"errorLoadingRecipe": "Failed to load recipe.",
+		"recipeNotFound": "Recipe not found.",
+		"rate": "Rate",
+		"ingredients": "Ingredients",
+		"noIngredientsAvailable": "No ingredients available for this recipe.",
+		"instructions": "Instructions",
+		"noInstructionsAvailable": "No instructions available for this recipe.",
+		"step": "Step {{number}}",
+		"share": "Share"
+	},
 	"usersPage": {
 		"title": "Users",
 		"totalCount": "Total users:",
@@ -80,6 +94,8 @@
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
 		"allUsers": "All users",
-		"sortBy": "Sort by"
+		"sortBy": "Sort by",
+		"shareRecipe": "Share recipe",
+		"ingredientsAndInstructions": "Recipe ingredients and instructions"
 	}
 }
