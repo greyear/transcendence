@@ -1,6 +1,6 @@
 import { UserCard } from "./cards/UserCard";
 import "../assets/styles/usersGrid.css";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type UserCardResponse = {
 	id: number;
@@ -10,9 +10,9 @@ type UserCardResponse = {
 
 type UsersGridProps = {
 	sortValue?: string;
-	onLoad?: (totalCount: number) => void;
 	page?: number;
 	perPage?: number;
+	onLoad?: (totalCount: number) => void;
 };
 
 const sortUsers = (
@@ -36,6 +36,8 @@ const sortUsers = (
 };
 
 export const UsersGrid = ({
+	page = 1,
+	perPage = 12,
 	onLoad,
 	sortValue = "name-asc",
 }: UsersGridProps) => {
@@ -58,11 +60,17 @@ export const UsersGrid = ({
 			.catch(console.error);
 	}, [onLoad]);
 
-	const sorted = sortUsers(userList, sortValue);
+	const sortedList = useMemo(
+		() => sortUsers(userList, sortValue),
+		[userList, sortValue],
+	);
+
+	const start = (page - 1) * perPage;
+	const pageUsers = sortedList.slice(start, start + perPage);
 
 	return (
 		<ul className="user-card-list">
-			{sorted.map(({ id, username, recipes_count }) => (
+			{pageUsers.map(({ id, username, recipes_count }) => (
 				<li key={id}>
 					<UserCard id={id} name={username} recipeCount={recipes_count} />
 				</li>

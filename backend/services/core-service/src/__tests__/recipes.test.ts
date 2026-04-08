@@ -379,4 +379,231 @@ describe("Recipes Routes", () => {
 			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
 		}
 	});
+
+	it("should return 401 for POST /recipes/:id/favorite without authentication", async () => {
+		const response = await request(app).post("/recipes/1/favorite");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 400 for POST /recipes/:id/favorite with invalid id", async () => {
+		const response = await request(app)
+			.post("/recipes/abc/favorite")
+			.set("X-User-Id", "1");
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 404 for POST /recipes/:id/favorite when recipe does not exist", async () => {
+		const response = await request(app)
+			.post("/recipes/999999/favorite")
+			.set("X-User-Id", "1");
+
+		expect(response.status).toBe(404);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should add recipe to favorites and return 409 on duplicate favorite", async () => {
+		const userId = 2201;
+		const authorId = 2202;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "favorite_user"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[authorId, "favorite_author"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Favorite Target', ARRAY['step'], 'published', $1)
+				 RETURNING id`,
+				[authorId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const firstResponse = await request(app)
+				.post(`/recipes/${recipeId}/favorite`)
+				.set("X-User-Id", String(userId));
+
+			expect(firstResponse.status).toBe(200);
+			expect(firstResponse.body).toHaveProperty(
+				"message",
+				"Recipe added to favorites",
+			);
+
+			const duplicateResponse = await request(app)
+				.post(`/recipes/${recipeId}/favorite`)
+				.set("X-User-Id", String(userId));
+
+			expect(duplicateResponse.status).toBe(409);
+			expect(duplicateResponse.body).toHaveProperty("error");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				userId,
+				authorId,
+			]);
+		}
+	});
+
+	it("should return 401 for DELETE /recipes/:id/favorite without authentication", async () => {
+		const response = await request(app).delete("/recipes/1/favorite");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 409 for DELETE /recipes/:id/favorite when recipe is not in favorites", async () => {
+		const userId = 2203;
+		const authorId = 2204;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "unfavorite_user"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[authorId, "unfavorite_author"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Unfavorite Target', ARRAY['step'], 'published', $1)
+				 RETURNING id`,
+				[authorId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.delete(`/recipes/${recipeId}/favorite`)
+				.set("X-User-Id", String(userId));
+
+			expect(response.status).toBe(409);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				userId,
+				authorId,
+			]);
+		}
+	});
+
+	it("should remove recipe from favorites", async () => {
+		const userId = 2205;
+		const authorId = 2206;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "remove_favorite_user"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[authorId, "remove_favorite_author"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Remove Favorite Target', ARRAY['step'], 'published', $1)
+				 RETURNING id`,
+				[authorId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			await request(app)
+				.post(`/recipes/${recipeId}/favorite`)
+				.set("X-User-Id", String(userId));
+
+			const deleteResponse = await request(app)
+				.delete(`/recipes/${recipeId}/favorite`)
+				.set("X-User-Id", String(userId));
+
+			expect(deleteResponse.status).toBe(200);
+			expect(deleteResponse.body).toHaveProperty(
+				"message",
+				"Recipe removed from favorites",
+			);
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				userId,
+				authorId,
+			]);
+		}
+	});
+
+	it("should return 401 for GET /users/me/favorites without authentication", async () => {
+		const response = await request(app).get("/users/me/favorites");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return current user favorite recipes", async () => {
+		const userId = 2207;
+		const authorId = 2208;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "my_favorites_user"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[authorId, "my_favorites_author"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('My Favorites Target', ARRAY['step'], 'published', $1)
+				 RETURNING id`,
+				[authorId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			await request(app)
+				.post(`/recipes/${recipeId}/favorite`)
+				.set("X-User-Id", String(userId));
+
+			const response = await request(app)
+				.get("/users/me/favorites")
+				.set("X-User-Id", String(userId));
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body).toHaveProperty("count");
+			expect(response.body.count).toBeGreaterThanOrEqual(1);
+			expect(
+				response.body.data.some(
+					(recipe: { id: number }) => recipe.id === recipeId,
+				),
+			).toBe(true);
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				userId,
+				authorId,
+			]);
+		}
+	});
 });
