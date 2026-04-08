@@ -13,6 +13,7 @@
  */
 
 import path from "node:path";
+import fs from "node:fs";
 import {
 	type NextFunction,
 	type Request,
@@ -167,6 +168,12 @@ const updateProfileHandler = async (
 
 		res.status(200).json({ data: result.profile, message: "Profile updated" });
 	} catch (error) {
+		// Clean up uploaded file if the update failed
+		if (req.file) {
+			fs.unlink(req.file.path, (err) => {
+				if (err) console.error("Failed to delete orphaned avatar:", err);
+			});
+		}
 		next(error);
 	}
 };

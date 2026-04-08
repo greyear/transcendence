@@ -48,6 +48,7 @@ const updateProfileHandler: RequestHandler = async (req, res, _next) => {
 			headers: getInternalHeaders(req), // forwards Content-Type: multipart/form-data
 			body: req,
 			duplex: "half",
+			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 		} as RequestInit,
 		);
 		const data = await response.json();
