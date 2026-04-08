@@ -14,7 +14,7 @@ services:
     ports:
       - "27017:27017"
 
-	  #We had volumes here, but we removed it.
+    #We had volumes here, but we removed it.
 
     networks:
       - transcendence-network

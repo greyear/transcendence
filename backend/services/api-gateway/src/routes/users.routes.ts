@@ -99,6 +99,26 @@ const getMyRecipesHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
+const getMyFavoritesHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(`${CORE_SERVICE_URL}/users/me/favorites`, {
+			headers: getInternalHeaders(req),
+			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+		});
+
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to fetch favorite recipes" });
+	}
+};
+
 const getFollowersHandler: RequestHandler = async (req, res, _next) => {
 	try {
 		const response = await fetch(
@@ -152,6 +172,7 @@ const getFollowingHandler: RequestHandler = async (req, res, _next) => {
 // Register more specific routes FIRST, then less specific
 // /me/recipes is most specific
 usersRouter.get("/me/recipes", requireAuth, getMyRecipesHandler);
+usersRouter.get("/me/favorites", requireAuth, getMyFavoritesHandler);
 // /:id/followers and /:id/following are more specific than /:id/recipes
 usersRouter.get("/:id/followers", getFollowersHandler);
 usersRouter.get("/:id/following", getFollowingHandler);
