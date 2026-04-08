@@ -5,7 +5,7 @@
 # Manual versions of these tests seem to work fine, so I trust this for a quick sanity check.
 
 #This token will need refreshing periodically. https://developers.google.com/oauthplayground
-GOOGLE_ID_TOKEN="eyJhbGciOiJSUzI1NiIsImtpZCI6ImNjZTRlMDI0YTUxYWEwYzFjNDFjMWE0NTE1YTQxZGQ3ZTk2MTkzNmIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0NDM2NDMyOTYzNjItcDV0MGF2ZnR1M2V1Nm5mNzhwOXB2Nm90NWFkb21vcnMuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0NDM2NDMyOTYzNjItcDV0MGF2ZnR1M2V1Nm5mNzhwOXB2Nm90NWFkb21vcnMuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTgwMjAxNTYwNzY1MDY5NTkxMTgiLCJlbWFpbCI6ImR1cmdsZWRvZ2d5QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiMVVCdWRqSzR2SGE4UTdjMUkxdWFEZyIsIm5hbWUiOiJEdXJnbGUgRG9nZ3kiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSjhCdGg3dUlJdkNzSVQ0akk0d1Z5NmZSdVRBWmo5VjFpVWkzMFlvalJ0cTJmOGlSbz1zOTYtYyIsImdpdmVuX25hbWUiOiJEdXJnbGUiLCJmYW1pbHlfbmFtZSI6IkRvZ2d5IiwiaWF0IjoxNzc1NjcyMjQyLCJleHAiOjE3NzU2NzU4NDJ9.bMUEMEWrdMYpOt7W_Oxm_cZDv_kY6xzeTu_PCfjOOG8PrrFAzylnOutfGczX_QBNpY5eRpRDiGYJh9aAJC77TCn4ex66Wq9UQ26IgAGPfXT9BA617UA9JwO0PHwD2Z-Y8u0Br5kzoHFnnP-9eDtKe4P83oROFiKC5B_cAbPVQp1W2Xl4sV0G32Ssss2lDT-kDz94_B_R5KzmiUOjQMoVDbG6Gvpi2liuy6ihZAB60Gq3wBo9wZzIZ6RsokWbJ1sGPIrm2MW6yVdBfXW_DArYkpjpgoB8RwmlEoLzXj_sUjTIXKUOnJa2qiHLRsCllmX30KDf9B7HETw9PIsB0yXrCQ"
+GOOGLE_ID_TOKEN="insert token when needed"
 
 BASE_URL="http://localhost:3000/auth"
 PASS=0
@@ -175,6 +175,8 @@ NORMAL_TOKEN=$(echo "$NORMAL_LOGIN" | jq -r '.token // empty')
 # ========== 3. GOOGLE LOGIN TESTS ==========
 echo -e "\n\n${BLUE}=== 3. GOOGLE LOGIN TESTS ===${NC}"
 
+sleep 1
+
 test_endpoint \
     "Google - create new user" \
     "POST" \
@@ -186,6 +188,8 @@ test_endpoint \
 # Extract email from JWT token (don't make another request)
 GOOGLE_EMAIL=$(echo "$GOOGLE_ID_TOKEN" | cut -d'.' -f2 | base64 -d 2>/dev/null | jq -r '.email // empty')
 
+sleep 1
+
 test_endpoint \
     "Google - existing user login" \
     "POST" \
@@ -193,6 +197,8 @@ test_endpoint \
     '' \
     "-H 'Content-Type: application/json' -H 'Authorization: Bearer $GOOGLE_ID_TOKEN'" \
     "200"
+
+sleep 1
 
 # Get Google token for validation tests from the login response
 GOOGLE_TOKEN=$(curl -s -X POST "$BASE_URL/google" \

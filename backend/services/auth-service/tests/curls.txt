@@ -3,7 +3,7 @@ curl -X POST 'http://localhost:3000/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{"username":"normaluser1","email":"normal1@test.local","realname":"Normal User","password":"TestPass123!"}'
 
-  {"username":"normaluser1","email":"normal1@test.local","realname":"Normal User"}
+  201: {"username":"normaluser1","email":"normal1@test.local","realname":"Normal User"}
 
 
 # 2. Register - duplicate username
@@ -11,7 +11,7 @@ curl -X POST 'http://localhost:3000/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{"username":"normaluser1","email":"other@test.local","realname":"Other","password":"TestPass123!"}'
 
-  {"error":"Resource exists"}
+  409: {"error":"Resource exists"}
 
 
 # 3. Register - duplicate email
@@ -19,7 +19,7 @@ curl -X POST 'http://localhost:3000/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{"username":"normaluser2","email":"normal1@test.local","realname":"Other","password":"TestPass123!"}'
 
-  {"error":"Resource exists"}
+  409: {"error":"Resource exists"}
 
 
 # 4. Register - invalid email format
