@@ -74,7 +74,7 @@ export const validatePassword = (password: string) => {
 };
 
 // Call this function after authentication success.
-// id is from userDocument._id and is ObjectId type
+// id is from userDocument.id and is number type
 export const generateToken = (id: string, username: string) => {
 	const JWTSecret = process.env.JWT_SECRET;
 	if (!JWTSecret) throw new Error("JWTSecret env variable is not set");
@@ -90,6 +90,7 @@ export const generateToken = (id: string, username: string) => {
 	});
 };
 
+//Decode the given JWT and return its origin JSON
 export const decodeToken = (token: string) => {
 	try {
 		const JWTSecret = process.env.JWT_SECRET;
@@ -104,6 +105,8 @@ export const decodeToken = (token: string) => {
 	}
 };
 
+//Isolate and return the token part of req.headers.authorization.
+//Format: Bearer <token>
 export const sequenceHeader = (req: Request) => {
 	try {
 		const authHeaders = req.headers.authorization;
@@ -117,6 +120,8 @@ export const sequenceHeader = (req: Request) => {
 	}
 };
 
+//Take req.headers.authorization and output a decoded JWT if possible
+//Uses decodeToken() and sequenceHeader()
 export const fetchDecodeToken = (req: Request) => {
 	try {
 		const tokenHeader = sequenceHeader(req);
@@ -148,8 +153,13 @@ export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 	next();
 };
 
-// the middleware (might be in a separate file).
-export const errorHandler = (error: unknown, _req: Request, res: Response) => {
+// Error handling middleware
+export const errorHandler = (
+	error: unknown,
+	_req: Request,
+	res: Response,
+	_next: NextFunction,
+) => {
 	console.error(error);
 	const message =
 		error instanceof Error ? error.message : "Internal Server Error";

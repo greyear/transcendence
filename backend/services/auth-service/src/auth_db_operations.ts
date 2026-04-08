@@ -5,12 +5,14 @@
 	jsonwebtoken is an encrypted way to pass sesson data client/server
 	zod is our parsing and field validation module
  */
+
 import {
 	type NextFunction,
 	type Request,
 	type Response,
 	Router,
 } from "express";
+import { OAuth2Client } from "google-auth-library";
 import mongoose from "mongoose";
 
 // Import of project modules
@@ -18,12 +20,14 @@ import mongoose from "mongoose";
 import { userModel } from "./auth_schema.js";
 import * as help from "./authHelpers.js";
 
+
 export const authRouter = Router();
-authRouter.use(help.errorHandler);
 
 //Connection part probably being moved later
 const MONGO_AUTH_URI =
-	process.env.MONGODB_AUTH_URI || "mongodb://127.0.0.1:27017/auth_db";
+	process.env.MONGODB_URI ||
+	process.env.MONGODB_AUTH_URI ||
+	"mongodb://127.0.0.1:27017/auth_db";
 // Connect to MongoDB
 // https://mongoosejs.com/docs/connections.html
 mongoose
@@ -130,7 +134,17 @@ authRouter.post(
 				return;
 			}
 
+			// Send success response
+			//https://howhttpworks.com/guides/cookie-security
+			//https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
+			//secure = lax seems fine for our use case.
 			const JWToken = help.generateToken(userDocument.get("_id"), username);
+			res.cookie("token", JWToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				maxAge: 60 * 60 * 1000, //1 hour in ms
+			});
 			res.status(200).json({
 				token: JWToken,
 				message: "Login successful",
@@ -140,3 +154,79 @@ authRouter.post(
 		}
 	},
 );
+
+/*
+	Login/register with Google account.
+		1. Verify token using google-auth-library method verifyIdToken()
+			Failed verification should throw.
+			Assuming token is being sent in the authorisation header, for now.
+		2. Check for existance. Assuming I only need to check googleID.
+			findOne() because googleIDs are unique in the DB
+		3. Either create a new account, or login with existing account.
+	https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
+	https://www.w3tutorials.net/blog/google-sign-in-backend-verification/
+*/
+/*
+authRouter.post(
+	"/google",
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+			const client = new OAuth2Client(CLIENT_ID);
+			const token = help.sequenceHeader(req);
+			if (!token) {
+				res.status(401).json({ error: "Token not found" }); //401?
+				return;
+			}
+
+			const ticket = await client.verifyIdToken({
+				idToken: token,
+				audience: CLIENT_ID,
+			});
+			const payload = ticket.getPayload();
+			if (!payload) {
+				res.status(401).json({ error: "Payload not found" }); //401?
+				return;
+			}
+			const googleID = payload.sub;
+			const { email, name } = payload;
+
+			//Repetiton here, which can be sorted out later.
+			//Google accounts will not require a passwordHash, so just using "empty"
+			//Not sure how correct any of this is, but making a start.
+			const userDocument = await userModel.findOne({ googleID });
+			if (!userDocument) {
+				const currentCount = await help.makeID();
+
+				const newUser = new userModel({
+					id: currentCount,
+					email,
+					passwordHash: "empty",
+					realname: name,
+					googleID,
+				});
+				await newUser.save();
+
+				res.status(201).json({ googleID, email, name });
+				return;
+			} else {
+				const JWToken = help.generateToken(userDocument.get("_id"), googleID);
+
+				res.cookie("token", JWToken, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === "production",
+					sameSite: "lax",
+					maxAge: 60 * 60 * 1000,
+				});
+				res.status(200).json({
+					token: JWToken,
+					message: "Login successful",
+				});
+				return;
+			}
+		} catch (error) {
+			next(error);
+		}
+	},
+);
+*/

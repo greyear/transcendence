@@ -20,8 +20,8 @@
 		"declarationMap": true,
 		"sourceMap": true,
 		"outDir": "./dist",
-		"rootDir": "./src",
-		"baseUrl": "./src",
+		"rootDir": ".",
+		"baseUrl": ".",
 		"noImplicitAny": true,
 		"strictNullChecks": true,
 		"strictFunctionTypes": true,
@@ -29,6 +29,6 @@
 		"noUnusedParameters": false,
 		"noImplicitReturns": true
 	},
-	"include": ["src/**/*"],
+	"include": ["index.ts", "src/**/*"],
 	"exclude": ["node_modules", "dist"]
 }
