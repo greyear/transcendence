@@ -27,3 +27,9 @@
 .cooks-row::-webkit-scrollbar-thumb {
 	background: var(--surface-action-active);
 }
+
+.cooks-row-status {
+	color: var(--text-secondary);
+	margin: 0;
+	padding: var(--space-m) 0;
+}

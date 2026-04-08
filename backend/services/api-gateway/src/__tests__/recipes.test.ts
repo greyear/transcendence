@@ -403,4 +403,123 @@ describe("API Gateway - Recipes Routes", () => {
 		expect(response.status).toBe(500);
 		expect(response.body).toEqual({ error: "Failed to publish recipe" });
 	});
+
+	it("should reject POST /recipes/:id/favorite without authentication", async () => {
+		const response = await request(app).post("/recipes/77/favorite");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy POST /recipes/:id/favorite to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			json: async () => ({
+				data: { recipe_id: 77 },
+				message: "Recipe added to favorites",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.post("/recipes/77/favorite")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: { recipe_id: 77 },
+			message: "Recipe added to favorites",
+		});
+	});
+
+	it("should forward 409 from core-service for duplicate favorite", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 409,
+			json: async () => ({ error: "Recipe is already in favorites" }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.post("/recipes/77/favorite")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(409);
+		expect(response.body).toEqual({ error: "Recipe is already in favorites" });
+	});
+
+	it("should reject DELETE /recipes/:id/favorite without authentication", async () => {
+		const response = await request(app).delete("/recipes/77/favorite");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy DELETE /recipes/:id/favorite to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			json: async () => ({
+				data: { recipe_id: 77 },
+				message: "Recipe removed from favorites",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.delete("/recipes/77/favorite")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: { recipe_id: 77 },
+			message: "Recipe removed from favorites",
+		});
+	});
+
+	it("should reject GET /users/me/favorites without authentication", async () => {
+		const response = await request(app).get("/users/me/favorites");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy GET /users/me/favorites to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			json: async () => ({ data: [{ id: 77, title: "Fav" }], count: 1 }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.get("/users/me/favorites")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: [{ id: 77, title: "Fav" }],
+			count: 1,
+		});
+	});
 });
