@@ -94,6 +94,7 @@ services:
       PORT: 3001
       MONGODB_URI: mongodb://root:rootpassword@auth-db:27017/auth_db?authSource=admin
       JWT_SECRET: your-jwt-secret-key
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
 
     depends_on:
       - auth-db

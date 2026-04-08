@@ -107,7 +107,11 @@ authRouter.post(
 
 			res.status(201).json({ username, email, realname });
 		} catch (error) {
-			next(error);
+			if ((error as any)?.code === 11000) {
+				res.status(409).json({ error: "Email or username already exists" });
+			} else {
+				next(error);
+			}
 		}
 	},
 );
@@ -192,7 +196,7 @@ authRouter.post(
 			if (!CLIENT_ID) {
 				throw new Error("Missing GOOGLE_CLIENT_ID in environment variables");
 			}
-			
+
 			const client = new OAuth2Client(CLIENT_ID);
 			const token = help.sequenceHeader(req);
 			if (!token) {
@@ -258,7 +262,11 @@ authRouter.post(
 				return;
 			}
 		} catch (error) {
-			next(error);
+			if ((error as any)?.code === 11000) {
+				res.status(409).json({ error: "Email or googleID already exists" });
+			} else {
+				next(error);
+			}
 		}
 	},
 );
