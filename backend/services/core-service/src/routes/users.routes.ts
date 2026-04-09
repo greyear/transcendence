@@ -19,6 +19,7 @@ import {
 	getFollowing,
 	getUserById,
 } from "../services/users.service.js";
+import { resolveRequestedLocale } from "../utils/locale.js";
 import { validateUserId } from "../validation/schemas.js";
 
 interface CustomError extends Error {
@@ -86,7 +87,8 @@ const getUserRecipesHandler = async (
 			throw error;
 		}
 
-		const recipes = await getPublishedRecipesByUserId(validation.value);
+		const locale = resolveRequestedLocale(req);
+		const recipes = await getPublishedRecipesByUserId(validation.value, locale);
 		if (!recipes) {
 			const error: CustomError = new Error("User not found");
 			error.statusCode = 404;
@@ -117,7 +119,8 @@ const getMyRecipesHandler = async (
 			throw error;
 		}
 
-		const recipes = await getMyRecipes(req.userId);
+		const locale = resolveRequestedLocale(req);
+		const recipes = await getMyRecipes(req.userId, locale);
 		res.status(200).json({ data: recipes, count: recipes.length });
 	} catch (error) {
 		next(error);
@@ -142,7 +145,8 @@ const getMyFavoritesHandler = async (
 			throw error;
 		}
 
-		const favorites = await getMyFavoriteRecipes(req.userId);
+		const locale = resolveRequestedLocale(req);
+		const favorites = await getMyFavoriteRecipes(req.userId, locale);
 		res.status(200).json({ data: favorites, count: favorites.length });
 	} catch (error) {
 		next(error);

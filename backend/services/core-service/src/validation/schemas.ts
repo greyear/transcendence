@@ -41,6 +41,10 @@ const positiveIntSchema = z.coerce
 
 export const userIdSchema = positiveIntSchema;
 
+export const supportedLocaleSchema = z.enum(["en", "fi", "ru"]);
+export type SupportedLocale = z.infer<typeof supportedLocaleSchema>;
+export const DEFAULT_LOCALE: SupportedLocale = "en";
+
 const userPresenceStatusSchema = z.enum(["online", "offline"]);
 
 export const recipeStatusSchema = z.enum([
@@ -126,6 +130,21 @@ const validateIntId = (id: unknown): ValidationResult<number> => {
 export const validateRecipeId = validateIntId;
 
 export const validateUserId = validateIntId;
+
+export const validateLocale = (
+	input: unknown,
+): ValidationResult<SupportedLocale> => {
+	const result = supportedLocaleSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: "Supported locales are: en, fi, ru",
+	};
+};
 
 export const validateCreateRecipeInput = (
 	input: unknown,

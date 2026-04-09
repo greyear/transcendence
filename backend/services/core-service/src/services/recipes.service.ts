@@ -17,8 +17,14 @@ import type { PoolClient } from "pg";
 import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
+	localizeInstructionStepsFromEnglish,
+	localizeTextFromEnglish,
+} from "./translation.service.js";
+import {
 	type CreateRecipeInput,
+	type SupportedLocale,
 	type FavoriteRecipeListItem,
+	DEFAULT_LOCALE,
 	favoriteRecipeListItemSchema,
 	type MyRecipeListItem,
 	myRecipeListItemSchema,
@@ -92,9 +98,9 @@ const rowIdSchema = z
 const getRecipeWithIngredientsQuery = `
 	SELECT
 		r.id,
-		r.title,
-		r.description,
-		r.instructions,
+		COALESCE(r.title->>$2, r.title->>'en') AS title,
+		COALESCE(r.description->>$2, r.description->>'en') AS description,
+		COALESCE(r.instructions->$2, r.instructions->'en', '[]'::jsonb) AS instructions,
 		r.servings,
 		r.spiciness,
 		r.author_id,
@@ -176,10 +182,11 @@ const parseRecipeRow = (row: unknown, rowLabel: string): Recipe | null => {
 
 const getRecipeWithIngredientsById = async (
 	recipeId: number,
+	locale: SupportedLocale,
 	client?: PoolClient,
 ): Promise<Recipe | null> => {
 	const db = client ?? pool;
-	const result = await db.query(getRecipeWithIngredientsQuery, [recipeId]);
+	const result = await db.query(getRecipeWithIngredientsQuery, [recipeId, locale]);
 
 	if (result.rows.length === 0) {
 		return null;
@@ -286,12 +293,19 @@ const publishedRecipeExists = async (recipeId: number): Promise<boolean> => {
  * 2. Return result or throw error
  * 3. Calling code can await getAllRecipes() to wait for result
  */
-export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
+export const getAllRecipes = async (
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<RecipeListItem[]> => {
 	try {
 		// SQL query - get only published recipes (status = 'published')
 		// ORDER BY created_at DESC - newest first
 		const query = `
-      SELECT id, title, description, author_id, rating_avg
+			SELECT
+				id,
+				COALESCE(title->>$1, title->>'en') AS title,
+				COALESCE(description->>$1, description->>'en') AS description,
+				author_id,
+				rating_avg
       FROM recipes
       WHERE status = 'published'
       ORDER BY created_at DESC
@@ -299,7 +313,7 @@ export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
 
 		// pool.query(query) - execute SQL
 		// result.rows - array of rows from result
-		const result = await pool.query(query);
+		const result = await pool.query(query, [locale]);
 
 		return parseRecipeRows(result.rows, recipeListItemSchema, "recipe");
 	} catch (error) {
@@ -318,6 +332,7 @@ export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
  */
 export const getPublishedRecipesByUserId = async (
 	userId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<RecipeListItem[] | null> => {
 	try {
 		const exists = await userExists(userId);
@@ -326,13 +341,18 @@ export const getPublishedRecipesByUserId = async (
 		}
 
 		const query = `
-      SELECT id, title, description, author_id, rating_avg
+			SELECT
+				id,
+				COALESCE(title->>$2, title->>'en') AS title,
+				COALESCE(description->>$2, description->>'en') AS description,
+				author_id,
+				rating_avg
       FROM recipes
       WHERE author_id = $1 AND status = 'published'
       ORDER BY created_at DESC
     `;
 
-		const result = await pool.query(query, [userId]);
+		const result = await pool.query(query, [userId, locale]);
 
 		return parseRecipeRows(
 			result.rows,
@@ -352,16 +372,23 @@ export const getPublishedRecipesByUserId = async (
  */
 export const getMyRecipes = async (
 	userId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<MyRecipeListItem[]> => {
 	try {
 		const query = `
-      SELECT id, title, description, author_id, rating_avg, status
+			SELECT
+				id,
+				COALESCE(title->>$2, title->>'en') AS title,
+				COALESCE(description->>$2, description->>'en') AS description,
+				author_id,
+				rating_avg,
+				status
       FROM recipes
       WHERE author_id = $1
       ORDER BY created_at DESC
     `;
 
-		const result = await pool.query(query, [userId]);
+		const result = await pool.query(query, [userId, locale]);
 
 		return parseRecipeRows(result.rows, myRecipeListItemSchema, "my recipe");
 	} catch (error) {
@@ -373,11 +400,21 @@ export const getMyRecipes = async (
 export const createRecipe = async (
 	userId: number,
 	input: CreateRecipeInput,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<Recipe> => {
 	const client = await pool.connect();
 
 	try {
 		await client.query("BEGIN");
+
+		const localizedTitle = await localizeTextFromEnglish(input.title);
+		const localizedDescription =
+			input.description === null
+				? null
+				: await localizeTextFromEnglish(input.description);
+		const localizedInstructions = await localizeInstructionStepsFromEnglish(
+			input.instructions,
+		);
 
 		const result = await client.query(
 			`
@@ -386,9 +423,9 @@ export const createRecipe = async (
       RETURNING id
     `,
 			[
-				input.title,
-				input.description,
-				input.instructions,
+				localizedTitle,
+				localizedDescription,
+				localizedInstructions,
 				input.servings,
 				input.spiciness,
 				userId,
@@ -430,7 +467,7 @@ export const createRecipe = async (
 			);
 		}
 
-		const recipe = await getRecipeWithIngredientsById(recipeId, client);
+		const recipe = await getRecipeWithIngredientsById(recipeId, locale, client);
 		if (!recipe) {
 			throw new Error(`Created recipe ${recipeId} could not be loaded`);
 		}
@@ -449,6 +486,7 @@ export const createRecipe = async (
 export const publishRecipe = async (
 	recipeId: number,
 	userId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<PublishRecipeResult> => {
 	try {
 		const updateResult = await pool.query(
@@ -465,7 +503,7 @@ export const publishRecipe = async (
 			return classifyNoRowsRecipeMutation(recipeId, userId);
 		}
 
-		const recipe = await getRecipeWithIngredientsById(recipeId);
+		const recipe = await getRecipeWithIngredientsById(recipeId, locale);
 		if (!recipe) {
 			throw new Error(`Updated recipe ${recipeId} could not be loaded`);
 		}
@@ -481,11 +519,21 @@ export const updateRecipe = async (
 	recipeId: number,
 	userId: number,
 	input: UpdateRecipeInput,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<UpdateRecipeResult> => {
 	const client = await pool.connect();
 
 	try {
 		await client.query("BEGIN");
+
+		const localizedTitle = await localizeTextFromEnglish(input.title);
+		const localizedDescription =
+			input.description === null
+				? null
+				: await localizeTextFromEnglish(input.description);
+		const localizedInstructions = await localizeInstructionStepsFromEnglish(
+			input.instructions,
+		);
 
 		const updateResult = await client.query(
 			`
@@ -501,9 +549,9 @@ export const updateRecipe = async (
       RETURNING id
     `,
 			[
-				input.title,
-				input.description,
-				input.instructions,
+				localizedTitle,
+				localizedDescription,
+				localizedInstructions,
 				input.servings,
 				input.spiciness,
 				recipeId,
@@ -554,7 +602,7 @@ export const updateRecipe = async (
 			);
 		}
 
-		const recipe = await getRecipeWithIngredientsById(recipeId, client);
+		const recipe = await getRecipeWithIngredientsById(recipeId, locale, client);
 		if (!recipe) {
 			throw new Error(`Updated recipe ${recipeId} could not be loaded`);
 		}
@@ -580,6 +628,7 @@ export const updateRecipe = async (
 export const archiveRecipe = async (
 	recipeId: number,
 	requesterId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<ArchiveRecipeResult> => {
 	try {
 		const requesterResult = await pool.query(
@@ -620,7 +669,7 @@ export const archiveRecipe = async (
 			});
 		}
 
-		const recipe = await getRecipeWithIngredientsById(recipeId);
+		const recipe = await getRecipeWithIngredientsById(recipeId, locale);
 		if (!recipe) {
 			throw new Error(`Archived recipe ${recipeId} could not be loaded`);
 		}
@@ -686,10 +735,15 @@ export const removeRecipeFromFavorites = async (
 
 export const getMyFavoriteRecipes = async (
 	userId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<FavoriteRecipeListItem[]> => {
 	try {
 		const query = `
-	SELECT r.id, r.title, r.description, u.avatar
+	SELECT
+		r.id,
+		COALESCE(r.title->>$2, r.title->>'en') AS title,
+		COALESCE(r.description->>$2, r.description->>'en') AS description,
+		u.avatar
       FROM favorites f
       JOIN recipes r ON r.id = f.recipe_id
       LEFT JOIN users u ON u.id = r.author_id
@@ -697,7 +751,7 @@ export const getMyFavoriteRecipes = async (
       ORDER BY f.created_at DESC
     `;
 
-		const result = await pool.query(query, [userId]);
+		const result = await pool.query(query, [userId, locale]);
 
 		return parseRecipeRows(
 			result.rows,
@@ -731,6 +785,7 @@ export const getMyFavoriteRecipes = async (
 export const getRecipeById = async (
 	id: number,
 	userId?: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<Recipe | { restricted: true } | null> => {
 	try {
 		const visibilityResult = await pool.query(
@@ -759,7 +814,7 @@ export const getRecipeById = async (
 			return { restricted: true };
 		}
 
-		return getRecipeWithIngredientsById(id);
+		return getRecipeWithIngredientsById(id, locale);
 	} catch (error) {
 		console.error("Database error in getRecipeById:", error);
 		throw error;
