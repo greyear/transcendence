@@ -30,7 +30,12 @@ const deleteUsers = (...ids: number[]) =>
 const insertPublishedRecipe = async (authorId: number): Promise<number> => {
 	const result = await pool.query(
 		`INSERT INTO recipes (title, instructions, status, author_id)
-     VALUES ('Test Recipe', ARRAY['step 1'], 'published', $1)
+     VALUES (
+			jsonb_build_object('en', 'Test Recipe', 'fi', 'Test Recipe', 'ru', 'Test Recipe'),
+			jsonb_build_object('en', to_jsonb(ARRAY['step 1']), 'fi', to_jsonb(ARRAY['step 1']), 'ru', to_jsonb(ARRAY['step 1'])),
+			'published',
+			$1
+		 )
      RETURNING id`,
 		[authorId],
 	);
