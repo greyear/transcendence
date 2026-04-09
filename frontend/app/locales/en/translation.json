@@ -43,12 +43,22 @@
 		"tabMy": "My recipes",
 		"tabSaved": "Saved recipes"
 	},
+	"recipesGrid": {
+		"loading": "Loading recipes...",
+		"empty": "No recipes found.",
+		"error": "Failed to fetch recipes (status: {{status}})."
+	},
 	"usersPage": {
 		"title": "Users",
 		"totalCount": "Total users:",
 		"tabAll": "All",
 		"tabFollowers": "Followers",
 		"tabFollowing": "Following"
+	},
+	"usersGrid": {
+		"loading": "Loading users...",
+		"empty": "No users found.",
+		"error": "Failed to fetch users (status: {{status}})."
 	},
 	"userCard": {
 		"recipes": "recipes",

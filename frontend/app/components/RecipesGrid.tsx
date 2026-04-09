@@ -1,6 +1,8 @@
 import { RecipeCard } from "./cards/RecipeCard";
 import "../assets/styles/recipesGrid.css";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { API_BASE_URL } from "~/composables/apiBaseUrl";
 
 type RecipeCardResponse = {
 	id: number;
@@ -44,13 +46,20 @@ export const RecipesGrid = ({
 	sort,
 	sortValue,
 }: RecipesGridProps) => {
+	const { t } = useTranslation();
 	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
+		null,
+	);
 
 	useEffect(() => {
-		fetch("http://localhost:3000/recipes")
+		fetch(`${API_BASE_URL}/recipes`)
 			.then((res) => {
 				if (!res.ok) {
-					console.log("The recipe database is empty.");
+					const message = `Failed to fetch recipes: ${res.status}`;
+					console.error(message);
+					setErrorStatus(res.status);
 					return { data: [] };
 				}
 				return res.json();
@@ -66,7 +75,13 @@ export const RecipesGrid = ({
 				onLoad?.(allRecipes.length);
 				setRecipeList(allRecipes);
 			})
-			.catch(console.error);
+			.catch((error: unknown) => {
+				console.error(error);
+				setErrorStatus("unknown");
+			})
+			.finally(() => {
+				setIsLoading(false);
+			});
 	}, [onLoad, sort]);
 
 	const sortedList = useMemo(
@@ -76,6 +91,22 @@ export const RecipesGrid = ({
 
 	const start = (page - 1) * perPage;
 	const pageRecipes = sortedList.slice(start, start + perPage);
+
+	if (isLoading) {
+		return <p className="recipes-grid-status">{t("recipesGrid.loading")}</p>;
+	}
+
+	if (errorStatus !== null) {
+		return (
+			<p className="recipes-grid-status">
+				{t("recipesGrid.error", { status: errorStatus })}
+			</p>
+		);
+	}
+
+	if (recipeList.length === 0) {
+		return <p className="recipes-grid-status">{t("recipesGrid.empty")}</p>;
+	}
 
 	return (
 		<ul className="recipe-card-list">
