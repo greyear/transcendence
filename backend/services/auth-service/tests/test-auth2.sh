@@ -5,7 +5,7 @@
 # Manual versions of these tests seem to work fine, so I trust this for a quick sanity check.
 
 #This token will need refreshing periodically. https://developers.google.com/oauthplayground
-GOOGLE_ID_TOKEN="insert id here"
+GOOGLE_ID_TOKEN="insert token here"
 
 BASE_URL="http://localhost:3000/auth"
 
