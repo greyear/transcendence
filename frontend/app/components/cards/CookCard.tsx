@@ -4,20 +4,20 @@ import userPhoto from "../../assets/images/user-photo.jpg";
 
 type CookCardProps = {
 	id: number;
-	name: string;
-	image?: string;
+	username: string;
+	avatar?: string | null;
 };
 
-export const CookCard = ({ id, name, image }: CookCardProps) => {
+export const CookCard = ({ id, username, avatar }: CookCardProps) => {
 	return (
 		<Link to={`/user/${id}`} className="cook-card-link">
 			<div className="cook-card-item">
 				<img
-					src={image || userPhoto}
-					alt={`${name} profile`}
+					src={avatar || userPhoto}
+					alt={`${username} profile`}
 					className="cook-card-image"
 				/>
-				<p className="cook-card-name text-body3">{name}</p>
+				<p className="cook-card-name text-body3">{username}</p>
 			</div>
 		</Link>
 	);

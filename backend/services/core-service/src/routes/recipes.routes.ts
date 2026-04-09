@@ -17,10 +17,12 @@ import {
 	extractUser,
 } from "../middleware/extractUser.js";
 import {
+	addRecipeToFavorites,
 	createRecipe,
 	getAllRecipes,
 	getRecipeById,
 	publishRecipe,
+	removeRecipeFromFavorites,
 } from "../services/recipes.service.js";
 import {
 	validateCreateRecipeInput,
@@ -112,6 +114,101 @@ const publishRecipeHandler = async (
 	}
 };
 
+const favoriteRecipeHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const validation = validateRecipeId(req.params.id);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const result = await addRecipeToFavorites(validation.value, req.userId);
+		if (!result.success) {
+			const error: CustomError = new Error();
+
+			switch (result.reason) {
+				case "not-found":
+					error.message = "Recipe not found";
+					error.statusCode = 404;
+					break;
+				default:
+					error.message = "Recipe is already in favorites";
+					error.statusCode = 409;
+					break;
+			}
+
+			throw error;
+		}
+
+		res.status(200).json({
+			data: { recipe_id: result.recipeId },
+			message: "Recipe added to favorites",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+const unfavoriteRecipeHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const validation = validateRecipeId(req.params.id);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const result = await removeRecipeFromFavorites(
+			validation.value,
+			req.userId,
+		);
+		if (!result.success) {
+			const error: CustomError = new Error();
+
+			switch (result.reason) {
+				case "not-found":
+					error.message = "Recipe not found";
+					error.statusCode = 404;
+					break;
+				default:
+					error.message = "Recipe is not in favorites";
+					error.statusCode = 409;
+					break;
+			}
+
+			throw error;
+		}
+
+		res.status(200).json({
+			data: { recipe_id: result.recipeId },
+			message: "Recipe removed from favorites",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
 /**
  * GET /recipes - fetch all published recipes
  *
@@ -177,6 +274,8 @@ const getRecipeByIdHandler = async (
 // extractUser middleware extracts userId from X-User-Id header
 recipesRouter.post("/", extractUser, createRecipeHandler);
 recipesRouter.post("/:id/publish", extractUser, publishRecipeHandler);
+recipesRouter.post("/:id/favorite", extractUser, favoriteRecipeHandler);
+recipesRouter.delete("/:id/favorite", extractUser, unfavoriteRecipeHandler);
 recipesRouter.get("/:id", extractUser, getRecipeByIdHandler);
 recipesRouter.get("/", getAllRecipesHandler);
 

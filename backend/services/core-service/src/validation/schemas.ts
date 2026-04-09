@@ -194,6 +194,17 @@ export const recipeListItemSchema = z.object({
 });
 
 /**
+ * Zod schema for FavoriteRecipeListItem - list view for current user's favorites
+ * Includes author avatar and omits rating_avg
+ */
+export const favoriteRecipeListItemSchema = z.object({
+	id: z.number().int().positive(),
+	title: z.string(),
+	description: z.string().nullable(),
+	avatar: z.string().nullable(),
+});
+
+/**
  * MyRecipeListItem type - minimal recipe info for current user list view
  * Includes status because /users/me/recipes returns recipes of all statuses
  */
@@ -249,6 +260,13 @@ export type Recipe = z.infer<typeof recipeSchema>;
  * Inferred from recipeListItemSchema, automatically stays in sync
  */
 export type RecipeListItem = z.infer<typeof recipeListItemSchema>;
+
+/**
+ * FavoriteRecipeListItem type - list view for current user's favorites
+ */
+export type FavoriteRecipeListItem = z.infer<
+	typeof favoriteRecipeListItemSchema
+>;
 
 /**
  * MyRecipeListItem type - minimal recipe info for current user's recipes

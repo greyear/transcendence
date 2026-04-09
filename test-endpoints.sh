@@ -246,6 +246,12 @@ echo "POST Endpoints:"
 check_post_endpoint "/recipes" '{"title":"Smoke Recipe","description":"Created by smoke test","instructions":["Mix ingredients"],"servings":2,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":100,"unit":"g"}],"category_ids":[]}' "401" "POST /recipes (no token -> 401)"
 check_post_endpoint "/recipes/1/publish" '{}' "401" "POST /recipes/1/publish (no token -> 401)"
 
+echo ""
+echo "Favorites Endpoints (public):"
+check_post_endpoint "/recipes/1/favorite" '{}' "401" "POST /recipes/1/favorite (no token -> 401)"
+check_delete_endpoint "/recipes/1/favorite" "401" "DELETE /recipes/1/favorite (no token -> 401)"
+check_endpoint "/users/me/favorites" "401" "GET /users/me/favorites (no token -> 401)"
+
 if [ -n "$SMOKE_BEARER_TOKEN" ]; then
   echo ""
   echo "POST Endpoints (authenticated):"
