@@ -28,5 +28,8 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.5"
+	},
+	"dependencies": {
+		"jest": "^30.3.0"
 	}
 }
