@@ -23,6 +23,12 @@ if (!fs.existsSync(avatarsDir)) {
 	fs.mkdirSync(avatarsDir, { recursive: true });
 }
 
+// Ensure uploads/recipes directory exists at startup
+const recipePicturesDir = path.resolve("uploads/recipes");
+if (!fs.existsSync(recipePicturesDir)) {
+	fs.mkdirSync(recipePicturesDir, { recursive: true });
+}
+
 // Create Express application
 const app: Express = express();
 
@@ -38,6 +44,8 @@ app.use(
 app.use(express.json());
 // Serve uploaded avatars as static files at /avatars/*
 app.use("/avatars", express.static(path.resolve("uploads/avatars")));
+// Serve uploaded pictures as static files at /recipes/*
+app.use("/recipe-pictures", express.static(path.resolve("uploads/recipes")));
 
 // ===== ROUTES =====
 // /health/* → healthRouter
