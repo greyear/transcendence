@@ -11,7 +11,6 @@ import { userModel } from "./auth_schema.js";
 import * as help from "./authHelpers.js";
 
 export const authGetSet = Router();
-authGetSet.use(help.errorHandler);
 
 /*
 	Delete user. /users/:username endpoint
@@ -19,15 +18,21 @@ authGetSet.use(help.errorHandler);
 		1. findOneAndDelete() to remove matching record
 		2. Return relevant code
 	As of now does not require the current password.
+	https://developers.google.com/identity/openid-connect/reference
 */
 authGetSet.delete(
-	"/users/:username",
+	"/delete/:username",
 	help.compareJWT,
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const username = req.params.username;
 
-			const userDocument = await userModel.findOneAndDelete({ username });
+			let userDocument = null;
+			if (req.decodedJWT?.type === "mongo") {
+				userDocument = await userModel.findOneAndDelete({ username });
+			} else if (req.decodedJWT?.type === "google") {
+				userDocument = await userModel.findOneAndDelete({ googleID: username });
+			}
 
 			if (!userDocument) {
 				res.status(404).json({ error: "User not found" });
@@ -52,7 +57,7 @@ authGetSet.delete(
 		6. Return relevant code
 */
 authGetSet.patch(
-	"/users/:username/change-password",
+	"/change-password/:username",
 	help.compareJWT,
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
@@ -104,17 +109,29 @@ authGetSet.patch(
 );
 
 // /auth/validate endpoint to specifically validate a JWT within the header.
+// Checks against username or email. Content with this as both are unique.
 authGetSet.post(
-	"/auth/validate",
+	"/validate",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
-			if (!decodedToken) throw Error("Invalid header");
+			if (!decodedToken) {
+				res.status(401).json({ error: "Invalid token" });
+				return;
+			}
 
-			const username = decodedToken.username;
-			const userDocument = await userModel.findOne({
-				$or: [{ username }, { email: username }],
-			});
+			const searchId = decodedToken.username;
+			const type = decodedToken.type;
+
+			let userDocument = null;
+			if (type === "mongo") {
+				userDocument = await userModel.findOne({
+					$or: [{ username: searchId }, { email: searchId }],
+				});
+			} else if (type === "google") {
+				userDocument = await userModel.findOne({ googleID: searchId });
+			}
+
 			if (!userDocument) {
 				res.status(401).json({ error: "Invalid token" });
 				return;
@@ -132,3 +149,37 @@ authGetSet.post(
 		}
 	},
 );
+
+// /auth/validate/google endpoint to specifically validate a JWT of a google account
+// within the header.
+/*
+authGetSet.post(
+	"/validate/google",
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
+			if (!decodedToken) {
+				res.status(401).json({ error: "Invalid token" });
+				return;
+			}
+
+			const googleID = decodedToken.username; 
+			const userDocument = await userModel.findOne({ googleID });
+			if (!userDocument) {
+				res.status(401).json({ error: "Invalid token" });
+				return;
+			}
+
+			const userID = userDocument.get("id");
+			if (!userID) {
+				res.status(500).json({ error: "User has no id" });
+				return;
+			}
+
+			res.status(200).json({ id: userID });
+		} catch (error) {
+			next(error);
+		}
+	},
+);
+*/

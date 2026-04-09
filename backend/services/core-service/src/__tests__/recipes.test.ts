@@ -328,13 +328,13 @@ describe("Recipes Routes", () => {
 	});
 
 	/**
-	 * Test: Author publishes draft -> moderation, second publish -> 409
+	 * Test: Author publishes draft -> published, second publish -> 409
 	 *
 	 * What we're testing:
-	 * - Valid status transition draft -> moderation
+	 * - Valid status transition draft -> published
 	 * - Repeated publish is rejected as invalid state transition
 	 */
-	it("should move recipe from draft to moderation on publish", async () => {
+	it("should move recipe from draft to published on publish", async () => {
 		const userId = 2004;
 		let recipeId: number | null = null;
 
@@ -358,13 +358,13 @@ describe("Recipes Routes", () => {
 
 			expect(publishResponse.status).toBe(200);
 			expect(publishResponse.body).toHaveProperty("message");
-			expect(publishResponse.body.data).toHaveProperty("status", "moderation");
+			expect(publishResponse.body.data).toHaveProperty("status", "published");
 
 			const dbStatus = await pool.query(
 				`SELECT status FROM recipes WHERE id = $1`,
 				[recipeId],
 			);
-			expect(dbStatus.rows[0].status).toBe("moderation");
+			expect(dbStatus.rows[0].status).toBe("published");
 
 			const secondPublishResponse = await request(app)
 				.post(`/recipes/${recipeId}/publish`)
@@ -377,6 +377,433 @@ describe("Recipes Routes", () => {
 				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			}
 			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should return 401 for PUT /recipes/:id without authentication", async () => {
+		const response = await request(app)
+			.put("/recipes/1")
+			.send({
+				title: "Updated",
+				description: "Updated description",
+				instructions: ["step"],
+				servings: 2,
+				spiciness: 1,
+				ingredients: [{ ingredient_id: 1, amount: 100, unit: "g" }],
+				category_ids: [],
+			});
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 400 for PUT /recipes/:id with invalid data", async () => {
+		const response = await request(app)
+			.put("/recipes/1")
+			.set("X-User-Id", "1")
+			.send({
+				title: "",
+				description: "invalid",
+				instructions: [],
+				servings: 0,
+				spiciness: 99,
+				ingredients: [],
+				category_ids: [],
+			});
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 403 for PUT /recipes/:id when user is not owner", async () => {
+		const ownerId = 2101;
+		const intruderId = 2102;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[ownerId, "update_owner"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[intruderId, "update_intruder"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Draft To Update', ARRAY['step'], 'draft', $1)
+				 RETURNING id`,
+				[ownerId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}`)
+				.set("X-User-Id", String(intruderId))
+				.send({
+					title: "Updated by intruder",
+					description: "Should fail",
+					instructions: ["step"],
+					servings: 2,
+					spiciness: 1,
+					ingredients: [{ ingredient_id: 1, amount: 100, unit: "g" }],
+					category_ids: [],
+				});
+
+			expect(response.status).toBe(403);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				ownerId,
+				intruderId,
+			]);
+		}
+	});
+
+	it("should return 409 for PUT /recipes/:id when recipe is not draft", async () => {
+		const userId = 2103;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "update_owner_published"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Published Recipe', ARRAY['step'], 'published', $1)
+				 RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}`)
+				.set("X-User-Id", String(userId))
+				.send({
+					title: "Updated title",
+					description: "Updated description",
+					instructions: ["updated"],
+					servings: 3,
+					spiciness: 2,
+					ingredients: [{ ingredient_id: 1, amount: 150, unit: "g" }],
+					category_ids: [],
+				});
+
+			expect(response.status).toBe(409);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should update draft recipe for owner", async () => {
+		const userId = 2104;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "update_owner_success"],
+			);
+
+			const categoryResult = await pool.query(
+				`SELECT id FROM recipe_categories ORDER BY id LIMIT 1`,
+			);
+			const categoryId = categoryResult.rows[0].id as number;
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, description, instructions, servings, spiciness, status, author_id)
+				 VALUES ('Old Title', 'Old Description', ARRAY['old step'], 1, 0, 'draft', $1)
+				 RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			await pool.query(
+				`INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit)
+				 VALUES ($1, 1, 50, 'g')`,
+				[recipeId],
+			);
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}`)
+				.set("X-User-Id", String(userId))
+				.send({
+					title: "New Title",
+					description: "New Description",
+					instructions: ["new step 1", "new step 2"],
+					servings: 4,
+					spiciness: 2,
+					ingredients: [{ ingredient_id: 1, amount: 200, unit: "g" }],
+					category_ids: [categoryId],
+				});
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message", "Recipe updated");
+			expect(response.body.data).toHaveProperty("title", "New Title");
+			expect(response.body.data).toHaveProperty(
+				"description",
+				"New Description",
+			);
+			expect(response.body.data.ingredients[0]).toHaveProperty("amount", 200);
+
+			const dbRecipe = await pool.query(
+				`SELECT title, description, servings, spiciness, status FROM recipes WHERE id = $1`,
+				[recipeId],
+			);
+			expect(dbRecipe.rows[0].title).toBe("New Title");
+			expect(dbRecipe.rows[0].status).toBe("draft");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should return 401 for DELETE /recipes/:id without authentication", async () => {
+		const response = await request(app).delete("/recipes/1");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 400 for DELETE /recipes/:id with invalid id", async () => {
+		const response = await request(app)
+			.delete("/recipes/abc")
+			.set("X-User-Id", "1");
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 403 for DELETE /recipes/:id when user has no permission", async () => {
+		const ownerId = 2105;
+		const intruderId = 2106;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[ownerId, "archive_owner"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[intruderId, "archive_intruder"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Archive Target', ARRAY['step'], 'published', $1)
+				 RETURNING id`,
+				[ownerId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.delete(`/recipes/${recipeId}`)
+				.set("X-User-Id", String(intruderId));
+
+			expect(response.status).toBe(403);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				ownerId,
+				intruderId,
+			]);
+		}
+	});
+
+	it("should archive recipe when requested by owner", async () => {
+		const ownerId = 2107;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[ownerId, "archive_owner_success"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Owner Archive Target', ARRAY['step'], 'published', $1)
+				 RETURNING id`,
+				[ownerId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.delete(`/recipes/${recipeId}`)
+				.set("X-User-Id", String(ownerId));
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message", "Recipe archived");
+			expect(response.body.data).toHaveProperty("status", "archived");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id = $1`, [ownerId]);
+		}
+	});
+
+	it("should archive recipe when requested by admin", async () => {
+		const ownerId = 2108;
+		const adminId = 2109;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[ownerId, "archive_admin_owner"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'admin', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[adminId, "archive_admin"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Admin Archive Target', ARRAY['step'], 'published', $1)
+				 RETURNING id`,
+				[ownerId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.delete(`/recipes/${recipeId}`)
+				.set("X-User-Id", String(adminId));
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message", "Recipe archived");
+			expect(response.body.data).toHaveProperty("status", "archived");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				ownerId,
+				adminId,
+			]);
+		}
+	});
+
+	it("should return 409 for DELETE /recipes/:id when recipe is already archived", async () => {
+		const userId = 2110;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "archive_already"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Already Archived', ARRAY['step'], 'archived', $1)
+				 RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.delete(`/recipes/${recipeId}`)
+				.set("X-User-Id", String(userId));
+
+			expect(response.status).toBe(409);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should return 401 for POST /recipes/:id/favorite without authentication", async () => {
+		const response = await request(app).post("/recipes/1/favorite");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 400 for POST /recipes/:id/favorite with invalid id", async () => {
+		const response = await request(app)
+			.post("/recipes/abc/favorite")
+			.set("X-User-Id", "1");
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 404 for POST /recipes/:id/favorite when recipe does not exist", async () => {
+		const response = await request(app)
+			.post("/recipes/999999/favorite")
+			.set("X-User-Id", "1");
+
+		expect(response.status).toBe(404);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should add recipe to favorites and return 409 on duplicate favorite", async () => {
+		const userId = 2201;
+		const authorId = 2202;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "favorite_user"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[authorId, "favorite_author"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Favorite Target', ARRAY['step'], 'published', $1)
+				 RETURNING id`,
+				[authorId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const firstResponse = await request(app)
+				.post(`/recipes/${recipeId}/favorite`)
+				.set("X-User-Id", String(userId));
+
+			expect(firstResponse.status).toBe(200);
+			expect(firstResponse.body).toHaveProperty(
+				"message",
+				"Recipe added to favorites",
+			);
+
+			const duplicateResponse = await request(app)
+				.post(`/recipes/${recipeId}/favorite`)
+				.set("X-User-Id", String(userId));
+
+			expect(duplicateResponse.status).toBe(409);
+			expect(duplicateResponse.body).toHaveProperty("error");
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				userId,
+				authorId,
+			]);
 		}
 	});
 });

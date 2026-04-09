@@ -14,7 +14,9 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { type Express } from "express";
 import "dotenv/config";
+import { authRouter } from "./routes/auth.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
+import { profileRouter } from "./routes/profile.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
 import {
@@ -47,6 +49,10 @@ app.use("/health", healthRouter);
 app.use("/recipes", recipesRouter);
 // Mount users router
 app.use("/users", usersRouter);
+// Mount profile router
+app.use("/profile", profileRouter);
+// Auth router
+app.use("/auth", authRouter);
 
 // Export app for use in index.ts and tests
 export { app };

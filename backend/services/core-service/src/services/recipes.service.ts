@@ -18,6 +18,8 @@ import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
 	type CreateRecipeInput,
+	type FavoriteRecipeListItem,
+	favoriteRecipeListItemSchema,
 	type MyRecipeListItem,
 	myRecipeListItemSchema,
 	type Recipe,
@@ -25,6 +27,7 @@ import {
 	recipeListItemSchema,
 	recipeSchema,
 	recipeStatusSchema,
+	type UpdateRecipeInput,
 } from "../validation/schemas.js";
 
 type PublishRecipeResult =
@@ -35,6 +38,36 @@ type PublishRecipeResult =
 			currentStatus?: string;
 	  };
 
+type UpdateRecipeResult =
+	| { success: true; recipe: Recipe }
+	| {
+			success: false;
+			reason: "not-found" | "forbidden" | "invalid-status" | "invalid-data";
+			currentStatus?: string;
+	  };
+
+type ArchiveRecipeResult =
+	| { success: true; recipe: Recipe }
+	| {
+			success: false;
+			reason: "not-found" | "forbidden" | "invalid-status";
+			currentStatus?: string;
+	  };
+
+type FailedRecipeMutationResult = {
+	success: false;
+	reason: "not-found" | "forbidden" | "invalid-status";
+	currentStatus?: string;
+};
+
+type AddFavoriteResult =
+	| { success: true; recipeId: number }
+	| { success: false; reason: "not-found" | "already-favorited" };
+
+type RemoveFavoriteResult =
+	| { success: true; recipeId: number }
+	| { success: false; reason: "not-found" | "not-favorited" };
+
 const recipeIdRowSchema = z.object({
 	id: z.coerce.number().int().positive(),
 });
@@ -43,6 +76,13 @@ const recipeVisibilityRowSchema = z.object({
 	author_id: z.coerce.number().int().positive().nullable(),
 	status: recipeStatusSchema,
 });
+
+const requesterRoleRowSchema = z.object({
+	role: z.enum(["guest", "user", "admin"]),
+});
+
+// PostgreSQL SQLSTATE for foreign_key_violation.
+const PG_FOREIGN_KEY_VIOLATION = "23503";
 
 const rowIdSchema = z
 	.object({ id: z.union([z.number(), z.string()]) })
@@ -152,6 +192,85 @@ const userExists = async (userId: number): Promise<boolean> => {
 	const result = await pool.query(`SELECT 1 FROM users WHERE id = $1 LIMIT 1`, [
 		userId,
 	]);
+
+	return result.rowCount === 1;
+};
+
+const classifyNoRowsRecipeMutation = async (
+	recipeId: number,
+	requesterId: number,
+	options?: {
+		isAdmin?: boolean;
+		priorityInvalidStatuses?: readonly string[];
+	},
+): Promise<FailedRecipeMutationResult> => {
+	const existingResult = await pool.query(
+		`SELECT author_id, status FROM recipes WHERE id = $1`,
+		[recipeId],
+	);
+
+	// Case 1: recipe does not exist at all.
+	if (existingResult.rowCount === 0) {
+		return { success: false, reason: "not-found" };
+	}
+
+	// Validate DB row shape before reading fields.
+	const existingRecipeParsed = recipeVisibilityRowSchema.safeParse(
+		existingResult.rows[0],
+	);
+	// Unexpected row structure is treated as internal error.
+	if (!existingRecipeParsed.success) {
+		throw new Error(z.prettifyError(existingRecipeParsed.error));
+	}
+
+	const { author_id, status } = existingRecipeParsed.data;
+
+	// Case 2: some statuses should return invalid-status before permission checks.
+	if (options?.priorityInvalidStatuses?.includes(status)) {
+		return {
+			success: false,
+			reason: "invalid-status",
+			currentStatus: status,
+		};
+	}
+
+	const isAdmin = options?.isAdmin === true;
+	// Case 3: recipe exists, but requester is neither owner nor admin.
+	if (author_id !== requesterId && !isAdmin) {
+		return { success: false, reason: "forbidden" };
+	}
+
+	// Case 4: requester is allowed, but current status blocks this mutation.
+	return {
+		success: false,
+		reason: "invalid-status",
+		currentStatus: status,
+	};
+};
+
+const isForeignKeyViolation = (error: unknown): boolean => {
+	if (!error || typeof error !== "object") {
+		return false;
+	}
+
+	// This means a referenced row does not exist (e.g. unknown ingredient/category id).
+	return "code" in error && error.code === PG_FOREIGN_KEY_VIOLATION;
+};
+
+const UNIQUE_VIOLATION = "23505";
+const isUniqueViolation = (error: unknown): boolean => {
+	if (!error || typeof error !== "object") {
+		return false;
+	}
+
+	return "code" in error && error.code === UNIQUE_VIOLATION;
+};
+
+const publishedRecipeExists = async (recipeId: number): Promise<boolean> => {
+	const result = await pool.query(
+		`SELECT 1 FROM recipes WHERE id = $1 AND status = 'published' LIMIT 1`,
+		[recipeId],
+	);
 
 	return result.rowCount === 1;
 };
@@ -335,7 +454,7 @@ export const publishRecipe = async (
 		const updateResult = await pool.query(
 			`
       UPDATE recipes
-      SET status = 'moderation', updated_at = now()
+      SET status = 'published', updated_at = now()
       WHERE id = $1 AND author_id = $2 AND status = 'draft'
       RETURNING id
     `,
@@ -343,32 +462,7 @@ export const publishRecipe = async (
 		);
 
 		if (updateResult.rowCount === 0) {
-			const existingResult = await pool.query(
-				`SELECT author_id, status FROM recipes WHERE id = $1`,
-				[recipeId],
-			);
-
-			if (existingResult.rowCount === 0) {
-				return { success: false, reason: "not-found" };
-			}
-
-			const existingRecipeParsed = recipeVisibilityRowSchema.safeParse(
-				existingResult.rows[0],
-			);
-			if (!existingRecipeParsed.success) {
-				throw new Error(z.prettifyError(existingRecipeParsed.error));
-			}
-
-			const { author_id, status } = existingRecipeParsed.data;
-			if (author_id !== userId) {
-				return { success: false, reason: "forbidden" };
-			}
-
-			return {
-				success: false,
-				reason: "invalid-status",
-				currentStatus: status,
-			};
+			return classifyNoRowsRecipeMutation(recipeId, userId);
 		}
 
 		const recipe = await getRecipeWithIngredientsById(recipeId);
@@ -379,6 +473,239 @@ export const publishRecipe = async (
 		return { success: true, recipe };
 	} catch (error) {
 		console.error("Database error in publishRecipe:", error);
+		throw error;
+	}
+};
+
+export const updateRecipe = async (
+	recipeId: number,
+	userId: number,
+	input: UpdateRecipeInput,
+): Promise<UpdateRecipeResult> => {
+	const client = await pool.connect();
+
+	try {
+		await client.query("BEGIN");
+
+		const updateResult = await client.query(
+			`
+      UPDATE recipes
+      SET
+        title = $1,
+        description = $2,
+        instructions = $3,
+        servings = $4,
+        spiciness = $5,
+        updated_at = now()
+      WHERE id = $6 AND author_id = $7 AND status = 'draft'
+      RETURNING id
+    `,
+			[
+				input.title,
+				input.description,
+				input.instructions,
+				input.servings,
+				input.spiciness,
+				recipeId,
+				userId,
+			],
+		);
+
+		if (updateResult.rowCount === 0) {
+			// Nothing updated: classify missing recipe vs forbidden vs invalid status.
+			await client.query("ROLLBACK");
+
+			return classifyNoRowsRecipeMutation(recipeId, userId);
+		}
+
+		const ingredientIds: number[] = [];
+		const amounts: number[] = [];
+		const units: string[] = [];
+
+		for (const { ingredient_id, amount, unit } of input.ingredients) {
+			ingredientIds.push(ingredient_id);
+			amounts.push(amount);
+			units.push(unit);
+		}
+
+		// Replace links atomically: clear old ingredient/category relations and insert new ones.
+		await client.query(`DELETE FROM recipe_ingredients WHERE recipe_id = $1`, [
+			recipeId,
+		]);
+		await client.query(`DELETE FROM recipe_category_map WHERE recipe_id = $1`, [
+			recipeId,
+		]);
+
+		await client.query(
+			`
+        INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit)
+        SELECT $1, unnest($2::int[]), unnest($3::numeric[]), unnest($4::text[])
+      `,
+			[recipeId, ingredientIds, amounts, units],
+		);
+
+		if (input.category_ids.length > 0) {
+			await client.query(
+				`
+          INSERT INTO recipe_category_map (recipe_id, category_id)
+          SELECT $1, unnest($2::int[])
+        `,
+				[recipeId, input.category_ids],
+			);
+		}
+
+		const recipe = await getRecipeWithIngredientsById(recipeId, client);
+		if (!recipe) {
+			throw new Error(`Updated recipe ${recipeId} could not be loaded`);
+		}
+
+		await client.query("COMMIT");
+		return { success: true, recipe };
+	} catch (error) {
+		// Roll back the transaction for any failure during update flow.
+		await client.query("ROLLBACK");
+
+		// PostgreSQL 23503 = foreign_key_violation (e.g. unknown ingredient/category id).
+		if (isForeignKeyViolation(error)) {
+			return { success: false, reason: "invalid-data" };
+		}
+
+		console.error("Database error in updateRecipe:", error);
+		throw error;
+	} finally {
+		client.release();
+	}
+};
+
+export const archiveRecipe = async (
+	recipeId: number,
+	requesterId: number,
+): Promise<ArchiveRecipeResult> => {
+	try {
+		const requesterResult = await pool.query(
+			`SELECT role FROM users WHERE id = $1`,
+			[requesterId],
+		);
+
+		if (requesterResult.rowCount === 0) {
+			return { success: false, reason: "forbidden" };
+		}
+
+		const requesterParsed = requesterRoleRowSchema.safeParse(
+			requesterResult.rows[0],
+		);
+		if (!requesterParsed.success) {
+			throw new Error(z.prettifyError(requesterParsed.error));
+		}
+
+		const isAdmin = requesterParsed.data.role === "admin";
+
+		const updateResult = await pool.query(
+			`
+      UPDATE recipes
+      SET status = 'archived', updated_at = now()
+      WHERE id = $1
+        AND status <> 'archived'
+        AND (author_id = $2 OR $3::boolean)
+      RETURNING id
+    `,
+			[recipeId, requesterId, isAdmin],
+		);
+
+		if (updateResult.rowCount === 0) {
+			// Nothing archived: classify not-found vs forbidden vs already archived.
+			return classifyNoRowsRecipeMutation(recipeId, requesterId, {
+				isAdmin,
+				priorityInvalidStatuses: ["archived"],
+			});
+		}
+
+		const recipe = await getRecipeWithIngredientsById(recipeId);
+		if (!recipe) {
+			throw new Error(`Archived recipe ${recipeId} could not be loaded`);
+		}
+
+		return { success: true, recipe };
+	} catch (error) {
+		console.error("Database error in archiveRecipe:", error);
+		throw error;
+	}
+};
+
+export const addRecipeToFavorites = async (
+	recipeId: number,
+	userId: number,
+): Promise<AddFavoriteResult> => {
+	try {
+		const recipeExists = await publishedRecipeExists(recipeId);
+		if (!recipeExists) {
+			return { success: false, reason: "not-found" };
+		}
+
+		await pool.query(
+			`INSERT INTO favorites (user_id, recipe_id) VALUES ($1, $2)`,
+			[userId, recipeId],
+		);
+
+		return { success: true, recipeId };
+	} catch (error) {
+		if (isUniqueViolation(error)) {
+			return { success: false, reason: "already-favorited" };
+		}
+
+		console.error("Database error in addRecipeToFavorites:", error);
+		throw error;
+	}
+};
+
+export const removeRecipeFromFavorites = async (
+	recipeId: number,
+	userId: number,
+): Promise<RemoveFavoriteResult> => {
+	try {
+		const recipeExists = await publishedRecipeExists(recipeId);
+		if (!recipeExists) {
+			return { success: false, reason: "not-found" };
+		}
+
+		const deleteResult = await pool.query(
+			`DELETE FROM favorites WHERE user_id = $1 AND recipe_id = $2 RETURNING recipe_id`,
+			[userId, recipeId],
+		);
+
+		if (deleteResult.rowCount === 0) {
+			return { success: false, reason: "not-favorited" };
+		}
+
+		return { success: true, recipeId };
+	} catch (error) {
+		console.error("Database error in removeRecipeFromFavorites:", error);
+		throw error;
+	}
+};
+
+export const getMyFavoriteRecipes = async (
+	userId: number,
+): Promise<FavoriteRecipeListItem[]> => {
+	try {
+		const query = `
+	SELECT r.id, r.title, r.description, u.avatar
+      FROM favorites f
+      JOIN recipes r ON r.id = f.recipe_id
+      LEFT JOIN users u ON u.id = r.author_id
+      WHERE f.user_id = $1 AND r.status = 'published'
+      ORDER BY f.created_at DESC
+    `;
+
+		const result = await pool.query(query, [userId]);
+
+		return parseRecipeRows(
+			result.rows,
+			favoriteRecipeListItemSchema,
+			"favorite recipe",
+		);
+	} catch (error) {
+		console.error("Database error in getMyFavoriteRecipes:", error);
 		throw error;
 	}
 };

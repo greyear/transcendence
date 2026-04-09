@@ -264,8 +264,8 @@ describe("API Gateway - Recipes Routes", () => {
 		fetchSpy.mockResolvedValueOnce({
 			status: 200,
 			json: async () => ({
-				data: { id: 77, status: "moderation" },
-				message: "Recipe sent to moderation",
+				data: { id: 77, status: "published" },
+				message: "Recipe published",
 			}),
 		} as unknown as Response);
 
@@ -275,8 +275,8 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(response.status).toBe(200);
 		expect(response.body).toEqual({
-			data: { id: 77, status: "moderation" },
-			message: "Recipe sent to moderation",
+			data: { id: 77, status: "published" },
+			message: "Recipe published",
 		});
 
 		expect(fetchSpy).toHaveBeenNthCalledWith(
@@ -354,7 +354,7 @@ describe("API Gateway - Recipes Routes", () => {
 		fetchSpy.mockResolvedValueOnce({
 			status: 409,
 			json: async () => ({
-				error: "Recipe cannot be sent to moderation from status moderation",
+				error: "Recipe cannot be published from status published",
 			}),
 		} as unknown as Response);
 
@@ -364,7 +364,7 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(response.status).toBe(409);
 		expect(response.body).toEqual({
-			error: "Recipe cannot be sent to moderation from status moderation",
+			error: "Recipe cannot be published from status published",
 		});
 	});
 
@@ -402,5 +402,358 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(response.status).toBe(500);
 		expect(response.body).toEqual({ error: "Failed to publish recipe" });
+	});
+
+	it("should reject PUT /recipes/:id without authentication", async () => {
+		const response = await request(app)
+			.put("/recipes/77")
+			.send({
+				title: "Updated",
+				description: "Updated",
+				instructions: ["step"],
+				servings: 2,
+				spiciness: 1,
+				ingredients: [{ ingredient_id: 1, amount: 100, unit: "g" }],
+				category_ids: [],
+			});
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy PUT /recipes/:id to core-service", async () => {
+		const payload = {
+			title: "Updated via gateway",
+			description: "Updated description",
+			instructions: ["step 1", "step 2"],
+			servings: 4,
+			spiciness: 2,
+			ingredients: [{ ingredient_id: 1, amount: 200, unit: "g" }],
+			category_ids: [],
+		};
+
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			json: async () => ({
+				data: { id: 77, status: "draft", title: "Updated via gateway" },
+				message: "Recipe updated",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.put("/recipes/77")
+			.set("Authorization", "Bearer validtoken")
+			.send(payload);
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: { id: 77, status: "draft", title: "Updated via gateway" },
+			message: "Recipe updated",
+		});
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			1,
+			expect.stringContaining("/auth/validate"),
+			expect.objectContaining({
+				method: "POST",
+				headers: { Authorization: "Bearer validtoken" },
+			}),
+		);
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining("/recipes/77"),
+			expect.objectContaining({
+				method: "PUT",
+				body: JSON.stringify(payload),
+				headers: expect.objectContaining({
+					"Content-Type": "application/json",
+					"x-user-id": "42",
+				}),
+				signal: expect.any(AbortSignal),
+			}),
+		);
+	});
+
+	it("should forward 403 from core-service for forbidden update", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 403,
+			json: async () => ({ error: "No permission to update this recipe" }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.put("/recipes/77")
+			.set("Authorization", "Bearer validtoken")
+			.send({
+				title: "Updated",
+				description: "Updated",
+				instructions: ["step"],
+				servings: 2,
+				spiciness: 1,
+				ingredients: [{ ingredient_id: 1, amount: 100, unit: "g" }],
+				category_ids: [],
+			});
+
+		expect(response.status).toBe(403);
+		expect(response.body).toEqual({
+			error: "No permission to update this recipe",
+		});
+	});
+
+	it("should return 504 when downstream update request times out", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		const timeoutError = new Error("Request timed out");
+		timeoutError.name = "TimeoutError";
+		fetchSpy.mockRejectedValueOnce(timeoutError);
+
+		const response = await request(app)
+			.put("/recipes/77")
+			.set("Authorization", "Bearer validtoken")
+			.send({
+				title: "Updated",
+				description: "Updated",
+				instructions: ["step"],
+				servings: 2,
+				spiciness: 1,
+				ingredients: [{ ingredient_id: 1, amount: 100, unit: "g" }],
+				category_ids: [],
+			});
+
+		expect(response.status).toBe(504);
+		expect(response.body).toEqual({ error: "Gateway Timeout" });
+	});
+
+	it("should reject DELETE /recipes/:id without authentication", async () => {
+		const response = await request(app).delete("/recipes/77");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy DELETE /recipes/:id to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			json: async () => ({
+				data: { id: 77, status: "archived" },
+				message: "Recipe archived",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.delete("/recipes/77")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: { id: 77, status: "archived" },
+			message: "Recipe archived",
+		});
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			1,
+			expect.stringContaining("/auth/validate"),
+			expect.objectContaining({
+				method: "POST",
+				headers: { Authorization: "Bearer validtoken" },
+			}),
+		);
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining("/recipes/77"),
+			expect.objectContaining({
+				method: "DELETE",
+				headers: expect.objectContaining({
+					"Content-Type": "application/json",
+					"x-user-id": "42",
+				}),
+				signal: expect.any(AbortSignal),
+			}),
+		);
+	});
+
+	it("should forward 409 from core-service for invalid archive status", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 409,
+			json: async () => ({
+				error: "Recipe cannot be archived from status archived",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.delete("/recipes/77")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(409);
+		expect(response.body).toEqual({
+			error: "Recipe cannot be archived from status archived",
+		});
+	});
+
+	it("should return 500 on unexpected proxy error for DELETE /recipes/:id", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockRejectedValueOnce(new Error("boom"));
+
+		const response = await request(app)
+			.delete("/recipes/77")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(500);
+		expect(response.body).toEqual({ error: "Failed to archive recipe" });
+	});
+
+	it("should reject POST /recipes/:id/favorite without authentication", async () => {
+		const response = await request(app).post("/recipes/77/favorite");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy POST /recipes/:id/favorite to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			json: async () => ({
+				data: { recipe_id: 77 },
+				message: "Recipe added to favorites",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.post("/recipes/77/favorite")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: { recipe_id: 77 },
+			message: "Recipe added to favorites",
+		});
+	});
+
+	it("should forward 409 from core-service for duplicate favorite", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 409,
+			json: async () => ({ error: "Recipe is already in favorites" }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.post("/recipes/77/favorite")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(409);
+		expect(response.body).toEqual({ error: "Recipe is already in favorites" });
+	});
+
+	it("should reject DELETE /recipes/:id/favorite without authentication", async () => {
+		const response = await request(app).delete("/recipes/77/favorite");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy DELETE /recipes/:id/favorite to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			json: async () => ({
+				data: { recipe_id: 77 },
+				message: "Recipe removed from favorites",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.delete("/recipes/77/favorite")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: { recipe_id: 77 },
+			message: "Recipe removed from favorites",
+		});
+	});
+
+	it("should reject GET /users/me/favorites without authentication", async () => {
+		const response = await request(app).get("/users/me/favorites");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy GET /users/me/favorites to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			json: async () => ({ data: [{ id: 77, title: "Fav" }], count: 1 }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.get("/users/me/favorites")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: [{ id: 77, title: "Fav" }],
+			count: 1,
+		});
 	});
 });

@@ -100,6 +100,106 @@ check_post_endpoint_auth() {
   fi
 }
 
+check_put_endpoint() {
+  local path="$1"
+  local payload="$2"
+  local expected_status="$3"
+  local description="${4:-PUT $path}"
+
+  local url="$BASE_URL$path"
+  local actual_status
+
+  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+    -X PUT \
+    -H "Content-Type: application/json" \
+    -d "$payload" \
+    "$url" 2>/dev/null || echo "000")
+
+  if [ "$actual_status" = "$expected_status" ]; then
+    echo -e "${GREEN}✓${NC} $description -> $actual_status"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+  else
+    echo -e "${RED}✗${NC} $description -> got $actual_status, expected $expected_status"
+    echo "   Response: $(head -c 100 /tmp/test-resp.json)"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    FAIL=1
+  fi
+}
+
+check_put_endpoint_auth() {
+  local path="$1"
+  local payload="$2"
+  local expected_status="$3"
+  local description="${4:-PUT $path}"
+
+  local url="$BASE_URL$path"
+  local actual_status
+
+  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+    -X PUT \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $SMOKE_BEARER_TOKEN" \
+    -d "$payload" \
+    "$url" 2>/dev/null || echo "000")
+
+  if [ "$actual_status" = "$expected_status" ]; then
+    echo -e "${GREEN}✓${NC} $description -> $actual_status"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+  else
+    echo -e "${RED}✗${NC} $description -> got $actual_status, expected $expected_status"
+    echo "   Response: $(head -c 100 /tmp/test-resp.json)"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    FAIL=1
+  fi
+}
+
+check_delete_endpoint() {
+  local path="$1"
+  local expected_status="$2"
+  local description="${3:-DELETE $path}"
+
+  local url="$BASE_URL$path"
+  local actual_status
+
+  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+    -X DELETE \
+    "$url" 2>/dev/null || echo "000")
+
+  if [ "$actual_status" = "$expected_status" ]; then
+    echo -e "${GREEN}✓${NC} $description -> $actual_status"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+  else
+    echo -e "${RED}✗${NC} $description -> got $actual_status, expected $expected_status"
+    echo "   Response: $(head -c 100 /tmp/test-resp.json)"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    FAIL=1
+  fi
+}
+
+check_delete_endpoint_auth() {
+  local path="$1"
+  local expected_status="$2"
+  local description="${3:-DELETE $path}"
+
+  local url="$BASE_URL$path"
+  local actual_status
+
+  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+    -X DELETE \
+    -H "Authorization: Bearer $SMOKE_BEARER_TOKEN" \
+    "$url" 2>/dev/null || echo "000")
+
+  if [ "$actual_status" = "$expected_status" ]; then
+    echo -e "${GREEN}✓${NC} $description -> $actual_status"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+  else
+    echo -e "${RED}✗${NC} $description -> got $actual_status, expected $expected_status"
+    echo "   Response: $(head -c 100 /tmp/test-resp.json)"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    FAIL=1
+  fi
+}
+
 echo "Health Checks:"
 check_endpoint "/health" "200" "GET /health"
 check_endpoint "/health/db" "200" "GET /health/db"
@@ -123,6 +223,13 @@ check_endpoint "/users/999/recipes" "404" "GET /users/999/recipes (non-existent 
 check_endpoint "/users/me/recipes" "401" "GET /users/me/recipes (no token -> 401)"
 
 echo ""
+echo "User Social Endpoints:"
+check_endpoint "/users/1/followers" "200" "GET /users/1/followers (list of followers)"
+check_endpoint "/users/1/following" "200" "GET /users/1/following (list being followed)"
+check_endpoint "/users/999/followers" "404" "GET /users/999/followers (non-existent user)"
+check_endpoint "/users/999/following" "404" "GET /users/999/following (non-existent user)"
+
+echo ""
 echo "Validation Tests:"
 check_endpoint "/recipes/abc" "400" "GET /recipes/abc (invalid ID)"
 check_endpoint "/recipes/12.4" "400" "GET /recipes/12.4 (decimal)"
@@ -131,11 +238,22 @@ check_endpoint "/recipes/.1" "400" "GET /recipes/.1 (starts with dot)"
 check_endpoint "/recipes/40a" "400" "GET /recipes/40a (alphanumeric)"
 check_endpoint "/users/abc" "400" "GET /users/abc (invalid user ID)"
 check_endpoint "/users/abc/recipes" "400" "GET /users/abc/recipes (invalid user ID)"
+check_endpoint "/users/abc/followers" "400" "GET /users/abc/followers (invalid user ID for followers)"
+check_endpoint "/users/abc/following" "400" "GET /users/abc/following (invalid user ID for following)"
 
 echo ""
 echo "POST Endpoints:"
 check_post_endpoint "/recipes" '{"title":"Smoke Recipe","description":"Created by smoke test","instructions":["Mix ingredients"],"servings":2,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":100,"unit":"g"}],"category_ids":[]}' "401" "POST /recipes (no token -> 401)"
 check_post_endpoint "/recipes/1/publish" '{}' "401" "POST /recipes/1/publish (no token -> 401)"
+
+echo ""
+echo "PUT/DELETE Endpoints:"
+check_put_endpoint "/recipes/1" '{"title":"Smoke Update","description":"Updated by smoke test","instructions":["Mix ingredients"],"servings":2,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":100,"unit":"g"}],"category_ids":[]}' "401" "PUT /recipes/1 (no token -> 401)"
+check_delete_endpoint "/recipes/1" "401" "DELETE /recipes/1 (no token -> 401)"
+echo "Favorites Endpoints (public):"
+check_post_endpoint "/recipes/1/favorite" '{}' "401" "POST /recipes/1/favorite (no token -> 401)"
+check_delete_endpoint "/recipes/1/favorite" "401" "DELETE /recipes/1/favorite (no token -> 401)"
+check_endpoint "/users/me/favorites" "401" "GET /users/me/favorites (no token -> 401)"
 
 if [ -n "$SMOKE_BEARER_TOKEN" ]; then
   echo ""
@@ -153,6 +271,28 @@ if [ -n "$SMOKE_BEARER_TOKEN" ]; then
     TESTS_FAILED=$((TESTS_FAILED + 1))
     FAIL=1
   fi
+fi
+
+echo ""
+echo "Recipe Rating Endpoints:"
+check_post_endpoint "/recipes/1/rating" '{}' "401" "POST /recipes/1/rating (no token -> 401)"
+check_put_endpoint "/recipes/1/rating" '{}' "401" "PUT /recipes/1/rating (no token -> 401)"
+check_delete_endpoint "/recipes/1/rating" "401" "DELETE /recipes/1/rating (no token -> 401)"
+
+if [ -n "$SMOKE_BEARER_TOKEN" ]; then
+  echo ""
+  echo "Recipe Rating Endpoints (authenticated):"
+
+  check_put_endpoint_auth "/recipes/abc/rating" '{"rating":3}' "400" "PUT /recipes/abc/rating (invalid ID -> 400)"
+  check_delete_endpoint_auth "/recipes/abc/rating" "400" "DELETE /recipes/abc/rating (invalid ID -> 400)"
+
+  check_post_endpoint_auth "/recipes/1/rating" '{"rating":4}' "201" "POST /recipes/1/rating (with token, rating=4 -> 201)"
+  check_put_endpoint_auth "/recipes/1/rating" '{"rating":5}' "200" "PUT /recipes/1/rating (with token, rating=5 -> 200)"
+  check_delete_endpoint_auth "/recipes/1/rating" "204" "DELETE /recipes/1/rating (with token -> 204)"
+
+  check_post_endpoint_auth "/recipes/999/rating" '{"rating":3}' "404" "POST /recipes/999/rating (non-existent recipe -> 404)"
+  check_put_endpoint_auth "/recipes/999/rating" '{"rating":3}' "404" "PUT /recipes/999/rating (non-existent recipe -> 404)"
+  check_delete_endpoint_auth "/recipes/999/rating" "404" "DELETE /recipes/999/rating (non-existent recipe -> 404)"
 fi
 
 echo ""
