@@ -100,16 +100,44 @@ check_post_endpoint_auth() {
   fi
 }
 
+check_put_endpoint() {
+  local path="$1"
+  local payload="$2"
+  local expected_status="$3"
+  local description="${4:-PUT $path}"
+
+  local url="$BASE_URL$path"
+  local actual_status
+
+  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+    -X PUT \
+    -H "Content-Type: application/json" \
+    -d "$payload" \
+    "$url" 2>/dev/null || echo "000")
+
+  if [ "$actual_status" = "$expected_status" ]; then
+    echo -e "${GREEN}✓${NC} $description -> $actual_status"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+  else
+    echo -e "${RED}✗${NC} $description -> got $actual_status, expected $expected_status"
+    echo "   Response: $(head -c 100 /tmp/test-resp.json)"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    FAIL=1
+  fi
+}
+
 check_delete_endpoint() {
   local path="$1"
   local expected_status="$2"
   local description="${3:-DELETE $path}"
-  
+
   local url="$BASE_URL$path"
   local actual_status
-  
-  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" -X DELETE "$url" 2>/dev/null || echo "000")
-  
+
+  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+    -X DELETE \
+    "$url" 2>/dev/null || echo "000")
+
   if [ "$actual_status" = "$expected_status" ]; then
     echo -e "${GREEN}✓${NC} $description -> $actual_status"
     TESTS_PASSED=$((TESTS_PASSED + 1))
@@ -168,6 +196,9 @@ check_post_endpoint "/recipes" '{"title":"Smoke Recipe","description":"Created b
 check_post_endpoint "/recipes/1/publish" '{}' "401" "POST /recipes/1/publish (no token -> 401)"
 
 echo ""
+echo "PUT/DELETE Endpoints:"
+check_put_endpoint "/recipes/1" '{"title":"Smoke Update","description":"Updated by smoke test","instructions":["Mix ingredients"],"servings":2,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":100,"unit":"g"}],"category_ids":[]}' "401" "PUT /recipes/1 (no token -> 401)"
+check_delete_endpoint "/recipes/1" "401" "DELETE /recipes/1 (no token -> 401)"
 echo "Favorites Endpoints (public):"
 check_post_endpoint "/recipes/1/favorite" '{}' "401" "POST /recipes/1/favorite (no token -> 401)"
 check_delete_endpoint "/recipes/1/favorite" "401" "DELETE /recipes/1/favorite (no token -> 401)"

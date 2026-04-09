@@ -20,7 +20,6 @@ import mongoose from "mongoose";
 import { userModel } from "./auth_schema.js";
 import * as help from "./authHelpers.js";
 
-
 export const authRouter = Router();
 
 //Connection part probably being moved later
