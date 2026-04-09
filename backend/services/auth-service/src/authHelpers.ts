@@ -71,6 +71,7 @@ export const validatePassword = (password: string) => {
 	const passwordPattern = z
 		.string()
 		.min(8, "Password must be at least 8 characters")
+		.max(64, "Password must be at most 64 characters")
 		.refine(
 			(password) => /[A-Z]/.test(password),
 			"Must include 1 uppercase letter",
