@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS recipe_search_docs (
   description text,
   instructions text NOT NULL,
   searchable_text text NOT NULL,
-  embedding vector(768),
+  embedding vector(3072),
   source_updated_at timestamptz NOT NULL,
   indexed_at timestamptz NOT NULL DEFAULT now()
 );
@@ -16,7 +16,3 @@ CREATE INDEX IF NOT EXISTS idx_recipe_search_docs_source_updated_at
 
 CREATE INDEX IF NOT EXISTS idx_recipe_search_docs_indexed_at
   ON recipe_search_docs (indexed_at DESC);
-
-CREATE INDEX IF NOT EXISTS idx_recipe_search_docs_embedding_cosine
-  ON recipe_search_docs
-  USING hnsw (embedding vector_cosine_ops);

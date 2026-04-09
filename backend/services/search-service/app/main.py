@@ -1,14 +1,457 @@
+import logging
 import os
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
+import httpx
+import psycopg
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
+from google import genai
+from psycopg.rows import dict_row
 
 app = FastAPI(title="search-service", version="0.1.0")
+logger = logging.getLogger(__name__)
+
+CORE_SERVICE_URL = os.getenv("CORE_SERVICE_URL", "http://core-service:3002")
+SEARCH_DATABASE_URL = os.getenv(
+    "SEARCH_DATABASE_URL",
+    "postgresql://search_user:search_password@localhost:5435/search_db",
+)
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_EMBED_MODEL = os.getenv("GEMINI_EMBED_MODEL", "gemini-embedding-001")
+GEMINI_GEN_MODEL = os.getenv("GEMINI_GEN_MODEL", "gemini-2.5-flash")
+_embedding_client: genai.Client | None = None
+_generation_client: genai.Client | None = None
 
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def parse_core_timestamp(value: str) -> datetime:
+    normalized = value.replace("Z", "+00:00")
+    return datetime.fromisoformat(normalized)
+
+
+def normalize_ingredient_lines(ingredients: Any) -> list[str]:
+    if not isinstance(ingredients, list):
+        raise HTTPException(
+            status_code=502, detail="core-service returned invalid ingredients"
+        )
+
+    lines: list[str] = []
+    for item in ingredients:
+        if not isinstance(item, dict):
+            raise HTTPException(
+                status_code=502, detail="core-service returned invalid ingredients"
+            )
+
+        name = item.get("name")
+        amount = item.get("amount")
+        unit = item.get("unit")
+        if not isinstance(name, str) or not name.strip():
+            raise HTTPException(
+                status_code=502, detail="core-service returned invalid ingredients"
+            )
+        if not isinstance(unit, str) or not unit.strip():
+            raise HTTPException(
+                status_code=502, detail="core-service returned invalid ingredients"
+            )
+        if not isinstance(amount, (int, float)):
+            raise HTTPException(
+                status_code=502, detail="core-service returned invalid ingredients"
+            )
+
+        lines.append(f"{amount:g} {unit.strip()} {name.strip()}")
+
+    return lines
+
+
+def normalize_category_labels(categories: Any) -> list[str]:
+    if not isinstance(categories, list):
+        raise HTTPException(
+            status_code=502, detail="core-service returned invalid categories"
+        )
+
+    labels: list[str] = []
+    for item in categories:
+        if not isinstance(item, dict):
+            raise HTTPException(
+                status_code=502, detail="core-service returned invalid categories"
+            )
+
+        type_name = item.get("category_type_name")
+        code = item.get("code")
+        if not isinstance(type_name, str) or not type_name.strip():
+            raise HTTPException(
+                status_code=502, detail="core-service returned invalid categories"
+            )
+        if not isinstance(code, str) or not code.strip():
+            raise HTTPException(
+                status_code=502, detail="core-service returned invalid categories"
+            )
+
+        labels.append(f"{type_name.strip()}: {code.strip()}")
+
+    return labels
+
+
+def normalize_recipe_document(recipe: dict[str, Any]) -> dict[str, Any]:
+    instructions = recipe.get("instructions") or []
+    if not isinstance(instructions, list) or not all(
+        isinstance(step, str) for step in instructions
+    ):
+        raise HTTPException(
+            status_code=502, detail="core-service returned invalid instructions"
+        )
+
+    title = recipe.get("title")
+    if not isinstance(title, str) or not title.strip():
+        raise HTTPException(status_code=502, detail="core-service returned invalid title")
+
+    description = recipe.get("description")
+    if description is not None and not isinstance(description, str):
+        raise HTTPException(
+            status_code=502, detail="core-service returned invalid description"
+        )
+
+    servings = recipe.get("servings")
+    if not isinstance(servings, int) or servings <= 0:
+        raise HTTPException(status_code=502, detail="core-service returned invalid servings")
+
+    spiciness = recipe.get("spiciness")
+    if not isinstance(spiciness, int) or spiciness < 0 or spiciness > 3:
+        raise HTTPException(status_code=502, detail="core-service returned invalid spiciness")
+
+    rating_avg = recipe.get("rating_avg")
+    if rating_avg is not None and not isinstance(rating_avg, (int, float)):
+        raise HTTPException(status_code=502, detail="core-service returned invalid rating_avg")
+
+    updated_at = recipe.get("updated_at")
+    if not isinstance(updated_at, str):
+        raise HTTPException(
+            status_code=502, detail="core-service returned invalid updated_at"
+        )
+
+    instructions_text = "\n".join(step.strip() for step in instructions if step.strip())
+    description_text = (description or "").strip()
+    ingredient_lines = normalize_ingredient_lines(recipe.get("ingredients") or [])
+    category_labels = normalize_category_labels(recipe.get("categories") or [])
+
+    searchable_parts = [title.strip()]
+    if description_text:
+        searchable_parts.append(description_text)
+    searchable_parts.append(f"Servings: {servings}")
+    searchable_parts.append(f"Spiciness level: {spiciness}")
+    if rating_avg is not None:
+        searchable_parts.append(f"Average rating: {float(rating_avg):.2f}")
+    if ingredient_lines:
+        searchable_parts.append("Ingredients:\n" + "\n".join(ingredient_lines))
+    if category_labels:
+        searchable_parts.append("Categories:\n" + "\n".join(category_labels))
+    if instructions_text:
+        searchable_parts.append(instructions_text)
+
+    return {
+        "recipe_id": recipe["id"],
+        "title": title.strip(),
+        "description": description_text or None,
+        "instructions": instructions_text,
+        "searchable_text": "\n\n".join(searchable_parts),
+        "source_updated_at": parse_core_timestamp(updated_at),
+    }
+
+
+def get_embedding_client() -> genai.Client:
+    global _embedding_client
+
+    if LLM_PROVIDER != "gemini":
+        raise HTTPException(
+            status_code=503,
+            detail=f"Embedding provider '{LLM_PROVIDER}' is not supported",
+        )
+
+    if not GEMINI_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="GEMINI_API_KEY is not configured for embeddings",
+        )
+
+    if _embedding_client is None:
+        _embedding_client = genai.Client(api_key=GEMINI_API_KEY)
+
+    return _embedding_client
+
+
+def get_generation_client() -> genai.Client:
+    global _generation_client
+
+    if LLM_PROVIDER != "gemini":
+        raise HTTPException(
+            status_code=503,
+            detail=f"Generation provider '{LLM_PROVIDER}' is not supported",
+        )
+
+    if not GEMINI_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="GEMINI_API_KEY is not configured for generation",
+        )
+
+    if _generation_client is None:
+        _generation_client = genai.Client(api_key=GEMINI_API_KEY)
+
+    return _generation_client
+
+
+def embed_text(text: str) -> list[float]:
+    try:
+        response = get_embedding_client().models.embed_content(
+            model=GEMINI_EMBED_MODEL,
+            contents=text,
+        )
+    except Exception as error:
+        logger.exception("Gemini embedding request failed")
+        raise HTTPException(
+            status_code=502,
+            detail="Failed to generate embedding with Gemini",
+        ) from error
+
+    embedding = response.embeddings
+    if not embedding or not embedding[0].values:
+        raise HTTPException(status_code=502, detail="Gemini returned empty embedding")
+
+    return list(embedding[0].values)
+
+
+def vector_literal(values: list[float]) -> str:
+    return "[" + ",".join(str(value) for value in values) + "]"
+
+
+def fetch_core_json(path: str) -> dict[str, Any]:
+    url = f"{CORE_SERVICE_URL}{path}"
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            response = client.get(url)
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as error:
+        if error.response.status_code == 404:
+            raise HTTPException(status_code=404, detail="Recipe not found") from error
+        raise HTTPException(
+            status_code=502,
+            detail=f"core-service returned {error.response.status_code}",
+        ) from error
+    except httpx.HTTPError as error:
+        raise HTTPException(status_code=502, detail="Failed to reach core-service") from error
+
+
+def fetch_all_search_recipes() -> list[dict[str, Any]]:
+    payload = fetch_core_json("/internal/search/recipes")
+    data = payload.get("data", [])
+    if not isinstance(data, list):
+        raise HTTPException(status_code=502, detail="core-service returned invalid data")
+    return data
+
+
+def fetch_search_recipe_by_id(recipe_id: int) -> dict[str, Any]:
+    payload = fetch_core_json(f"/internal/search/recipes/{recipe_id}")
+    data = payload.get("data")
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=502, detail="core-service returned invalid data")
+    return data
+
+
+def upsert_search_document(connection: psycopg.Connection[Any], recipe: dict[str, Any]) -> None:
+    document = normalize_recipe_document(recipe)
+    embedding = vector_literal(embed_text(document["searchable_text"]))
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            INSERT INTO recipe_search_docs (
+                recipe_id,
+                title,
+                description,
+                instructions,
+                searchable_text,
+                embedding,
+                source_updated_at,
+                indexed_at
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, now())
+            ON CONFLICT (recipe_id) DO UPDATE SET
+                title = EXCLUDED.title,
+                description = EXCLUDED.description,
+                instructions = EXCLUDED.instructions,
+                searchable_text = EXCLUDED.searchable_text,
+                embedding = EXCLUDED.embedding,
+                source_updated_at = EXCLUDED.source_updated_at,
+                indexed_at = now()
+            """,
+            (
+                document["recipe_id"],
+                document["title"],
+                document["description"],
+                document["instructions"],
+                document["searchable_text"],
+                embedding,
+                document["source_updated_at"],
+            ),
+        )
+
+
+def delete_search_document(
+    connection: psycopg.Connection[Any], recipe_id: int
+) -> None:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "DELETE FROM recipe_search_docs WHERE recipe_id = %s",
+            (recipe_id,),
+        )
+
+
+def search_recipe_documents(
+    connection: psycopg.Connection[Any], query: str, limit: int
+) -> list[dict[str, Any]]:
+    query_embedding = vector_literal(embed_text(query))
+
+    with connection.cursor(row_factory=dict_row) as cursor:
+        cursor.execute(
+            """
+            SELECT
+                recipe_id,
+                title,
+                description,
+                instructions,
+                searchable_text,
+                source_updated_at,
+                indexed_at,
+                CASE
+                    WHEN embedding IS NULL THEN 0
+                    ELSE 1 - (embedding <=> %s::vector)
+                END AS score,
+                ts_rank_cd(
+                    to_tsvector('simple', searchable_text),
+                    websearch_to_tsquery('simple', %s)
+                ) AS text_rank
+            FROM recipe_search_docs
+            WHERE
+                embedding IS NOT NULL
+                OR to_tsvector('simple', searchable_text) @@ websearch_to_tsquery('simple', %s)
+            ORDER BY score DESC, text_rank DESC, source_updated_at DESC, recipe_id DESC
+            LIMIT %s
+            """,
+            (query_embedding, query, query, limit),
+        )
+
+        rows = cursor.fetchall()
+
+    return [
+        {
+            "recipe_id": row["recipe_id"],
+            "title": row["title"],
+            "description": row["description"],
+            "instructions": row["instructions"],
+            "searchable_text": row["searchable_text"],
+            "source_updated_at": row["source_updated_at"],
+            "indexed_at": row["indexed_at"],
+            "score": float(row["score"]),
+            "text_rank": float(row["text_rank"]),
+        }
+        for row in rows
+    ]
+
+
+def search_indexed_recipes(
+    connection: psycopg.Connection[Any], query: str, limit: int
+) -> list[dict[str, Any]]:
+    rows = search_recipe_documents(connection, query, limit)
+
+    return [
+        {
+            "recipe_id": row["recipe_id"],
+            "title": row["title"],
+            "description": row["description"],
+            "source_updated_at": row["source_updated_at"],
+            "indexed_at": row["indexed_at"],
+            "score": float(row["score"]),
+            "text_rank": float(row["text_rank"]),
+        }
+        for row in rows
+    ]
+
+
+def generate_search_summary(query: str, documents: list[dict[str, Any]]) -> str:
+    if not documents:
+        return "I could not find matching recipes for that search yet."
+
+    context_blocks: list[str] = []
+    for index, document in enumerate(documents, start=1):
+        description = document["description"] or "No description provided."
+        instructions = document["instructions"] or "No instructions provided."
+        context_blocks.append(
+            "\n".join(
+                [
+                    f"Recipe {index}",
+                    f"Title: {document['title']}",
+                    f"Description: {description}",
+                    "Instructions:",
+                    instructions,
+                ]
+            )
+        )
+
+    prompt = "\n\n".join(
+        [
+            "You are summarizing recipe search results for a cooking app.",
+            "Answer only from the recipe context below.",
+            "Be concise, practical, and helpful.",
+            "If the user asks something the recipe context cannot support, say that clearly.",
+            f"User search: {query}",
+            "Recipe context:",
+            "\n\n---\n\n".join(context_blocks),
+        ]
+    )
+
+    try:
+        response = get_generation_client().models.generate_content(
+            model=GEMINI_GEN_MODEL,
+            contents=prompt,
+        )
+    except Exception as error:
+        logger.exception("Gemini summary generation failed")
+        raise HTTPException(
+            status_code=502,
+            detail="Failed to generate summary with Gemini",
+        ) from error
+
+    summary = (getattr(response, "text", None) or "").strip()
+    if summary:
+        return summary
+
+    raise HTTPException(status_code=502, detail="Gemini returned empty summary")
+
+
+def refresh_search_documents_if_stale(results: list[dict[str, Any]]) -> None:
+    if not results:
+        return
+
+    with psycopg.connect(SEARCH_DATABASE_URL) as connection:
+        for result in results:
+            recipe_id = result["recipe_id"]
+            indexed_source_updated_at = result["source_updated_at"]
+
+            try:
+                recipe = fetch_search_recipe_by_id(recipe_id)
+            except HTTPException as error:
+                if error.status_code == 404:
+                    delete_search_document(connection, recipe_id)
+                continue
+
+            latest_source_updated_at = parse_core_timestamp(recipe["updated_at"])
+            if latest_source_updated_at > indexed_source_updated_at:
+                upsert_search_document(connection, recipe)
 
 
 @app.get("/health")
@@ -22,11 +465,17 @@ def health() -> dict[str, Any]:
 
 @app.post("/admin/reindex")
 def reindex_all() -> dict[str, Any]:
-    # Full indexing logic to be implemented
+    recipes = fetch_all_search_recipes()
+
+    with psycopg.connect(SEARCH_DATABASE_URL) as connection:
+        for recipe in recipes:
+            upsert_search_document(connection, recipe)
+
     return {
         "status": "accepted",
         "scope": "all",
-        "provider": os.getenv("LLM_PROVIDER", "gemini"),
+        "provider": LLM_PROVIDER,
+        "indexed_count": len(recipes),
     }
 
 
@@ -35,19 +484,53 @@ def reindex_one(recipe_id: int) -> dict[str, Any]:
     if recipe_id <= 0:
         raise HTTPException(status_code=400, detail="recipe_id must be positive")
 
-    # Single-record indexing logic to be iomplemented
+    recipe = fetch_search_recipe_by_id(recipe_id)
+
+    with psycopg.connect(SEARCH_DATABASE_URL) as connection:
+        upsert_search_document(connection, recipe)
+
     return {
         "status": "accepted",
         "scope": "single",
         "recipe_id": recipe_id,
+        "provider": LLM_PROVIDER,
     }
 
 
 @app.get("/search/recipes")
-def search_recipes(q: str = Query(..., min_length=1, max_length=500)) -> dict[str, Any]:
-    # Vector search logic to be i9mplemented 
+def search_recipes(
+    background_tasks: BackgroundTasks,
+    q: str = Query(..., min_length=1, max_length=500),
+    limit: int = Query(5, ge=1, le=20),
+) -> dict[str, Any]:
+    query = q.strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="q must not be blank")
+
+    with psycopg.connect(SEARCH_DATABASE_URL) as connection:
+        documents = search_recipe_documents(connection, query, limit)
+
+    results = [
+        {
+            "recipe_id": row["recipe_id"],
+            "title": row["title"],
+            "description": row["description"],
+            "source_updated_at": row["source_updated_at"],
+            "indexed_at": row["indexed_at"],
+            "score": row["score"],
+            "text_rank": row["text_rank"],
+        }
+        for row in documents
+    ]
+
+    summary = generate_search_summary(query, documents)
+
+    if results:
+        background_tasks.add_task(refresh_search_documents_if_stale, results)
+
     return {
-        "query": q.strip(),
-        "count": 0,
-        "data": [],
+        "query": query,
+        "summary": summary,
+        "count": len(results),
+        "data": results,
     }

@@ -16,6 +16,12 @@ describe("Internal Search Routes", () => {
 			expect(response.body.data[0]).toHaveProperty("title");
 			expect(response.body.data[0]).toHaveProperty("description");
 			expect(response.body.data[0]).toHaveProperty("instructions");
+			expect(response.body.data[0]).toHaveProperty("author_id");
+			expect(response.body.data[0]).toHaveProperty("servings");
+			expect(response.body.data[0]).toHaveProperty("spiciness");
+			expect(response.body.data[0]).toHaveProperty("rating_avg");
+			expect(response.body.data[0]).toHaveProperty("ingredients");
+			expect(response.body.data[0]).toHaveProperty("categories");
 			expect(response.body.data[0]).toHaveProperty("updated_at");
 		}
 	});
@@ -29,6 +35,12 @@ describe("Internal Search Routes", () => {
 		expect(response.body.data).toHaveProperty("title");
 		expect(response.body.data).toHaveProperty("description");
 		expect(response.body.data).toHaveProperty("instructions");
+		expect(response.body.data).toHaveProperty("author_id");
+		expect(response.body.data).toHaveProperty("servings");
+		expect(response.body.data).toHaveProperty("spiciness");
+		expect(response.body.data).toHaveProperty("rating_avg");
+		expect(response.body.data).toHaveProperty("ingredients");
+		expect(response.body.data).toHaveProperty("categories");
 		expect(response.body.data).toHaveProperty("updated_at");
 	});
 

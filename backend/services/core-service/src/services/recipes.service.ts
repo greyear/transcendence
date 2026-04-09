@@ -557,11 +557,56 @@ export const getRecipeById = async (
 export const getSearchRecipes = async (): Promise<SearchRecipeDocument[]> => {
 	try {
 		const query = `
-      SELECT id, title, description, instructions, updated_at
-      FROM recipes
-      WHERE status = 'published'
-      ORDER BY updated_at DESC, id DESC
-    `;
+			SELECT
+				r.id,
+				r.title,
+				r.description,
+				r.instructions,
+				r.author_id,
+				r.servings,
+				r.spiciness,
+				r.rating_avg,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'ingredient_id', ri.ingredient_id,
+								'name', i.name,
+								'amount', ri.amount,
+								'unit', ri.unit
+							)
+							ORDER BY ri.ingredient_id
+						)
+						FROM recipe_ingredients ri
+						JOIN ingredients i ON i.id = ri.ingredient_id
+						WHERE ri.recipe_id = r.id
+					),
+					'[]'::json
+				) AS ingredients,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'id', rc.id,
+								'code', rc.code,
+								'category_type_id', rct.id,
+								'category_type_code', rct.code,
+								'category_type_name', rct.name
+							)
+							ORDER BY rct.id, rc.id
+						)
+						FROM recipe_category_map rcm
+						JOIN recipe_categories rc ON rc.id = rcm.category_id
+						JOIN recipe_category_types rct ON rct.id = rc.category_type_id
+						WHERE rcm.recipe_id = r.id
+					),
+					'[]'::json
+				) AS categories,
+				r.updated_at
+			FROM recipes r
+			WHERE r.status = 'published'
+			ORDER BY r.updated_at DESC, r.id DESC
+		`;
 
 		const result = await pool.query(query);
 
@@ -584,10 +629,55 @@ export const getSearchRecipeById = async (
 ): Promise<SearchRecipeDocument | null> => {
 	try {
 		const query = `
-      SELECT id, title, description, instructions, updated_at
-      FROM recipes
-      WHERE id = $1 AND status = 'published'
-    `;
+			SELECT
+				r.id,
+				r.title,
+				r.description,
+				r.instructions,
+				r.author_id,
+				r.servings,
+				r.spiciness,
+				r.rating_avg,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'ingredient_id', ri.ingredient_id,
+								'name', i.name,
+								'amount', ri.amount,
+								'unit', ri.unit
+							)
+							ORDER BY ri.ingredient_id
+						)
+						FROM recipe_ingredients ri
+						JOIN ingredients i ON i.id = ri.ingredient_id
+						WHERE ri.recipe_id = r.id
+					),
+					'[]'::json
+				) AS ingredients,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'id', rc.id,
+								'code', rc.code,
+								'category_type_id', rct.id,
+								'category_type_code', rct.code,
+								'category_type_name', rct.name
+							)
+							ORDER BY rct.id, rc.id
+						)
+						FROM recipe_category_map rcm
+						JOIN recipe_categories rc ON rc.id = rcm.category_id
+						JOIN recipe_category_types rct ON rct.id = rc.category_type_id
+						WHERE rcm.recipe_id = r.id
+					),
+					'[]'::json
+				) AS categories,
+				r.updated_at
+			FROM recipes r
+			WHERE r.id = $1 AND r.status = 'published'
+		`;
 
 		const result = await pool.query(query, [id]);
 

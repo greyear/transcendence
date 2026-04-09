@@ -17,6 +17,7 @@ import "dotenv/config";
 import { authRouter } from "./routes/auth.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
+import { searchRouter } from "./routes/search.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
 import {
 	createResponseTimeoutMiddleware,
@@ -46,6 +47,8 @@ app.use(createResponseTimeoutMiddleware(GATEWAY_RESPONSE_TIMEOUT_MS));
 app.use("/health", healthRouter);
 // Mount recipes router (includes authentication middleware)
 app.use("/recipes", recipesRouter);
+// Mount search router
+app.use("/search", searchRouter);
 // Mount users router
 app.use("/users", usersRouter);
 // Auth router
