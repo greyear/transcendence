@@ -83,7 +83,65 @@ curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/publish" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-## 9. Favorites (Protected)
+## 9. Update Recipe (Protected)
+
+Replace RECIPE_ID with a real draft recipe id owned by your user.
+
+```bash
+RECIPE_ID=1
+curl -i -X PUT "http://localhost:3000/recipes/$RECIPE_ID" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "title": "Updated from CURL",
+    "description": "Updated via manual curl",
+    "instructions": ["Prep", "Cook", "Serve"],
+    "servings": 3,
+    "spiciness": 2,
+    "ingredients": [
+      { "ingredient_id": 1, "amount": 180, "unit": "g" }
+    ],
+    "category_ids": []
+  }'
+```
+
+Validation and auth checks:
+
+```bash
+# no token -> 401
+curl -i -X PUT "http://localhost:3000/recipes/$RECIPE_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"x","description":"x","instructions":["x"],"servings":1,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":1,"unit":"g"}],"category_ids":[]}'
+
+# invalid id -> 400
+curl -i -X PUT "http://localhost:3000/recipes/abc" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"title":"x","description":"x","instructions":["x"],"servings":1,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":1,"unit":"g"}],"category_ids":[]}'
+```
+
+## 10. Archive Recipe (Protected Soft Delete)
+
+Replace RECIPE_ID with a real recipe id.
+
+```bash
+RECIPE_ID=1
+curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Validation and auth checks:
+
+```bash
+# no token -> 401
+curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID"
+
+# invalid id -> 400
+curl -i -X DELETE "http://localhost:3000/recipes/abc" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## 11. Favorites (Protected)
 
 Replace RECIPE_ID with an existing published recipe id.
 
@@ -116,7 +174,7 @@ curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-## 10. Expected Status Quick Map
+## 12. Expected Status Quick Map
 
 - GET /health -> 200
 - GET /health/db -> 200
@@ -129,9 +187,14 @@ curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
 - GET /users/:id/recipes -> 200 or 404
 - GET /users/me/recipes (no token) -> 401
 - GET /users/me/favorites (no token) -> 401
+
 - POST /recipes (no token) -> 401
 - POST /recipes/:id/publish (no token) -> 401
 - POST /recipes/:id/favorite (no token) -> 401
 - POST /recipes/:id/favorite (with token) -> 200 or 404 or 409
+
+- PUT /recipes/:id -> 200 or 400 or 401 or 403 or 404 or 409
+
+- DELETE /recipes/:id -> 200 or 400 or 401 or 403 or 404 or 409
 - DELETE /recipes/:id/favorite (no token) -> 401
 - DELETE /recipes/:id/favorite (with token) -> 200 or 404 or 409

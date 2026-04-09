@@ -48,9 +48,9 @@ const postLoginHandler: RequestHandler = async (
 		});
 		const data = await response.json();
 		// Forward Set-Cookie headers from auth service to client
-		const setCookieHeader = response.headers.get('set-cookie');
+		const setCookieHeader = response.headers.get("set-cookie");
 		if (setCookieHeader) {
-			res.set('Set-Cookie', setCookieHeader);
+			res.set("Set-Cookie", setCookieHeader);
 		}
 		res.status(response.status).json(data);
 	} catch (error) {
@@ -71,9 +71,9 @@ const postGoogleHandler: RequestHandler = async (
 		});
 		const data = await response.json();
 		// Forward Set-Cookie headers from auth service to client
-		const setCookieHeader = response.headers.get('set-cookie');
+		const setCookieHeader = response.headers.get("set-cookie");
 		if (setCookieHeader) {
-			res.set('Set-Cookie', setCookieHeader);
+			res.set("Set-Cookie", setCookieHeader);
 		}
 		res.status(response.status).json(data);
 	} catch (error) {

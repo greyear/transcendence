@@ -247,6 +247,9 @@ check_post_endpoint "/recipes" '{"title":"Smoke Recipe","description":"Created b
 check_post_endpoint "/recipes/1/publish" '{}' "401" "POST /recipes/1/publish (no token -> 401)"
 
 echo ""
+echo "PUT/DELETE Endpoints:"
+check_put_endpoint "/recipes/1" '{"title":"Smoke Update","description":"Updated by smoke test","instructions":["Mix ingredients"],"servings":2,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":100,"unit":"g"}],"category_ids":[]}' "401" "PUT /recipes/1 (no token -> 401)"
+check_delete_endpoint "/recipes/1" "401" "DELETE /recipes/1 (no token -> 401)"
 echo "Favorites Endpoints (public):"
 check_post_endpoint "/recipes/1/favorite" '{}' "401" "POST /recipes/1/favorite (no token -> 401)"
 check_delete_endpoint "/recipes/1/favorite" "401" "DELETE /recipes/1/favorite (no token -> 401)"
