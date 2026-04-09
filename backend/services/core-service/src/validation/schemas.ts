@@ -97,6 +97,10 @@ const createRecipeInputSchema = z.object({
 		),
 });
 
+const ratingInputSchema = z.object({
+	rating: z.coerce.number().int().min(1).max(5),
+});
+
 const updateRecipeInputSchema = createRecipeInputSchema;
 
 export type CreateRecipeInput = z.infer<typeof createRecipeInputSchema>;
@@ -142,6 +146,21 @@ export const validateUpdateRecipeInput = (
 	input: unknown,
 ): ValidationResult<UpdateRecipeInput> => {
 	const result = updateRecipeInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+export const validateRatingInput = (
+	input: unknown,
+): ValidationResult<RatingInput> => {
+	const result = ratingInputSchema.safeParse(input);
 
 	if (result.success) {
 		return { valid: true, value: result.data };
@@ -320,3 +339,5 @@ export type FavoriteRecipeListItem = z.infer<
 export type MyRecipeListItem = z.infer<typeof myRecipeListItemSchema>;
 export type UserListItem = z.infer<typeof userListItemSchema>;
 export type UserProfile = z.infer<typeof userProfileSchema>;
+
+export type RatingInput = z.infer<typeof ratingInputSchema>;
