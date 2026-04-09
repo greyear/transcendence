@@ -384,18 +384,21 @@ describe("Recipes Routes", () => {
 
 	const minimalJpeg = Buffer.from(
 		"/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8U" +
-		"HRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgN" +
-		"DRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy" +
-		"MjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAA" +
-		"AAAAAAAAAAAAAAAAAP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/xAAUEQEAAAAAAAAAAAAAAAAA" +
-		"AAAA/9oADAMBAAIRAxEAPwCwABmX/9k=",
+			"HRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgN" +
+			"DRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy" +
+			"MjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAA" +
+			"AAAAAAAAAAAAAAAAAP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/xAAUEQEAAAAAAAAAAAAAAAAA" +
+			"AAAA/9oADAMBAAIRAxEAPwCwABmX/9k=",
 		"base64",
 	);
 
 	it("should return 401 for PUT /recipes/:id/picture without authentication", async () => {
 		const response = await request(app)
 			.put("/recipes/1/picture")
-			.attach("picture", minimalJpeg, { filename: "pic.jpg", contentType: "image/jpeg" });
+			.attach("picture", minimalJpeg, {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
 
 		expect(response.status).toBe(401);
 		expect(response.body).toHaveProperty("error");
@@ -405,7 +408,10 @@ describe("Recipes Routes", () => {
 		const response = await request(app)
 			.put("/recipes/abc/picture")
 			.set("X-User-Id", "1")
-			.attach("picture", minimalJpeg, { filename: "pic.jpg", contentType: "image/jpeg" });
+			.attach("picture", minimalJpeg, {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
 
 		expect(response.status).toBe(400);
 		expect(response.body).toHaveProperty("error");
@@ -439,7 +445,10 @@ describe("Recipes Routes", () => {
 			const response = await request(app)
 				.put("/recipes/1/picture")
 				.set("X-User-Id", String(userId))
-				.attach("picture", Buffer.from("fake gif"), { filename: "pic.gif", contentType: "image/gif" });
+				.attach("picture", Buffer.from("fake gif"), {
+					filename: "pic.gif",
+					contentType: "image/gif",
+				});
 
 			expect(response.status).toBe(400);
 			expect(response.body).toHaveProperty("error");
@@ -458,7 +467,10 @@ describe("Recipes Routes", () => {
 			const response = await request(app)
 				.put("/recipes/999999/picture")
 				.set("X-User-Id", String(userId))
-				.attach("picture", minimalJpeg, { filename: "pic.jpg", contentType: "image/jpeg" });
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
 
 			expect(response.status).toBe(404);
 			expect(response.body).toHaveProperty("error");
@@ -491,13 +503,20 @@ describe("Recipes Routes", () => {
 			const response = await request(app)
 				.put(`/recipes/${recipeId}/picture`)
 				.set("X-User-Id", String(intruderId))
-				.attach("picture", minimalJpeg, { filename: "pic.jpg", contentType: "image/jpeg" });
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
 
 			expect(response.status).toBe(403);
 			expect(response.body).toHaveProperty("error");
 		} finally {
-			if (recipeId) await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
-			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [ownerId, intruderId]);
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				ownerId,
+				intruderId,
+			]);
 		}
 	});
 
@@ -520,12 +539,16 @@ describe("Recipes Routes", () => {
 			const response = await request(app)
 				.put(`/recipes/${recipeId}/picture`)
 				.set("X-User-Id", String(userId))
-				.attach("picture", minimalJpeg, { filename: "pic.jpg", contentType: "image/jpeg" });
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
 
 			expect(response.status).toBe(409);
 			expect(response.body).toHaveProperty("error");
 		} finally {
-			if (recipeId) await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
 		}
 	});
@@ -549,12 +572,16 @@ describe("Recipes Routes", () => {
 			const response = await request(app)
 				.put(`/recipes/${recipeId}/picture`)
 				.set("X-User-Id", String(userId))
-				.attach("picture", minimalJpeg, { filename: "pic.jpg", contentType: "image/jpeg" });
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
 
 			expect(response.status).toBe(409);
 			expect(response.body).toHaveProperty("error");
 		} finally {
-			if (recipeId) await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
 		}
 	});
@@ -578,7 +605,10 @@ describe("Recipes Routes", () => {
 			const response = await request(app)
 				.put(`/recipes/${recipeId}/picture`)
 				.set("X-User-Id", String(userId))
-				.attach("picture", minimalJpeg, { filename: "pic.jpg", contentType: "image/jpeg" });
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
 
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("message", "Recipe picture updated");
@@ -593,10 +623,14 @@ describe("Recipes Routes", () => {
 			expect(mediaResult.rows[0].url).toMatch(/^\/recipe-pictures\//);
 
 			// Cleanup uploaded file
-			const filePath = path.resolve("uploads/recipes", path.basename(mediaResult.rows[0].url));
+			const filePath = path.resolve(
+				"uploads/recipes",
+				path.basename(mediaResult.rows[0].url),
+			);
 			if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 		} finally {
-			if (recipeId) await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
 		}
 	});
@@ -620,7 +654,10 @@ describe("Recipes Routes", () => {
 			const response = await request(app)
 				.put(`/recipes/${recipeId}/picture`)
 				.set("X-User-Id", String(userId))
-				.attach("picture", minimalJpeg, { filename: "pic.jpg", contentType: "image/jpeg" });
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
 
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("message", "Recipe picture updated");
@@ -630,11 +667,15 @@ describe("Recipes Routes", () => {
 				[recipeId],
 			);
 			if (mediaResult.rows[0]?.url) {
-				const filePath = path.resolve("uploads/recipes", path.basename(mediaResult.rows[0].url));
+				const filePath = path.resolve(
+					"uploads/recipes",
+					path.basename(mediaResult.rows[0].url),
+				);
 				if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 			}
 		} finally {
-			if (recipeId) await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
 		}
 	});
@@ -667,7 +708,10 @@ describe("Recipes Routes", () => {
 			const response = await request(app)
 				.put(`/recipes/${recipeId}/picture`)
 				.set("X-User-Id", String(userId))
-				.attach("picture", minimalJpeg, { filename: "pic.jpg", contentType: "image/jpeg" });
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
 
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("message", "Recipe picture updated");
@@ -680,14 +724,20 @@ describe("Recipes Routes", () => {
 				`SELECT url FROM recipe_media WHERE recipe_id = $1 AND position = 0`,
 				[recipeId],
 			);
-			expect(mediaResult.rows[0].url).not.toBe(`/recipe-pictures/old_${userId}.jpg`);
+			expect(mediaResult.rows[0].url).not.toBe(
+				`/recipe-pictures/old_${userId}.jpg`,
+			);
 
 			// Cleanup new file
-			const newFilePath = path.resolve("uploads/recipes", path.basename(mediaResult.rows[0].url));
+			const newFilePath = path.resolve(
+				"uploads/recipes",
+				path.basename(mediaResult.rows[0].url),
+			);
 			if (fs.existsSync(newFilePath)) fs.unlinkSync(newFilePath);
 		} finally {
 			if (fs.existsSync(oldFilePath)) fs.unlinkSync(oldFilePath);
-			if (recipeId) await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
 		}
 	});

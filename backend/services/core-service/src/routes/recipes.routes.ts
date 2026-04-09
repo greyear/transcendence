@@ -8,13 +8,13 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import multer from "multer";
 import {
 	type NextFunction,
 	type Request,
 	type Response,
 	Router,
 } from "express";
+import multer from "multer";
 import {
 	type AuthenticatedRequest,
 	extractUser,
@@ -28,7 +28,7 @@ import {
 	publishRecipe,
 	removeRecipeFromFavorites,
 	updateRecipe,
-	updateRecipePicture
+	updateRecipePicture,
 } from "../services/recipes.service.js";
 import {
 	validateCreateRecipeInput,
@@ -46,15 +46,24 @@ const MAX_PICTURE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_PICTURE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const recipePictureStorage = multer.diskStorage({
-	destination: (_req: Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+	destination: (
+		_req: Request,
+		_file: Express.Multer.File,
+		cb: (error: Error | null, destination: string) => void,
+	) => {
 		cb(null, RECIPE_PICTURES_DIR);
 	},
-	filename: (req: AuthenticatedRequest, _file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
-		const ext = _file.mimetype === "image/png"
-			? "png"
-			: _file.mimetype === "image/webp"
-				? "webp"
-				: "jpg";
+	filename: (
+		req: AuthenticatedRequest,
+		_file: Express.Multer.File,
+		cb: (error: Error | null, filename: string) => void,
+	) => {
+		const ext =
+			_file.mimetype === "image/png"
+				? "png"
+				: _file.mimetype === "image/webp"
+					? "webp"
+					: "jpg";
 		cb(null, `${req.params.id}.${ext}`);
 	},
 });
@@ -62,7 +71,11 @@ const recipePictureStorage = multer.diskStorage({
 const recipePictureUpload = multer({
 	storage: recipePictureStorage,
 	limits: { fileSize: MAX_PICTURE_SIZE_BYTES },
-	fileFilter: (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+	fileFilter: (
+		_req: Request,
+		file: Express.Multer.File,
+		cb: multer.FileFilterCallback,
+	) => {
 		if (ALLOWED_PICTURE_MIME_TYPES.includes(file.mimetype)) {
 			cb(null, true);
 		} else {
@@ -460,7 +473,9 @@ const updateRecipePictureHandler = async (
 			throw error;
 		}
 
-		const multerReq = req as AuthenticatedRequest & { file?: Express.Multer.File };
+		const multerReq = req as AuthenticatedRequest & {
+			file?: Express.Multer.File;
+		};
 		if (!multerReq.file) {
 			const error: CustomError = new Error("Picture file is required");
 			error.statusCode = 400;
@@ -500,10 +515,13 @@ const updateRecipePictureHandler = async (
 		});
 	} catch (error) {
 		// Clean up uploaded file if update failed
-		const multerReq = req as AuthenticatedRequest & { file?: Express.Multer.File };
+		const multerReq = req as AuthenticatedRequest & {
+			file?: Express.Multer.File;
+		};
 		if (multerReq.file) {
 			fs.unlink(multerReq.file.path, (err) => {
-				if (err) console.error("Failed to delete orphaned recipe picture:", err);
+				if (err)
+					console.error("Failed to delete orphaned recipe picture:", err);
 			});
 		}
 		next(error);

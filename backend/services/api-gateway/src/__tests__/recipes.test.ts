@@ -831,7 +831,9 @@ describe("API Gateway - Recipes Routes", () => {
 
 		fetchSpy.mockResolvedValueOnce({
 			status: 400,
-			json: async () => ({ error: "Only JPEG, PNG and WebP images are allowed" }),
+			json: async () => ({
+				error: "Only JPEG, PNG and WebP images are allowed",
+			}),
 		} as unknown as Response);
 
 		const response = await request(app)

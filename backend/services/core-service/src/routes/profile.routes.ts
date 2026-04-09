@@ -12,8 +12,8 @@
  * The avatar column in the DB stores the public URL path (e.g. /avatars/42.jpg).
  */
 
-import path from "node:path";
 import fs from "node:fs";
+import path from "node:path";
 import {
 	type NextFunction,
 	type Request,

@@ -241,7 +241,7 @@ const updateRecipePictureHandler: RequestHandler = async (req, res, _next) => {
 			res.status(504).json({ error: "Gateway Timeout" });
 			return;
 		}
- 
+
 		console.error("Error proxying to core-service:", error);
 		res.status(500).json({ error: "Failed to update recipe picture" });
 	}

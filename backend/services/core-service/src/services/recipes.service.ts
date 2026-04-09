@@ -13,8 +13,8 @@
  * - Query params always contain only numbers (no undefined values sent to DB)
  */
 
-import type { PoolClient } from "pg";
 import fs from "node:fs";
+import type { PoolClient } from "pg";
 import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
@@ -804,7 +804,11 @@ export const updateRecipePicture = async (
 		}
 
 		if (status !== "draft" && status !== "published") {
-			return { success: false, reason: "invalid-status", currentStatus: status };
+			return {
+				success: false,
+				reason: "invalid-status",
+				currentStatus: status,
+			};
 		}
 
 		// Fetch existing picture URL before upserting so we can delete the old file
@@ -812,7 +816,8 @@ export const updateRecipePicture = async (
 			`SELECT url FROM recipe_media WHERE recipe_id = $1 AND position = 0`,
 			[recipeId],
 		);
-		const oldPictureUrl: string | null = existingMediaResult.rows[0]?.url ?? null;
+		const oldPictureUrl: string | null =
+			existingMediaResult.rows[0]?.url ?? null;
 
 		await pool.query(
 			`
