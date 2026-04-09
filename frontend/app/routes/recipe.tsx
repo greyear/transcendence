@@ -48,12 +48,13 @@ const RecipePage = () => {
 		fetch(`${API_BASE_URL}/recipes/${id}`)
 			.then((res) => {
 				if (!res.ok) {
-					throw new Error(String(res.status));
+					setErrorStatus(res.status);
+					return null;
 				}
 				return res.json();
 			})
 			.then((body) => {
-				if (!body.data) {
+				if (!body?.data) {
 					setRecipe(null);
 					return;
 				}
@@ -65,11 +66,7 @@ const RecipePage = () => {
 				});
 			})
 			.catch((error: unknown) => {
-				if (error instanceof Error && /^\d+$/.test(error.message)) {
-					setErrorStatus(Number(error.message));
-				} else {
-					setErrorStatus("unknown");
-				}
+				setErrorStatus("unknown");
 				console.error(error);
 			})
 			.finally(() => {
@@ -94,6 +91,17 @@ const RecipePage = () => {
 			<p className="recipe-page-status">{t("recipePage.recipeNotFound")}</p>
 		);
 	}
+
+	const instructionOccurrences = new Map<string, number>();
+	const instructionsWithKeys = recipe.instructions.map((instruction) => {
+		const occurrenceCount = (instructionOccurrences.get(instruction) ?? 0) + 1;
+		instructionOccurrences.set(instruction, occurrenceCount);
+
+		return {
+			instruction,
+			key: `${instruction}-${occurrenceCount}`,
+		};
+	});
 
 	return (
 		<section className="recipe-page" aria-labelledby="recipe-title">
@@ -173,8 +181,8 @@ const RecipePage = () => {
 
 					{recipe.instructions.length > 0 ? (
 						<ol className="recipe-page-detail-list recipe-page-instructions-list">
-							{recipe.instructions.map((instruction, index) => (
-								<li key={instruction} className="recipe-page-detail-item">
+							{instructionsWithKeys.map(({ instruction, key }, index) => (
+								<li key={key} className="recipe-page-detail-item">
 									<span className="recipe-page-step-label text-label">
 										{t("recipePage.step", { number: index + 1 })}
 									</span>
