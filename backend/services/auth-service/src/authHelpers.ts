@@ -5,6 +5,15 @@ import z from "zod";
 
 import { userCounter } from "./auth_schema.js";
 
+// Adding a custom field to the req to store decoded JWT
+declare global {
+	namespace Express {
+		interface Request {
+			decodedJWT?: JwtPayload;
+		}
+	}
+}
+
 //From auth_db_operations.ts
 //
 // Password hashing, using bcrypt. I think slightly simpler than others.
@@ -92,13 +101,16 @@ export const validatePassword = (password: string) => {
 
 // Call this function after authentication success.
 // id is from userDocument.id and is number type
-export const generateToken = (id: string, username: string) => {
+export const generateToken = (id: string, username: string, type: string) => {
 	const JWTSecret = process.env.JWT_SECRET;
-	if (!JWTSecret) throw new Error("JWTSecret env variable is not set");
+	if (!JWTSecret) {
+		throw new Error("JWTSecret env variable is not set");
+	}
 
 	const payload = {
 		sub: id,
 		username,
+		type,
 	};
 
 	return jwt.sign(payload, JWTSecret, {
@@ -111,7 +123,9 @@ export const generateToken = (id: string, username: string) => {
 export const decodeToken = (token: string) => {
 	try {
 		const JWTSecret = process.env.JWT_SECRET;
-		if (!JWTSecret) throw new Error("JWTSecret env variable is not set");
+		if (!JWTSecret) {
+			throw new Error("JWTSecret env variable is not set");
+		}
 
 		const decoded = jwt.verify(token, JWTSecret);
 
@@ -167,7 +181,19 @@ export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 		return;
 	}
 
+	req.decodedJWT = decodedJWT;
 	next();
+};
+
+//Create a sequential and unique userID
+export const makeID = async (): Promise<number> => {
+	const counter = await userCounter.findOneAndUpdate(
+		{ name: "CounterDB" },
+		{ $inc: { seq: 1 } },
+		{ new: false, upsert: true, setDefaultsOnInsert: true },
+	);
+	
+	return counter ? counter.seq : 1;
 };
 
 // Error handling middleware
@@ -181,14 +207,4 @@ export const errorHandler = (
 	const message =
 		error instanceof Error ? error.message : "Internal Server Error";
 	res.status(500).json({ error: message });
-};
-
-//Create a sequential and unique userID
-export const makeID = async (): Promise<number> => {
-	const counter = await userCounter.findOneAndUpdate(
-		{ name: "CounterDB" },
-		{ $inc: { seq: 1 } },
-		{ new: false, upsert: true, setDefaultsOnInsert: true },
-	);
-	return counter ? counter.seq : 1;
 };

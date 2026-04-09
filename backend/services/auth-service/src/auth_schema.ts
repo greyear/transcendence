@@ -9,6 +9,7 @@ const counterSchema = new mongoose.Schema({
 		type: String,
 		default: "CounterDB",
 		required: true,
+		unique: true
 	},
 	seq: {
 		type: Number,
@@ -24,6 +25,7 @@ const counterSchema = new mongoose.Schema({
 //_id will be created by default and have an ObjectId value
 //email may be the same for Google ID, but we shall see
 //Google suggests using account Google ID rather than email for user search
+//Real Name is probably not really needed for this DB.
 const authSchema = new mongoose.Schema({
 	id: {
 		type: Number,

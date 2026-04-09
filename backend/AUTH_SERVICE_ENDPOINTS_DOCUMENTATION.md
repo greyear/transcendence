@@ -14,8 +14,7 @@ This document consolidates all authentication service endpoints, including imple
 | `/auth/register` | POST | None | `username`, `email`, `realname`, `password` | `userId`, `username`, `email`, `message` | 201 | 409, 422, 400 | No |
 | `/auth/login` | POST | None | `username` (email or username), `password` | `token`, `user` object | 200 | 401, 404, 400 | No |
 | `/auth/google` | POST | None | Google ID Token (in Authorization header) | `token`, `user` object | 201/200 | 401, 500, 409 | No (header auth) |
-| `/auth/validate` | POST | None | None (token in header) | `valid: true`, `user` object | 200 | 401, 400 | Yes (Normal) |
-| `/auth/validate/google` | POST | None | None (token in header) | `valid: true`, `user` object | 200 | 401, 400 | Yes (Google) |
+| `/auth/validate` | POST | None | None (token in header) | `valid: true`, `user` object | 200 | 401, 400 | Yes |
 | `/auth/change-password/:username` | PATCH | `username` | `password` (current), `newPassword` | `message`, `user` object | 200 | 401, 403, 400, 404 | Yes (Normal) |
 
 **Key**:
@@ -154,7 +153,7 @@ Content-Type: application/json
 ### 4. Token Validation (Normal Auth)
 
 #### `POST /auth/validate`
-**Purpose**: Verify JWT token validity for normal (non-Google) authenticated users
+**Purpose**: Verify JWT token validity for authenticated users
 
 **Request Headers**:
 ```
@@ -185,42 +184,7 @@ Content-Type: application/json
 
 ---
 
-### 5. Token Validation (Google Auth)
-
-#### `POST /auth/validate/google`
-**Purpose**: Verify JWT token validity for Google authenticated users
-
-**Request Headers**:
-```
-Authorization: Bearer <JWT Token>
-Content-Type: application/json
-```
-
-**Success Response (200)**:
-```json
-{
-  "valid": true,
-  "user": {
-    "userId": "string",
-    "email": "string",
-    "name": "string",
-    "authType": "google"
-  }
-}
-```
-
-**Error Responses**:
-- `401 Unauthorized`: Missing token, invalid token, expired token, token from different auth type
-- `400 Bad Request`: Malformed token
-
-**Implementation Notes**:
-- Similar to normal validation but validates Google-specific claims
-- Rejects tokens from normal auth users
-- Rejects tokens from Google users on normal validation endpoint
-
----
-
-### 6. Password Change
+### 5. Password Change
 
 #### `PATCH /auth/change-password/:username`
 **Purpose**: Change password for authenticated normal auth user
@@ -281,7 +245,6 @@ Content-Type: application/json
 | POST | `/auth/login` | Login | Login normal user |
 | POST | `/auth/google` | Google Auth | Google Sign-In or registration |
 | POST | `/auth/validate` | Validation | Validate normal auth token |
-| POST | `/auth/validate/google` | Validation | Validate Google auth token |
 | PATCH | `/auth/change-password/:username` | Account | Change user password |
 
 ---

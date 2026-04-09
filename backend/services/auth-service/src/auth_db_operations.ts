@@ -22,14 +22,17 @@ import * as help from "./authHelpers.js";
 
 export const authRouter = Router();
 
-//Connection part probably being moved later
-const MONGO_AUTH_URI =
-	process.env.MONGODB_URI ||
-	process.env.MONGODB_AUTH_URI;
+// Connection part
+// Fetch env or throw.
+const MONGO_AUTH_URI = process.env.MONGODB_URI || process.env.MONGODB_AUTH_URI;
+if (!MONGO_AUTH_URI) {
+	throw new Error("MONGODB_URI or MONGODB_AUTH_URI env variable is not set");
+}
+
 // Connect to MongoDB
 // https://mongoosejs.com/docs/connections.html
 mongoose
-	.connect(MONGO_AUTH_URI as string)
+	.connect(MONGO_AUTH_URI)
 	.then(() => {
 		console.log("Connected to MongoDB");
 		// Start the server after the database connection is established
@@ -144,7 +147,7 @@ authRouter.post(
 
 			// Check if user is a Google-only account
 			const googleID = userDocument.get("googleID");
-			if (googleID){
+			if (googleID) {
 				res.status(401).json({ error: "This account uses Google Sign-In only. Please use the Google login option." });
 				return;
 			}
@@ -160,7 +163,9 @@ authRouter.post(
 			//https://howhttpworks.com/guides/cookie-security
 			//https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
 			//secure = lax seems fine for our use case.
-			const JWToken = help.generateToken(userDocument.get("_id"), username);
+			const actualUsername = userDocument.get("username");
+			const JWToken = help.generateToken(userDocument.get("_id"), actualUsername as string, "mongo");
+
 			res.cookie("token", JWToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
@@ -217,7 +222,7 @@ authRouter.post(
 			const { email, name } = payload;
 			
 			// Ensure realname has a value
-			const realname = name || email?.split('@')[0] || 'Google User';
+			const realname = name || email?.split('@')[0] || "Google User";
 
 			// Check if email already exists as normal account
 			const existingEmailUser = await userModel.findOne({ email });
@@ -247,7 +252,7 @@ authRouter.post(
 				res.status(201).json({ googleID, email, name });
 				return;
 			} else {
-				const JWToken = help.generateToken(userDocument.get("_id"), googleID);
+				const JWToken = help.generateToken(userDocument.get("_id"), googleID, "google");
 
 				res.cookie("token", JWToken, {
 					httpOnly: true,

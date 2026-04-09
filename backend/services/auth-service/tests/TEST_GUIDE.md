@@ -87,7 +87,7 @@ GOOGLE_ID_TOKEN="insert token when needed"
 With your actual token
 
 
-> **Note**: Google ID tokens expire within an hour. If tests fail with "token verification" errors, the token needs to be refreshed from Google OAuth Playground.
+> **Note**: Google ID tokens expire within an hour. If tests fail with "Token used too late" or similar errors, the token needs to be refreshed from Google OAuth Playground.
 
 ---
 
