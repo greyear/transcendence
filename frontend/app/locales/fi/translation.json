@@ -69,6 +69,8 @@
 		"firstPage": "Ensimmäinen sivu",
 		"previousPage": "Edellinen sivu",
 		"nextPage": "Seuraava sivu",
+		"scrollCooksLeft": "Vieritä kokkeja vasemmalle",
+		"scrollCooksRight": "Vieritä kokkeja oikealle",
 		"lastPage": "Viimeinen sivu",
 		"page": "Sivu {{page}}",
 		"pagination": "Sivunumerointi",

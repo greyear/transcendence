@@ -39,6 +39,16 @@
 	align-items: center;
 }
 
+.home-page-cooks-actions {
+	display: flex;
+	align-items: center;
+	gap: var(--space-m);
+}
+
+.home-page-cooks-scroll-controls {
+	display: none;
+}
+
 .home-page-view-button {
 	align-self: center;
 	width: 100%;
@@ -48,6 +58,16 @@
 @media (min-width: 768px) {
 	.home-page-view-button {
 		width: 340px;
+	}
+
+	.home-page-cooks-actions {
+		gap: var(--space-l);
+	}
+
+	.home-page-cooks-scroll-controls {
+		display: flex;
+		align-items: center;
+		gap: var(--space-s);
 	}
 }
 
