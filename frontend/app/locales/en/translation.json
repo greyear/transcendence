@@ -1,7 +1,7 @@
 {
 	"common": {
 		"signInButton": "Sign In",
-		"searchPlaceholder": "Search for ...",
+		"searchPlaceholder": "Search for...",
 		"sortButton": "Sort",
 		"filterButton": "Filter",
 		"sortOptions": {

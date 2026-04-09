@@ -1,7 +1,7 @@
 {
 	"common": {
 		"signInButton": "Kirjaudu",
-		"searchPlaceholder": "Hae ...",
+		"searchPlaceholder": "Hae...",
 		"sortButton": "Järjestä",
 		"filterButton": "Suodata",
 		"sortOptions": {
