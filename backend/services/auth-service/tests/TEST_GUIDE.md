@@ -11,9 +11,9 @@ The test suite (`test-auth2.sh`) performs comprehensive testing of:
 - **Token Validation**: JWT token verification for both normal and Google auth
 - **Edge Cases**: Invalid inputs, duplicate accounts, missing credentials, etc.
 
-**Total Tests**: ~30 test cases covering all major auth workflows
+**Total Tests**: 35 test cases covering all major auth workflows
 
-All 30 of these tests are depicted in curl form in the file curls.txt.
+All tests use direct curl commands with JSON output parsing via `jq` for easy reading.
 
 ---
 
@@ -29,17 +29,21 @@ Before running the tests, ensure:
 2. **Auth service is accessible** at `http://localhost:3000/auth`
 
 3. **MongoDB is running** and accessible
+	```
+	docker exec -it auth-mongo mongosh -u <user> -p <password>
+	-
+	use auth_db
+	db.usermodels.find()
+	db.usercounters.find()
+	```
 
 4. **Database is clean** (recommended for first run):
-   ```bash
-   # Connect to MongoDB shell
-   mongosh
-   # Switch to auth database
-   use auth_db
-   # Clear user collection
-   db.usermodels.deleteMany({})
-   # Clear counter collection
-   db.usercounters.deleteMany({})
+   ```
+	docker exec -it auth-mongo mongosh -u <user> -p <password>
+	-
+	use auth_db
+	db.usermodels.deleteMany({})
+	db.usercounters.deleteMany({})
    ```
 
 5. **Required tools installed**:
@@ -47,14 +51,6 @@ Before running the tests, ensure:
    - `curl` (for making HTTP requests)
    - `jq` (for parsing JSON responses)
 
-   Install jq if needed:
-   ```bash
-   # macOS
-   brew install jq
-   
-   # Ubuntu/Debian
-   sudo apt-get install jq
-   ```
 
 ---
 
@@ -123,118 +119,141 @@ Complete Auth Test Suite
 Normal + Google Authentication
 ==========================================
 
+========== 1. NORMAL REGISTRATION TESTS ==========
 
-=== 1. NORMAL REGISTRATION TESTS ===
+1. Register new user - valid
+{
+  "userId": "123456",
+  "username": "normaluser1",
+  "email": "normal1@test.local",
+  "message": "User registered successfully"
+}
 
-Testing: Register new user - valid
-✓ PASS (HTTP 201)
+2. Register - duplicate username
+{
+  "error": "Username already exists"
+}
 
-Testing: Register - duplicate username
-✓ PASS (HTTP 409)
+3. Register - duplicate email
+{
+  "error": "Email already exists"
+}
 
 ...
 
-=== 3. GOOGLE LOGIN TESTS ===
+========== 4. CROSS-AUTH CONFLICT TESTS ==========
 
-Testing: Google - create new user
-✓ PASS (HTTP 201)
-
-Testing: Google - existing user login
-✓ PASS (HTTP 200)
+19. Conflict - Google user tries normal login with their email
+{
+  "error": "Authentication failed"
+}
 
 ...
 
-==========================================
-Test Summary
-==========================================
-Passed: 28
-Failed: 0
-Total: 28
+========== 6. PASSWORD CHANGE TESTS ==========
 
-✓ All tests passed!
+35. Change password - wrong current password
+{
+  "error": "Current password is incorrect"
+}
+
+==========================================
+Tests Complete
+==========================================
 ```
 
 ---
 
 ## Understanding Test Results
 
-### Color Coding
+### Reading Test Output
 
-- 🟢 **GREEN**: Test passed (Expected HTTP status received)
-- 🔴 **RED**: Test failed (Unexpected HTTP status)
-- 🔵 **BLUE**: Section headers
-- 🟡 **YELLOW**: Individual test names
+Each test displays:
+1. A numbered test description (e.g., "1. Register new user - valid")
+2. The JSON response from the API formatted by `jq`
 
-### Exit Codes
+### Evaluating Results
 
-- `0` (Success): All tests passed
-- `1` (Failure): One or more tests failed
+**Success indicators:**
+- Check the HTTP status codes in responses (201 for created, 200 for success, 401 for unauthorized, 409 for conflict, etc.)
+- Look for expected fields in the JSON response (e.g., "token", "userId", "message")
+- For login/registration, presence of a "token" field indicates success
 
-### Reading Failure Output
+**Failure indicators:**
+- "error" field in the JSON response indicates the test failed
+- Unexpected HTTP status codes (check actual status vs expected)
+- Missing expected fields in the response
 
-When a test fails, you'll see:
+### Example: Reading a Failure
 
+If you see:
 ```
-Testing: Google - create new user
-✗ FAIL (Expected 201, got 409)
-Response: {"error":"Email or googleID already exists"}
+3. Register - duplicate email
+{
+  "error": "Email already exists"
+}
 ```
 
-This tells you:
-- Expected HTTP 201 (Created)
-- Got HTTP 409 (Conflict)
-- Error message: Email or googleID already exists
-- Usually means the user already exists in the database
+This indicates the test is working correctly - it properly rejected a duplicate email registration.
 
 ---
 
 ## Test Sections Explained
 
-### 1. Normal Registration Tests
+### 1. Normal Registration Tests (Tests 1-9)
 
 Tests user registration with various scenarios:
-- Valid registration (should pass)
+- Valid registration (should succeed with 201 and token)
 - Duplicate username (should fail with 409)
 - Duplicate email (should fail with 409)
 - Invalid email format (should fail with 422)
 - Password too short (should fail with 422)
 - Username validation edge cases (should fail with 422)
 
-### 2. Normal Login Tests
+### 2. Normal Login Tests (Tests 10-14)
 
 Tests user login functionality:
-- Login by username (should pass)
-- Login by email (should pass)
+- Login by username (should succeed with token)
+- Login by email (should succeed with token)
 - Wrong password (should fail with 401)
 - Non-existent user (should fail with 404)
+- Token extraction for use in later tests
 
-### 3. Google Login Tests
+### 3. Google Login Tests (Tests 15-18)
 
 Tests Google Sign-In:
-- Create new user with Google credentials (should pass)
-- Existing user login with same Google account (should pass)
+- Create new user with Google credentials (should succeed)
+- Existing user login with same Google account (should succeed and return token)
 - Missing token (should fail with 401)
 - Invalid token (should fail with 500)
 
-### 4. Cross-Auth Conflict Tests
+### 4. Cross-Auth Conflict Tests (Tests 19-26)
 
-Tests interactions between normal and Google auth:
-- Google user cannot login normally with their email (should fail with 401)
-- Cannot register normal user with Google user's email (should fail with 409)
+Comprehensive tests for interactions between normal and Google auth:
+- Google user attempts normal login with their email (should fail)
+- Attempts to register normal user with Google user's existing email (should fail)
+- Multiple registration attempts with Google email (should fail)
+- Normal user tries Google auth endpoint (should fail)
+- Normal user token fails on Google validation endpoint
+- Google token fails on normal validation endpoint
+- Google user attempts password change (should fail)
 
-### 5. Token Validation Tests
+### 5. Token Validation Tests (Tests 27-31)
 
 Tests JWT token verification:
-- Valid token validation passes (should pass)
-- Missing token fails (should fail with 401)
-- Invalid token fails (should fail with 401)
+- Valid normal user token validation (should succeed)
+- Valid Google user token validation (should succeed)
+- Missing token validation (should fail with 401)
+- Invalid token validation (should fail with 401)
+- Missing Google token validation (should fail with 401)
 
-### 6. Password Change Tests
+### 6. Password Change Tests (Tests 32-35)
 
 Tests password modification:
-- Change password with valid token (should pass)
-- New password works for login (should pass)
+- Change password with valid token (should succeed)
+- New password works for login (should succeed)
 - No auth header fails (should fail with 401)
+- Wrong current password fails (should fail with 401)
 
 ---
 
@@ -299,22 +318,27 @@ If you prefer to test endpoints manually instead of using the script, see [curls
 To add new test cases, follow this pattern:
 
 ```bash
-test_endpoint \
-    "Test Description" \
-    "POST" \
-    "/endpoint-path" \
-    '{"json":"payload"}' \
-    '-H "Content-Type: application/json"' \
-    "200"
+echo -e "\n[TEST_NUMBER]. [Test Description]"
+curl -s -X [METHOD] "$BASE_URL/[endpoint]" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"key":"value"}' | jq .
 ```
 
-Parameters:
-1. **Test name**: Descriptive label
-2. **HTTP method**: GET, POST, PATCH, DELETE, etc.
-3. **Endpoint**: Path relative to `/auth` base
-4. **Data**: JSON payload (empty string `''` if none)
-5. **Headers**: Additional headers in `-H` format
-6. **Expected Status**: HTTP status code expected on success
+Example:
+```bash
+echo -e "\n36. Example test"
+curl -s -X POST "$BASE_URL/example-endpoint" \
+  -H "Content-Type: application/json" \
+  -d '{"example":"data"}' | jq .
+```
+
+**Key points:**
+- Always use `echo -e` with `\n` to separate test output
+- Pipe curl output to `jq .` for readable JSON formatting
+- Use `-s` flag for curl to suppress progress
+- Use `$BASE_URL` for the auth service base URL
+- Use `$NORMAL_TOKEN` for normal user tokens or `$GOOGLE_TOKEN` for Google tokens
 
 ---
 

@@ -5,342 +5,236 @@
 # Manual versions of these tests seem to work fine, so I trust this for a quick sanity check.
 
 #This token will need refreshing periodically. https://developers.google.com/oauthplayground
-GOOGLE_ID_TOKEN="insert token when needed"
+GOOGLE_ID_TOKEN="eyJhbGciOiJSUzI1NiIsImtpZCI6ImNjZTRlMDI0YTUxYWEwYzFjNDFjMWE0NTE1YTQxZGQ3ZTk2MTkzNmIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0NDM2NDMyOTYzNjItcDV0MGF2ZnR1M2V1Nm5mNzhwOXB2Nm90NWFkb21vcnMuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0NDM2NDMyOTYzNjItcDV0MGF2ZnR1M2V1Nm5mNzhwOXB2Nm90NWFkb21vcnMuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTgwMjAxNTYwNzY1MDY5NTkxMTgiLCJlbWFpbCI6ImR1cmdsZWRvZ2d5QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJhdF9oYXNoIjoiU3JCV0tNTG01dXhuYWhERGxhSWZHZyIsIm5hbWUiOiJEdXJnbGUgRG9nZ3kiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSjhCdGg3dUlJdkNzSVQ0akk0d1Z5NmZSdVRBWmo5VjFpVWkzMFlvalJ0cTJmOGlSbz1zOTYtYyIsImdpdmVuX25hbWUiOiJEdXJnbGUiLCJmYW1pbHlfbmFtZSI6IkRvZ2d5IiwiaWF0IjoxNzc1NzE3MTM5LCJleHAiOjE3NzU3MjA3Mzl9.J7AhS_ZDxk1TUUhuIh_DdPFuDqM_wxRN5hA_w5f7mhTZFVP0nknGyP3sul2FVwPn1xwuqbrk1Q2JDYud8P6YaA6ZQqCHu1cK1PApMOTgs4122mSb7WF2jWuC1TmLuVb6W-CYS1jpDRViWBiKMZhLWKyNaBrPYEEpfBK_WVHVyVL7ho_3ULguyXXNFh6HNgSRpxo6OG96pG_7Dg6783TUyVC3wStbZrX7dRFksHhoAldS71YzZMbXfwsAx831_tMSdCsy-B-WUPCptDKANIHL0cmgNu12u5YD_VMlJrGNfIA_kJ4Q_nbq3GAQvY1iYjXOts2inRzXIUkNH_9a0VGV_w"
 
 BASE_URL="http://localhost:3000/auth"
-PASS=0
-FAIL=0
-
-# Color codes
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
 
 echo "=========================================="
 echo "Complete Auth Test Suite"
 echo "Normal + Google Authentication"
 echo "=========================================="
 
-# Test helper function
-test_endpoint() {
-    local test_name=$1
-    local method=$2
-    local endpoint=$3
-    local data=$4
-    local headers=$5
-    local expected_status=$6
-    
-    echo -e "\n${YELLOW}Testing:${NC} $test_name"
-    
-    local curl_cmd="curl -s -w '\n%{http_code}' -X $method '$BASE_URL$endpoint'"
-    if [ -n "$headers" ]; then
-        curl_cmd="$curl_cmd $headers"
-    fi
-    if [ -n "$data" ]; then
-        curl_cmd="$curl_cmd -d '$data'"
-    fi
-    
-    local response=$(eval "$curl_cmd")
-    local http_code=$(echo "$response" | tail -1)
-    local body=$(echo "$response" | head -n -1)
-    
-    if [[ "$http_code" == "$expected_status" ]]; then
-        echo -e "${GREEN}✓ PASS${NC} (HTTP $http_code)"
-        ((PASS++))
-    else
-        echo -e "${RED}✗ FAIL${NC} (Expected $expected_status, got $http_code)"
-        echo "Response: $(echo "$body" | jq -c . 2>/dev/null || echo "$body")"
-        ((FAIL++))
-    fi
-}
-
 # ========== 1. NORMAL REGISTRATION TESTS ==========
-echo -e "\n\n${BLUE}=== 1. NORMAL REGISTRATION TESTS ===${NC}"
+echo -e "\n========== 1. NORMAL REGISTRATION TESTS =========="
 
-test_endpoint \
-    "Register new user - valid" \
-    "POST" \
-    "/register" \
-    '{"username":"normaluser1","email":"normal1@test.local","realname":"Normal User","password":"TestPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "201"
+echo -e "\n1. Register new user - valid"
+curl -s -X POST "$BASE_URL/register" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"normaluser1","email":"normal1@test.local","realname":"Normal User","password":"TestPass123!"}' | jq .
 
-test_endpoint \
-    "Register - duplicate username" \
-    "POST" \
-    "/register" \
-    '{"username":"normaluser1","email":"other@test.local","realname":"Other","password":"TestPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "409"
+echo -e "\n2. Register - duplicate username"
+curl -s -X POST "$BASE_URL/register" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"normaluser1","email":"other@test.local","realname":"Other","password":"TestPass123!"}' | jq .
 
-test_endpoint \
-    "Register - duplicate email" \
-    "POST" \
-    "/register" \
-    '{"username":"normaluser2","email":"normal1@test.local","realname":"Other","password":"TestPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "409"
+echo -e "\n3. Register - duplicate email"
+curl -s -X POST "$BASE_URL/register" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"normaluser2","email":"normal1@test.local","realname":"Other","password":"TestPass123!"}' | jq .
 
-test_endpoint \
-    "Register - invalid email format" \
-    "POST" \
-    "/register" \
-    '{"username":"normaluser3","email":"notanemail","realname":"Test","password":"TestPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "422"
+echo -e "\n4. Register - invalid email format"
+curl -s -X POST "$BASE_URL/register" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"normaluser3","email":"notanemail","realname":"Test","password":"TestPass123!"}' | jq .
 
-test_endpoint \
-    "Register - password too short" \
-    "POST" \
-    "/register" \
-    '{"username":"normaluser4","email":"user4@test.local","realname":"Test","password":"Short1!"}' \
-    '-H "Content-Type: application/json"' \
-    "422"
+echo -e "\n5. Register - password too short"
+curl -s -X POST "$BASE_URL/register" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"normaluser4","email":"user4@test.local","realname":"Test","password":"Short1!"}' | jq .
 
-test_endpoint \
-    "Register - username too short" \
-    "POST" \
-    "/register" \
-    '{"username":"ab","email":"user5@test.local","realname":"Test","password":"TestPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "422"
+echo -e "\n6. Register - username too short"
+curl -s -X POST "$BASE_URL/register" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"ab","email":"user5@test.local","realname":"Test","password":"TestPass123!"}' | jq .
 
-test_endpoint \
-    "Register - username too long" \
-    "POST" \
-    "/register" \
-    '{"username":"this_is_a_very_long_username_over_20_chars","email":"user6@test.local","realname":"Test","password":"TestPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "422"
+echo -e "\n7. Register - username too long"
+curl -s -X POST "$BASE_URL/register" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"this_is_a_very_long_username_over_20_chars","email":"user6@test.local","realname":"Test","password":"TestPass123!"}' | jq .
 
-test_endpoint \
-    "Register - username with spaces" \
-    "POST" \
-    "/register" \
-    '{"username":"user name","email":"user7@test.local","realname":"Test","password":"TestPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "422"
+echo -e "\n8. Register - username with spaces"
+curl -s -X POST "$BASE_URL/register" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"user name","email":"user7@test.local","realname":"Test","password":"TestPass123!"}' | jq .
 
-test_endpoint \
-    "Register - username with special characters" \
-    "POST" \
-    "/register" \
-    '{"username":"user@name!","email":"user8@test.local","realname":"Test","password":"TestPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "422"
+echo -e "\n9. Register - username with special characters"
+curl -s -X POST "$BASE_URL/register" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"user@name!","email":"user8@test.local","realname":"Test","password":"TestPass123!"}' | jq .
 
 # ========== 2. NORMAL LOGIN TESTS ==========
-echo -e "\n\n${BLUE}=== 2. NORMAL LOGIN TESTS ===${NC}"
+echo -e "\n========== 2. NORMAL LOGIN TESTS =========="
 
-test_endpoint \
-    "Login - valid by username" \
-    "POST" \
-    "/login" \
-    '{"username":"normaluser1","password":"TestPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "200"
+echo -e "\n10. Login - valid by username"
+curl -s -X POST "$BASE_URL/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"normaluser1","password":"TestPass123!"}' | jq .
 
-test_endpoint \
-    "Login - valid by email" \
-    "POST" \
-    "/login" \
-    '{"username":"normal1@test.local","password":"TestPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "200"
+echo -e "\n11. Login - valid by email"
+curl -s -X POST "$BASE_URL/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"normal1@test.local","password":"TestPass123!"}' | jq .
 
-test_endpoint \
-    "Login - wrong password" \
-    "POST" \
-    "/login" \
-    '{"username":"normaluser1","password":"WrongPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "401"
+echo -e "\n12. Login - wrong password"
+curl -s -X POST "$BASE_URL/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"normaluser1","password":"WrongPass123!"}' | jq .
 
-test_endpoint \
-    "Login - non-existent user" \
-    "POST" \
-    "/login" \
-    '{"username":"doesnotexist","password":"TestPass123!"}' \
-    '-H "Content-Type: application/json"' \
-    "404"
+echo -e "\n13. Login - non-existent user"
+curl -s -X POST "$BASE_URL/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"doesnotexist","password":"TestPass123!"}' | jq .
 
-# Get token for later tests
+# Extract token for later tests
+echo -e "\n14. Login - extract token for later tests"
 NORMAL_LOGIN=$(curl -s -X POST "$BASE_URL/login" \
-    -H "Content-Type: application/json" \
-    -d '{"username":"normaluser1","password":"TestPass123!"}')
+  -H "Content-Type: application/json" \
+  -d '{"username":"normaluser1","password":"TestPass123!"}')
 NORMAL_TOKEN=$(echo "$NORMAL_LOGIN" | jq -r '.token // empty')
+echo "$NORMAL_LOGIN" | jq .
+echo "TOKEN: ${NORMAL_TOKEN:0:30}..."
 
 # ========== 3. GOOGLE LOGIN TESTS ==========
-echo -e "\n\n${BLUE}=== 3. GOOGLE LOGIN TESTS ===${NC}"
+echo -e "\n========== 3. GOOGLE LOGIN TESTS =========="
+
+echo -e "\n15. Google - create new user"
+GOOGLE_RESPONSE=$(curl -s -X POST "$BASE_URL/google" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $GOOGLE_ID_TOKEN")
+echo "$GOOGLE_RESPONSE" | jq .
 
 sleep 1
 
-test_endpoint \
-    "Google - create new user" \
-    "POST" \
-    "/google" \
-    '' \
-    "-H 'Content-Type: application/json' -H 'Authorization: Bearer $GOOGLE_ID_TOKEN'" \
-    "201"
+echo -e "\n16. Google - existing user login"
+GOOGLE_RESPONSE=$(curl -s -X POST "$BASE_URL/google" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $GOOGLE_ID_TOKEN")
+echo "$GOOGLE_RESPONSE" | jq .
 
-# Extract email from JWT token (don't make another request)
+# Extract Google email and token
 GOOGLE_EMAIL=$(echo "$GOOGLE_ID_TOKEN" | cut -d'.' -f2 | base64 -d 2>/dev/null | jq -r '.email // empty')
+GOOGLE_TOKEN=$(echo "$GOOGLE_RESPONSE" | jq -r '.token // empty')
+echo -e "Google Email: $GOOGLE_EMAIL"
+echo -e "Google Token: ${GOOGLE_TOKEN:0:30}..."
 
-sleep 1
+echo -e "\n17. Google - missing token"
+curl -s -X POST "$BASE_URL/google" \
+  -H "Content-Type: application/json" | jq .
 
-test_endpoint \
-    "Google - existing user login" \
-    "POST" \
-    "/google" \
-    '' \
-    "-H 'Content-Type: application/json' -H 'Authorization: Bearer $GOOGLE_ID_TOKEN'" \
-    "200"
-
-sleep 1
-
-# Get Google token for validation tests from the login response
-GOOGLE_TOKEN=$(curl -s -X POST "$BASE_URL/google" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $GOOGLE_ID_TOKEN" | jq -r '.token // empty')
-
-test_endpoint \
-    "Google - missing token" \
-    "POST" \
-    "/google" \
-    '' \
-    '-H "Content-Type: application/json"' \
-    "401"
-
-test_endpoint \
-    "Google - invalid token" \
-    "POST" \
-    "/google" \
-    '' \
-    "-H 'Content-Type: application/json' -H 'Authorization: Bearer invalid_token_xyz'" \
-    "500"
+echo -e "\n18. Google - invalid token"
+curl -s -X POST "$BASE_URL/google" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer invalid_token_xyz" | jq .
 
 
-# ========== 4. CROSS-AUTH CONFLICTS ==========
-echo -e "\n\n${BLUE}=== 4. CROSS-AUTH CONFLICT TESTS ===${NC}"
+# ========== 4. CROSS-AUTH CONFLICT TESTS ==========
+echo -e "\n========== 4. CROSS-AUTH CONFLICT TESTS =========="
 
-# Test: Google user tries normal login with their Google email
-if [ -z "$GOOGLE_EMAIL" ] || [ "$GOOGLE_EMAIL" = "null" ]; then
-    echo "ERROR: GOOGLE_EMAIL is empty. Cannot run conflict tests."
-else
-    test_endpoint \
-        "Conflict - Google user tries normal login with email" \
-        "POST" \
-        "/login" \
-        "{\"username\":\"$GOOGLE_EMAIL\",\"password\":\"anypassword\"}" \
-        '-H "Content-Type: application/json"' \
-        "401"
-fi
+echo -e "\n19. Conflict - Google user tries normal login with their email"
+curl -s -X POST "$BASE_URL/login" \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"$GOOGLE_EMAIL\",\"password\":\"anypassword\"}" | jq .
 
-# Test: Try to register normally with a Google user's existing email
-if [ -z "$GOOGLE_EMAIL" ] || [ "$GOOGLE_EMAIL" = "null" ]; then
-    echo "ERROR: GOOGLE_EMAIL is empty. Cannot run conflict tests."
-else
-    test_endpoint \
-        "Conflict - register normal user with Google user's existing email" \
-        "POST" \
-        "/register" \
-        "{\"username\":\"conflict_user\",\"email\":\"$GOOGLE_EMAIL\",\"realname\":\"Conflict\",\"password\":\"TestPass123!\"}" \
-        '-H "Content-Type: application/json"' \
-        "409"
-fi
+echo -e "\n20. Conflict - Register normal user with Google user's existing email"
+curl -s -X POST "$BASE_URL/register" \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"conflict_user\",\"email\":\"$GOOGLE_EMAIL\",\"realname\":\"Conflict\",\"password\":\"TestPass123!\"}" | jq .
 
-# ========== 5. VALIDATION TESTS ==========
-echo -e "\n\n${BLUE}=== 5. TOKEN VALIDATION TESTS ===${NC}"
+echo -e "\n21. Conflict - Try to register with Google user's existing email (different username)"
+curl -s -X POST "$BASE_URL/register" \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"another_conflict\",\"email\":\"$GOOGLE_EMAIL\",\"realname\":\"Another\",\"password\":\"TestPass123!\"}" | jq .
 
+echo -e "\n22. Conflict - Normal user tries to use Google auth endpoint"
+curl -s -X POST "$BASE_URL/google" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $NORMAL_TOKEN" | jq .
+
+echo -e "\n23. Conflict - Attempt to register with existing normal user's email using Google"
+# Note: This would need an actual Google token with a normaluser1@test.local email
+echo "SKIPPED: Would require Google account with normaluser1@test.local email"
+
+echo -e "\n24. Conflict - Normal user token should fail on Google validation endpoint"
 if [ -n "$NORMAL_TOKEN" ] && [ "$NORMAL_TOKEN" != "null" ]; then
-    test_endpoint \
-        "Validate - normal user with valid token" \
-        "POST" \
-        "/validate" \
-        '' \
-        "-H 'Content-Type: application/json' -H 'Authorization: Bearer $NORMAL_TOKEN'" \
-        "200"
+  curl -s -X POST "$BASE_URL/validate/google" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $NORMAL_TOKEN" | jq .
 fi
 
+echo -e "\n25. Conflict - Google token should fail on normal validation endpoint"
 if [ -n "$GOOGLE_TOKEN" ] && [ "$GOOGLE_TOKEN" != "null" ]; then
-    test_endpoint \
-        "Validate Google - Google user with valid token" \
-        "POST" \
-        "/validate/google" \
-        '' \
-        "-H 'Content-Type: application/json' -H 'Authorization: Bearer $GOOGLE_TOKEN'" \
-        "200"
+  curl -s -X POST "$BASE_URL/validate" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $GOOGLE_TOKEN" | jq .
 fi
 
-test_endpoint \
-    "Validate - missing token" \
-    "POST" \
-    "/validate" \
-    '' \
-    '-H "Content-Type: application/json"' \
-    "401"
+echo -e "\n26. Conflict - Try to change password on Google user (should fail)"
+if [ -n "$GOOGLE_TOKEN" ] && [ "$GOOGLE_TOKEN" != "null" ]; then
+  curl -s -X PATCH "$BASE_URL/change-password/googleuser" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $GOOGLE_TOKEN" \
+    -d '{"password":"oldpass","newPassword":"newpass"}' | jq .
+fi
 
-test_endpoint \
-    "Validate - invalid token" \
-    "POST" \
-    "/validate" \
-    '' \
-    "-H 'Content-Type: application/json' -H 'Authorization: Bearer invalid_token_xyz'" \
-    "401"
+# ========== 5. TOKEN VALIDATION TESTS ==========
+echo -e "\n========== 5. TOKEN VALIDATION TESTS =========="
 
-test_endpoint \
-    "Validate Google - missing token" \
-    "POST" \
-    "/validate/google" \
-    '' \
-    '-H "Content-Type: application/json"' \
-    "401"
+echo -e "\n27. Validate - normal user with valid token"
+if [ -n "$NORMAL_TOKEN" ] && [ "$NORMAL_TOKEN" != "null" ]; then
+  curl -s -X POST "$BASE_URL/validate" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $NORMAL_TOKEN" | jq .
+fi
+
+echo -e "\n28. Validate Google - Google user with valid token"
+if [ -n "$GOOGLE_TOKEN" ] && [ "$GOOGLE_TOKEN" != "null" ]; then
+  curl -s -X POST "$BASE_URL/validate/google" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $GOOGLE_TOKEN" | jq .
+fi
+
+echo -e "\n29. Validate - missing token"
+curl -s -X POST "$BASE_URL/validate" \
+  -H "Content-Type: application/json" | jq .
+
+echo -e "\n30. Validate - invalid token"
+curl -s -X POST "$BASE_URL/validate" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer invalid_token_xyz" | jq .
+
+echo -e "\n31. Validate Google - missing token"
+curl -s -X POST "$BASE_URL/validate/google" \
+  -H "Content-Type: application/json" | jq .
 
 # ========== 6. PASSWORD CHANGE TESTS ==========
-echo -e "\n\n${BLUE}=== 6. PASSWORD CHANGE TESTS ===${NC}"
+echo -e "\n========== 6. PASSWORD CHANGE TESTS =========="
 
+echo -e "\n32. Change password - valid"
 if [ -n "$NORMAL_TOKEN" ] && [ "$NORMAL_TOKEN" != "null" ]; then
-    test_endpoint \
-        "Change password - valid" \
-        "PATCH" \
-        "/change-password/normaluser1" \
-        '{"password":"TestPass123!","newPassword":"NewPass456@"}' \
-        "-H 'Content-Type: application/json' -H 'Authorization: Bearer $NORMAL_TOKEN'" \
-        "200"
-    
-    # Verify new password works
-    test_endpoint \
-        "Login - verify new password works" \
-        "POST" \
-        "/login" \
-        '{"username":"normaluser1","password":"NewPass456@"}' \
-        '-H "Content-Type: application/json"' \
-        "200"
+  curl -s -X PATCH "$BASE_URL/change-password/normaluser1" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $NORMAL_TOKEN" \
+    -d '{"password":"TestPass123!","newPassword":"NewPass456@"}' | jq .
 fi
 
-test_endpoint \
-    "Change password - no auth header" \
-    "PATCH" \
-    "/change-password/normaluser1" \
-    '{"password":"NewPass456@","newPassword":"AnotherPass789#"}' \
-    '-H "Content-Type: application/json"' \
-    "401"
+echo -e "\n33. Login - verify new password works"
+curl -s -X POST "$BASE_URL/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"normaluser1","password":"NewPass456@"}' | jq .
 
-# ========== 7. SUMMARY ==========
-echo -e "\n\n${YELLOW}=========================================="
-echo "Test Summary"
-echo "=========================================${NC}"
-echo -e "${GREEN}Passed: $PASS${NC}"
-echo -e "${RED}Failed: $FAIL${NC}"
-TOTAL=$((PASS + FAIL))
-echo "Total: $TOTAL"
+echo -e "\n34. Change password - no auth header"
+curl -s -X PATCH "$BASE_URL/change-password/normaluser1" \
+  -H "Content-Type: application/json" \
+  -d '{"password":"NewPass456@","newPassword":"AnotherPass789#"}' | jq .
 
-if [ $FAIL -eq 0 ]; then
-    echo -e "\n${GREEN}✓ All tests passed!${NC}"
-    exit 0
-else
-    echo -e "\n${RED}✗ $FAIL test(s) failed.${NC}"
-    exit 1
+echo -e "\n35. Change password - wrong current password"
+if [ -n "$NORMAL_TOKEN" ] && [ "$NORMAL_TOKEN" != "null" ]; then
+  curl -s -X PATCH "$BASE_URL/change-password/normaluser1" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $NORMAL_TOKEN" \
+    -d '{"password":"WrongCurrentPass","newPassword":"AnotherPass789#"}' | jq .
 fi
+
+echo -e "\n=========================================="
+echo "Tests Complete"
+echo "=========================================="

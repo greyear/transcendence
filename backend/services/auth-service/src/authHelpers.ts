@@ -62,7 +62,7 @@ export const validateEmail = (email: string) => {
 /*
 	Validate password using Zod library
 	https://zod.dev/basics
-	Password rules: 8 chars min, 1 each of upper, lower and special
+	Password rules: 8 chars min, 64 max, 1 each of upper, lower and special
 	The refinement is looking for at least one in the test string.
 	[^A-Za-z0-9] means ANYTHING that is not in the given character ranges.
 	Zod has a .regex() method, but it didn't seem to work for me.
