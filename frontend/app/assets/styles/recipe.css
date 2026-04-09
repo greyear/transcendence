@@ -41,7 +41,7 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	padding: 0 16px;
+	padding: 0 var(--space-l);
 	gap: var(--space-xs);
 	background-color: var(--bg-main);
 	border: 1px solid var(--borders-action);
@@ -64,7 +64,7 @@
 	background-color: var(--bg-main);
 	border: 1px solid var(--borders-action);
 	color: var(--text-primary);
-	padding: 0 16px;
+	padding: 0 var(--space-l);
 	gap: var(--space-xs);
 	flex-shrink: 0;
 	font-size: var(--fs-label);
