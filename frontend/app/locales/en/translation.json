@@ -23,6 +23,11 @@
 		"followCooks": "Follow our cooks",
 		"all": "all"
 	},
+	"cooksRow": {
+		"loading": "Loading cooks...",
+		"empty": "No cooks found.",
+		"error": "Failed to fetch cooks (status: {{status}})."
+	},
 	"layout": {
 		"home": "Home",
 		"recipes": "Recipes",

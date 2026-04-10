@@ -23,6 +23,11 @@
 		"followCooks": "Seuraa kokkejamme",
 		"all": "kaikki"
 	},
+	"cooksRow": {
+		"loading": "Ladataan kokkeja...",
+		"empty": "Kokkeja ei löytynyt.",
+		"error": "Kokkien haku epäonnistui (tila: {{status}})."
+	},
 	"layout": {
 		"home": "Etusivu",
 		"recipes": "Reseptit",

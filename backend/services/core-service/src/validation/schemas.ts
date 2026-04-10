@@ -98,11 +98,18 @@ const createRecipeInputSchema = z.object({
 		),
 });
 
+const ratingInputSchema = z.object({
+	rating: z.coerce.number().int().min(1).max(5),
+});
+
+const updateRecipeInputSchema = createRecipeInputSchema;
+
 const createRecipeReviewInputSchema = z.object({
 	body: z.string().trim().min(1).max(MAX_REVIEW_BODY_LENGTH),
 });
 
 export type CreateRecipeInput = z.infer<typeof createRecipeInputSchema>;
+export type UpdateRecipeInput = z.infer<typeof updateRecipeInputSchema>;
 export type CreateRecipeReviewInput = z.infer<
 	typeof createRecipeReviewInputSchema
 >;
@@ -132,6 +139,36 @@ export const validateCreateRecipeInput = (
 	input: unknown,
 ): ValidationResult<CreateRecipeInput> => {
 	const result = createRecipeInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+export const validateUpdateRecipeInput = (
+	input: unknown,
+): ValidationResult<UpdateRecipeInput> => {
+	const result = updateRecipeInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+export const validateRatingInput = (
+	input: unknown,
+): ValidationResult<RatingInput> => {
+	const result = ratingInputSchema.safeParse(input);
 
 	if (result.success) {
 		return { valid: true, value: result.data };
@@ -198,6 +235,17 @@ export const recipeListItemSchema = z.object({
 });
 
 /**
+ * Zod schema for FavoriteRecipeListItem - list view for current user's favorites
+ * Includes author avatar and omits rating_avg
+ */
+export const favoriteRecipeListItemSchema = z.object({
+	id: z.number().int().positive(),
+	title: z.string(),
+	description: z.string().nullable(),
+	avatar: z.string().nullable(),
+});
+
+/**
  * MyRecipeListItem type - minimal recipe info for current user list view
  * Includes status because /users/me/recipes returns recipes of all statuses
  */
@@ -249,6 +297,53 @@ export const userProfileSchema = z.object({
 });
 
 /**
+ * ProfileData schema - slim profile shape returned by GET/PUT /profile
+ * Only the fields the user can see and edit about themselves.
+ */
+export const profileDataSchema = z.object({
+	id: z.number().int().positive(),
+	username: z.string().trim().min(1).max(32),
+	avatar: z.string().nullable(),
+});
+
+export type ProfileData = z.infer<typeof profileDataSchema>;
+
+/**
+ * UpdateProfileInput schema - body for PUT /profile
+ *
+ * Both fields are optional so the user can update just one at a time.
+ * avatar is a string here because multer resolves the file and the route
+ * injects the public URL path before validation runs.
+ * At least one field must be present.
+ */
+const updateProfileInputSchema = z
+	.object({
+		username: z.string().trim().min(1).max(32).optional(),
+		avatar: z.string().nullable().optional(),
+	})
+	.refine(
+		(data) => data.username !== undefined || data.avatar !== undefined,
+		"At least one field (username or avatar) must be provided",
+	);
+
+export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
+
+export const validateUpdateProfileInput = (
+	input: unknown,
+): ValidationResult<UpdateProfileInput> => {
+	const result = updateProfileInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+/**
  * z.infer<typeof recipeSchema> - "extract TypeScript type from Zod schema"
  *
  * This means Recipe type will contain all fields from recipeSchema above
@@ -266,9 +361,18 @@ export type Recipe = z.infer<typeof recipeSchema>;
 export type RecipeListItem = z.infer<typeof recipeListItemSchema>;
 
 /**
+ * FavoriteRecipeListItem type - list view for current user's favorites
+ */
+export type FavoriteRecipeListItem = z.infer<
+	typeof favoriteRecipeListItemSchema
+>;
+
+/**
  * MyRecipeListItem type - minimal recipe info for current user's recipes
  */
 export type MyRecipeListItem = z.infer<typeof myRecipeListItemSchema>;
 export type RecipeReviewListItem = z.infer<typeof recipeReviewListItemSchema>;
 export type UserListItem = z.infer<typeof userListItemSchema>;
 export type UserProfile = z.infer<typeof userProfileSchema>;
+
+export type RatingInput = z.infer<typeof ratingInputSchema>;

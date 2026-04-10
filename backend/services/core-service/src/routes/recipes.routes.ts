@@ -17,18 +17,24 @@ import {
 	extractUser,
 } from "../middleware/extractUser.js";
 import {
+	addRecipeToFavorites,
+	archiveRecipe,
 	createRecipe,
 	getAllRecipes,
 	getRecipeById,
 	getRecipeReviews,
 	leaveRecipeReview,
 	publishRecipe,
+	removeRecipeFromFavorites,
+	updateRecipe,
 } from "../services/recipes.service.js";
 import {
 	validateCreateRecipeInput,
 	validateCreateRecipeReviewInput,
 	validateRecipeId,
+	validateUpdateRecipeInput,
 } from "../validation/schemas.js";
+import { ratingsRouter } from "./ratings.routes.js";
 
 interface CustomError extends Error {
 	statusCode?: number;
@@ -97,7 +103,7 @@ const publishRecipeHandler = async (
 					error.statusCode = 403;
 					break;
 				default:
-					error.message = `Recipe cannot be sent to moderation from status ${publishResult.currentStatus}`;
+					error.message = `Recipe cannot be published from status ${publishResult.currentStatus}`;
 					error.statusCode = 409;
 					break;
 			}
@@ -107,7 +113,220 @@ const publishRecipeHandler = async (
 
 		res.status(200).json({
 			data: publishResult.recipe,
-			message: "Recipe sent to moderation",
+			message: "Recipe published",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+const updateRecipeHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const idValidation = validateRecipeId(req.params.id);
+		if (!idValidation.valid) {
+			const error: CustomError = new Error(idValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		// Reject malformed update payload before any business logic/DB operations.
+		const updatePayloadValidation = validateUpdateRecipeInput(req.body);
+		if (!updatePayloadValidation.valid) {
+			const error: CustomError = new Error(updatePayloadValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const updateResult = await updateRecipe(
+			idValidation.value,
+			req.userId,
+			updatePayloadValidation.value,
+		);
+
+		if (!updateResult.success) {
+			const error: CustomError = new Error();
+
+			switch (updateResult.reason) {
+				case "not-found":
+					error.message = "Recipe not found";
+					error.statusCode = 404;
+					break;
+				case "forbidden":
+					error.message = "No permission to update this recipe";
+					error.statusCode = 403;
+					break;
+				case "invalid-data":
+					error.message = "Invalid recipe data";
+					error.statusCode = 400;
+					break;
+				default:
+					error.message = `Recipe cannot be updated from status ${updateResult.currentStatus}`;
+					error.statusCode = 409;
+					break;
+			}
+
+			throw error;
+		}
+
+		res.status(200).json({
+			data: updateResult.recipe,
+			message: "Recipe updated",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+const deleteRecipeHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const validation = validateRecipeId(req.params.id);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const archiveResult = await archiveRecipe(validation.value, req.userId);
+
+		if (!archiveResult.success) {
+			const error: CustomError = new Error();
+
+			switch (archiveResult.reason) {
+				case "not-found":
+					error.message = "Recipe not found";
+					error.statusCode = 404;
+					break;
+				case "forbidden":
+					error.message = "No permission to archive this recipe";
+					error.statusCode = 403;
+					break;
+				default:
+					error.message = `Recipe cannot be archived from status ${archiveResult.currentStatus}`;
+					error.statusCode = 409;
+					break;
+			}
+
+			throw error;
+		}
+
+		res.status(200).json({
+			data: archiveResult.recipe,
+			message: "Recipe archived",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+const favoriteRecipeHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const validation = validateRecipeId(req.params.id);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const result = await addRecipeToFavorites(validation.value, req.userId);
+		if (!result.success) {
+			const error: CustomError = new Error();
+
+			switch (result.reason) {
+				case "not-found":
+					error.message = "Recipe not found";
+					error.statusCode = 404;
+					break;
+				default:
+					error.message = "Recipe is already in favorites";
+					error.statusCode = 409;
+					break;
+			}
+
+			throw error;
+		}
+
+		res.status(200).json({
+			data: { recipe_id: result.recipeId },
+			message: "Recipe added to favorites",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+const unfavoriteRecipeHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const validation = validateRecipeId(req.params.id);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const result = await removeRecipeFromFavorites(
+			validation.value,
+			req.userId,
+		);
+		if (!result.success) {
+			const error: CustomError = new Error();
+
+			switch (result.reason) {
+				case "not-found":
+					error.message = "Recipe not found";
+					error.statusCode = 404;
+					break;
+				default:
+					error.message = "Recipe is not in favorites";
+					error.statusCode = 409;
+					break;
+			}
+
+			throw error;
+		}
+
+		res.status(200).json({
+			data: { recipe_id: result.recipeId },
+			message: "Recipe removed from favorites",
 		});
 	} catch (error) {
 		next(error);
@@ -250,10 +469,19 @@ const getRecipeReviewsHandler = async (
 };
 
 // extractUser middleware extracts userId from X-User-Id header
-recipesRouter.post("/", extractUser, createRecipeHandler);
-recipesRouter.post("/:id/publish", extractUser, publishRecipeHandler);
-recipesRouter.post("/:id/reviews", extractUser, leaveRecipeReviewHandler);
 
+recipesRouter.post("/:id/publish", extractUser, publishRecipeHandler);
+
+recipesRouter.post("/:id/favorite", extractUser, favoriteRecipeHandler);
+recipesRouter.delete("/:id/favorite", extractUser, unfavoriteRecipeHandler);
+
+recipesRouter.post("/:id/reviews", extractUser, leaveRecipeReviewHandler);
 recipesRouter.get("/:id/reviews", getRecipeReviewsHandler);
 recipesRouter.get("/:id", extractUser, getRecipeByIdHandler);
+recipesRouter.put("/:id", extractUser, updateRecipeHandler);
+recipesRouter.delete("/:id", extractUser, deleteRecipeHandler);
+
 recipesRouter.get("/", getAllRecipesHandler);
+recipesRouter.post("/", extractUser, createRecipeHandler);
+
+recipesRouter.use("/:id/rating", ratingsRouter);

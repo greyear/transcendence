@@ -5,6 +5,15 @@ import z from "zod";
 
 import { userCounter } from "./auth_schema.js";
 
+// Adding a custom field to the req to store decoded JWT
+declare global {
+	namespace Express {
+		interface Request {
+			decodedJWT?: JwtPayload;
+		}
+	}
+}
+
 //From auth_db_operations.ts
 //
 // Password hashing, using bcrypt. I think slightly simpler than others.
@@ -34,6 +43,22 @@ export const comparePassword = async (password: string, hash: string) => {
 	return false;
 };
 
+/*
+	Validate username using Zod library
+	https://zod.dev/basics
+	Username rules: 3-20 chars, alphanumeric and underscores only
+*/
+export const validateUsername = (username: string) => {
+	const usernamePattern = z
+		.string()
+		.min(3, "Username must be at least 3 characters")
+		.max(20, "Username must be at most 20 characters")
+		.regex(/^[a-zA-Z0-9_]+$/, "Username can only contain alphanumeric characters and underscores");
+
+	const result = usernamePattern.safeParse(username);
+	return result.success;
+};
+
 //Validate email using Zod library
 //This is not much different to the example they give on their basic manual
 //https://zod.dev/basics
@@ -46,7 +71,7 @@ export const validateEmail = (email: string) => {
 /*
 	Validate password using Zod library
 	https://zod.dev/basics
-	Password rules: 8 chars min, 1 each of upper, lower and special
+	Password rules: 8 chars min, 64 max, 1 each of upper, lower and special
 	The refinement is looking for at least one in the test string.
 	[^A-Za-z0-9] means ANYTHING that is not in the given character ranges.
 	Zod has a .regex() method, but it didn't seem to work for me.
@@ -55,6 +80,7 @@ export const validatePassword = (password: string) => {
 	const passwordPattern = z
 		.string()
 		.min(8, "Password must be at least 8 characters")
+		.max(64, "Password must be at most 64 characters")
 		.refine(
 			(password) => /[A-Z]/.test(password),
 			"Must include 1 uppercase letter",
@@ -74,14 +100,17 @@ export const validatePassword = (password: string) => {
 };
 
 // Call this function after authentication success.
-// id is from userDocument._id and is ObjectId type
-export const generateToken = (id: string, username: string) => {
+// id is from userDocument.id and is number type
+export const generateToken = (id: string, username: string, type: string) => {
 	const JWTSecret = process.env.JWT_SECRET;
-	if (!JWTSecret) throw new Error("JWTSecret env variable is not set");
+	if (!JWTSecret) {
+		throw new Error("JWTSecret env variable is not set");
+	}
 
 	const payload = {
 		sub: id,
 		username,
+		type,
 	};
 
 	return jwt.sign(payload, JWTSecret, {
@@ -90,10 +119,13 @@ export const generateToken = (id: string, username: string) => {
 	});
 };
 
+//Decode the given JWT and return its origin JSON
 export const decodeToken = (token: string) => {
 	try {
 		const JWTSecret = process.env.JWT_SECRET;
-		if (!JWTSecret) throw new Error("JWTSecret env variable is not set");
+		if (!JWTSecret) {
+			throw new Error("JWTSecret env variable is not set");
+		}
 
 		const decoded = jwt.verify(token, JWTSecret);
 
@@ -104,6 +136,8 @@ export const decodeToken = (token: string) => {
 	}
 };
 
+//Isolate and return the token part of req.headers.authorization.
+//Format: Bearer <token>
 export const sequenceHeader = (req: Request) => {
 	try {
 		const authHeaders = req.headers.authorization;
@@ -117,6 +151,8 @@ export const sequenceHeader = (req: Request) => {
 	}
 };
 
+//Take req.headers.authorization and output a decoded JWT if possible
+//Uses decodeToken() and sequenceHeader()
 export const fetchDecodeToken = (req: Request) => {
 	try {
 		const tokenHeader = sequenceHeader(req);
@@ -145,15 +181,8 @@ export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 		return;
 	}
 
+	req.decodedJWT = decodedJWT;
 	next();
-};
-
-// the middleware (might be in a separate file).
-export const errorHandler = (error: unknown, _req: Request, res: Response) => {
-	console.error(error);
-	const message =
-		error instanceof Error ? error.message : "Internal Server Error";
-	res.status(500).json({ error: message });
 };
 
 //Create a sequential and unique userID
@@ -163,5 +192,19 @@ export const makeID = async (): Promise<number> => {
 		{ $inc: { seq: 1 } },
 		{ new: false, upsert: true, setDefaultsOnInsert: true },
 	);
+	
 	return counter ? counter.seq : 1;
+};
+
+// Error handling middleware
+export const errorHandler = (
+	error: unknown,
+	_req: Request,
+	res: Response,
+	_next: NextFunction,
+) => {
+	console.error(error);
+	const message =
+		error instanceof Error ? error.message : "Internal Server Error";
+	res.status(500).json({ error: message });
 };
