@@ -1,6 +1,7 @@
 /**
  * Auth Routes
  *
+ * 
  */
 
 import {
@@ -47,11 +48,37 @@ const postLoginHandler: RequestHandler = async (
 			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
+
+		// Extract userId from validated token
+		if (response.status === 200 && (data as any).token) {
+			const validateHeaders: Record<string, string> = {
+				"Content-Type": "application/json",
+				"Authorization": `Bearer ${(data as any).token}`,
+			};
+
+			const validateResponse = await fetch(`${AUTH_SERVICE_URL}/validate`, {
+				method: "POST",
+				headers: validateHeaders,
+			});
+
+			const validateData = await validateResponse.json() as any;
+			const userId = validateData.id;
+
+			// Update user status to "online" in core service
+			// Endpoint and final logic will probably change.
+			/*await fetch(`${CORE_SERVICE_URL}/users/${userId}/status`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ status: "online" }),
+			}); */
+		}
+
 		// Forward Set-Cookie headers from auth service to client
 		const setCookieHeader = response.headers.get("set-cookie");
 		if (setCookieHeader) {
 			res.set("Set-Cookie", setCookieHeader);
 		}
+
 		res.status(response.status).json(data);
 	} catch (error) {
 		next(error);
@@ -77,11 +104,37 @@ const postGoogleHandler: RequestHandler = async (
 			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
+
+		// Extract userId from validated token
+		if (response.status === 200 && (data as any).token) {
+			const validateHeaders: Record<string, string> = {
+				"Content-Type": "application/json",
+				"Authorization": `Bearer ${(data as any).token}`,
+			};
+
+			const validateResponse = await fetch(`${AUTH_SERVICE_URL}/validate`, {
+				method: "POST",
+				headers: validateHeaders,
+			});
+
+			const validateData = await validateResponse.json() as any;
+			const userId = validateData.id;
+
+			// Update user status to "online" in core service
+			// Endpoint and final logic will probably change.
+			/*await fetch(`${CORE_SERVICE_URL}/users/${userId}/status`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ status: "online" }),
+			}); */
+		}
+
 		// Forward Set-Cookie headers from auth service to client
 		const setCookieHeader = response.headers.get("set-cookie");
 		if (setCookieHeader) {
 			res.set("Set-Cookie", setCookieHeader);
 		}
+
 		res.status(response.status).json(data);
 	} catch (error) {
 		next(error);

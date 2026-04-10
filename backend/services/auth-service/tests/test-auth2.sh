@@ -20,47 +20,47 @@ echo -e "\n========== 1. NORMAL REGISTRATION TESTS =========="
 echo -e "\n1. Register new user - valid"
 curl -s -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{"username":"normaluser1","email":"normal1@test.local","realname":"Normal User","password":"TestPass123!"}' | jq .
+  -d '{"username":"normaluser1","email":"normal1@test.local","password":"TestPass123!"}' | jq .
 
 echo -e "\n2. Register - duplicate username"
 curl -s -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{"username":"normaluser1","email":"other@test.local","realname":"Other","password":"TestPass123!"}' | jq .
+  -d '{"username":"normaluser1","email":"other@test.local","password":"TestPass123!"}' | jq .
 
 echo -e "\n3. Register - duplicate email"
 curl -s -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{"username":"normaluser2","email":"normal1@test.local","realname":"Other","password":"TestPass123!"}' | jq .
+  -d '{"username":"normaluser2","email":"normal1@test.local","password":"TestPass123!"}' | jq .
 
 echo -e "\n4. Register - invalid email format"
 curl -s -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{"username":"normaluser3","email":"notanemail","realname":"Test","password":"TestPass123!"}' | jq .
+  -d '{"username":"normaluser3","email":"notanemail","password":"TestPass123!"}' | jq .
 
 echo -e "\n5. Register - password too short"
 curl -s -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{"username":"normaluser4","email":"user4@test.local","realname":"Test","password":"Short1!"}' | jq .
+  -d '{"username":"normaluser4","email":"user4@test.local","password":"Short1!"}' | jq .
 
 echo -e "\n6. Register - username too short"
 curl -s -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{"username":"ab","email":"user5@test.local","realname":"Test","password":"TestPass123!"}' | jq .
+  -d '{"username":"ab","email":"user5@test.local","password":"TestPass123!"}' | jq .
 
 echo -e "\n7. Register - username too long"
 curl -s -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{"username":"this_is_a_very_long_username_over_20_chars","email":"user6@test.local","realname":"Test","password":"TestPass123!"}' | jq .
+  -d '{"username":"this_is_a_very_long_username_over_20_chars","email":"user6@test.local","password":"TestPass123!"}' | jq .
 
 echo -e "\n8. Register - username with spaces"
 curl -s -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{"username":"user name","email":"user7@test.local","realname":"Test","password":"TestPass123!"}' | jq .
+  -d '{"username":"user name","email":"user7@test.local","password":"TestPass123!"}' | jq .
 
 echo -e "\n9. Register - username with special characters"
 curl -s -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d '{"username":"user@name!","email":"user8@test.local","realname":"Test","password":"TestPass123!"}' | jq .
+  -d '{"username":"user@name!","email":"user8@test.local","password":"TestPass123!"}' | jq .
 
 # ========== 2. NORMAL LOGIN TESTS ==========
 echo -e "\n========== 2. NORMAL LOGIN TESTS =========="
@@ -138,12 +138,12 @@ curl -s -X POST "$BASE_URL/login" \
 echo -e "\n20. Conflict - Register normal user with Google user's existing email"
 curl -s -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d "{\"username\":\"conflict_user\",\"email\":\"$GOOGLE_EMAIL\",\"realname\":\"Conflict\",\"password\":\"TestPass123!\"}" | jq .
+  -d "{\"username\":\"conflict_user\",\"email\":\"$GOOGLE_EMAIL\",\"password\":\"TestPass123!\"}" | jq .
 
 echo -e "\n21. Conflict - Try to register with Google user's existing email (different username)"
 curl -s -X POST "$BASE_URL/register" \
   -H "Content-Type: application/json" \
-  -d "{\"username\":\"another_conflict\",\"email\":\"$GOOGLE_EMAIL\",\"realname\":\"Another\",\"password\":\"TestPass123!\"}" | jq .
+  -d "{\"username\":\"another_conflict\",\"email\":\"$GOOGLE_EMAIL\",\"password\":\"TestPass123!\"}" | jq .
 
 echo -e "\n22. Conflict - Normal user tries to use Google auth endpoint"
 curl -s -X POST "$BASE_URL/google" \

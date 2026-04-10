@@ -57,7 +57,7 @@ authRouter.post(
 	"/register",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const { username, email, realname, password } = req.body;
+			const { username, email, password } = req.body;
 
 			const userDocument = await userModel.findOne({
 				$or: [{ email }, { username }],
@@ -104,11 +104,10 @@ authRouter.post(
 				username,
 				email,
 				passwordHash: hashedPassword,
-				realname,
 			});
 			await newUser.save();
 
-			res.status(201).json({ username, email, realname });
+			res.status(201).json({ username, email });
 		} catch (error) {
 			if ((error as any)?.code === 11000) {
 				res.status(409).json({ error: "Email or username already exists" });
@@ -145,6 +144,11 @@ authRouter.post(
 				return;
 			}
 
+			if (!userDocument.get("isActive")) {
+				res.status(403).json({ error: "Account not valid." });
+				return;
+			}
+
 			// Check if user is a Google-only account
 			const googleID = userDocument.get("googleID");
 			if (googleID) {
@@ -164,7 +168,7 @@ authRouter.post(
 			//https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
 			//secure = lax seems fine for our use case.
 			const actualUsername = userDocument.get("username");
-			const JWToken = help.generateToken(userDocument.get("_id"), actualUsername as string, "mongo");
+			const JWToken = help.generateToken(userDocument.get("_id"), userDocument.get("id"), actualUsername as string, "mongo");
 
 			res.cookie("token", JWToken, {
 				httpOnly: true,
@@ -220,9 +224,6 @@ authRouter.post(
 			}
 			const googleID = payload.sub;
 			const { email, name } = payload;
-			
-			// Ensure realname has a value
-			const realname = name || email?.split('@')[0] || "Google User";
 
 			// Check if email already exists as normal account
 			const existingEmailUser = await userModel.findOne({ email });
@@ -235,7 +236,6 @@ authRouter.post(
 			
 			//Repetiton here, which can be sorted out later.
 			//Google accounts will not require a passwordHash, so just using "empty"
-			//Not sure how correct any of this is, but making a start.
 			const userDocument = await userModel.findOne({ googleID });
 			if (!userDocument) {
 				const currentCount = await help.makeID();
@@ -244,7 +244,6 @@ authRouter.post(
 					id: currentCount,
 					email,
 					passwordHash: "empty",
-					realname,
 					googleID,
 				});
 				await newUser.save();
@@ -252,7 +251,12 @@ authRouter.post(
 				res.status(201).json({ googleID, email, name });
 				return;
 			} else {
-				const JWToken = help.generateToken(userDocument.get("_id"), googleID, "google");
+				if (!userDocument.get("isActive")) {
+					res.status(403).json({ error: "Account not valid." });
+					return;
+				}
+
+				const JWToken = help.generateToken(userDocument.get("_id"), userDocument.get("id"), googleID, "google");
 
 				res.cookie("token", JWToken, {
 					httpOnly: true,

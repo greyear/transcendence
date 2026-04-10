@@ -171,3 +171,26 @@ curl -X PATCH 'http://localhost:3000/auth/change-password/normaluser1' \
 
   401: {"error":"Invalid token"}
 
+
+# 23. Delete - valid mongo user (use token from step 21)
+curl -X DELETE 'http://localhost:3000/auth/delete/normaluser1' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <TOKEN_FROM_STEP_21>'
+
+  200: {"message":"User deleted"}
+
+
+# 24. Delete - no auth header
+curl -X DELETE 'http://localhost:3000/auth/delete/normaluser1' \
+  -H 'Content-Type: application/json'
+
+  401: {"error":"Invalid token"}
+
+
+# 25. Delete - invalid token
+curl -X DELETE 'http://localhost:3000/auth/delete/normaluser1' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer invalid_token_xyz'
+
+  401: {"error":"Invalid token"}
+

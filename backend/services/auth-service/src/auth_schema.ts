@@ -1,9 +1,12 @@
 //Everyone seems to use mongoose, so I will too.
 import mongoose from "mongoose";
 
-// Source - https://stackoverflow.com/a/30164636
-// Posted by edtech
-// Retrieved 2026-03-18, License - CC BY-SA 3.0
+/*
+ * DB schema for user "id" counter tracking.
+ * This is a workaround for MongoDB's lack of auto-incrementing.
+ * Source - https://stackoverflow.com/a/30164636
+ * Posted by edtech. Retrieved 2026-03-18
+ */
 const counterSchema = new mongoose.Schema({
 	name: {
 		type: String,
@@ -18,14 +21,18 @@ const counterSchema = new mongoose.Schema({
 	},
 });
 
-//auth_db schema
-//https://mongoosejs.com/docs/guide.html
-//https://www.mongodb.com/docs/manual/core/document/
-//https://www.slingacademy.com/article/mongodb-set-default-value-for-a-field-with-examples/
-//_id will be created by default and have an ObjectId value
-//email may be the same for Google ID, but we shall see
-//Google suggests using account Google ID rather than email for user search
-//Real Name is probably not really needed for this DB.
+/*
+ * auth_db schema
+ * https://mongoosejs.com/docs/guide.html
+ * https://www.mongodb.com/docs/manual/core/document/
+ * https://www.slingacademy.com/article/mongodb-set-default-value-for-a-field-with-examples/
+ * _id will be created by default and have an ObjectId value
+ * email may be the same for Google ID, but we shall see
+ * 		Google suggests using account Google ID rather than email for user search
+ * passwordHash will be "empty" for Google login.
+ * isActive allows an account to be made unusable for myriad rationales.
+ * 		If the account needs fully deleting, it will need to be done from mongosh.
+ */
 const authSchema = new mongoose.Schema({
 	id: {
 		type: Number,
@@ -42,13 +49,9 @@ const authSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 		unique: true,
+		sparse: true,
 	},
 	passwordHash: {
-		type: String,
-		required: true,
-		unique: false,
-	},
-	realname: {
 		type: String,
 		required: true,
 		unique: false,
@@ -58,6 +61,10 @@ const authSchema = new mongoose.Schema({
 		required: false,
 		unique: true,
 		sparse: true,
+	},
+	isActive: { // realname is removed. isActive is added.
+		type: Boolean,
+		default: true,
 	},
 });
 

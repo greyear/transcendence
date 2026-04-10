@@ -101,7 +101,7 @@ export const validatePassword = (password: string) => {
 
 // Call this function after authentication success.
 // id is from userDocument.id and is number type
-export const generateToken = (id: string, username: string, type: string) => {
+export const generateToken = (id: string, userId: number, username: string, type: string) => {
 	const JWTSecret = process.env.JWT_SECRET;
 	if (!JWTSecret) {
 		throw new Error("JWTSecret env variable is not set");
@@ -109,6 +109,7 @@ export const generateToken = (id: string, username: string, type: string) => {
 
 	const payload = {
 		sub: id,
+		userId,
 		username,
 		type,
 	};
