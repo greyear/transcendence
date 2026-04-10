@@ -846,6 +846,16 @@ describe("Recipes Routes", () => {
 		expect(response.body).toHaveProperty("error");
 	});
 
+	it("should return 401 for POST /recipes/:id/reviews when user is not registered", async () => {
+		const response = await request(app)
+			.post("/recipes/1/reviews")
+			.set("X-User-Id", "999999")
+			.send({ body: "Great recipe" });
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
 	it("should create and return reviews for GET /recipes/:id/reviews", async () => {
 		const authorId = 2301;
 		const reviewerId = 2302;
@@ -861,12 +871,32 @@ describe("Recipes Routes", () => {
 				[reviewerId, "review_author"],
 			);
 
-			const recipeResult = await pool.query(
-				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Review Target', ARRAY['step'], 'published', $1)
-				 RETURNING id`,
-				[authorId],
+			const titleColumnTypeResult = await pool.query(
+				`SELECT data_type
+				 FROM information_schema.columns
+				 WHERE table_name = 'recipes' AND column_name = 'title'`,
 			);
+			const usesJsonbTitle =
+				titleColumnTypeResult.rows[0]?.data_type === "jsonb";
+
+			const recipeResult = usesJsonbTitle
+				? await pool.query(
+						`INSERT INTO recipes (title, instructions, status, author_id)
+						 VALUES (
+							jsonb_build_object('en', 'Review Target', 'fi', 'Review Target', 'ru', 'Review Target'),
+							jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+							'published',
+							$1
+						 )
+						 RETURNING id`,
+						[authorId],
+				  )
+				: await pool.query(
+						`INSERT INTO recipes (title, instructions, status, author_id)
+						 VALUES ('Review Target', ARRAY['step'], 'published', $1)
+						 RETURNING id`,
+						[authorId],
+				  );
 			recipeId = recipeResult.rows[0].id;
 
 			const createResponse = await request(app)

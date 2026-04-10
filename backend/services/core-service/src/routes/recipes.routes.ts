@@ -428,8 +428,19 @@ const leaveRecipeReviewHandler = async (
 		);
 
 		if (!result.success) {
-			const error: CustomError = new Error("Recipe not found");
-			error.statusCode = 404;
+			const error: CustomError = new Error();
+
+			switch (result.reason) {
+				case "unauthorized":
+					error.message = "Authentication required";
+					error.statusCode = 401;
+					break;
+				default:
+					error.message = "Recipe not found";
+					error.statusCode = 404;
+					break;
+			}
+
 			throw error;
 		}
 

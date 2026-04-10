@@ -73,7 +73,7 @@ type RemoveFavoriteResult =
 
 type LeaveRecipeReviewResult =
 	| { success: true; reviewId: number }
-	| { success: false; reason: "not-found" };
+	| { success: false; reason: "not-found" | "unauthorized" };
 
 const recipeIdRowSchema = z.object({
 	id: z.coerce.number().int().positive(),
@@ -732,8 +732,13 @@ export const leaveRecipeReview = async (
 	input: CreateRecipeReviewInput,
 ): Promise<LeaveRecipeReviewResult> => {
 	try {
-		const exists = await recipeExists(recipeId);
-		if (!exists) {
+		const authorExists = await userExists(userId);
+		if (!authorExists) {
+			return { success: false, reason: "unauthorized" };
+		}
+
+		const recipeIsPublished = await publishedRecipeExists(recipeId);
+		if (!recipeIsPublished) {
 			return { success: false, reason: "not-found" };
 		}
 
@@ -762,8 +767,8 @@ export const getRecipeReviews = async (
 	recipeId: number,
 ): Promise<RecipeReviewListItem[] | null> => {
 	try {
-		const exists = await recipeExists(recipeId);
-		if (!exists) {
+		const recipeIsPublished = await publishedRecipeExists(recipeId);
+		if (!recipeIsPublished) {
 			return null;
 		}
 
