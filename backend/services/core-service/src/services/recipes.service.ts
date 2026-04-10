@@ -18,9 +18,9 @@ import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
 	type CreateRecipeInput,
+	type CreateRecipeReviewInput,
 	type FavoriteRecipeListItem,
 	favoriteRecipeListItemSchema,
-	type CreateRecipeReviewInput,
 	type MyRecipeListItem,
 	myRecipeListItemSchema,
 	type Recipe,

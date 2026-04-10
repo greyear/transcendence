@@ -909,5 +909,4 @@ describe("Recipes Routes", () => {
 		expect(response.status).toBe(404);
 		expect(response.body).toHaveProperty("error");
 	});
-
 });
