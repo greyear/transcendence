@@ -12,7 +12,7 @@ const counterSchema = new mongoose.Schema({
 		type: String,
 		default: "CounterDB",
 		required: true,
-		unique: true
+		unique: true,
 	},
 	seq: {
 		type: Number,
@@ -62,7 +62,8 @@ const authSchema = new mongoose.Schema({
 		unique: true,
 		sparse: true,
 	},
-	isActive: { // realname is removed. isActive is added.
+	isActive: {
+		// realname is removed. isActive is added.
 		type: Boolean,
 		default: true,
 	},

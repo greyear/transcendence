@@ -66,8 +66,9 @@ authRouter.post(
 			if (userDocument) {
 				// Check if it's a Google-only account
 				if (userDocument.get("googleID")) {
-					res.status(409).json({ 
-						error: "Email already registered with Google Sign-In. Please use Google login." 
+					res.status(409).json({
+						error:
+							"Email already registered with Google Sign-In. Please use Google login.",
 					});
 					return;
 				}
@@ -87,7 +88,8 @@ authRouter.post(
 
 			if (!help.validatePassword(req.body.password)) {
 				res.status(422).json({
-					error: "The password doesn't match the password requirements" });
+					error: "The password doesn't match the password requirements",
+				});
 				return;
 			}
 
@@ -109,7 +111,7 @@ authRouter.post(
 
 			res.status(201).json({ username, email });
 		} catch (error) {
-			if ((error as any)?.code === 11000) {
+			if ((error as { code?: number })?.code === 11000) {
 				res.status(409).json({ error: "Email or username already exists" });
 			} else {
 				next(error);
@@ -152,10 +154,13 @@ authRouter.post(
 			// Check if user is a Google-only account
 			const googleID = userDocument.get("googleID");
 			if (googleID) {
-				res.status(401).json({ error: "This account uses Google Sign-In only. Please use the Google login option." });
+				res.status(401).json({
+					error:
+						"This account uses Google Sign-In only. Please use the Google login option.",
+				});
 				return;
 			}
-			
+
 			const gotHash = userDocument.get("passwordHash");
 			const passwordMatch = await help.comparePassword(password, gotHash);
 			if (!passwordMatch) {
@@ -168,7 +173,12 @@ authRouter.post(
 			//https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
 			//secure = lax seems fine for our use case.
 			const actualUsername = userDocument.get("username");
-			const JWToken = help.generateToken(userDocument.get("_id"), userDocument.get("id"), actualUsername as string, "mongo");
+			const JWToken = help.generateToken(
+				userDocument.get("_id"),
+				userDocument.get("id"),
+				actualUsername as string,
+				"mongo",
+			);
 
 			res.cookie("token", JWToken, {
 				httpOnly: true,
@@ -228,12 +238,13 @@ authRouter.post(
 			// Check if email already exists as normal account
 			const existingEmailUser = await userModel.findOne({ email });
 			if (existingEmailUser && !existingEmailUser.get("googleID")) {
-				res.status(409).json({ 
-					error: "Email already registered with password login. Please use normal login instead." 
+				res.status(409).json({
+					error:
+						"Email already registered with password login. Please use normal login instead.",
 				});
 				return;
 			}
-			
+
 			//Repetiton here, which can be sorted out later.
 			//Google accounts will not require a passwordHash, so just using "empty"
 			const userDocument = await userModel.findOne({ googleID });
@@ -256,7 +267,12 @@ authRouter.post(
 					return;
 				}
 
-				const JWToken = help.generateToken(userDocument.get("_id"), userDocument.get("id"), googleID, "google");
+				const JWToken = help.generateToken(
+					userDocument.get("_id"),
+					userDocument.get("id"),
+					googleID,
+					"google",
+				);
 
 				res.cookie("token", JWToken, {
 					httpOnly: true,
@@ -271,7 +287,7 @@ authRouter.post(
 				return;
 			}
 		} catch (error) {
-			if ((error as any)?.code === 11000) {
+			if ((error as { code?: number })?.code === 11000) {
 				res.status(409).json({ error: "Email or googleID already exists" });
 			} else {
 				next(error);

@@ -53,7 +53,10 @@ export const validateUsername = (username: string) => {
 		.string()
 		.min(3, "Username must be at least 3 characters")
 		.max(20, "Username must be at most 20 characters")
-		.regex(/^[a-zA-Z0-9_]+$/, "Username can only contain alphanumeric characters and underscores");
+		.regex(
+			/^[a-zA-Z0-9_]+$/,
+			"Username can only contain alphanumeric characters and underscores",
+		);
 
 	const result = usernamePattern.safeParse(username);
 	return result.success;
@@ -101,7 +104,12 @@ export const validatePassword = (password: string) => {
 
 // Call this function after authentication success.
 // id is from userDocument.id and is number type
-export const generateToken = (id: string, userId: number, username: string, type: string) => {
+export const generateToken = (
+	id: string,
+	userId: number,
+	username: string,
+	type: string,
+) => {
 	const JWTSecret = process.env.JWT_SECRET;
 	if (!JWTSecret) {
 		throw new Error("JWTSecret env variable is not set");
@@ -193,7 +201,7 @@ export const makeID = async (): Promise<number> => {
 		{ $inc: { seq: 1 } },
 		{ new: false, upsert: true, setDefaultsOnInsert: true },
 	);
-	
+
 	return counter ? counter.seq : 1;
 };
 

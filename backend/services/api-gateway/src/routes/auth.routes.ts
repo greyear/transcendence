@@ -1,7 +1,7 @@
 /**
  * Auth Routes
  *
- * 
+ *
  */
 
 import {
@@ -50,10 +50,10 @@ const postLoginHandler: RequestHandler = async (
 		const data = await response.json();
 
 		// Extract userId from validated token
-		if (response.status === 200 && (data as any).token) {
+		if (response.status === 200 && (data as { token: string }).token) {
 			const validateHeaders: Record<string, string> = {
 				"Content-Type": "application/json",
-				"Authorization": `Bearer ${(data as any).token}`,
+				Authorization: `Bearer ${(data as { token: string }).token}`,
 			};
 
 			const validateResponse = await fetch(`${AUTH_SERVICE_URL}/validate`, {
@@ -61,7 +61,7 @@ const postLoginHandler: RequestHandler = async (
 				headers: validateHeaders,
 			});
 
-			const validateData = await validateResponse.json() as any;
+			const validateData = (await validateResponse.json()) as { id: string };
 			const userId = validateData.id;
 
 			// Update user status to "online" in core service
@@ -106,10 +106,10 @@ const postGoogleHandler: RequestHandler = async (
 		const data = await response.json();
 
 		// Extract userId from validated token
-		if (response.status === 200 && (data as any).token) {
+		if (response.status === 200 && (data as { token: string }).token) {
 			const validateHeaders: Record<string, string> = {
 				"Content-Type": "application/json",
-				"Authorization": `Bearer ${(data as any).token}`,
+				Authorization: `Bearer ${(data as { token: string }).token}`,
 			};
 
 			const validateResponse = await fetch(`${AUTH_SERVICE_URL}/validate`, {
@@ -117,7 +117,7 @@ const postGoogleHandler: RequestHandler = async (
 				headers: validateHeaders,
 			});
 
-			const validateData = await validateResponse.json() as any;
+			const validateData = (await validateResponse.json()) as { id: string };
 			const userId = validateData.id;
 
 			// Update user status to "online" in core service

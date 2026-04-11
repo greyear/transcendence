@@ -5,7 +5,7 @@
 # Manual versions of these tests seem to work fine, so I trust this for a quick sanity check.
 
 #This token will need refreshing periodically. https://developers.google.com/oauthplayground
-GOOGLE_ID_TOKEN="insert token here"
+GOOGLE_ID_TOKEN="insert token"
 
 BASE_URL="http://localhost:3000/auth"
 
@@ -70,6 +70,9 @@ curl -s -X POST "$BASE_URL/login" \
   -H "Content-Type: application/json" \
   -d '{"username":"normaluser1","password":"TestPass123!"}' | jq .
 
+# Sleep to ensure token timestamps differ
+sleep 1
+
 echo -e "\n11. Login - valid by email"
 curl -s -X POST "$BASE_URL/login" \
   -H "Content-Type: application/json" \
@@ -96,6 +99,8 @@ echo "TOKEN: ${NORMAL_TOKEN:0:30}..."
 
 # ========== 3. GOOGLE LOGIN TESTS ==========
 echo -e "\n========== 3. GOOGLE LOGIN TESTS =========="
+
+sleep 1
 
 echo -e "\n15. Google - create new user"
 GOOGLE_RESPONSE=$(curl -s -X POST "$BASE_URL/google" \
@@ -154,21 +159,7 @@ echo -e "\n23. Conflict - Attempt to register with existing normal user's email 
 # Note: This would need an actual Google token with a normaluser1@test.local email
 echo "SKIPPED: Would require Google account with normaluser1@test.local email"
 
-echo -e "\n24. Conflict - Normal user token should fail on Google validation endpoint"
-if [ -n "$NORMAL_TOKEN" ] && [ "$NORMAL_TOKEN" != "null" ]; then
-  curl -s -X POST "$BASE_URL/validate/google" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $NORMAL_TOKEN" | jq .
-fi
-
-echo -e "\n25. Conflict - Google token should fail on normal validation endpoint"
-if [ -n "$GOOGLE_TOKEN" ] && [ "$GOOGLE_TOKEN" != "null" ]; then
-  curl -s -X POST "$BASE_URL/validate" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $GOOGLE_TOKEN" | jq .
-fi
-
-echo -e "\n26. Conflict - Try to change password on Google user (should fail)"
+echo -e "\n25. Conflict - Try to change password on Google user (should fail)"
 if [ -n "$GOOGLE_TOKEN" ] && [ "$GOOGLE_TOKEN" != "null" ]; then
   curl -s -X PATCH "$BASE_URL/change-password/googleuser" \
     -H "Content-Type: application/json" \
@@ -179,37 +170,67 @@ fi
 # ========== 5. TOKEN VALIDATION TESTS ==========
 echo -e "\n========== 5. TOKEN VALIDATION TESTS =========="
 
-echo -e "\n27. Validate - normal user with valid token"
+echo -e "\n26. Validate - normal user with valid token"
 if [ -n "$NORMAL_TOKEN" ] && [ "$NORMAL_TOKEN" != "null" ]; then
-  curl -s -X POST "$BASE_URL/validate" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $NORMAL_TOKEN" | jq .
+	VALIDATE_RESPONSE=$(curl -s -X POST "$BASE_URL/validate" \
+		-H "Content-Type: application/json" \
+		-H "Authorization: Bearer $NORMAL_TOKEN")
+	echo "$VALIDATE_RESPONSE" | jq .
+	NORMAL_USER_ID=$(echo "$VALIDATE_RESPONSE" | jq -r '.id // empty')
+	echo "NORMAL_USER_ID: $NORMAL_USER_ID"
+	else echo "SKIPPED: No normal token"
 fi
 
-echo -e "\n28. Validate Google - Google user with valid token"
+echo -e "\n27. Validate - Google user with valid token"
 if [ -n "$GOOGLE_TOKEN" ] && [ "$GOOGLE_TOKEN" != "null" ]; then
-  curl -s -X POST "$BASE_URL/validate/google" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $GOOGLE_TOKEN" | jq .
+	VALIDATE_RESPONSE=$(curl -s -X POST "$BASE_URL/validate" \
+		-H "Content-Type: application/json" \
+		-H "Authorization: Bearer $GOOGLE_TOKEN")
+	echo "$VALIDATE_RESPONSE" | jq .
+	GOOGLE_USER_ID=$(echo "$VALIDATE_RESPONSE" | jq -r '.id // empty')
+	echo "GOOGLE_USER_ID: $GOOGLE_USER_ID"
+else echo "SKIPPED: No Google token"
 fi
 
-echo -e "\n29. Validate - missing token"
+echo -e "\n28. Validate - missing token"
 curl -s -X POST "$BASE_URL/validate" \
-  -H "Content-Type: application/json" | jq .
+	-H "Content-Type: application/json" | jq .
 
-echo -e "\n30. Validate - invalid token"
+echo -e "\n29. Validate - invalid token"
 curl -s -X POST "$BASE_URL/validate" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer invalid_token_xyz" | jq .
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer invalid_token_xyz" | jq .
 
-echo -e "\n31. Validate Google - missing token"
-curl -s -X POST "$BASE_URL/validate/google" \
-  -H "Content-Type: application/json" | jq .
+# ========== 6. EXTENDED TOKEN VALIDATION - EDGE CASES ==========
+echo -e "\n========== 6. EXTENDED TOKEN VALIDATION - EDGE CASES =========="
 
-# ========== 6. PASSWORD CHANGE TESTS ==========
-echo -e "\n========== 6. PASSWORD CHANGE TESTS =========="
+echo -e "\n30. Validate - malformed auth header (missing Bearer prefix)"
+if [ -n "$NORMAL_TOKEN" ] && [ "$NORMAL_TOKEN" != "null" ]; then
+	curl -s -X POST "$BASE_URL/validate" \
+		-H "Content-Type: application/json" \
+		-H "Authorization: $NORMAL_TOKEN" | jq .
+fi
 
-echo -e "\n32. Change password - valid"
+echo -e "\n31. Validate - empty bearer token"
+curl -s -X POST "$BASE_URL/validate" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer " | jq .
+
+echo -e "\n32. Validate - completely invalid JWT structure"
+curl -s -X POST "$BASE_URL/validate" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer totally.not.a.jwt" | jq .
+
+echo -e "\n33. Validate - random string as token"
+curl -s -X POST "$BASE_URL/validate" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer randomstringnotavalidtoken" | jq .
+
+
+# ========== 7. PASSWORD CHANGE TESTS ==========
+echo -e "\n========== 7. PASSWORD CHANGE TESTS =========="
+
+echo -e "\n35. Change password - valid"
 if [ -n "$NORMAL_TOKEN" ] && [ "$NORMAL_TOKEN" != "null" ]; then
   curl -s -X PATCH "$BASE_URL/change-password/normaluser1" \
     -H "Content-Type: application/json" \
@@ -217,17 +238,17 @@ if [ -n "$NORMAL_TOKEN" ] && [ "$NORMAL_TOKEN" != "null" ]; then
     -d '{"password":"TestPass123!","newPassword":"NewPass456@"}' | jq .
 fi
 
-echo -e "\n33. Login - verify new password works"
+echo -e "\n36. Login - verify new password works"
 curl -s -X POST "$BASE_URL/login" \
   -H "Content-Type: application/json" \
   -d '{"username":"normaluser1","password":"NewPass456@"}' | jq .
 
-echo -e "\n34. Change password - no auth header"
+echo -e "\n37. Change password - no auth header"
 curl -s -X PATCH "$BASE_URL/change-password/normaluser1" \
   -H "Content-Type: application/json" \
   -d '{"password":"NewPass456@","newPassword":"AnotherPass789#"}' | jq .
 
-echo -e "\n35. Change password - wrong current password"
+echo -e "\n38. Change password - wrong current password"
 if [ -n "$NORMAL_TOKEN" ] && [ "$NORMAL_TOKEN" != "null" ]; then
   curl -s -X PATCH "$BASE_URL/change-password/normaluser1" \
     -H "Content-Type: application/json" \
