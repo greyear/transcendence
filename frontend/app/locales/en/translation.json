@@ -1,7 +1,7 @@
 {
 	"common": {
 		"signInButton": "Sign In",
-		"searchPlaceholder": "Search for ...",
+		"searchPlaceholder": "Search for...",
 		"sortButton": "Sort",
 		"filterButton": "Filter",
 		"sortOptions": {
@@ -47,6 +47,20 @@
 		"loading": "Loading recipes...",
 		"empty": "No recipes found.",
 		"error": "Failed to fetch recipes (status: {{status}})."
+  },
+	"recipePage": {
+		"loading": "Loading...",
+		"invalidRecipe": "Invalid recipe.",
+		"error": "Failed to fetch recipe (status: {{status}}).",
+		"errorLoadingRecipe": "Failed to load recipe.",
+		"recipeNotFound": "Recipe not found.",
+		"rate": "Rate",
+		"ingredients": "Ingredients",
+		"noIngredientsAvailable": "No ingredients available for this recipe.",
+		"instructions": "Instructions",
+		"noInstructionsAvailable": "No instructions available for this recipe.",
+		"step": "Step {{number}}",
+		"share": "Share"
 	},
 	"usersPage": {
 		"title": "Users",
@@ -90,6 +104,8 @@
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
 		"allUsers": "All users",
-		"sortBy": "Sort by"
+		"sortBy": "Sort by",
+		"shareRecipe": "Share recipe",
+		"ingredientsAndInstructions": "Recipe ingredients and instructions"
 	}
 }

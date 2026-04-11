@@ -18,7 +18,7 @@ export const RecipeCard = ({
 	rating,
 }: RecipeCardProps) => {
 	return (
-		<Link to={`/recipe/${id}`} className="recipe-card-link-wrapper">
+		<Link to={`/recipes/${id}`} className="recipe-card-link-wrapper">
 			<article className="recipe-card">
 				<img
 					className="recipe-card-image"
