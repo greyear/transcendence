@@ -64,6 +64,28 @@
 		"tabFollowers": "Followers",
 		"tabFollowing": "Following"
 	},
+	"loginPage": {
+		"title": "Log in",
+		"signupTitle": "Create an account",
+		"usernameLabel": "Username or email",
+		"signupUsernameLabel": "Username",
+		"usernameRequirements": "Use 3-20 characters with letters, numbers, and underscores only.",
+		"emailLabel": "Email",
+		"passwordLabel": "Password",
+		"passwordRequirements": "Use 8-64 characters, including uppercase, lowercase, a number, and a special character.",
+		"genericError": "Sign in failed. Please try again.",
+		"networkError": "The request could not reach the server. This may be a local network or CORS issue.",
+		"loginSuccess": "Login request completed.",
+		"submittingButton": "Signing in...",
+		"signupButton": "Sign Up",
+		"logInButton": "Log in",
+		"googleLoginButton": "Log in with Google",
+		"googleSignupButton": "Sign up with Google",
+		"signupSubmittingButton": "Creating account...",
+		"signupSuccess": "Account created. You can sign in now.",
+		"toggleSignupPrompt": "Need an account? Create one",
+		"toggleLoginPrompt": "Already have an account? Back to sign in"
+	},
 	"userCard": {
 		"recipes": "recipes",
 		"follow": "Follow",
@@ -96,6 +118,7 @@
 		"allUsers": "All users",
 		"sortBy": "Sort by",
 		"shareRecipe": "Share recipe",
-		"ingredientsAndInstructions": "Recipe ingredients and instructions"
+		"ingredientsAndInstructions": "Recipe ingredients and instructions",
+		"closeAuthDialog": "Close authentication dialog"
 	}
 }

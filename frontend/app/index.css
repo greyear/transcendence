@@ -31,6 +31,7 @@ main {
 	--text-primary: #334427;
 	--text-secondary: #4e633b;
 	--text-on-accent: #f1f7d4;
+	--overlay-backdrop: rgba(32, 39, 25, 0.55);
 	--icons-default: #f2ece3;
 	--icons-dark: var(--text-primary);
 	--icons-heart-active: #db858b;

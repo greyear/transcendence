@@ -64,6 +64,29 @@
 		"tabFollowers": "Подписчики",
 		"tabFollowing": "Подписки"
 	},
+	"loginPage": {
+		"title": "Войти",
+		"signupTitle": "Создать аккаунт",
+		"usernameLabel": "Имя пользователя или email",
+		"signupUsernameLabel": "Имя пользователя",
+		"usernameRequirements": "Используйте 3-20 символов: только буквы, цифры и нижнее подчеркивание.",
+		"emailLabel": "Email",
+		"passwordLabel": "Пароль",
+		"passwordRequirements": "Используйте 8-64 символа, включая заглавную букву, строчную букву, цифру и специальный символ.",
+		"genericError": "Не удалось войти. Попробуйте еще раз.",
+		"networkError": "Запрос не смог дойти до сервера. Возможно, это локальная сетевая проблема или проблема CORS.",
+		"loginSuccess": "Запрос на вход выполнен.",
+		"submittingButton": "Выполняется вход...",
+		"signupButton": "Зарегистрироваться",
+		"logInButton": "Войти",
+		"googleLoginButton": "Войти через Google",
+		"googleSignupButton": "Зарегистрироваться через Google",
+		"googleUnavailable": "Вход через Google на фронтенде пока не подключен.",
+		"signupSubmittingButton": "Создается аккаунт...",
+		"signupSuccess": "Аккаунт создан. Теперь можно войти.",
+		"toggleSignupPrompt": "Нет аккаунта? Создать",
+		"toggleLoginPrompt": "Уже есть аккаунт? Вернуться ко входу"
+	},
 	"userCard": {
 		"recipes": "Рецепты",
 		"follow": "Подписаться",
@@ -96,6 +119,7 @@
 		"allUsers": "Все авторы",
 		"sortBy": "Сортировать по",
 		"shareRecipe": "Поделиться рецептом",
-		"ingredientsAndInstructions": "Ингредиенты и инструкции рецепта"
+		"ingredientsAndInstructions": "Ингредиенты и инструкции рецепта",
+		"closeAuthDialog": "Закрыть окно аутентификации"
 	}
 }
