@@ -58,3 +58,21 @@ export const resolveRequestedLocale = (req: Request): SupportedLocale => {
 
 	return DEFAULT_LOCALE;
 };
+
+/**
+ * Resolve the source locale for recipe content sent by the client.
+ *
+ * This is separate from `resolveRequestedLocale()` because it describes the
+ * language of the submitted recipe text, not the UI language used for the response.
+ */
+export const resolveSourceLocale = (req: Request): SupportedLocale => {
+	const headerLocale = parseLanguageHeader(req.headers["x-source-language"]);
+	if (headerLocale) {
+		const parsed = validateLocale(headerLocale);
+		if (parsed.valid) {
+			return parsed.value;
+		}
+	}
+
+	return resolveRequestedLocale(req);
+};

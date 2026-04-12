@@ -27,11 +27,14 @@ import {
 	updateRecipe,
 } from "../services/recipes.service.js";
 import {
+	resolveRequestedLocale,
+	resolveSourceLocale,
+} from "../utils/locale.js";
+import {
 	validateCreateRecipeInput,
 	validateRecipeId,
 	validateUpdateRecipeInput,
 } from "../validation/schemas.js";
-import { resolveRequestedLocale } from "../utils/locale.js";
 import { ratingsRouter } from "./ratings.routes.js";
 
 interface CustomError extends Error {
@@ -61,7 +64,13 @@ const createRecipeHandler = async (
 		}
 
 		const locale = resolveRequestedLocale(req);
-		const recipe = await createRecipe(req.userId, validation.value, locale);
+		const sourceLocale = resolveSourceLocale(req);
+		const recipe = await createRecipe(
+			req.userId,
+			validation.value,
+			locale,
+			sourceLocale,
+		);
 		res.status(201).json({ data: recipe });
 	} catch (error) {
 		next(error);
@@ -152,11 +161,13 @@ const updateRecipeHandler = async (
 		}
 
 		const locale = resolveRequestedLocale(req);
+		const sourceLocale = resolveSourceLocale(req);
 		const updateResult = await updateRecipe(
 			idValidation.value,
 			req.userId,
 			updatePayloadValidation.value,
 			locale,
+			sourceLocale,
 		);
 
 		if (!updateResult.success) {

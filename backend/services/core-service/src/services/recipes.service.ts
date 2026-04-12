@@ -17,14 +17,9 @@ import type { PoolClient } from "pg";
 import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
-	localizeInstructionStepsFromEnglish,
-	localizeTextFromEnglish,
-} from "./translation.service.js";
-import {
 	type CreateRecipeInput,
-	type SupportedLocale,
-	type FavoriteRecipeListItem,
 	DEFAULT_LOCALE,
+	type FavoriteRecipeListItem,
 	favoriteRecipeListItemSchema,
 	type MyRecipeListItem,
 	myRecipeListItemSchema,
@@ -33,8 +28,13 @@ import {
 	recipeListItemSchema,
 	recipeSchema,
 	recipeStatusSchema,
+	type SupportedLocale,
 	type UpdateRecipeInput,
 } from "../validation/schemas.js";
+import {
+	localizeInstructionStepsFromSource,
+	localizeTextFromSource,
+} from "./translation.service.js";
 
 type PublishRecipeResult =
 	| { success: true; recipe: Recipe }
@@ -186,13 +186,84 @@ const getRecipeWithIngredientsById = async (
 	client?: PoolClient,
 ): Promise<Recipe | null> => {
 	const db = client ?? pool;
-	const result = await db.query(getRecipeWithIngredientsQuery, [recipeId, locale]);
+	const result = await db.query(getRecipeWithIngredientsQuery, [
+		recipeId,
+		locale,
+	]);
 
 	if (result.rows.length === 0) {
 		return null;
 	}
 
 	return parseRecipeRow(result.rows[0], `ID ${recipeId}`);
+};
+
+const duplicateTextAcrossLocales = (
+	sourceText: string,
+): Record<SupportedLocale, string> => {
+	const safeSource = sourceText.trim();
+
+	return {
+		en: safeSource,
+		fi: safeSource,
+		ru: safeSource,
+	};
+};
+
+const duplicateInstructionsAcrossLocales = (
+	steps: string[],
+): Record<SupportedLocale, string[]> => {
+	const safeSteps = steps.map((step) => step.trim());
+
+	return {
+		en: safeSteps,
+		fi: safeSteps,
+		ru: safeSteps,
+	};
+};
+
+const scheduleRecipeLocalization = (
+	recipeId: number,
+	updatedAt: unknown,
+	sourceLocale: SupportedLocale,
+	input: Pick<CreateRecipeInput, "title" | "description" | "instructions">,
+): void => {
+	void (async () => {
+		try {
+			const [localizedTitle, localizedDescription, localizedInstructions] =
+				await Promise.all([
+					localizeTextFromSource(input.title, sourceLocale),
+					input.description === null
+						? Promise.resolve(null)
+						: localizeTextFromSource(input.description, sourceLocale),
+					localizeInstructionStepsFromSource(input.instructions, sourceLocale),
+				]);
+
+			const result = await pool.query(
+				`
+					UPDATE recipes
+					SET title = $1, description = $2, instructions = $3, updated_at = now()
+					WHERE id = $4 AND updated_at = $5
+				`,
+				[
+					localizedTitle,
+					localizedDescription,
+					localizedInstructions,
+					recipeId,
+					updatedAt,
+				],
+			);
+
+			if (result.rowCount === 0) {
+				return;
+			}
+		} catch (error) {
+			console.error(
+				`Background localization failed for recipe ${recipeId}:`,
+				error,
+			);
+		}
+	})();
 };
 
 const userExists = async (userId: number): Promise<boolean> => {
@@ -401,18 +472,19 @@ export const createRecipe = async (
 	userId: number,
 	input: CreateRecipeInput,
 	locale: SupportedLocale = DEFAULT_LOCALE,
+	sourceLocale: SupportedLocale = locale,
 ): Promise<Recipe> => {
 	const client = await pool.connect();
 
 	try {
 		await client.query("BEGIN");
 
-		const localizedTitle = await localizeTextFromEnglish(input.title);
-		const localizedDescription =
+		const placeholderTitle = duplicateTextAcrossLocales(input.title);
+		const placeholderDescription =
 			input.description === null
 				? null
-				: await localizeTextFromEnglish(input.description);
-		const localizedInstructions = await localizeInstructionStepsFromEnglish(
+				: duplicateTextAcrossLocales(input.description);
+		const placeholderInstructions = duplicateInstructionsAcrossLocales(
 			input.instructions,
 		);
 
@@ -420,12 +492,12 @@ export const createRecipe = async (
 			`
       INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status)
       VALUES ($1, $2, $3, $4, $5, $6, 'draft')
-      RETURNING id
+      RETURNING id, updated_at
     `,
 			[
-				localizedTitle,
-				localizedDescription,
-				localizedInstructions,
+				placeholderTitle,
+				placeholderDescription,
+				placeholderInstructions,
 				input.servings,
 				input.spiciness,
 				userId,
@@ -473,6 +545,12 @@ export const createRecipe = async (
 		}
 
 		await client.query("COMMIT");
+		scheduleRecipeLocalization(
+			recipeId,
+			result.rows[0].updated_at,
+			sourceLocale,
+			input,
+		);
 		return recipe;
 	} catch (error) {
 		await client.query("ROLLBACK");
@@ -520,18 +598,19 @@ export const updateRecipe = async (
 	userId: number,
 	input: UpdateRecipeInput,
 	locale: SupportedLocale = DEFAULT_LOCALE,
+	sourceLocale: SupportedLocale = locale,
 ): Promise<UpdateRecipeResult> => {
 	const client = await pool.connect();
 
 	try {
 		await client.query("BEGIN");
 
-		const localizedTitle = await localizeTextFromEnglish(input.title);
-		const localizedDescription =
+		const placeholderTitle = duplicateTextAcrossLocales(input.title);
+		const placeholderDescription =
 			input.description === null
 				? null
-				: await localizeTextFromEnglish(input.description);
-		const localizedInstructions = await localizeInstructionStepsFromEnglish(
+				: duplicateTextAcrossLocales(input.description);
+		const placeholderInstructions = duplicateInstructionsAcrossLocales(
 			input.instructions,
 		);
 
@@ -546,12 +625,12 @@ export const updateRecipe = async (
         spiciness = $5,
         updated_at = now()
       WHERE id = $6 AND author_id = $7 AND status = 'draft'
-      RETURNING id
+      RETURNING id, updated_at
     `,
 			[
-				localizedTitle,
-				localizedDescription,
-				localizedInstructions,
+				placeholderTitle,
+				placeholderDescription,
+				placeholderInstructions,
 				input.servings,
 				input.spiciness,
 				recipeId,
@@ -608,6 +687,12 @@ export const updateRecipe = async (
 		}
 
 		await client.query("COMMIT");
+		scheduleRecipeLocalization(
+			recipeId,
+			updateResult.rows[0].updated_at,
+			sourceLocale,
+			input,
+		);
 		return { success: true, recipe };
 	} catch (error) {
 		// Roll back the transaction for any failure during update flow.
