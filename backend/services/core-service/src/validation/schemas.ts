@@ -112,10 +112,17 @@ const createRecipeReviewInputSchema = z.object({
 	body: z.string().trim().min(1).max(MAX_REVIEW_BODY_LENGTH),
 });
 
+const updateRecipeReviewInputSchema = z.object({
+	body: z.string().trim().min(1).max(MAX_REVIEW_BODY_LENGTH),
+});
+
 export type CreateRecipeInput = z.infer<typeof createRecipeInputSchema>;
 export type UpdateRecipeInput = z.infer<typeof updateRecipeInputSchema>;
 export type CreateRecipeReviewInput = z.infer<
 	typeof createRecipeReviewInputSchema
+>;
+export type UpdateRecipeReviewInput = z.infer<
+	typeof updateRecipeReviewInputSchema
 >;
 
 type ValidationResult<T> =
@@ -214,12 +221,23 @@ export const validateCreateRecipeReviewInput = (
 	};
 };
 
-/**
- * TYPES (describes Recipe object structure)
- */
+export const validateUpdateRecipeReviewInput = (
+	input: unknown,
+): ValidationResult<UpdateRecipeReviewInput> => {
+	const result = updateRecipeReviewInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
 
 /**
- * Zod schema for Recipe - describes what fields should exist and their types
+ * TYPES (describes Recipe object structure)
  *
  * z.object({...}) - object with fields
  * z.string() - string type
