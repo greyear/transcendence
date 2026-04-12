@@ -39,6 +39,7 @@ export const InputField = ({
 	const { t } = useTranslation();
 	const [showPassword, setShowPassword] = useState(false);
 	const [visibleError, setVisibleError] = useState("");
+	const [isFocused, setIsFocused] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const isPassword = type === "password";
@@ -70,11 +71,12 @@ export const InputField = ({
 		if (input.validity.tooLong)
 			return `Please enter no more than ${input.maxLength} characters.`;
 		if (input.validity.patternMismatch)
-			return "Please match the requested format.";
+			return input.title || "Please match the requested format.";
 		return input.validationMessage;
 	};
 
 	const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+		setIsFocused(false);
 		const input = e.currentTarget;
 		if (!input.checkValidity()) {
 			setVisibleError(getValidationMessage(input));
@@ -83,6 +85,7 @@ export const InputField = ({
 	};
 
 	const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+		setIsFocused(true);
 		setVisibleError("");
 		onFocus?.(e);
 	};
@@ -155,7 +158,7 @@ export const InputField = ({
 				<p id={`${id}-error`} className="text-caption-s error-message">
 					{visibleError}
 				</p>
-			) : hint ? (
+			) : isFocused && hint ? (
 				<p id={`${id}-hint`} className="text-caption-s input-message">
 					{hint}
 				</p>

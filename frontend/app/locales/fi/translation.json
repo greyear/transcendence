@@ -69,6 +69,29 @@
 		"tabFollowers": "Seuraajat",
 		"tabFollowing": "Seuratut"
 	},
+	"loginPage": {
+		"title": "Kirjaudu sisään",
+		"signupTitle": "Luo tili",
+		"usernameLabel": "Käyttäjätunnus tai sähköposti",
+		"signupUsernameLabel": "Käyttäjätunnus",
+		"usernameRequirements": "Käytä 3-20 merkkiä ja vain kirjaimia, numeroita sekä alaviivaa.",
+		"emailLabel": "Sähköposti",
+		"passwordLabel": "Salasana",
+		"passwordRequirements": "Käytä 8-64 merkkiä ja sisällytä iso kirjain, pieni kirjain, numero sekä erikoismerkki.",
+		"genericError": "Kirjautuminen epäonnistui. Yritä uudelleen.",
+		"networkError": "Pyyntö ei tavoittanut palvelinta. Syynä voi olla paikallinen verkko- tai CORS-ongelma.",
+		"loginSuccess": "Kirjautumispyyntö suoritettiin.",
+		"submittingButton": "Kirjaudutaan...",
+		"signupButton": "Luo tili",
+		"logInButton": "Kirjaudu sisään",
+		"googleLoginButton": "Kirjaudu sisään Googlella",
+		"googleSignupButton": "Luo tili Googlella",
+		"googleUnavailable": "Google-kirjautumista ei ole vielä kytketty frontendissä.",
+		"signupSubmittingButton": "Luodaan tiliä...",
+		"signupSuccess": "Tili luotu. Voit nyt kirjautua sisään.",
+		"toggleSignupPrompt": "Tarvitsetko tilin? Luo sellainen",
+		"toggleLoginPrompt": "Onko sinulla jo tili? Kirjaudu sisään"
+	},
 	"usersGrid": {
 		"loading": "Ladataan käyttäjiä...",
 		"empty": "Käyttäjiä ei löytynyt.",
@@ -106,6 +129,7 @@
 		"allUsers": "Kaikki käyttäjät",
 		"sortBy": "Järjestä",
 		"shareRecipe": "Jaa resepti",
-		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet"
+		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet",
+		"closeAuthDialog": "Sulje tunnistautumisikkuna"
 	}
 }

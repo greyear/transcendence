@@ -50,7 +50,7 @@ const authSchema = new mongoose.Schema({
 	},
 	realname: {
 		type: String,
-		required: true,
+		required: false,
 		unique: false,
 	},
 	googleID: {
