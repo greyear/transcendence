@@ -832,7 +832,10 @@ const deleteReviewHandler = async (
 		}
 
 		res.status(200).json({
-			data: { id: reviewIdValidation.value, recipe_id: recipeIdValidation.value },
+			data: {
+				id: reviewIdValidation.value,
+				recipe_id: recipeIdValidation.value,
+			},
 			message: "Review deleted",
 		});
 	} catch (error) {
@@ -857,7 +860,11 @@ recipesRouter.put(
 
 recipesRouter.post("/:id/reviews", extractUser, leaveRecipeReviewHandler);
 recipesRouter.put("/:id/reviews/:reviewId", extractUser, updateReviewHandler);
-recipesRouter.delete("/:id/reviews/:reviewId", extractUser, deleteReviewHandler);
+recipesRouter.delete(
+	"/:id/reviews/:reviewId",
+	extractUser,
+	deleteReviewHandler,
+);
 recipesRouter.get("/:id/reviews", getRecipeReviewsHandler);
 recipesRouter.get("/:id", extractUser, getRecipeByIdHandler);
 recipesRouter.put("/:id", extractUser, updateRecipeHandler);

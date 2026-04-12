@@ -193,7 +193,7 @@ const updateReviewHandler: RequestHandler = async (req, res, _next) => {
 			res.status(504).json({ error: "Gateway Timeout" });
 			return;
 		}
- 
+
 		console.error("Error proxying to core-service:", error);
 		res.status(500).json({ error: "Failed to update review" });
 	}
@@ -216,7 +216,7 @@ const deleteReviewHandler: RequestHandler = async (req, res, _next) => {
 			res.status(504).json({ error: "Gateway Timeout" });
 			return;
 		}
- 
+
 		console.error("Error proxying to core-service:", error);
 		res.status(500).json({ error: "Failed to delete review" });
 	}
@@ -344,7 +344,11 @@ recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
 recipesRouter.put("/:id/picture", requireAuth, updateRecipePictureHandler);
 recipesRouter.post("/:id/reviews", requireAuth, leaveRecipeReviewHandler);
 recipesRouter.put("/:id/reviews/:reviewId", requireAuth, updateReviewHandler);
-recipesRouter.delete("/:id/reviews/:reviewId", requireAuth, deleteReviewHandler);
+recipesRouter.delete(
+	"/:id/reviews/:reviewId",
+	requireAuth,
+	deleteReviewHandler,
+);
 recipesRouter.post("/:id/favorite", requireAuth, favoriteRecipeHandler);
 recipesRouter.delete("/:id/favorite", requireAuth, unfavoriteRecipeHandler);
 recipesRouter.use("/:id/rating", ratingsRouter);

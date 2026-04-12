@@ -1529,7 +1529,9 @@ describe("Recipes Routes", () => {
 			expect(response.body).toHaveProperty("error");
 		} finally {
 			if (reviewId)
-				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [reviewId]);
+				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [
+					reviewId,
+				]);
 			if (recipeId)
 				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id IN ($1, $2, $3)`, [
@@ -1593,7 +1595,9 @@ describe("Recipes Routes", () => {
 			expect(dbReview.rows[0].body).toBe("Updated body");
 		} finally {
 			if (reviewId)
-				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [reviewId]);
+				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [
+					reviewId,
+				]);
 			if (recipeId)
 				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
@@ -1693,7 +1697,9 @@ describe("Recipes Routes", () => {
 			expect(response.body).toHaveProperty("error");
 		} finally {
 			if (reviewId)
-				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [reviewId]);
+				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [
+					reviewId,
+				]);
 			if (recipeId)
 				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id IN ($1, $2, $3)`, [
@@ -1759,13 +1765,13 @@ describe("Recipes Routes", () => {
 				`/recipes/${recipeId}/reviews`,
 			);
 			expect(
-				listResponse.body.data.some(
-					(r: { id: number }) => r.id === reviewId,
-				),
+				listResponse.body.data.some((r: { id: number }) => r.id === reviewId),
 			).toBe(false);
 		} finally {
 			if (reviewId)
-				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [reviewId]);
+				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [
+					reviewId,
+				]);
 			if (recipeId)
 				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
@@ -1817,7 +1823,9 @@ describe("Recipes Routes", () => {
 			expect(response.body).toHaveProperty("error");
 		} finally {
 			if (reviewId)
-				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [reviewId]);
+				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [
+					reviewId,
+				]);
 			if (recipeId)
 				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
