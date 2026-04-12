@@ -9,7 +9,6 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { pool } from "../db/database.js";
 import {
 	type NextFunction,
 	type Request,
@@ -17,6 +16,7 @@ import {
 	Router,
 } from "express";
 import multer from "multer";
+import { pool } from "../db/database.js";
 import {
 	type AuthenticatedRequest,
 	extractUser,
