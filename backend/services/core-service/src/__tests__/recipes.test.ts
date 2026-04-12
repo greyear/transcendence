@@ -419,31 +419,49 @@ describe("Recipes Routes", () => {
 
 	it("should return 400 when no picture file is provided", async () => {
 		const userId = 2200;
+		let recipeId: number | null = null;
 		await pool.query(
 			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
 			[userId, "picture_no_file"],
 		);
 		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				VALUES ('No File Test', ARRAY['step'], 'draft', $1) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
 			const response = await request(app)
-				.put("/recipes/1/picture")
+				.put(`/recipes/${recipeId}/picture`)
 				.set("X-User-Id", String(userId));
 
 			expect(response.status).toBe(400);
 			expect(response.body).toHaveProperty("error");
 		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
 		}
 	});
 
 	it("should return 400 for unsupported file type", async () => {
 		const userId = 2201;
+		let recipeId: number | null = null;
 		await pool.query(
 			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
 			[userId, "picture_bad_type"],
 		);
 		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				VALUES ('Bad Type Test', ARRAY['step'], 'draft', $1) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
 			const response = await request(app)
-				.put("/recipes/1/picture")
+				.put(`/recipes/${recipeId}/picture`)
 				.set("X-User-Id", String(userId))
 				.attach("picture", Buffer.from("fake gif"), {
 					filename: "pic.gif",
@@ -453,6 +471,8 @@ describe("Recipes Routes", () => {
 			expect(response.status).toBe(400);
 			expect(response.body).toHaveProperty("error");
 		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
 		}
 	});
