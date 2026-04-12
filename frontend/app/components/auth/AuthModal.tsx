@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { AuthForm } from "./AuthForm";
 
 type AuthModalProps = {
@@ -16,10 +16,12 @@ const FOCUSABLE_SELECTOR = [
 	'[tabindex]:not([tabindex="-1"])',
 ].join(",");
 
+const INITIAL_FOCUS_SELECTOR = "[data-initial-focus]";
+
 export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
 	const dialogRef = useRef<HTMLElement>(null);
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!isOpen) {
 			return;
 		}
@@ -41,7 +43,15 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
 				dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
 			).filter((element) => !element.hasAttribute("disabled"));
 
-		getFocusableElements()[0]?.focus() ?? dialog.focus();
+		const initialFocusableElement =
+			dialog.querySelector<HTMLElement>(INITIAL_FOCUS_SELECTOR) ??
+			getFocusableElements()[0];
+
+		if (initialFocusableElement) {
+			initialFocusableElement.focus();
+		} else {
+			dialog.focus();
+		}
 
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (event.key === "Escape") {
@@ -68,7 +78,9 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
 
 			if (
 				event.shiftKey &&
-				(activeElement === firstElement || isOutsideDialog)
+				(activeElement === firstElement ||
+					activeElement === dialog ||
+					isOutsideDialog)
 			) {
 				event.preventDefault();
 				lastElement.focus();

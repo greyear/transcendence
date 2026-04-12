@@ -117,6 +117,7 @@ export const AuthForm = ({
 				{onClose ? (
 					<div className="auth-modal-close-row">
 						<IconButton
+							data-initial-focus
 							onClick={onClose}
 							aria-label={t("ariaLabels.closeAuthDialog")}
 							variant="transparent"
