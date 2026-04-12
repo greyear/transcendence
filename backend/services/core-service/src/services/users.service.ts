@@ -7,6 +7,93 @@ import {
 	userProfileSchema,
 } from "../validation/schemas.js";
 
+export type FollowOperationResult =
+	| { success: true }
+	| {
+			success: false;
+			reason:
+				| "self-follow"
+				| "user-not-found"
+				| "already-followed"
+				| "not-followed";
+	  };
+
+const doesUserExist = async (userId: number): Promise<boolean> => {
+	const result = await pool.query("SELECT id FROM users WHERE id = $1", [
+		userId,
+	]);
+	return (result.rowCount ?? 0) > 0;
+};
+
+const doesFollowRelationExist = async (
+	followerId: number,
+	followedId: number,
+): Promise<boolean> => {
+	const result = await pool.query(
+		"SELECT 1 FROM followers WHERE user_id = $1 AND followed_id = $2 LIMIT 1",
+		[followerId, followedId],
+	);
+	return (result.rowCount ?? 0) > 0;
+};
+
+export const followUser = async (
+	followerId: number,
+	followedId: number,
+): Promise<FollowOperationResult> => {
+	if (followerId === followedId) {
+		return { success: false, reason: "self-follow" };
+	}
+
+	const [followerExists, followedExists] = await Promise.all([
+		doesUserExist(followerId),
+		doesUserExist(followedId),
+	]);
+
+	if (!followerExists || !followedExists) {
+		return { success: false, reason: "user-not-found" };
+	}
+
+	if (await doesFollowRelationExist(followerId, followedId)) {
+		return { success: false, reason: "already-followed" };
+	}
+
+	await pool.query(
+		"INSERT INTO followers (user_id, followed_id) VALUES ($1, $2)",
+		[followerId, followedId],
+	);
+
+	return { success: true };
+};
+
+export const unfollowUser = async (
+	followerId: number,
+	followedId: number,
+): Promise<FollowOperationResult> => {
+	if (followerId === followedId) {
+		return { success: false, reason: "self-follow" };
+	}
+
+	const [followerExists, followedExists] = await Promise.all([
+		doesUserExist(followerId),
+		doesUserExist(followedId),
+	]);
+
+	if (!followerExists || !followedExists) {
+		return { success: false, reason: "user-not-found" };
+	}
+
+	if (!(await doesFollowRelationExist(followerId, followedId))) {
+		return { success: false, reason: "not-followed" };
+	}
+
+	await pool.query(
+		"DELETE FROM followers WHERE user_id = $1 AND followed_id = $2",
+		[followerId, followedId],
+	);
+
+	return { success: true };
+};
+
 /**
  * Retrieves a list of users who are followers of a specific user.
  * @param userId - The ID of the user whose followers are to be retrieved.

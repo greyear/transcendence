@@ -327,13 +327,109 @@ describe("Users Routes", () => {
 		});
 	});
 
+	describe("POST /users/:id/follow", () => {
+		it("should follow another user when authenticated", async () => {
+			const response = await request(app)
+				.post("/users/10004/follow")
+				.set("X-User-Id", "10003");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body.data).toEqual({
+				follower_id: 10003,
+				followed_id: 10004,
+			});
+		});
+
+		it("should return 409 when already followed", async () => {
+			const response = await request(app)
+				.post("/users/10004/follow")
+				.set("X-User-Id", "10003");
+
+			expect(response.status).toBe(409);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should return 401 when user is not authenticated", async () => {
+			const response = await request(app).post("/users/10004/follow");
+
+			expect(response.status).toBe(401);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should return 400 for invalid user id", async () => {
+			const response = await request(app)
+				.post("/users/abc/follow")
+				.set("X-User-Id", "10003");
+
+			expect(response.status).toBe(400);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should return 404 if target user does not exist", async () => {
+			const response = await request(app)
+				.post("/users/999999/follow")
+				.set("X-User-Id", "10003");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toHaveProperty("error");
+		});
+	});
+
+	describe("DELETE /users/:id/follow", () => {
+		it("should unfollow another user when authenticated", async () => {
+			const response = await request(app)
+				.delete("/users/10003/follow")
+				.set("X-User-Id", "10004");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message");
+		});
+
+		it("should return 404 when the relation does not exist", async () => {
+			const response = await request(app)
+				.delete("/users/10003/follow")
+				.set("X-User-Id", "10004");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should return 401 when user is not authenticated", async () => {
+			const response = await request(app).delete("/users/10003/follow");
+
+			expect(response.status).toBe(401);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should return 400 for invalid user id", async () => {
+			const response = await request(app)
+				.delete("/users/abc/follow")
+				.set("X-User-Id", "10004");
+
+			expect(response.status).toBe(400);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should return 404 if target user does not exist", async () => {
+			const response = await request(app)
+				.delete("/users/999999/follow")
+				.set("X-User-Id", "10004");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toHaveProperty("error");
+		});
+	});
+
 	afterAll(async () => {
 		// Clean up test data created in beforeAll
 		try {
 			await pool.query(
-				`DELETE FROM followers WHERE user_id IN (1, 2, 3) OR followed_id IN (1, 2, 3)`,
+				`DELETE FROM followers WHERE user_id IN (1, 2, 3, 10001, 10002, 10003, 10004) OR followed_id IN (1, 2, 3, 10001, 10002, 10003, 10004)`,
 			);
-			await pool.query(`DELETE FROM users WHERE id IN (2, 3)`);
+			await pool.query(
+				`DELETE FROM users WHERE id IN (2, 3, 10001, 10002, 10003, 10004)`,
+			);
 		} catch (error) {
 			console.error("Cleanup failed:", error);
 		}

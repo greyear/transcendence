@@ -253,6 +253,13 @@ check_endpoint "/recipes/1/reviews" "200" "GET /recipes/1/reviews"
 check_endpoint "/recipes/999999/reviews" "404" "GET /recipes/999999/reviews (non-existent recipe)"
 
 echo ""
+echo "User Follow Endpoints (Protected):"
+check_post_endpoint "/users/1/follow" '{}' "401" "POST /users/1/follow (no token -> 401)"
+check_delete_endpoint "/users/1/follow" "401" "DELETE /users/1/follow (no token -> 401)"
+check_post_endpoint "/users/abc/follow" '{}' "401" "POST /users/abc/follow (no token, auth first -> 401)"
+check_delete_endpoint "/users/abc/follow" "401" "DELETE /users/abc/follow (no token, auth first -> 401)"
+
+echo ""
 echo "PUT/DELETE Endpoints:"
 check_put_endpoint "/recipes/1" '{"title":"Smoke Update","description":"Updated by smoke test","instructions":["Mix ingredients"],"servings":2,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":100,"unit":"g"}],"category_ids":[]}' "401" "PUT /recipes/1 (no token -> 401)"
 check_delete_endpoint "/recipes/1" "401" "DELETE /recipes/1 (no token -> 401)"
@@ -262,6 +269,16 @@ check_delete_endpoint "/recipes/1/favorite" "401" "DELETE /recipes/1/favorite (n
 check_endpoint "/users/me/favorites" "401" "GET /users/me/favorites (no token -> 401)"
 
 if [ -n "$SMOKE_BEARER_TOKEN" ]; then
+  echo ""
+  echo "User Follow Endpoints (authenticated):"
+  check_post_endpoint_auth "/users/abc/follow" '{}' "400" "POST /users/abc/follow (invalid ID -> 400)"
+  check_delete_endpoint_auth "/users/abc/follow" "400" "DELETE /users/abc/follow (invalid ID -> 400)"
+  check_post_endpoint_auth "/users/999/follow" '{}' "404" "POST /users/999/follow (non-existent target user -> 404)"
+  check_post_endpoint_auth "/users/1/follow" '{}' "200" "POST /users/1/follow (with token -> 200)"
+  check_post_endpoint_auth "/users/1/follow" '{}' "409" "POST /users/1/follow (already followed -> 409)"
+  check_delete_endpoint_auth "/users/1/follow" "200" "DELETE /users/1/follow (with token -> 200)"
+  check_delete_endpoint_auth "/users/1/follow" "404" "DELETE /users/1/follow (not followed -> 404)"
+
   echo ""
   echo "POST Endpoints (authenticated):"
 
