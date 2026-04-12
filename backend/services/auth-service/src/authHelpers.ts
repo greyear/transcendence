@@ -53,7 +53,10 @@ export const validateUsername = (username: string) => {
 		.string()
 		.min(3, "Username must be at least 3 characters")
 		.max(20, "Username must be at most 20 characters")
-		.regex(/^[a-zA-Z0-9_]+$/, "Username can only contain alphanumeric characters and underscores");
+		.regex(
+			/^[a-zA-Z0-9_]+$/,
+			"Username can only contain alphanumeric characters and underscores",
+		);
 
 	const result = usernamePattern.safeParse(username);
 	return result.success;
@@ -192,7 +195,7 @@ export const makeID = async (): Promise<number> => {
 		{ $inc: { seq: 1 } },
 		{ new: false, upsert: true, setDefaultsOnInsert: true },
 	);
-	
+
 	return counter ? counter.seq : 1;
 };
 

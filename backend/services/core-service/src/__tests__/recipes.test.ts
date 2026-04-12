@@ -89,8 +89,13 @@ describe("Recipes Routes", () => {
 
 			// 2. Create a dummy draft recipe owned by this user
 			const recipeRes = await pool.query(
-				`INSERT INTO recipes (title, instructions, status, author_id) 
-				 VALUES ('Secret Draft', ARRAY['step 1'], 'draft', $1) RETURNING id`,
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Secret Draft', 'fi', 'Secret Draft', 'ru', 'Secret Draft'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step 1']), 'fi', to_jsonb(ARRAY['step 1']), 'ru', to_jsonb(ARRAY['step 1'])),
+					'draft',
+					$1
+				 ) RETURNING id`,
 				[999],
 			);
 			recipeId = recipeRes.rows[0].id;
@@ -306,7 +311,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Publish Target', ARRAY['step'], 'draft', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Publish Target', 'fi', 'Publish Target', 'ru', 'Publish Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 )
 				 RETURNING id`,
 				[ownerId],
 			);
@@ -348,7 +358,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Draft For Moderation', ARRAY['step'], 'draft', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Draft For Moderation', 'fi', 'Draft For Moderation', 'ru', 'Draft For Moderation'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 )
 				 RETURNING id`,
 				[userId],
 			);
@@ -427,7 +442,12 @@ describe("Recipes Routes", () => {
 		try {
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				VALUES ('No File Test', ARRAY['step'], 'draft', $1) RETURNING id`,
+				VALUES (
+					jsonb_build_object('en', 'No File Test', 'fi', 'No File Test', 'ru', 'No File Test'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				) RETURNING id`,
 				[userId],
 			);
 			recipeId = recipeResult.rows[0].id;
@@ -455,7 +475,12 @@ describe("Recipes Routes", () => {
 		try {
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				VALUES ('Bad Type Test', ARRAY['step'], 'draft', $1) RETURNING id`,
+				VALUES (
+					jsonb_build_object('en', 'Bad Type Test', 'fi', 'Bad Type Test', 'ru', 'Bad Type Test'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				) RETURNING id`,
 				[userId],
 			);
 			recipeId = recipeResult.rows[0].id;
@@ -515,7 +540,12 @@ describe("Recipes Routes", () => {
 		try {
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Picture Target', ARRAY['step'], 'draft', $1) RETURNING id`,
+				 VALUES (
+					jsonb_build_object('en', 'Picture Target', 'fi', 'Picture Target', 'ru', 'Picture Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 ) RETURNING id`,
 				[ownerId],
 			);
 			recipeId = recipeResult.rows[0].id;
@@ -551,7 +581,12 @@ describe("Recipes Routes", () => {
 		try {
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Moderation Recipe', ARRAY['step'], 'moderation', $1) RETURNING id`,
+				 VALUES (
+					jsonb_build_object('en', 'Moderation Recipe', 'fi', 'Moderation Recipe', 'ru', 'Moderation Recipe'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'moderation',
+					$1
+				 ) RETURNING id`,
 				[userId],
 			);
 			recipeId = recipeResult.rows[0].id;
@@ -584,7 +619,12 @@ describe("Recipes Routes", () => {
 		try {
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Archived Recipe', ARRAY['step'], 'archived', $1) RETURNING id`,
+				 VALUES (
+					jsonb_build_object('en', 'Archived Recipe', 'fi', 'Archived Recipe', 'ru', 'Archived Recipe'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'archived',
+					$1
+				 ) RETURNING id`,
 				[userId],
 			);
 			recipeId = recipeResult.rows[0].id;
@@ -617,7 +657,12 @@ describe("Recipes Routes", () => {
 		try {
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Draft With Picture', ARRAY['step'], 'draft', $1) RETURNING id`,
+				 VALUES (
+					jsonb_build_object('en', 'Draft With Picture', 'fi', 'Draft With Picture', 'ru', 'Draft With Picture'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 ) RETURNING id`,
 				[userId],
 			);
 			recipeId = recipeResult.rows[0].id;
@@ -666,7 +711,12 @@ describe("Recipes Routes", () => {
 		try {
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Published With Picture', ARRAY['step'], 'published', $1) RETURNING id`,
+				 VALUES (
+					jsonb_build_object('en', 'Published With Picture', 'fi', 'Published With Picture', 'ru', 'Published With Picture'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 ) RETURNING id`,
 				[userId],
 			);
 			recipeId = recipeResult.rows[0].id;
@@ -712,7 +762,12 @@ describe("Recipes Routes", () => {
 		try {
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Replace Picture', ARRAY['step'], 'draft', $1) RETURNING id`,
+				 VALUES (
+					jsonb_build_object('en', 'Replace Picture', 'fi', 'Replace Picture', 'ru', 'Replace Picture'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 ) RETURNING id`,
 				[userId],
 			);
 			recipeId = recipeResult.rows[0].id;
@@ -814,7 +869,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Draft To Update', ARRAY['step'], 'draft', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Draft To Update', 'fi', 'Draft To Update', 'ru', 'Draft To Update'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 )
 				 RETURNING id`,
 				[ownerId],
 			);
@@ -858,7 +918,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Published Recipe', ARRAY['step'], 'published', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Published Recipe', 'fi', 'Published Recipe', 'ru', 'Published Recipe'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
 				 RETURNING id`,
 				[userId],
 			);
@@ -904,7 +969,15 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, description, instructions, servings, spiciness, status, author_id)
-				 VALUES ('Old Title', 'Old Description', ARRAY['old step'], 1, 0, 'draft', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Old Title', 'fi', 'Old Title', 'ru', 'Old Title'),
+					jsonb_build_object('en', 'Old Description', 'fi', 'Old Description', 'ru', 'Old Description'),
+					jsonb_build_object('en', to_jsonb(ARRAY['old step']), 'fi', to_jsonb(ARRAY['old step']), 'ru', to_jsonb(ARRAY['old step'])),
+					1,
+					0,
+					'draft',
+					$1
+				 )
 				 RETURNING id`,
 				[userId],
 			);
@@ -942,7 +1015,10 @@ describe("Recipes Routes", () => {
 				`SELECT title, description, servings, spiciness, status FROM recipes WHERE id = $1`,
 				[recipeId],
 			);
-			expect(dbRecipe.rows[0].title).toBe("New Title");
+			expect(dbRecipe.rows[0].title).toMatchObject({ en: "New Title" });
+			expect(dbRecipe.rows[0].description).toMatchObject({
+				en: "New Description",
+			});
 			expect(dbRecipe.rows[0].status).toBe("draft");
 		} finally {
 			if (recipeId) {
@@ -985,7 +1061,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Archive Target', ARRAY['step'], 'published', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Archive Target', 'fi', 'Archive Target', 'ru', 'Archive Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
 				 RETURNING id`,
 				[ownerId],
 			);
@@ -1020,7 +1101,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Owner Archive Target', ARRAY['step'], 'published', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Owner Archive Target', 'fi', 'Owner Archive Target', 'ru', 'Owner Archive Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
 				 RETURNING id`,
 				[ownerId],
 			);
@@ -1058,7 +1144,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Admin Archive Target', ARRAY['step'], 'published', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Admin Archive Target', 'fi', 'Admin Archive Target', 'ru', 'Admin Archive Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
 				 RETURNING id`,
 				[ownerId],
 			);
@@ -1094,7 +1185,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Already Archived', ARRAY['step'], 'archived', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Already Archived', 'fi', 'Already Archived', 'ru', 'Already Archived'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'archived',
+					$1
+				 )
 				 RETURNING id`,
 				[userId],
 			);
@@ -1156,7 +1252,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Favorite Target', ARRAY['step'], 'published', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Favorite Target', 'fi', 'Favorite Target', 'ru', 'Favorite Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
 				 RETURNING id`,
 				[authorId],
 			);

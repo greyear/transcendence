@@ -47,7 +47,7 @@
 		"loading": "Loading recipes...",
 		"empty": "No recipes found.",
 		"error": "Failed to fetch recipes (status: {{status}})."
-  },
+	},
 	"recipePage": {
 		"loading": "Loading...",
 		"invalidRecipe": "Invalid recipe.",

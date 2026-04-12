@@ -251,7 +251,6 @@ recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
 recipesRouter.put("/:id/picture", requireAuth, updateRecipePictureHandler);
 recipesRouter.post("/:id/favorite", requireAuth, favoriteRecipeHandler);
 recipesRouter.delete("/:id/favorite", requireAuth, unfavoriteRecipeHandler);
-
 recipesRouter.use("/:id/rating", ratingsRouter);
 
 recipesRouter.get("/:id", optionalAuth, getRecipeByIdHandler);

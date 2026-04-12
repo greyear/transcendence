@@ -9,7 +9,7 @@ const counterSchema = new mongoose.Schema({
 		type: String,
 		default: "CounterDB",
 		required: true,
-		unique: true
+		unique: true,
 	},
 	seq: {
 		type: Number,

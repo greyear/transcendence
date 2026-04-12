@@ -47,7 +47,7 @@
 		"loading": "Ladataan reseptejä...",
 		"empty": "Reseptejä ei löytynyt.",
 		"error": "Reseptien haku epäonnistui (tila: {{status}})."
-  },
+	},
 	"recipePage": {
 		"loading": "Ladataan...",
 		"invalidRecipe": "Virheellinen resepti.",

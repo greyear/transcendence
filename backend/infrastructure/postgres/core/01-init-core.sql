@@ -31,9 +31,9 @@ CREATE TABLE "followers" (
 
 CREATE TABLE "recipes" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  "title" varchar(256) NOT NULL,
-  "description" text,
-  "instructions" text[] NOT NULL,
+  "title" jsonb NOT NULL,
+  "description" jsonb,
+  "instructions" jsonb NOT NULL,
   "servings" integer NOT NULL DEFAULT 1,
   "spiciness" smallint NOT NULL DEFAULT 0 CHECK (spiciness BETWEEN 0 AND 3),
   "author_id" integer NULL,
@@ -389,9 +389,11 @@ COMMENT ON COLUMN "followers"."user_id" IS 'User who follows';
 
 COMMENT ON COLUMN "followers"."followed_id" IS 'User being followed';
 
-COMMENT ON COLUMN "recipes"."description" IS 'Short recipe summary or preview text';
+COMMENT ON COLUMN "recipes"."title" IS 'Localized title JSON: {"en":"...","fi":"...","ru":"..."}';
 
-COMMENT ON COLUMN "recipes"."instructions" IS 'Full step-by-step cooking instructions';
+COMMENT ON COLUMN "recipes"."description" IS 'Localized description JSON or NULL';
+
+COMMENT ON COLUMN "recipes"."instructions" IS 'Localized instructions JSON: {"en":[...],"fi":[...],"ru":[...]}';
 
 COMMENT ON COLUMN "recipes"."spiciness" IS '0 = none, 1 = mild, 2 = medium, 3 = hot';
 

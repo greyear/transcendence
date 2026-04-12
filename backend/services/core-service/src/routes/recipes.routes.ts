@@ -9,7 +9,6 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { pool } from "../db/database.js";
 import {
 	type NextFunction,
 	type Request,
@@ -17,6 +16,7 @@ import {
 	Router,
 } from "express";
 import multer from "multer";
+import { pool } from "../db/database.js";
 import {
 	type AuthenticatedRequest,
 	extractUser,
@@ -32,6 +32,10 @@ import {
 	updateRecipe,
 	updateRecipePicture,
 } from "../services/recipes.service.js";
+import {
+	resolveRequestedLocale,
+	resolveSourceLocale,
+} from "../utils/locale.js";
 import {
 	validateCreateRecipeInput,
 	validateRecipeId,
@@ -172,7 +176,14 @@ const createRecipeHandler = async (
 			throw error;
 		}
 
-		const recipe = await createRecipe(req.userId, validation.value);
+		const locale = resolveRequestedLocale(req);
+		const sourceLocale = resolveSourceLocale(req);
+		const recipe = await createRecipe(
+			req.userId,
+			validation.value,
+			locale,
+			sourceLocale,
+		);
 		res.status(201).json({ data: recipe });
 	} catch (error) {
 		next(error);
@@ -198,7 +209,12 @@ const publishRecipeHandler = async (
 			throw error;
 		}
 
-		const publishResult = await publishRecipe(validation.value, req.userId);
+		const locale = resolveRequestedLocale(req);
+		const publishResult = await publishRecipe(
+			validation.value,
+			req.userId,
+			locale,
+		);
 
 		if (!publishResult.success) {
 			const error: CustomError = new Error();
@@ -257,10 +273,14 @@ const updateRecipeHandler = async (
 			throw error;
 		}
 
+		const locale = resolveRequestedLocale(req);
+		const sourceLocale = resolveSourceLocale(req);
 		const updateResult = await updateRecipe(
 			idValidation.value,
 			req.userId,
 			updatePayloadValidation.value,
+			locale,
+			sourceLocale,
 		);
 
 		if (!updateResult.success) {
@@ -316,7 +336,12 @@ const deleteRecipeHandler = async (
 			throw error;
 		}
 
-		const archiveResult = await archiveRecipe(validation.value, req.userId);
+		const locale = resolveRequestedLocale(req);
+		const archiveResult = await archiveRecipe(
+			validation.value,
+			req.userId,
+			locale,
+		);
 
 		if (!archiveResult.success) {
 			const error: CustomError = new Error();
@@ -449,12 +474,13 @@ const unfavoriteRecipeHandler = async (
  * Note: No authentication needed - returns only published recipes
  */
 const getAllRecipesHandler = async (
-	_req: Request,
+	req: Request,
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		const recipes = await getAllRecipes();
+		const locale = resolveRequestedLocale(req);
+		const recipes = await getAllRecipes(locale);
 		res.status(200).json({ data: recipes, count: recipes.length });
 	} catch (error) {
 		next(error);
@@ -484,7 +510,8 @@ const getRecipeByIdHandler = async (
 			throw error;
 		}
 
-		const recipe = await getRecipeById(validation.value, req.userId);
+		const locale = resolveRequestedLocale(req);
+		const recipe = await getRecipeById(validation.value, req.userId, locale);
 		if (!recipe) {
 			const error: CustomError = new Error("Recipe not found");
 			error.statusCode = 404;
