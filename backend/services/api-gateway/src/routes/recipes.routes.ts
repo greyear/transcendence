@@ -222,9 +222,36 @@ const unfavoriteRecipeHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
+const updateRecipePictureHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/recipes/${req.params.id}/picture`,
+			{
+				method: "PUT",
+				headers: getInternalHeaders(req),
+				body: req,
+				duplex: "half",
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			} as RequestInit,
+		);
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to update recipe picture" });
+	}
+};
+
 recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
+recipesRouter.put("/:id/picture", requireAuth, updateRecipePictureHandler);
 recipesRouter.post("/:id/favorite", requireAuth, favoriteRecipeHandler);
 recipesRouter.delete("/:id/favorite", requireAuth, unfavoriteRecipeHandler);
+recipesRouter.use("/:id/rating", ratingsRouter);
 
 recipesRouter.get("/:id", optionalAuth, getRecipeByIdHandler);
 recipesRouter.put("/:id", requireAuth, updateRecipeHandler);
@@ -232,5 +259,3 @@ recipesRouter.delete("/:id", requireAuth, deleteRecipeHandler);
 
 recipesRouter.get("/", optionalAuth, getRecipesHandler);
 recipesRouter.post("/", requireAuth, createRecipeHandler);
-
-recipesRouter.use("/:id/rating", ratingsRouter);

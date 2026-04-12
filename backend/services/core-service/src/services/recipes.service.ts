@@ -13,6 +13,8 @@
  * - Query params always contain only numbers (no undefined values sent to DB)
  */
 
+import fs from "node:fs";
+import path from "node:path";
 import type { PoolClient } from "pg";
 import { z } from "zod";
 import { pool } from "../db/database.js";
@@ -65,6 +67,14 @@ type FailedRecipeMutationResult = {
 	reason: "not-found" | "forbidden" | "invalid-status";
 	currentStatus?: string;
 };
+
+type UpdateRecipePictureResult =
+	| { success: true }
+	| {
+			success: false;
+			reason: "not-found" | "forbidden" | "invalid-status";
+			currentStatus?: string;
+	  };
 
 type AddFavoriteResult =
 	| { success: true; recipeId: number }
@@ -902,6 +912,78 @@ export const getRecipeById = async (
 		return getRecipeWithIngredientsById(id, locale);
 	} catch (error) {
 		console.error("Database error in getRecipeById:", error);
+		throw error;
+	}
+};
+
+export const updateRecipePicture = async (
+	recipeId: number,
+	userId: number,
+	pictureUrl: string,
+): Promise<UpdateRecipePictureResult> => {
+	try {
+		const existingResult = await pool.query(
+			`SELECT author_id, status FROM recipes WHERE id = $1`,
+			[recipeId],
+		);
+
+		if (existingResult.rowCount === 0) {
+			return { success: false, reason: "not-found" };
+		}
+
+		const existingParsed = recipeVisibilityRowSchema.safeParse(
+			existingResult.rows[0],
+		);
+		if (!existingParsed.success) {
+			throw new Error(z.prettifyError(existingParsed.error));
+		}
+
+		const { author_id, status } = existingParsed.data;
+
+		if (author_id !== userId) {
+			return { success: false, reason: "forbidden" };
+		}
+
+		if (status !== "draft" && status !== "published") {
+			return {
+				success: false,
+				reason: "invalid-status",
+				currentStatus: status,
+			};
+		}
+
+		// Fetch existing picture URL before upserting so we can delete the old file
+		const existingMediaResult = await pool.query(
+			`SELECT url FROM recipe_media WHERE recipe_id = $1 AND position = 0`,
+			[recipeId],
+		);
+		const oldPictureUrl: string | null =
+			existingMediaResult.rows[0]?.url ?? null;
+
+		await pool.query(
+			`
+      INSERT INTO recipe_media (recipe_id, type, url, position)
+      VALUES ($1, 'image', $2, 0)
+      ON CONFLICT (recipe_id, position)
+      DO UPDATE SET url = EXCLUDED.url
+      `,
+			[recipeId, pictureUrl],
+		);
+
+		// Delete old file from disk if it existed and differs from the new one
+		if (oldPictureUrl && oldPictureUrl !== pictureUrl) {
+			const oldFilename = oldPictureUrl.replace("/recipe-pictures/", "");
+			const oldFilePath = path.resolve("uploads/recipes", oldFilename);
+			fs.unlink(oldFilePath, (err) => {
+				if (err && err.code !== "ENOENT") {
+					console.error("Failed to delete old recipe picture:", err);
+				}
+			});
+		}
+
+		return { success: true };
+	} catch (error) {
+		console.error("Database error in updateRecipePicture:", error);
 		throw error;
 	}
 };

@@ -1,7 +1,7 @@
 {
 	"common": {
 		"signInButton": "Sign In",
-		"searchPlaceholder": "Search for ...",
+		"searchPlaceholder": "Search for...",
 		"sortButton": "Sort",
 		"filterButton": "Filter",
 		"sortOptions": {
@@ -43,12 +43,36 @@
 		"tabMy": "My recipes",
 		"tabSaved": "Saved recipes"
 	},
+	"recipesGrid": {
+		"loading": "Loading recipes...",
+		"empty": "No recipes found.",
+		"error": "Failed to fetch recipes (status: {{status}})."
+  },
+	"recipePage": {
+		"loading": "Loading...",
+		"invalidRecipe": "Invalid recipe.",
+		"error": "Failed to fetch recipe (status: {{status}}).",
+		"errorLoadingRecipe": "Failed to load recipe.",
+		"recipeNotFound": "Recipe not found.",
+		"rate": "Rate",
+		"ingredients": "Ingredients",
+		"noIngredientsAvailable": "No ingredients available for this recipe.",
+		"instructions": "Instructions",
+		"noInstructionsAvailable": "No instructions available for this recipe.",
+		"step": "Step {{number}}",
+		"share": "Share"
+	},
 	"usersPage": {
 		"title": "Users",
 		"totalCount": "Total users:",
 		"tabAll": "All",
 		"tabFollowers": "Followers",
 		"tabFollowing": "Following"
+	},
+	"usersGrid": {
+		"loading": "Loading users...",
+		"empty": "No users found.",
+		"error": "Failed to fetch users (status: {{status}})."
 	},
 	"userCard": {
 		"recipes": "recipes",
@@ -80,6 +104,8 @@
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
 		"allUsers": "All users",
-		"sortBy": "Sort by"
+		"sortBy": "Sort by",
+		"shareRecipe": "Share recipe",
+		"ingredientsAndInstructions": "Recipe ingredients and instructions"
 	}
 }

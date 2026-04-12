@@ -7,6 +7,8 @@
  * - Authorization scenarios (guest vs authenticated user)
  */
 
+import fs from "node:fs";
+import path from "node:path";
 import request from "supertest";
 import { app } from "../app.js";
 import { pool } from "../db/database.js";
@@ -391,6 +393,386 @@ describe("Recipes Routes", () => {
 			if (recipeId) {
 				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			}
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	const minimalJpeg = Buffer.from(
+		"/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8U" +
+			"HRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgN" +
+			"DRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy" +
+			"MjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAA" +
+			"AAAAAAAAAAAAAAAAAP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/xAAUEQEAAAAAAAAAAAAAAAAA" +
+			"AAAA/9oADAMBAAIRAxEAPwCwABmX/9k=",
+		"base64",
+	);
+
+	it("should return 401 for PUT /recipes/:id/picture without authentication", async () => {
+		const response = await request(app)
+			.put("/recipes/1/picture")
+			.attach("picture", minimalJpeg, {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 400 for PUT /recipes/:id/picture with invalid recipe ID", async () => {
+		const response = await request(app)
+			.put("/recipes/abc/picture")
+			.set("X-User-Id", "1")
+			.attach("picture", minimalJpeg, {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 400 when no picture file is provided", async () => {
+		const userId = 2200;
+		let recipeId: number | null = null;
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_no_file"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				VALUES ('No File Test', ARRAY['step'], 'draft', $1) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId));
+
+			expect(response.status).toBe(400);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should return 400 for unsupported file type", async () => {
+		const userId = 2201;
+		let recipeId: number | null = null;
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_bad_type"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				VALUES ('Bad Type Test', ARRAY['step'], 'draft', $1) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", Buffer.from("fake gif"), {
+					filename: "pic.gif",
+					contentType: "image/gif",
+				});
+
+			expect(response.status).toBe(400);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should return 404 for non-existent recipe", async () => {
+		const userId = 2202;
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_no_recipe"],
+		);
+		try {
+			const response = await request(app)
+				.put("/recipes/999999/picture")
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(404);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should return 403 when user is not the recipe author", async () => {
+		const ownerId = 2203;
+		const intruderId = 2204;
+		let recipeId: number | null = null;
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[ownerId, "picture_owner"],
+		);
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[intruderId, "picture_intruder"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Picture Target', ARRAY['step'], 'draft', $1) RETURNING id`,
+				[ownerId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(intruderId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(403);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				ownerId,
+				intruderId,
+			]);
+		}
+	});
+
+	it("should return 409 for recipe in moderation status", async () => {
+		const userId = 2205;
+		let recipeId: number | null = null;
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_moderation"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Moderation Recipe', ARRAY['step'], 'moderation', $1) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(409);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should return 409 for archived recipe", async () => {
+		const userId = 2206;
+		let recipeId: number | null = null;
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_archived"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Archived Recipe', ARRAY['step'], 'archived', $1) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(409);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should upload picture for draft recipe and store URL in recipe_media", async () => {
+		const userId = 2207;
+		let recipeId: number | null = null;
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_draft_success"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Draft With Picture', ARRAY['step'], 'draft', $1) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message", "Recipe picture updated");
+			expect(response.body.data.picture_url).toMatch(/^\/recipe-pictures\//);
+
+			const mediaResult = await pool.query(
+				`SELECT url, type, position FROM recipe_media WHERE recipe_id = $1 AND position = 0`,
+				[recipeId],
+			);
+			expect(mediaResult.rowCount).toBe(1);
+			expect(mediaResult.rows[0].type).toBe("image");
+			expect(mediaResult.rows[0].url).toMatch(/^\/recipe-pictures\//);
+
+			// Cleanup uploaded file
+			const filePath = path.resolve(
+				"uploads/recipes",
+				path.basename(mediaResult.rows[0].url),
+			);
+			if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should upload picture for published recipe", async () => {
+		const userId = 2208;
+		let recipeId: number | null = null;
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_published_success"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Published With Picture', ARRAY['step'], 'published', $1) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message", "Recipe picture updated");
+
+			const mediaResult = await pool.query(
+				`SELECT url FROM recipe_media WHERE recipe_id = $1 AND position = 0`,
+				[recipeId],
+			);
+			if (mediaResult.rows[0]?.url) {
+				const filePath = path.resolve(
+					"uploads/recipes",
+					path.basename(mediaResult.rows[0].url),
+				);
+				if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+			}
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should replace existing picture and delete old file from disk", async () => {
+		const userId = 2209;
+		let recipeId: number | null = null;
+		const oldFilePath = path.resolve(`uploads/recipes/old_${userId}.jpg`);
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_replace"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES ('Replace Picture', ARRAY['step'], 'draft', $1) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			// Seed an existing picture row with a fake old file on disk
+			fs.writeFileSync(oldFilePath, "old image data");
+			await pool.query(
+				`INSERT INTO recipe_media (recipe_id, type, url, position)
+				 VALUES ($1, 'image', $2, 0)`,
+				[recipeId, `/recipe-pictures/old_${userId}.jpg`],
+			);
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message", "Recipe picture updated");
+
+			// Old file should be deleted from disk
+			expect(fs.existsSync(oldFilePath)).toBe(false);
+
+			// DB should have the new URL
+			const mediaResult = await pool.query(
+				`SELECT url FROM recipe_media WHERE recipe_id = $1 AND position = 0`,
+				[recipeId],
+			);
+			expect(mediaResult.rows[0].url).not.toBe(
+				`/recipe-pictures/old_${userId}.jpg`,
+			);
+
+			// Cleanup new file
+			const newFilePath = path.resolve(
+				"uploads/recipes",
+				path.basename(mediaResult.rows[0].url),
+			);
+			if (fs.existsSync(newFilePath)) fs.unlinkSync(newFilePath);
+		} finally {
+			if (fs.existsSync(oldFilePath)) fs.unlinkSync(oldFilePath);
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
 		}
 	});

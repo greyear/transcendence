@@ -7,6 +7,12 @@
 	width: 100%;
 }
 
+.recipes-grid-status {
+	color: var(--text-secondary);
+	margin: 0;
+	padding: var(--space-m) 0;
+}
+
 /* Adding 1024px as an exception because otherwise the cards are really small */
 @media (min-width: 1024px) {
 	.recipe-card-list {

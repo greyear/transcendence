@@ -1,6 +1,4 @@
 .icon-button {
-	--icon-button-size: 44px;
-	--icon-size: 20px;
 	min-width: var(--icon-button-size);
 	height: var(--icon-button-size);
 	border-radius: var(--radius-s);
@@ -87,19 +85,5 @@
 	&.active {
 		background-color: var(--surface-action-active);
 		color: var(--text-on-accent);
-	}
-}
-
-@media (min-width: 768px) {
-	.icon-button {
-		--icon-button-size: 48px;
-		--icon-size: 24px;
-	}
-}
-
-@media (min-width: 1440px) {
-	.icon-button {
-		--icon-button-size: 56px;
-		--icon-size: 32px;
 	}
 }
