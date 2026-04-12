@@ -1,5 +1,5 @@
 import { Google, Xmark } from "iconoir-react";
-import { useState } from "react";
+import { type RefObject, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "~/components/buttons/IconButton";
 import { MainButton } from "~/components/buttons/MainButton";
@@ -12,12 +12,14 @@ type AuthMode = "login" | "signup";
 
 type AuthFormProps = {
 	initialMode?: AuthMode;
+	dialogRef?: RefObject<HTMLElement | null>;
 	onClose?: () => void;
 	onSuccess?: () => void;
 };
 
 export const AuthForm = ({
 	initialMode = "login",
+	dialogRef,
 	onClose,
 	onSuccess,
 }: AuthFormProps) => {
@@ -101,9 +103,11 @@ export const AuthForm = ({
 	return (
 		<section
 			className="auth-card"
+			ref={dialogRef}
 			role="dialog"
 			aria-modal="true"
 			aria-labelledby="auth-modal-title"
+			tabIndex={-1}
 		>
 			<div className="auth-card-header">
 				<h1 id="auth-modal-title">

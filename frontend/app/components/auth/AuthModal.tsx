@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { AuthForm } from "./AuthForm";
 
 type AuthModalProps = {
@@ -7,20 +7,89 @@ type AuthModalProps = {
 	onSuccess: () => void;
 };
 
+const FOCUSABLE_SELECTOR = [
+	"a[href]",
+	"button:not([disabled])",
+	"input:not([disabled])",
+	"select:not([disabled])",
+	"textarea:not([disabled])",
+	'[tabindex]:not([tabindex="-1"])',
+].join(",");
+
 export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
+	const dialogRef = useRef<HTMLElement>(null);
+
 	useEffect(() => {
 		if (!isOpen) {
 			return;
 		}
 
-		const handleEscape = (event: KeyboardEvent) => {
+		const dialog = dialogRef.current;
+		if (!dialog) {
+			return;
+		}
+
+		const previousActiveElement =
+			document.activeElement instanceof HTMLElement
+				? document.activeElement
+				: null;
+		const previousOverflow = document.body.style.overflow;
+		document.body.style.overflow = "hidden";
+
+		const getFocusableElements = () =>
+			Array.from(
+				dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+			).filter((element) => !element.hasAttribute("disabled"));
+
+		getFocusableElements()[0]?.focus() ?? dialog.focus();
+
+		const handleKeyDown = (event: KeyboardEvent) => {
 			if (event.key === "Escape") {
 				onClose();
+				return;
+			}
+
+			if (event.key !== "Tab") {
+				return;
+			}
+
+			const focusableElements = getFocusableElements();
+			if (focusableElements.length === 0) {
+				event.preventDefault();
+				dialog.focus();
+				return;
+			}
+
+			const firstElement = focusableElements[0];
+			const lastElement = focusableElements[focusableElements.length - 1];
+			const activeElement = document.activeElement;
+			const isOutsideDialog =
+				!(activeElement instanceof Node) || !dialog.contains(activeElement);
+
+			if (
+				event.shiftKey &&
+				(activeElement === firstElement || isOutsideDialog)
+			) {
+				event.preventDefault();
+				lastElement.focus();
+			}
+
+			if (
+				!event.shiftKey &&
+				(activeElement === lastElement || isOutsideDialog)
+			) {
+				event.preventDefault();
+				firstElement.focus();
 			}
 		};
 
-		window.addEventListener("keydown", handleEscape);
-		return () => window.removeEventListener("keydown", handleEscape);
+		document.addEventListener("keydown", handleKeyDown);
+
+		return () => {
+			document.body.style.overflow = previousOverflow;
+			document.removeEventListener("keydown", handleKeyDown);
+			previousActiveElement?.focus();
+		};
 	}, [isOpen, onClose]);
 
 	if (!isOpen) {
@@ -29,7 +98,7 @@ export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
 
 	return (
 		<div className="auth-modal-backdrop" role="presentation">
-			<AuthForm onClose={onClose} onSuccess={onSuccess} />
+			<AuthForm dialogRef={dialogRef} onClose={onClose} onSuccess={onSuccess} />
 		</div>
 	);
 };
