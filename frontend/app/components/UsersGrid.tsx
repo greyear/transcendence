@@ -1,6 +1,8 @@
 import { UserCard } from "./cards/UserCard";
 import "../assets/styles/usersGrid.css";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { API_BASE_URL } from "~/composables/apiBaseUrl";
 
 type UserCardResponse = {
 	id: number;
@@ -41,13 +43,20 @@ export const UsersGrid = ({
 	onLoad,
 	sortValue = "name-asc",
 }: UsersGridProps) => {
+	const { t } = useTranslation();
 	const [userList, setUserList] = useState<UserCardResponse[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
+		null,
+	);
 
 	useEffect(() => {
-		fetch("http://localhost:3000/users")
+		fetch(`${API_BASE_URL}/users`)
 			.then((res) => {
 				if (!res.ok) {
-					console.log("The user database is empty.");
+					const message = `Failed to fetch users: ${res.status}`;
+					console.error(message);
+					setErrorStatus(res.status);
 					return { data: [] };
 				}
 				return res.json();
@@ -57,7 +66,13 @@ export const UsersGrid = ({
 				onLoad?.(allUsers.length);
 				setUserList(allUsers);
 			})
-			.catch(console.error);
+			.catch((error: unknown) => {
+				console.error(error);
+				setErrorStatus("unknown");
+			})
+			.finally(() => {
+				setIsLoading(false);
+			});
 	}, [onLoad]);
 
 	const sortedList = useMemo(
@@ -67,6 +82,22 @@ export const UsersGrid = ({
 
 	const start = (page - 1) * perPage;
 	const pageUsers = sortedList.slice(start, start + perPage);
+
+	if (isLoading) {
+		return <p className="users-grid-status">{t("usersGrid.loading")}</p>;
+	}
+
+	if (errorStatus !== null) {
+		return (
+			<p className="users-grid-status">
+				{t("usersGrid.error", { status: errorStatus })}
+			</p>
+		);
+	}
+
+	if (userList.length === 0) {
+		return <p className="users-grid-status">{t("usersGrid.empty")}</p>;
+	}
 
 	return (
 		<ul className="user-card-list">

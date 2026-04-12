@@ -5,3 +5,9 @@
 	padding: 0;
 	gap: var(--space-l);
 }
+
+.users-grid-status {
+	color: var(--text-secondary);
+	margin: 0;
+	padding: var(--space-m) 0;
+}

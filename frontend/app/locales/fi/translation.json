@@ -1,7 +1,7 @@
 {
 	"common": {
 		"signInButton": "Kirjaudu",
-		"searchPlaceholder": "Hae ...",
+		"searchPlaceholder": "Hae...",
 		"sortButton": "Järjestä",
 		"filterButton": "Suodata",
 		"sortOptions": {
@@ -43,12 +43,59 @@
 		"tabMy": "Omat reseptit",
 		"tabSaved": "Tallennetut"
 	},
+	"recipesGrid": {
+		"loading": "Ladataan reseptejä...",
+		"empty": "Reseptejä ei löytynyt.",
+		"error": "Reseptien haku epäonnistui (tila: {{status}})."
+	},
+	"recipePage": {
+		"loading": "Ladataan...",
+		"invalidRecipe": "Virheellinen resepti.",
+		"error": "Reseptin haku epäonnistui (tila: {{status}}).",
+		"errorLoadingRecipe": "Reseptin lataaminen epäonnistui.",
+		"recipeNotFound": "Reseptiä ei löytynyt.",
+		"rate": "Arvioi",
+		"ingredients": "Ainekset",
+		"noIngredientsAvailable": "Tälle reseptille ei ole saatavilla aineksia.",
+		"instructions": "Ohjeet",
+		"noInstructionsAvailable": "Tälle reseptille ei ole saatavilla ohjeita.",
+		"step": "Vaihe {{number}}",
+		"share": "Jaa"
+	},
 	"usersPage": {
 		"title": "Käyttäjät",
 		"totalCount": "Käyttäjiä yhteensä:",
 		"tabAll": "Kaikki",
 		"tabFollowers": "Seuraajat",
 		"tabFollowing": "Seuratut"
+	},
+	"loginPage": {
+		"title": "Kirjaudu sisään",
+		"signupTitle": "Luo tili",
+		"usernameLabel": "Käyttäjätunnus tai sähköposti",
+		"signupUsernameLabel": "Käyttäjätunnus",
+		"usernameRequirements": "Käytä 3-20 merkkiä ja vain kirjaimia, numeroita sekä alaviivaa.",
+		"emailLabel": "Sähköposti",
+		"passwordLabel": "Salasana",
+		"passwordRequirements": "Käytä 8-64 merkkiä ja sisällytä iso kirjain, pieni kirjain, numero sekä erikoismerkki.",
+		"genericError": "Kirjautuminen epäonnistui. Yritä uudelleen.",
+		"networkError": "Pyyntö ei tavoittanut palvelinta. Syynä voi olla paikallinen verkko- tai CORS-ongelma.",
+		"loginSuccess": "Kirjautumispyyntö suoritettiin.",
+		"submittingButton": "Kirjaudutaan...",
+		"signupButton": "Luo tili",
+		"logInButton": "Kirjaudu sisään",
+		"googleLoginButton": "Kirjaudu sisään Googlella",
+		"googleSignupButton": "Luo tili Googlella",
+		"googleUnavailable": "Google-kirjautumista ei ole vielä kytketty frontendissä.",
+		"signupSubmittingButton": "Luodaan tiliä...",
+		"signupSuccess": "Tili luotu. Voit nyt kirjautua sisään.",
+		"toggleSignupPrompt": "Tarvitsetko tilin? Luo sellainen",
+		"toggleLoginPrompt": "Onko sinulla jo tili? Kirjaudu sisään"
+	},
+	"usersGrid": {
+		"loading": "Ladataan käyttäjiä...",
+		"empty": "Käyttäjiä ei löytynyt.",
+		"error": "Käyttäjien haku epäonnistui (tila: {{status}})."
 	},
 	"userCard": {
 		"recipes": "reseptiä",
@@ -80,6 +127,9 @@
 		"toggleMenu": "Vaihda valikon tila",
 		"allRecipes": "Kaikki reseptit",
 		"allUsers": "Kaikki käyttäjät",
-		"sortBy": "Järjestä"
+		"sortBy": "Järjestä",
+		"shareRecipe": "Jaa resepti",
+		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet",
+		"closeAuthDialog": "Sulje tunnistautumisikkuna"
 	}
 }

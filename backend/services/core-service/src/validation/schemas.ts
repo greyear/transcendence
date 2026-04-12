@@ -19,6 +19,7 @@ import { z } from "zod";
  * Maximum value for PostgreSQL INTEGER type (2^31 - 1)
  */
 const MAX_SIGNED_INT = 2147483647;
+const MAX_REVIEW_BODY_LENGTH = 1000;
 
 /**
  * Positive Integer schema
@@ -40,6 +41,10 @@ const positiveIntSchema = z.coerce
 	.max(MAX_SIGNED_INT);
 
 export const userIdSchema = positiveIntSchema;
+
+export const supportedLocaleSchema = z.enum(["en", "fi", "ru"]);
+export type SupportedLocale = z.infer<typeof supportedLocaleSchema>;
+export const DEFAULT_LOCALE: SupportedLocale = "en";
 
 const userPresenceStatusSchema = z.enum(["online", "offline"]);
 
@@ -103,8 +108,15 @@ const ratingInputSchema = z.object({
 
 const updateRecipeInputSchema = createRecipeInputSchema;
 
+const createRecipeReviewInputSchema = z.object({
+	body: z.string().trim().min(1).max(MAX_REVIEW_BODY_LENGTH),
+});
+
 export type CreateRecipeInput = z.infer<typeof createRecipeInputSchema>;
 export type UpdateRecipeInput = z.infer<typeof updateRecipeInputSchema>;
+export type CreateRecipeReviewInput = z.infer<
+	typeof createRecipeReviewInputSchema
+>;
 
 type ValidationResult<T> =
 	| { valid: true; value: T }
@@ -126,6 +138,21 @@ const validateIntId = (id: unknown): ValidationResult<number> => {
 export const validateRecipeId = validateIntId;
 
 export const validateUserId = validateIntId;
+
+export const validateLocale = (
+	input: unknown,
+): ValidationResult<SupportedLocale> => {
+	const result = supportedLocaleSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: "Supported locales are: en, fi, ru",
+	};
+};
 
 export const validateCreateRecipeInput = (
 	input: unknown,
@@ -161,6 +188,21 @@ export const validateRatingInput = (
 	input: unknown,
 ): ValidationResult<RatingInput> => {
 	const result = ratingInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+export const validateCreateRecipeReviewInput = (
+	input: unknown,
+): ValidationResult<CreateRecipeReviewInput> => {
+	const result = createRecipeReviewInputSchema.safeParse(input);
 
 	if (result.success) {
 		return { valid: true, value: result.data };
@@ -233,6 +275,17 @@ export const myRecipeListItemSchema = z.object({
 	description: z.string().nullable(),
 	rating_avg: z.coerce.number().min(1).max(5).nullable(),
 	status: recipeStatusSchema,
+});
+
+export const recipeReviewListItemSchema = z.object({
+	id: z.number().int().positive(),
+	recipe_id: z.number().int().positive(),
+	author_id: userIdSchema.nullable(),
+	username: z.string().trim().min(1).max(32).nullable(),
+	avatar: z.string().nullable(),
+	body: z.string(),
+	created_at: z.coerce.date().transform((value) => value.toISOString()),
+	updated_at: z.coerce.date().transform((value) => value.toISOString()),
 });
 
 /**
@@ -337,6 +390,7 @@ export type FavoriteRecipeListItem = z.infer<
  * MyRecipeListItem type - minimal recipe info for current user's recipes
  */
 export type MyRecipeListItem = z.infer<typeof myRecipeListItemSchema>;
+export type RecipeReviewListItem = z.infer<typeof recipeReviewListItemSchema>;
 export type UserListItem = z.infer<typeof userListItemSchema>;
 export type UserProfile = z.infer<typeof userProfileSchema>;
 

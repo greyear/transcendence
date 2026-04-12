@@ -756,4 +756,325 @@ describe("API Gateway - Recipes Routes", () => {
 			count: 1,
 		});
 	});
+
+	it("should reject PUT /recipes/:id/picture without authentication", async () => {
+		const response = await request(app)
+			.put("/recipes/1/picture")
+			.attach("picture", Buffer.from("fake image"), {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy PUT /recipes/:id/picture to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			json: async () => ({
+				data: { picture_url: "/recipe-pictures/1.jpg" },
+				message: "Recipe picture updated",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.put("/recipes/1/picture")
+			.set("Authorization", "Bearer validtoken")
+			.attach("picture", Buffer.from("fake image"), {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: { picture_url: "/recipe-pictures/1.jpg" },
+			message: "Recipe picture updated",
+		});
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			1,
+			expect.stringContaining("/auth/validate"),
+			expect.objectContaining({
+				method: "POST",
+				headers: { Authorization: "Bearer validtoken" },
+			}),
+		);
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining("/recipes/1/picture"),
+			expect.objectContaining({
+				method: "PUT",
+				headers: expect.objectContaining({
+					"x-user-id": "42",
+				}),
+				duplex: "half",
+				signal: expect.any(AbortSignal),
+			}),
+		);
+	});
+
+	it("should forward 400 from core-service for invalid file type", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 400,
+			json: async () => ({
+				error: "Only JPEG, PNG and WebP images are allowed",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.put("/recipes/1/picture")
+			.set("Authorization", "Bearer validtoken")
+			.attach("picture", Buffer.from("fake gif"), {
+				filename: "pic.gif",
+				contentType: "image/gif",
+			});
+
+		expect(response.status).toBe(400);
+		expect(response.body).toEqual({
+			error: "Only JPEG, PNG and WebP images are allowed",
+		});
+	});
+
+	it("should forward 403 from core-service when user is not the author", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 403,
+			json: async () => ({ error: "No permission to update this recipe" }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.put("/recipes/1/picture")
+			.set("Authorization", "Bearer validtoken")
+			.attach("picture", Buffer.from("fake image"), {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
+
+		expect(response.status).toBe(403);
+		expect(response.body).toEqual({
+			error: "No permission to update this recipe",
+		});
+	});
+
+	it("should forward 404 from core-service when recipe not found", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 404,
+			json: async () => ({ error: "Recipe not found" }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.put("/recipes/999999/picture")
+			.set("Authorization", "Bearer validtoken")
+			.attach("picture", Buffer.from("fake image"), {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
+
+		expect(response.status).toBe(404);
+		expect(response.body).toEqual({ error: "Recipe not found" });
+	});
+
+	it("should forward 409 from core-service for invalid recipe status", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 409,
+			json: async () => ({
+				error: "Recipe picture cannot be updated from status moderation",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.put("/recipes/1/picture")
+			.set("Authorization", "Bearer validtoken")
+			.attach("picture", Buffer.from("fake image"), {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
+
+		expect(response.status).toBe(409);
+		expect(response.body).toEqual({
+			error: "Recipe picture cannot be updated from status moderation",
+		});
+	});
+
+	it("should return 504 when picture request times out", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		const timeoutError = new Error("Request timed out");
+		timeoutError.name = "TimeoutError";
+		fetchSpy.mockRejectedValueOnce(timeoutError);
+
+		const response = await request(app)
+			.put("/recipes/1/picture")
+			.set("Authorization", "Bearer validtoken")
+			.attach("picture", Buffer.from("fake image"), {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
+
+		expect(response.status).toBe(504);
+		expect(response.body).toEqual({ error: "Gateway Timeout" });
+	});
+
+	it("should return 500 on unexpected proxy error for PUT picture", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockRejectedValueOnce(new Error("boom"));
+
+		const response = await request(app)
+			.put("/recipes/1/picture")
+			.set("Authorization", "Bearer validtoken")
+			.attach("picture", Buffer.from("fake image"), {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
+
+		expect(response.status).toBe(500);
+		expect(response.body).toEqual({ error: "Failed to update recipe picture" });
+	});
+
+	it("should reject POST /recipes/:id/reviews without authentication", async () => {
+		const response = await request(app)
+			.post("/recipes/77/reviews")
+			.send({ body: "Great" });
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy POST /recipes/:id/reviews to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 201,
+			json: async () => ({
+				data: { recipe_id: 77, review_id: 501 },
+				message: "Review published",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.post("/recipes/77/reviews")
+			.set("Authorization", "Bearer validtoken")
+			.send({ body: "Great" });
+
+		expect(response.status).toBe(201);
+		expect(response.body).toEqual({
+			data: { recipe_id: 77, review_id: 501 },
+			message: "Review published",
+		});
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining("/recipes/77/reviews"),
+			expect.objectContaining({
+				method: "POST",
+				headers: expect.objectContaining({
+					"Content-Type": "application/json",
+					"x-user-id": "42",
+				}),
+				body: JSON.stringify({ body: "Great" }),
+				signal: expect.any(AbortSignal),
+			}),
+		);
+	});
+
+	it("should forward 400 from core-service for invalid review payload", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 400,
+			json: async () => ({ error: "Invalid review body" }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.post("/recipes/77/reviews")
+			.set("Authorization", "Bearer validtoken")
+			.send({ body: "x".repeat(1001) });
+
+		expect(response.status).toBe(400);
+		expect(response.body).toEqual({ error: "Invalid review body" });
+	});
+
+	it("should proxy GET /recipes/:id/reviews to core-service", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 200,
+			json: async () => ({
+				data: [{ id: 501, body: "Great" }],
+				count: 1,
+			}),
+		} as unknown as Response);
+
+		const response = await request(app).get("/recipes/77/reviews");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: [{ id: 501, body: "Great" }],
+			count: 1,
+		});
+		expect(fetchSpy).toHaveBeenCalledWith(
+			expect.stringContaining("/recipes/77/reviews"),
+			expect.objectContaining({ signal: expect.any(AbortSignal) }),
+		);
+	});
+
+	it("should forward 404 from core-service for GET /recipes/:id/reviews", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 404,
+			json: async () => ({ error: "Recipe not found" }),
+		} as unknown as Response);
+
+		const response = await request(app).get("/recipes/999999/reviews");
+
+		expect(response.status).toBe(404);
+		expect(response.body).toEqual({ error: "Recipe not found" });
+	});
 });
