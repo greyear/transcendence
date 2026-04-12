@@ -47,7 +47,7 @@
 		"loading": "Loading recipes...",
 		"empty": "No recipes found.",
 		"error": "Failed to fetch recipes (status: {{status}})."
-  },
+	},
 	"recipePage": {
 		"loading": "Loading...",
 		"invalidRecipe": "Invalid recipe.",
@@ -90,7 +90,7 @@
 		"signupSuccess": "Account created. You can sign in now.",
 		"toggleSignupPrompt": "Need an account? Create one",
 		"toggleLoginPrompt": "Already have an account? Back to sign in"
-  },
+	},
 	"usersGrid": {
 		"loading": "Loading users...",
 		"empty": "No users found.",

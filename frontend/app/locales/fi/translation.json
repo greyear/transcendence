@@ -47,7 +47,7 @@
 		"loading": "Ladataan reseptejä...",
 		"empty": "Reseptejä ei löytynyt.",
 		"error": "Reseptien haku epäonnistui (tila: {{status}})."
-  },
+	},
 	"recipePage": {
 		"loading": "Ladataan...",
 		"invalidRecipe": "Virheellinen resepti.",
@@ -91,7 +91,7 @@
 		"signupSuccess": "Tili luotu. Voit nyt kirjautua sisään.",
 		"toggleSignupPrompt": "Tarvitsetko tilin? Luo sellainen",
 		"toggleLoginPrompt": "Onko sinulla jo tili? Kirjaudu sisään"
-  },
+	},
 	"usersGrid": {
 		"loading": "Ladataan käyttäjiä...",
 		"empty": "Käyttäjiä ei löytynyt.",
