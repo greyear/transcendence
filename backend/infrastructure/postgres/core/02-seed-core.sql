@@ -476,16 +476,34 @@ INSERT INTO recipes (
   rating_avg,
   rating_count
 ) VALUES (
-  'Classic Pancakes',
-  'Fluffy and delicious homemade pancakes perfect for breakfast',
-  ARRAY[
-    'Mix flour, sugar, baking powder and salt in a large bowl',
-    'In another bowl, whisk together milk, egg and melted butter',
-    'Pour wet ingredients into dry ingredients and stir until just combined',
-    'Heat a lightly oiled griddle over medium-high heat',
-    'Pour batter onto the griddle and cook until bubbles form on surface',
-    'Flip and cook until golden brown on both sides'
-  ],
+  jsonb_build_object('en', 'Classic Pancakes', 'fi', 'Classic Pancakes', 'ru', 'Classic Pancakes'),
+  jsonb_build_object('en', 'Fluffy and delicious homemade pancakes perfect for breakfast', 'fi', 'Fluffy and delicious homemade pancakes perfect for breakfast', 'ru', 'Fluffy and delicious homemade pancakes perfect for breakfast'),
+  jsonb_build_object(
+    'en', to_jsonb(ARRAY[
+      'Mix flour, sugar, baking powder and salt in a large bowl',
+      'In another bowl, whisk together milk, egg and melted butter',
+      'Pour wet ingredients into dry ingredients and stir until just combined',
+      'Heat a lightly oiled griddle over medium-high heat',
+      'Pour batter onto the griddle and cook until bubbles form on surface',
+      'Flip and cook until golden brown on both sides'
+    ]),
+    'fi', to_jsonb(ARRAY[
+      'Mix flour, sugar, baking powder and salt in a large bowl',
+      'In another bowl, whisk together milk, egg and melted butter',
+      'Pour wet ingredients into dry ingredients and stir until just combined',
+      'Heat a lightly oiled griddle over medium-high heat',
+      'Pour batter onto the griddle and cook until bubbles form on surface',
+      'Flip and cook until golden brown on both sides'
+    ]),
+    'ru', to_jsonb(ARRAY[
+      'Mix flour, sugar, baking powder and salt in a large bowl',
+      'In another bowl, whisk together milk, egg and melted butter',
+      'Pour wet ingredients into dry ingredients and stir until just combined',
+      'Heat a lightly oiled griddle over medium-high heat',
+      'Pour batter onto the griddle and cook until bubbles form on surface',
+      'Flip and cook until golden brown on both sides'
+    ])
+  ),
   4,
   0,
   1,

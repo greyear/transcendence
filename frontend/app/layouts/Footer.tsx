@@ -4,7 +4,11 @@ import { LanguageSelector } from "~/components/LanguageSelector";
 import "../assets/styles/footer.css";
 import { useTranslation } from "react-i18next";
 
-export const Footer = () => {
+type FooterProps = {
+	onOpenAuthModal: () => void;
+};
+
+export const Footer = ({ onOpenAuthModal }: FooterProps) => {
 	const { t } = useTranslation();
 
 	return (
@@ -29,9 +33,10 @@ export const Footer = () => {
 						</li>
 					</ul>
 				</nav>
-				{/* TODO: add the login state */}
 				<div className="footer-buttons-row">
-					<MainButton>{t("common.signInButton")}</MainButton>
+					<MainButton onClick={onOpenAuthModal}>
+						{t("common.signInButton")}
+					</MainButton>
 					<LanguageSelector isHeader={false} />
 				</div>
 			</div>

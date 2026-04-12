@@ -31,6 +31,7 @@ main {
 	--text-primary: #334427;
 	--text-secondary: #4e633b;
 	--text-on-accent: #f1f7d4;
+	--overlay-backdrop: rgba(32, 39, 25, 0.55);
 	--icons-default: #f2ece3;
 	--icons-dark: var(--text-primary);
 	--icons-heart-active: #db858b;
@@ -92,6 +93,8 @@ main {
 
 	--user-card-width: 156px;
 	--desktop-content-width: 1248px;
+	--icon-button-size: 44px;
+	--icon-size: 20px;
 }
 
 /* Tablet */
@@ -126,6 +129,8 @@ main {
 		--lh-label: 24px;
 
 		--user-card-width: 328px;
+		--icon-button-size: 48px;
+		--icon-size: 24px;
 	}
 }
 
@@ -161,6 +166,8 @@ main {
 		--lh-label: 32px;
 
 		--user-card-width: 394px;
+		--icon-button-size: 56px;
+		--icon-size: 32px;
 	}
 
 	main {

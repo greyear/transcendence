@@ -13,11 +13,14 @@
  * - Query params always contain only numbers (no undefined values sent to DB)
  */
 
+import fs from "node:fs";
+import path from "node:path";
 import type { PoolClient } from "pg";
 import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
 	type CreateRecipeInput,
+	DEFAULT_LOCALE,
 	type CreateRecipeReviewInput,
 	type FavoriteRecipeListItem,
 	favoriteRecipeListItemSchema,
@@ -30,8 +33,13 @@ import {
 	recipeReviewListItemSchema,
 	recipeSchema,
 	recipeStatusSchema,
+	type SupportedLocale,
 	type UpdateRecipeInput,
 } from "../validation/schemas.js";
+import {
+	localizeInstructionStepsFromSource,
+	localizeTextFromSource,
+} from "./translation.service.js";
 
 type PublishRecipeResult =
 	| { success: true; recipe: Recipe }
@@ -62,6 +70,14 @@ type FailedRecipeMutationResult = {
 	reason: "not-found" | "forbidden" | "invalid-status";
 	currentStatus?: string;
 };
+
+type UpdateRecipePictureResult =
+	| { success: true }
+	| {
+			success: false;
+			reason: "not-found" | "forbidden" | "invalid-status";
+			currentStatus?: string;
+	  };
 
 type AddFavoriteResult =
 	| { success: true; recipeId: number }
@@ -99,9 +115,9 @@ const rowIdSchema = z
 const getRecipeWithIngredientsQuery = `
 	SELECT
 		r.id,
-		r.title,
-		r.description,
-		r.instructions,
+		COALESCE(r.title->>$2, r.title->>'en') AS title,
+		COALESCE(r.description->>$2, r.description->>'en') AS description,
+		COALESCE(r.instructions->$2, r.instructions->'en', '[]'::jsonb) AS instructions,
 		r.servings,
 		r.spiciness,
 		r.author_id,
@@ -183,16 +199,88 @@ const parseRecipeRow = (row: unknown, rowLabel: string): Recipe | null => {
 
 const getRecipeWithIngredientsById = async (
 	recipeId: number,
+	locale: SupportedLocale,
 	client?: PoolClient,
 ): Promise<Recipe | null> => {
 	const db = client ?? pool;
-	const result = await db.query(getRecipeWithIngredientsQuery, [recipeId]);
+	const result = await db.query(getRecipeWithIngredientsQuery, [
+		recipeId,
+		locale,
+	]);
 
 	if (result.rows.length === 0) {
 		return null;
 	}
 
 	return parseRecipeRow(result.rows[0], `ID ${recipeId}`);
+};
+
+const duplicateTextAcrossLocales = (
+	sourceText: string,
+): Record<SupportedLocale, string> => {
+	const safeSource = sourceText.trim();
+
+	return {
+		en: safeSource,
+		fi: safeSource,
+		ru: safeSource,
+	};
+};
+
+const duplicateInstructionsAcrossLocales = (
+	steps: string[],
+): Record<SupportedLocale, string[]> => {
+	const safeSteps = steps.map((step) => step.trim());
+
+	return {
+		en: safeSteps,
+		fi: safeSteps,
+		ru: safeSteps,
+	};
+};
+
+const scheduleRecipeLocalization = (
+	recipeId: number,
+	updatedAt: unknown,
+	sourceLocale: SupportedLocale,
+	input: Pick<CreateRecipeInput, "title" | "description" | "instructions">,
+): void => {
+	void (async () => {
+		try {
+			const [localizedTitle, localizedDescription, localizedInstructions] =
+				await Promise.all([
+					localizeTextFromSource(input.title, sourceLocale),
+					input.description === null
+						? Promise.resolve(null)
+						: localizeTextFromSource(input.description, sourceLocale),
+					localizeInstructionStepsFromSource(input.instructions, sourceLocale),
+				]);
+
+			const result = await pool.query(
+				`
+					UPDATE recipes
+					SET title = $1, description = $2, instructions = $3, updated_at = now()
+					WHERE id = $4 AND updated_at = $5
+				`,
+				[
+					localizedTitle,
+					localizedDescription,
+					localizedInstructions,
+					recipeId,
+					updatedAt,
+				],
+			);
+
+			if (result.rowCount === 0) {
+				return;
+			}
+		} catch (error) {
+			console.error(
+				`Background localization failed for recipe ${recipeId}:`,
+				error,
+			);
+		}
+	})();
 };
 
 const userExists = async (userId: number): Promise<boolean> => {
@@ -302,12 +390,19 @@ const recipeExists = async (recipeId: number): Promise<boolean> => {
  * 2. Return result or throw error
  * 3. Calling code can await getAllRecipes() to wait for result
  */
-export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
+export const getAllRecipes = async (
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<RecipeListItem[]> => {
 	try {
 		// SQL query - get only published recipes (status = 'published')
 		// ORDER BY created_at DESC - newest first
 		const query = `
-      SELECT id, title, description, author_id, rating_avg
+			SELECT
+				id,
+				COALESCE(title->>$1, title->>'en') AS title,
+				COALESCE(description->>$1, description->>'en') AS description,
+				author_id,
+				rating_avg
       FROM recipes
       WHERE status = 'published'
       ORDER BY created_at DESC
@@ -315,7 +410,7 @@ export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
 
 		// pool.query(query) - execute SQL
 		// result.rows - array of rows from result
-		const result = await pool.query(query);
+		const result = await pool.query(query, [locale]);
 
 		return parseRecipeRows(result.rows, recipeListItemSchema, "recipe");
 	} catch (error) {
@@ -334,6 +429,7 @@ export const getAllRecipes = async (): Promise<RecipeListItem[]> => {
  */
 export const getPublishedRecipesByUserId = async (
 	userId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<RecipeListItem[] | null> => {
 	try {
 		const exists = await userExists(userId);
@@ -342,13 +438,18 @@ export const getPublishedRecipesByUserId = async (
 		}
 
 		const query = `
-      SELECT id, title, description, author_id, rating_avg
+			SELECT
+				id,
+				COALESCE(title->>$2, title->>'en') AS title,
+				COALESCE(description->>$2, description->>'en') AS description,
+				author_id,
+				rating_avg
       FROM recipes
       WHERE author_id = $1 AND status = 'published'
       ORDER BY created_at DESC
     `;
 
-		const result = await pool.query(query, [userId]);
+		const result = await pool.query(query, [userId, locale]);
 
 		return parseRecipeRows(
 			result.rows,
@@ -368,16 +469,23 @@ export const getPublishedRecipesByUserId = async (
  */
 export const getMyRecipes = async (
 	userId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<MyRecipeListItem[]> => {
 	try {
 		const query = `
-      SELECT id, title, description, author_id, rating_avg, status
+			SELECT
+				id,
+				COALESCE(title->>$2, title->>'en') AS title,
+				COALESCE(description->>$2, description->>'en') AS description,
+				author_id,
+				rating_avg,
+				status
       FROM recipes
       WHERE author_id = $1
       ORDER BY created_at DESC
     `;
 
-		const result = await pool.query(query, [userId]);
+		const result = await pool.query(query, [userId, locale]);
 
 		return parseRecipeRows(result.rows, myRecipeListItemSchema, "my recipe");
 	} catch (error) {
@@ -389,22 +497,33 @@ export const getMyRecipes = async (
 export const createRecipe = async (
 	userId: number,
 	input: CreateRecipeInput,
+	locale: SupportedLocale = DEFAULT_LOCALE,
+	sourceLocale: SupportedLocale = locale,
 ): Promise<Recipe> => {
 	const client = await pool.connect();
 
 	try {
 		await client.query("BEGIN");
 
+		const placeholderTitle = duplicateTextAcrossLocales(input.title);
+		const placeholderDescription =
+			input.description === null
+				? null
+				: duplicateTextAcrossLocales(input.description);
+		const placeholderInstructions = duplicateInstructionsAcrossLocales(
+			input.instructions,
+		);
+
 		const result = await client.query(
 			`
       INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status)
       VALUES ($1, $2, $3, $4, $5, $6, 'draft')
-      RETURNING id
+      RETURNING id, updated_at
     `,
 			[
-				input.title,
-				input.description,
-				input.instructions,
+				placeholderTitle,
+				placeholderDescription,
+				placeholderInstructions,
 				input.servings,
 				input.spiciness,
 				userId,
@@ -446,12 +565,18 @@ export const createRecipe = async (
 			);
 		}
 
-		const recipe = await getRecipeWithIngredientsById(recipeId, client);
+		const recipe = await getRecipeWithIngredientsById(recipeId, locale, client);
 		if (!recipe) {
 			throw new Error(`Created recipe ${recipeId} could not be loaded`);
 		}
 
 		await client.query("COMMIT");
+		scheduleRecipeLocalization(
+			recipeId,
+			result.rows[0].updated_at,
+			sourceLocale,
+			input,
+		);
 		return recipe;
 	} catch (error) {
 		await client.query("ROLLBACK");
@@ -465,6 +590,7 @@ export const createRecipe = async (
 export const publishRecipe = async (
 	recipeId: number,
 	userId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<PublishRecipeResult> => {
 	try {
 		const updateResult = await pool.query(
@@ -481,7 +607,7 @@ export const publishRecipe = async (
 			return classifyNoRowsRecipeMutation(recipeId, userId);
 		}
 
-		const recipe = await getRecipeWithIngredientsById(recipeId);
+		const recipe = await getRecipeWithIngredientsById(recipeId, locale);
 		if (!recipe) {
 			throw new Error(`Updated recipe ${recipeId} could not be loaded`);
 		}
@@ -497,11 +623,22 @@ export const updateRecipe = async (
 	recipeId: number,
 	userId: number,
 	input: UpdateRecipeInput,
+	locale: SupportedLocale = DEFAULT_LOCALE,
+	sourceLocale: SupportedLocale = locale,
 ): Promise<UpdateRecipeResult> => {
 	const client = await pool.connect();
 
 	try {
 		await client.query("BEGIN");
+
+		const placeholderTitle = duplicateTextAcrossLocales(input.title);
+		const placeholderDescription =
+			input.description === null
+				? null
+				: duplicateTextAcrossLocales(input.description);
+		const placeholderInstructions = duplicateInstructionsAcrossLocales(
+			input.instructions,
+		);
 
 		const updateResult = await client.query(
 			`
@@ -514,12 +651,12 @@ export const updateRecipe = async (
         spiciness = $5,
         updated_at = now()
       WHERE id = $6 AND author_id = $7 AND status = 'draft'
-      RETURNING id
+      RETURNING id, updated_at
     `,
 			[
-				input.title,
-				input.description,
-				input.instructions,
+				placeholderTitle,
+				placeholderDescription,
+				placeholderInstructions,
 				input.servings,
 				input.spiciness,
 				recipeId,
@@ -570,12 +707,18 @@ export const updateRecipe = async (
 			);
 		}
 
-		const recipe = await getRecipeWithIngredientsById(recipeId, client);
+		const recipe = await getRecipeWithIngredientsById(recipeId, locale, client);
 		if (!recipe) {
 			throw new Error(`Updated recipe ${recipeId} could not be loaded`);
 		}
 
 		await client.query("COMMIT");
+		scheduleRecipeLocalization(
+			recipeId,
+			updateResult.rows[0].updated_at,
+			sourceLocale,
+			input,
+		);
 		return { success: true, recipe };
 	} catch (error) {
 		// Roll back the transaction for any failure during update flow.
@@ -596,6 +739,7 @@ export const updateRecipe = async (
 export const archiveRecipe = async (
 	recipeId: number,
 	requesterId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<ArchiveRecipeResult> => {
 	try {
 		const requesterResult = await pool.query(
@@ -636,7 +780,7 @@ export const archiveRecipe = async (
 			});
 		}
 
-		const recipe = await getRecipeWithIngredientsById(recipeId);
+		const recipe = await getRecipeWithIngredientsById(recipeId, locale);
 		if (!recipe) {
 			throw new Error(`Archived recipe ${recipeId} could not be loaded`);
 		}
@@ -702,10 +846,15 @@ export const removeRecipeFromFavorites = async (
 
 export const getMyFavoriteRecipes = async (
 	userId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<FavoriteRecipeListItem[]> => {
 	try {
 		const query = `
-	SELECT r.id, r.title, r.description, u.avatar
+	SELECT
+		r.id,
+		COALESCE(r.title->>$2, r.title->>'en') AS title,
+		COALESCE(r.description->>$2, r.description->>'en') AS description,
+		u.avatar
       FROM favorites f
       JOIN recipes r ON r.id = f.recipe_id
       LEFT JOIN users u ON u.id = r.author_id
@@ -713,7 +862,7 @@ export const getMyFavoriteRecipes = async (
       ORDER BY f.created_at DESC
     `;
 
-		const result = await pool.query(query, [userId]);
+		const result = await pool.query(query, [userId, locale]);
 
 		return parseRecipeRows(
 			result.rows,
@@ -823,6 +972,7 @@ export const getRecipeReviews = async (
 export const getRecipeById = async (
 	id: number,
 	userId?: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<Recipe | { restricted: true } | null> => {
 	try {
 		const visibilityResult = await pool.query(
@@ -851,9 +1001,81 @@ export const getRecipeById = async (
 			return { restricted: true };
 		}
 
-		return getRecipeWithIngredientsById(id);
+		return getRecipeWithIngredientsById(id, locale);
 	} catch (error) {
 		console.error("Database error in getRecipeById:", error);
+		throw error;
+	}
+};
+
+export const updateRecipePicture = async (
+	recipeId: number,
+	userId: number,
+	pictureUrl: string,
+): Promise<UpdateRecipePictureResult> => {
+	try {
+		const existingResult = await pool.query(
+			`SELECT author_id, status FROM recipes WHERE id = $1`,
+			[recipeId],
+		);
+
+		if (existingResult.rowCount === 0) {
+			return { success: false, reason: "not-found" };
+		}
+
+		const existingParsed = recipeVisibilityRowSchema.safeParse(
+			existingResult.rows[0],
+		);
+		if (!existingParsed.success) {
+			throw new Error(z.prettifyError(existingParsed.error));
+		}
+
+		const { author_id, status } = existingParsed.data;
+
+		if (author_id !== userId) {
+			return { success: false, reason: "forbidden" };
+		}
+
+		if (status !== "draft" && status !== "published") {
+			return {
+				success: false,
+				reason: "invalid-status",
+				currentStatus: status,
+			};
+		}
+
+		// Fetch existing picture URL before upserting so we can delete the old file
+		const existingMediaResult = await pool.query(
+			`SELECT url FROM recipe_media WHERE recipe_id = $1 AND position = 0`,
+			[recipeId],
+		);
+		const oldPictureUrl: string | null =
+			existingMediaResult.rows[0]?.url ?? null;
+
+		await pool.query(
+			`
+      INSERT INTO recipe_media (recipe_id, type, url, position)
+      VALUES ($1, 'image', $2, 0)
+      ON CONFLICT (recipe_id, position)
+      DO UPDATE SET url = EXCLUDED.url
+      `,
+			[recipeId, pictureUrl],
+		);
+
+		// Delete old file from disk if it existed and differs from the new one
+		if (oldPictureUrl && oldPictureUrl !== pictureUrl) {
+			const oldFilename = oldPictureUrl.replace("/recipe-pictures/", "");
+			const oldFilePath = path.resolve("uploads/recipes", oldFilename);
+			fs.unlink(oldFilePath, (err) => {
+				if (err && err.code !== "ENOENT") {
+					console.error("Failed to delete old recipe picture:", err);
+				}
+			});
+		}
+
+		return { success: true };
+	} catch (error) {
+		console.error("Database error in updateRecipePicture:", error);
 		throw error;
 	}
 };

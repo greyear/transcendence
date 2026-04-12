@@ -7,6 +7,8 @@
  * - Authorization scenarios (guest vs authenticated user)
  */
 
+import fs from "node:fs";
+import path from "node:path";
 import request from "supertest";
 import { app } from "../app.js";
 import { pool } from "../db/database.js";
@@ -87,8 +89,13 @@ describe("Recipes Routes", () => {
 
 			// 2. Create a dummy draft recipe owned by this user
 			const recipeRes = await pool.query(
-				`INSERT INTO recipes (title, instructions, status, author_id) 
-				 VALUES ('Secret Draft', ARRAY['step 1'], 'draft', $1) RETURNING id`,
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Secret Draft', 'fi', 'Secret Draft', 'ru', 'Secret Draft'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step 1']), 'fi', to_jsonb(ARRAY['step 1']), 'ru', to_jsonb(ARRAY['step 1'])),
+					'draft',
+					$1
+				 ) RETURNING id`,
 				[999],
 			);
 			recipeId = recipeRes.rows[0].id;
@@ -304,7 +311,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Publish Target', ARRAY['step'], 'draft', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Publish Target', 'fi', 'Publish Target', 'ru', 'Publish Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 )
 				 RETURNING id`,
 				[ownerId],
 			);
@@ -346,7 +358,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Draft For Moderation', ARRAY['step'], 'draft', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Draft For Moderation', 'fi', 'Draft For Moderation', 'ru', 'Draft For Moderation'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 )
 				 RETURNING id`,
 				[userId],
 			);
@@ -376,6 +393,426 @@ describe("Recipes Routes", () => {
 			if (recipeId) {
 				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			}
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	const minimalJpeg = Buffer.from(
+		"/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8U" +
+			"HRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgN" +
+			"DRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIy" +
+			"MjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAA" +
+			"AAAAAAAAAAAAAAAAAP/EABQBAQAAAAAAAAAAAAAAAAAAAAD/xAAUEQEAAAAAAAAAAAAAAAAA" +
+			"AAAA/9oADAMBAAIRAxEAPwCwABmX/9k=",
+		"base64",
+	);
+
+	it("should return 401 for PUT /recipes/:id/picture without authentication", async () => {
+		const response = await request(app)
+			.put("/recipes/1/picture")
+			.attach("picture", minimalJpeg, {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 400 for PUT /recipes/:id/picture with invalid recipe ID", async () => {
+		const response = await request(app)
+			.put("/recipes/abc/picture")
+			.set("X-User-Id", "1")
+			.attach("picture", minimalJpeg, {
+				filename: "pic.jpg",
+				contentType: "image/jpeg",
+			});
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 400 when no picture file is provided", async () => {
+		const userId = 2200;
+		let recipeId: number | null = null;
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_no_file"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				VALUES (
+					jsonb_build_object('en', 'No File Test', 'fi', 'No File Test', 'ru', 'No File Test'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId));
+
+			expect(response.status).toBe(400);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should return 400 for unsupported file type", async () => {
+		const userId = 2201;
+		let recipeId: number | null = null;
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_bad_type"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				VALUES (
+					jsonb_build_object('en', 'Bad Type Test', 'fi', 'Bad Type Test', 'ru', 'Bad Type Test'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", Buffer.from("fake gif"), {
+					filename: "pic.gif",
+					contentType: "image/gif",
+				});
+
+			expect(response.status).toBe(400);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should return 404 for non-existent recipe", async () => {
+		const userId = 2202;
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_no_recipe"],
+		);
+		try {
+			const response = await request(app)
+				.put("/recipes/999999/picture")
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(404);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should return 403 when user is not the recipe author", async () => {
+		const ownerId = 2203;
+		const intruderId = 2204;
+		let recipeId: number | null = null;
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[ownerId, "picture_owner"],
+		);
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[intruderId, "picture_intruder"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Picture Target', 'fi', 'Picture Target', 'ru', 'Picture Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 ) RETURNING id`,
+				[ownerId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(intruderId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(403);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				ownerId,
+				intruderId,
+			]);
+		}
+	});
+
+	it("should return 409 for recipe in moderation status", async () => {
+		const userId = 2205;
+		let recipeId: number | null = null;
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_moderation"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Moderation Recipe', 'fi', 'Moderation Recipe', 'ru', 'Moderation Recipe'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'moderation',
+					$1
+				 ) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(409);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should return 409 for archived recipe", async () => {
+		const userId = 2206;
+		let recipeId: number | null = null;
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_archived"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Archived Recipe', 'fi', 'Archived Recipe', 'ru', 'Archived Recipe'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'archived',
+					$1
+				 ) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(409);
+			expect(response.body).toHaveProperty("error");
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should upload picture for draft recipe and store URL in recipe_media", async () => {
+		const userId = 2207;
+		let recipeId: number | null = null;
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_draft_success"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Draft With Picture', 'fi', 'Draft With Picture', 'ru', 'Draft With Picture'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 ) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message", "Recipe picture updated");
+			expect(response.body.data.picture_url).toMatch(/^\/recipe-pictures\//);
+
+			const mediaResult = await pool.query(
+				`SELECT url, type, position FROM recipe_media WHERE recipe_id = $1 AND position = 0`,
+				[recipeId],
+			);
+			expect(mediaResult.rowCount).toBe(1);
+			expect(mediaResult.rows[0].type).toBe("image");
+			expect(mediaResult.rows[0].url).toMatch(/^\/recipe-pictures\//);
+
+			// Cleanup uploaded file
+			const filePath = path.resolve(
+				"uploads/recipes",
+				path.basename(mediaResult.rows[0].url),
+			);
+			if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should upload picture for published recipe", async () => {
+		const userId = 2208;
+		let recipeId: number | null = null;
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_published_success"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Published With Picture', 'fi', 'Published With Picture', 'ru', 'Published With Picture'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 ) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message", "Recipe picture updated");
+
+			const mediaResult = await pool.query(
+				`SELECT url FROM recipe_media WHERE recipe_id = $1 AND position = 0`,
+				[recipeId],
+			);
+			if (mediaResult.rows[0]?.url) {
+				const filePath = path.resolve(
+					"uploads/recipes",
+					path.basename(mediaResult.rows[0].url),
+				);
+				if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+			}
+		} finally {
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
+	});
+
+	it("should replace existing picture and delete old file from disk", async () => {
+		const userId = 2209;
+		let recipeId: number | null = null;
+		const oldFilePath = path.resolve(`uploads/recipes/old_${userId}.jpg`);
+
+		await pool.query(
+			`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+			[userId, "picture_replace"],
+		);
+		try {
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Replace Picture', 'fi', 'Replace Picture', 'ru', 'Replace Picture'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 ) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			// Seed an existing picture row with a fake old file on disk
+			fs.writeFileSync(oldFilePath, "old image data");
+			await pool.query(
+				`INSERT INTO recipe_media (recipe_id, type, url, position)
+				 VALUES ($1, 'image', $2, 0)`,
+				[recipeId, `/recipe-pictures/old_${userId}.jpg`],
+			);
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/picture`)
+				.set("X-User-Id", String(userId))
+				.attach("picture", minimalJpeg, {
+					filename: "pic.jpg",
+					contentType: "image/jpeg",
+				});
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("message", "Recipe picture updated");
+
+			// Old file should be deleted from disk
+			expect(fs.existsSync(oldFilePath)).toBe(false);
+
+			// DB should have the new URL
+			const mediaResult = await pool.query(
+				`SELECT url FROM recipe_media WHERE recipe_id = $1 AND position = 0`,
+				[recipeId],
+			);
+			expect(mediaResult.rows[0].url).not.toBe(
+				`/recipe-pictures/old_${userId}.jpg`,
+			);
+
+			// Cleanup new file
+			const newFilePath = path.resolve(
+				"uploads/recipes",
+				path.basename(mediaResult.rows[0].url),
+			);
+			if (fs.existsSync(newFilePath)) fs.unlinkSync(newFilePath);
+		} finally {
+			if (fs.existsSync(oldFilePath)) fs.unlinkSync(oldFilePath);
+			if (recipeId)
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
 		}
 	});
@@ -432,7 +869,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Draft To Update', ARRAY['step'], 'draft', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Draft To Update', 'fi', 'Draft To Update', 'ru', 'Draft To Update'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'draft',
+					$1
+				 )
 				 RETURNING id`,
 				[ownerId],
 			);
@@ -476,7 +918,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Published Recipe', ARRAY['step'], 'published', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Published Recipe', 'fi', 'Published Recipe', 'ru', 'Published Recipe'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
 				 RETURNING id`,
 				[userId],
 			);
@@ -522,7 +969,15 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, description, instructions, servings, spiciness, status, author_id)
-				 VALUES ('Old Title', 'Old Description', ARRAY['old step'], 1, 0, 'draft', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Old Title', 'fi', 'Old Title', 'ru', 'Old Title'),
+					jsonb_build_object('en', 'Old Description', 'fi', 'Old Description', 'ru', 'Old Description'),
+					jsonb_build_object('en', to_jsonb(ARRAY['old step']), 'fi', to_jsonb(ARRAY['old step']), 'ru', to_jsonb(ARRAY['old step'])),
+					1,
+					0,
+					'draft',
+					$1
+				 )
 				 RETURNING id`,
 				[userId],
 			);
@@ -560,7 +1015,10 @@ describe("Recipes Routes", () => {
 				`SELECT title, description, servings, spiciness, status FROM recipes WHERE id = $1`,
 				[recipeId],
 			);
-			expect(dbRecipe.rows[0].title).toBe("New Title");
+			expect(dbRecipe.rows[0].title).toMatchObject({ en: "New Title" });
+			expect(dbRecipe.rows[0].description).toMatchObject({
+				en: "New Description",
+			});
 			expect(dbRecipe.rows[0].status).toBe("draft");
 		} finally {
 			if (recipeId) {
@@ -603,7 +1061,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Archive Target', ARRAY['step'], 'published', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Archive Target', 'fi', 'Archive Target', 'ru', 'Archive Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
 				 RETURNING id`,
 				[ownerId],
 			);
@@ -638,7 +1101,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Owner Archive Target', ARRAY['step'], 'published', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Owner Archive Target', 'fi', 'Owner Archive Target', 'ru', 'Owner Archive Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
 				 RETURNING id`,
 				[ownerId],
 			);
@@ -676,7 +1144,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Admin Archive Target', ARRAY['step'], 'published', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Admin Archive Target', 'fi', 'Admin Archive Target', 'ru', 'Admin Archive Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
 				 RETURNING id`,
 				[ownerId],
 			);
@@ -712,7 +1185,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Already Archived', ARRAY['step'], 'archived', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Already Archived', 'fi', 'Already Archived', 'ru', 'Already Archived'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'archived',
+					$1
+				 )
 				 RETURNING id`,
 				[userId],
 			);
@@ -774,7 +1252,12 @@ describe("Recipes Routes", () => {
 
 			const recipeResult = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Favorite Target', ARRAY['step'], 'published', $1)
+				 VALUES (
+					jsonb_build_object('en', 'Favorite Target', 'fi', 'Favorite Target', 'ru', 'Favorite Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
 				 RETURNING id`,
 				[authorId],
 			);
