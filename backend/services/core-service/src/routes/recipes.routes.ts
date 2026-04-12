@@ -27,6 +27,8 @@ import {
 	createRecipe,
 	getAllRecipes,
 	getRecipeById,
+	getRecipeReviews,
+	leaveRecipeReview,
 	publishRecipe,
 	removeRecipeFromFavorites,
 	updateRecipe,
@@ -38,6 +40,7 @@ import {
 } from "../utils/locale.js";
 import {
 	validateCreateRecipeInput,
+	validateCreateRecipeReviewInput,
 	validateRecipeId,
 	validateUpdateRecipeInput,
 } from "../validation/schemas.js";
@@ -606,6 +609,90 @@ const updateRecipePictureHandler = async (
 	}
 };
 
+const leaveRecipeReviewHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const idValidation = validateRecipeId(req.params.id);
+		if (!idValidation.valid) {
+			const error: CustomError = new Error(idValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const bodyValidation = validateCreateRecipeReviewInput(req.body);
+		if (!bodyValidation.valid) {
+			const error: CustomError = new Error(bodyValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const result = await leaveRecipeReview(
+			idValidation.value,
+			req.userId,
+			bodyValidation.value,
+		);
+
+		if (!result.success) {
+			const error: CustomError = new Error();
+
+			switch (result.reason) {
+				case "unauthorized":
+					error.message = "Authentication required";
+					error.statusCode = 401;
+					break;
+				default:
+					error.message = "Recipe not found";
+					error.statusCode = 404;
+					break;
+			}
+
+			throw error;
+		}
+
+		res.status(201).json({
+			data: { recipe_id: idValidation.value, review_id: result.reviewId },
+			message: "Review published",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+const getRecipeReviewsHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		const idValidation = validateRecipeId(req.params.id);
+		if (!idValidation.valid) {
+			const error: CustomError = new Error(idValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const reviews = await getRecipeReviews(idValidation.value);
+		if (!reviews) {
+			const error: CustomError = new Error("Recipe not found");
+			error.statusCode = 404;
+			throw error;
+		}
+
+		res.status(200).json({ data: reviews, count: reviews.length });
+	} catch (error) {
+		next(error);
+	}
+};
+
 // extractUser middleware extracts userId from X-User-Id header
 
 recipesRouter.post("/:id/publish", extractUser, publishRecipeHandler);
@@ -620,6 +707,9 @@ recipesRouter.put(
 	handleRecipePictureMulterError,
 	updateRecipePictureHandler,
 );
+
+recipesRouter.post("/:id/reviews", extractUser, leaveRecipeReviewHandler);
+recipesRouter.get("/:id/reviews", getRecipeReviewsHandler);
 recipesRouter.get("/:id", extractUser, getRecipeByIdHandler);
 recipesRouter.put("/:id", extractUser, updateRecipeHandler);
 recipesRouter.delete("/:id", extractUser, deleteRecipeHandler);

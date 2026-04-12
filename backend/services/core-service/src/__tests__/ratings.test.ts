@@ -102,20 +102,13 @@ describe("POST /recipes/:id/rating", () => {
 	});
 
 	it("should return 404 for non-existent recipe", async () => {
-		const userId = TEST_USER_BASE_ID + 1;
-		await insertUser(userId, "rating_post_404");
+		const response = await request(app)
+			.post("/recipes/999999/rating")
+			.set("X-User-Id", "999001")
+			.send({ rating: 4 });
 
-		try {
-			const response = await request(app)
-				.post("/recipes/999999/rating")
-				.set("X-User-Id", String(userId))
-				.send({ rating: 4 });
-
-			expect(response.status).toBe(404);
-			expect(response.body).toHaveProperty("error");
-		} finally {
-			await deleteUsers(userId);
-		}
+		expect(response.status).toBe(404);
+		expect(response.body).toHaveProperty("error");
 	});
 
 	it("should create rating and recalculate recipe averages", async () => {
@@ -204,20 +197,13 @@ describe("PUT /recipes/:id/rating", () => {
 	});
 
 	it("should return 404 for non-existent recipe", async () => {
-		const userId = TEST_USER_BASE_ID + 4;
-		await insertUser(userId, "rating_put_404_recipe");
+		const response = await request(app)
+			.put("/recipes/999999/rating")
+			.set("X-User-Id", "999002")
+			.send({ rating: 2 });
 
-		try {
-			const response = await request(app)
-				.put("/recipes/999999/rating")
-				.set("X-User-Id", String(userId))
-				.send({ rating: 2 });
-
-			expect(response.status).toBe(404);
-			expect(response.body).toHaveProperty("error");
-		} finally {
-			await deleteUsers(userId);
-		}
+		expect(response.status).toBe(404);
+		expect(response.body).toHaveProperty("error");
 	});
 
 	it("should return 404 when user has not rated the recipe yet", async () => {
@@ -292,19 +278,12 @@ describe("DELETE /recipes/:id/rating", () => {
 	});
 
 	it("should return 404 for non-existent recipe", async () => {
-		const userId = TEST_USER_BASE_ID + 7;
-		await insertUser(userId, "rating_delete_404_recipe");
+		const response = await request(app)
+			.delete("/recipes/999999/rating")
+			.set("X-User-Id", "999003");
 
-		try {
-			const response = await request(app)
-				.delete("/recipes/999999/rating")
-				.set("X-User-Id", String(userId));
-
-			expect(response.status).toBe(404);
-			expect(response.body).toHaveProperty("error");
-		} finally {
-			await deleteUsers(userId);
-		}
+		expect(response.status).toBe(404);
+		expect(response.body).toHaveProperty("error");
 	});
 
 	it("should return 404 when user has not rated the recipe", async () => {

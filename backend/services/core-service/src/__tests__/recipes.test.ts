@@ -1289,4 +1289,137 @@ describe("Recipes Routes", () => {
 			]);
 		}
 	});
+
+	it("should return 401 for POST /recipes/:id/reviews without authentication", async () => {
+		const response = await request(app)
+			.post("/recipes/1/reviews")
+			.send({ body: "Great recipe" });
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 400 for POST /recipes/:id/reviews with invalid id", async () => {
+		const response = await request(app)
+			.post("/recipes/abc/reviews")
+			.set("X-User-Id", "1")
+			.send({ body: "Great recipe" });
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 400 for POST /recipes/:id/reviews when body is too long", async () => {
+		const response = await request(app)
+			.post("/recipes/1/reviews")
+			.set("X-User-Id", "1")
+			.send({ body: "x".repeat(1001) });
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 404 for POST /recipes/:id/reviews when recipe does not exist", async () => {
+		const response = await request(app)
+			.post("/recipes/999999/reviews")
+			.set("X-User-Id", "1")
+			.send({ body: "Great recipe" });
+
+		expect(response.status).toBe(404);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should return 401 for POST /recipes/:id/reviews when user is not registered", async () => {
+		const response = await request(app)
+			.post("/recipes/1/reviews")
+			.set("X-User-Id", "999999")
+			.send({ body: "Great recipe" });
+
+		expect(response.status).toBe(401);
+		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should create and return reviews for GET /recipes/:id/reviews", async () => {
+		const authorId = 2301;
+		const reviewerId = 2302;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[authorId, "review_recipe_author"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[reviewerId, "review_author"],
+			);
+
+			const titleColumnTypeResult = await pool.query(
+				`SELECT data_type
+				 FROM information_schema.columns
+				 WHERE table_name = 'recipes' AND column_name = 'title'`,
+			);
+			const usesJsonbTitle =
+				titleColumnTypeResult.rows[0]?.data_type === "jsonb";
+
+			const recipeResult = usesJsonbTitle
+				? await pool.query(
+						`INSERT INTO recipes (title, instructions, status, author_id)
+						 VALUES (
+							jsonb_build_object('en', 'Review Target', 'fi', 'Review Target', 'ru', 'Review Target'),
+							jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+							'published',
+							$1
+						 )
+						 RETURNING id`,
+						[authorId],
+					)
+				: await pool.query(
+						`INSERT INTO recipes (title, instructions, status, author_id)
+						 VALUES ('Review Target', ARRAY['step'], 'published', $1)
+						 RETURNING id`,
+						[authorId],
+					);
+			recipeId = recipeResult.rows[0].id;
+
+			const createResponse = await request(app)
+				.post(`/recipes/${recipeId}/reviews`)
+				.set("X-User-Id", String(reviewerId))
+				.send({ body: "Looks tasty!" });
+
+			expect(createResponse.status).toBe(201);
+			expect(createResponse.body).toHaveProperty("data");
+			expect(createResponse.body.data).toHaveProperty("recipe_id", recipeId);
+			expect(createResponse.body).toHaveProperty("message", "Review published");
+
+			const listResponse = await request(app).get(
+				`/recipes/${recipeId}/reviews`,
+			);
+
+			expect(listResponse.status).toBe(200);
+			expect(listResponse.body).toHaveProperty("data");
+			expect(listResponse.body).toHaveProperty("count");
+			expect(listResponse.body.count).toBeGreaterThanOrEqual(1);
+			expect(
+				listResponse.body.data.some(
+					(review: { body: string }) => review.body === "Looks tasty!",
+				),
+			).toBe(true);
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				authorId,
+				reviewerId,
+			]);
+		}
+	});
+
+	it("should return 404 for GET /recipes/:id/reviews when recipe does not exist", async () => {
+		const response = await request(app).get("/recipes/999999/reviews");
+
+		expect(response.status).toBe(404);
+		expect(response.body).toHaveProperty("error");
+	});
 });

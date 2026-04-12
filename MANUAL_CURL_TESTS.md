@@ -174,13 +174,42 @@ curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-## 12. Expected Status Quick Map
+## 12. Recipe Reviews
+
+Replace RECIPE_ID with an existing recipe id.
+
+```bash
+RECIPE_ID=1
+
+# should return 401 without token
+curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/reviews" \
+  -H "Content-Type: application/json" \
+  -d '{"body":"Looks great"}'
+
+# authorized request (publishes review)
+curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/reviews" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body":"Looks great"}'
+
+# list of reviews under recipe (public)
+curl -i "http://localhost:3000/recipes/$RECIPE_ID/reviews"
+
+# non-existent recipe
+curl -i "http://localhost:3000/recipes/999999/reviews"
+```
+
+
+## 13. Expected Status Quick Map
 
 - GET /health -> 200
 - GET /health/db -> 200
+
 - GET /recipes -> 200
 - GET /recipes/:id -> 200 or 404 or 403
+- GET /recipes/:id/reviews -> 200 or 404
 - GET /recipes/abc -> 400
+
 - GET /users -> 200
 - GET /users/:id -> 200 or 404
 - GET /users/abc -> 400
@@ -192,6 +221,8 @@ curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
 - POST /recipes/:id/publish (no token) -> 401
 - POST /recipes/:id/favorite (no token) -> 401
 - POST /recipes/:id/favorite (with token) -> 200 or 404 or 409
+- POST /recipes/:id/reviews (no token) -> 401
+- POST /recipes/:id/reviews (with token) -> 201 or 404
 
 - PUT /recipes/:id -> 200 or 400 or 401 or 403 or 404 or 409
 
