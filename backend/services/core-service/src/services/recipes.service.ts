@@ -20,8 +20,8 @@ import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
 	type CreateRecipeInput,
-	DEFAULT_LOCALE,
 	type CreateRecipeReviewInput,
+	DEFAULT_LOCALE,
 	type FavoriteRecipeListItem,
 	favoriteRecipeListItemSchema,
 	type MyRecipeListItem,
@@ -364,15 +364,6 @@ const isUniqueViolation = (error: unknown): boolean => {
 const publishedRecipeExists = async (recipeId: number): Promise<boolean> => {
 	const result = await pool.query(
 		`SELECT 1 FROM recipes WHERE id = $1 AND status = 'published' LIMIT 1`,
-		[recipeId],
-	);
-
-	return result.rowCount === 1;
-};
-
-const recipeExists = async (recipeId: number): Promise<boolean> => {
-	const result = await pool.query(
-		`SELECT 1 FROM recipes WHERE id = $1 LIMIT 1`,
 		[recipeId],
 	);
 

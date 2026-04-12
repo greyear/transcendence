@@ -1373,13 +1373,13 @@ describe("Recipes Routes", () => {
 						 )
 						 RETURNING id`,
 						[authorId],
-				  )
+					)
 				: await pool.query(
 						`INSERT INTO recipes (title, instructions, status, author_id)
 						 VALUES ('Review Target', ARRAY['step'], 'published', $1)
 						 RETURNING id`,
 						[authorId],
-				  );
+					);
 			recipeId = recipeResult.rows[0].id;
 
 			const createResponse = await request(app)
