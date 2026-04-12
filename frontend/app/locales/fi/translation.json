@@ -1,6 +1,7 @@
 {
 	"common": {
 		"signInButton": "Kirjaudu",
+		"signedInButton": "Kirjautunut",
 		"searchPlaceholder": "Hae...",
 		"sortButton": "Järjestä",
 		"filterButton": "Suodata",
@@ -33,7 +34,8 @@
 		"recipes": "Reseptit",
 		"users": "Käyttäjät",
 		"terms": "Käyttöehdot",
-		"policy": "Tietosuojaseloste"
+		"policy": "Tietosuojaseloste",
+		"profile": "Profiili"
 	},
 	"recipesPage": {
 		"title": "Reseptit",
@@ -69,6 +71,10 @@
 		"tabFollowers": "Seuraajat",
 		"tabFollowing": "Seuratut"
 	},
+	"profilePage": {
+		"loading": "Ladataan profiilia...",
+		"notFound": "Profiilia ei löytynyt."
+	},
 	"loginPage": {
 		"title": "Kirjaudu sisään",
 		"signupTitle": "Luo tili",
@@ -86,7 +92,6 @@
 		"logInButton": "Kirjaudu sisään",
 		"googleLoginButton": "Kirjaudu sisään Googlella",
 		"googleSignupButton": "Luo tili Googlella",
-		"googleUnavailable": "Google-kirjautumista ei ole vielä kytketty frontendissä.",
 		"signupSubmittingButton": "Luodaan tiliä...",
 		"signupSuccess": "Tili luotu. Voit nyt kirjautua sisään.",
 		"toggleSignupPrompt": "Tarvitsetko tilin? Luo sellainen",

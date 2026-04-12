@@ -1,6 +1,7 @@
 {
 	"common": {
 		"signInButton": "Sign In",
+		"signedInButton": "Signed In",
 		"searchPlaceholder": "Search for...",
 		"sortButton": "Sort",
 		"filterButton": "Filter",
@@ -33,7 +34,8 @@
 		"recipes": "Recipes",
 		"users": "Users",
 		"terms": "Terms and Conditions",
-		"policy": "Privacy Policy"
+		"policy": "Privacy Policy",
+		"profile": "Profile"
 	},
 	"recipesPage": {
 		"title": "Recipes",
@@ -68,6 +70,10 @@
 		"tabAll": "All",
 		"tabFollowers": "Followers",
 		"tabFollowing": "Following"
+	},
+	"profilePage": {
+		"loading": "Loading profile...",
+		"notFound": "Profile not found."
 	},
 	"loginPage": {
 		"title": "Log in",
@@ -129,6 +135,7 @@
 		"sortBy": "Sort by",
 		"shareRecipe": "Share recipe",
 		"ingredientsAndInstructions": "Recipe ingredients and instructions",
-		"closeAuthDialog": "Close authentication dialog"
+		"closeAuthDialog": "Close authentication dialog",
+		"ariaLabels.toProfilePage": "Go to profile page"
 	}
 }

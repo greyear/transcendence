@@ -1,6 +1,7 @@
 {
 	"common": {
 		"signInButton": "Войти",
+		"signedInButton": "Вход выполнен",
 		"searchPlaceholder": "Поиск...",
 		"sortButton": "Сортировать",
 		"filterButton": "Фильтры",
@@ -69,6 +70,10 @@
 		"tabFollowers": "Подписчики",
 		"tabFollowing": "Подписки"
 	},
+	"profilePage": {
+		"loading": "Загрузка профиля...",
+		"notFound": "Профиль не найден."
+	},
 	"loginPage": {
 		"title": "Войти",
 		"signupTitle": "Создать аккаунт",
@@ -80,13 +85,12 @@
 		"passwordRequirements": "Используйте 8-64 символа, включая заглавную букву, строчную букву, цифру и специальный символ.",
 		"genericError": "Не удалось войти. Попробуйте еще раз.",
 		"networkError": "Запрос не смог дойти до сервера. Возможно, это локальная сетевая проблема или проблема CORS.",
-		"loginSuccess": "Запрос на вход выполнен.",
+		"loginSuccess": "Вход выполнен.",
 		"submittingButton": "Выполняется вход...",
 		"signupButton": "Зарегистрироваться",
 		"logInButton": "Войти",
 		"googleLoginButton": "Войти через Google",
 		"googleSignupButton": "Зарегистрироваться через Google",
-		"googleUnavailable": "Вход через Google на фронтенде пока не подключен.",
 		"signupSubmittingButton": "Создается аккаунт...",
 		"signupSuccess": "Аккаунт создан. Теперь можно войти.",
 		"toggleSignupPrompt": "Нет аккаунта? Создать",

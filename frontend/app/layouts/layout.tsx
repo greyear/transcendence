@@ -6,18 +6,28 @@ import { Header } from "./Header";
 
 const Layout = () => {
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+	const [isAuthenticated, setIsAuthenticated] = useState(false);
 
 	return (
 		<>
-			<Header onOpenAuthModal={() => setIsAuthModalOpen(true)} />
+			<Header
+				isAuthenticated={isAuthenticated}
+				onOpenAuthModal={() => setIsAuthModalOpen(true)}
+			/>
 			<main>
 				<Outlet />
 			</main>
-			<Footer onOpenAuthModal={() => setIsAuthModalOpen(true)} />
+			<Footer
+				isAuthenticated={isAuthenticated}
+				onOpenAuthModal={() => setIsAuthModalOpen(true)}
+			/>
 			<AuthModal
 				isOpen={isAuthModalOpen}
 				onClose={() => setIsAuthModalOpen(false)}
-				onSuccess={() => setIsAuthModalOpen(false)}
+				onSuccess={() => {
+					setIsAuthenticated(true);
+					setIsAuthModalOpen(false);
+				}}
 			/>
 		</>
 	);

@@ -1,0 +1,11 @@
+.profile-page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xl);
+}
+
+.profile-page-status {
+	color: var(--text-secondary);
+	margin: 0;
+	padding: var(--space-m) 0;
+}

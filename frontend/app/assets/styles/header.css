@@ -59,6 +59,10 @@
 	margin: 0;
 }
 
+.icon-button.profile-button svg {
+	color: var(--icons-dark);
+}
+
 @media (min-width: 768px) {
 	.header-navigation-list {
 		flex-direction: row;
