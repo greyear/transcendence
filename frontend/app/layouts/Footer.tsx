@@ -9,10 +9,7 @@ type FooterProps = {
 	onOpenAuthModal: () => void;
 };
 
-export const Footer = ({
-	isAuthenticated,
-	onOpenAuthModal,
-}: FooterProps) => {
+export const Footer = ({ isAuthenticated, onOpenAuthModal }: FooterProps) => {
 	const { t } = useTranslation();
 
 	return (
@@ -38,9 +35,7 @@ export const Footer = ({
 					</ul>
 				</nav>
 				<div className="footer-buttons-row">
-					{isAuthenticated ? (
-						null
-					) : (
+					{isAuthenticated ? null : (
 						<MainButton onClick={onOpenAuthModal}>
 							{t("common.signInButton")}
 						</MainButton>

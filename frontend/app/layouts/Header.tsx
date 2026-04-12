@@ -1,4 +1,4 @@
-import { Bell, Menu, Xmark, ProfileCircle } from "iconoir-react";
+import { Bell, Menu, ProfileCircle, Xmark } from "iconoir-react";
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
@@ -77,11 +77,7 @@ type HeaderProps = {
 	onOpenAuthModal: () => void;
 };
 
-// TODO: add the login state
-export const Header = ({
-	isAuthenticated,
-	onOpenAuthModal,
-}: HeaderProps) => {
+export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 	const { t } = useTranslation();
 	const [isOpen, setIsOpen] = useState(false);
 	const { screenSize } = useScreenSize();
@@ -149,7 +145,11 @@ export const Header = ({
 						<>
 							<LanguageSelector isHeader variant="dropdown" />
 							{isAuthenticated ? (
-								<IconButton className="profile-button" to="/profile" aria-label={t("ariaLabels.toProfilePage")}>
+								<IconButton
+									className="profile-button"
+									to="/profile"
+									aria-label={t("ariaLabels.toProfilePage")}
+								>
 									<ProfileCircle />
 								</IconButton>
 							) : (
@@ -164,9 +164,7 @@ export const Header = ({
 			{isOpen && !isDesktop && (
 				<div className="header-menu-overlay">
 					<NavigationList isAuthenticated={isAuthenticated} />
-					{isAuthenticated ? (
-						null
-					) : (
+					{isAuthenticated ? null : (
 						<MainButton variant="inverted" onClick={onOpenAuthModal}>
 							{t("common.signInButton")}
 						</MainButton>

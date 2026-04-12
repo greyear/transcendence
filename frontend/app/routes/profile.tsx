@@ -65,7 +65,7 @@ const ProfilePage = () => {
 				<p className="text-body2">Quick check for the profile endpoint.</p>
 			</header>
 
-			<div className="profile-page-details" aria-label="Profile information">
+			<div className="profile-page-details">
 				<p>
 					<span className="text-label">Username</span>
 					{profile.username}
