@@ -6,8 +6,10 @@
  * - Services: business logic + database access
  */
 
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { pool } from "../db/database.js";
 import {
 	type NextFunction,
 	type Request,
@@ -64,7 +66,8 @@ const recipePictureStorage = multer.diskStorage({
 				: _file.mimetype === "image/webp"
 					? "webp"
 					: "jpg";
-		cb(null, `${req.params.id}.${ext}`);
+		const suffix = crypto.randomBytes(8).toString("hex");
+		cb(null, `${req.params.id}_${suffix}.${ext}`);
 	},
 });
 
@@ -97,6 +100,54 @@ const handleRecipePictureMulterError = (
 		return;
 	}
 	next(err);
+};
+
+// middleware for oicture upload to protect from malicious actions
+const preCheckRecipePictureOwnership = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			res.status(401).json({ error: "Authentication required" });
+			return;
+		}
+
+		const idValidation = validateRecipeId(req.params.id);
+		if (!idValidation.valid) {
+			res.status(400).json({ error: idValidation.error });
+			return;
+		}
+
+		const result = await pool.query(
+			`SELECT author_id, status FROM recipes WHERE id = $1`,
+			[idValidation.value],
+		);
+
+		if (result.rowCount === 0) {
+			res.status(404).json({ error: "Recipe not found" });
+			return;
+		}
+
+		const { author_id, status } = result.rows[0];
+
+		if (author_id !== req.userId) {
+			res.status(403).json({ error: "No permission to update this recipe" });
+			return;
+		}
+
+		if (status !== "draft" && status !== "published") {
+			res.status(409).json({
+				error: `Recipe picture cannot be updated from status ${status}`,
+			});
+			return;
+		}
+
+		next();
+	} catch (error) {
+		next(error);
+	}
 };
 
 // Create router for recipe endpoints
@@ -537,6 +588,7 @@ recipesRouter.delete("/:id/favorite", extractUser, unfavoriteRecipeHandler);
 recipesRouter.put(
 	"/:id/picture",
 	extractUser,
+	preCheckRecipePictureOwnership,
 	recipePictureUpload.single("picture"),
 	handleRecipePictureMulterError,
 	updateRecipePictureHandler,

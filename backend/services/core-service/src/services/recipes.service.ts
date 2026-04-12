@@ -14,6 +14,7 @@
  */
 
 import fs from "node:fs";
+import path from "node:path";
 import type { PoolClient } from "pg";
 import { z } from "zod";
 import { pool } from "../db/database.js";
@@ -832,7 +833,7 @@ export const updateRecipePicture = async (
 		// Delete old file from disk if it existed and differs from the new one
 		if (oldPictureUrl && oldPictureUrl !== pictureUrl) {
 			const oldFilename = oldPictureUrl.replace("/recipe-pictures/", "");
-			const oldFilePath = `uploads/recipes/${oldFilename}`;
+			const oldFilePath = path.resolve("uploads/recipes", oldFilename);
 			fs.unlink(oldFilePath, (err) => {
 				if (err && err.code !== "ENOENT") {
 					console.error("Failed to delete old recipe picture:", err);
