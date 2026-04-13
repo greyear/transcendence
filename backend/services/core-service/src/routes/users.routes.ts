@@ -14,6 +14,7 @@ import {
 	getPublishedRecipesByUserId,
 } from "../services/recipes.service.js";
 import {
+	updateHeartbeat,
 	followUser,
 	getAllUsers,
 	getFollowers,
@@ -340,7 +341,26 @@ const getFollowingHandler = async (
 	}
 };
 
+const heartbeatHandler = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction,
+): Promise<void> => {
+    try {
+        if (req.userId === undefined) {
+            const error: CustomError = new Error("Authentication required");
+            error.statusCode = 401;
+            throw error;
+        }
+        await updateHeartbeat(req.userId);
+        res.status(200).json({ message: "OK" });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // Register more specific routes FIRST, then less specific
+usersRouter.post("/me/heartbeat", heartbeatHandler);
 // /me/recipes is most specific
 usersRouter.get("/me/recipes", extractUser, getMyRecipesHandler);
 usersRouter.get("/me/favorites", extractUser, getMyFavoritesHandler);

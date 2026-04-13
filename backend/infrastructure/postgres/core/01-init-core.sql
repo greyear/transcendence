@@ -6,6 +6,7 @@ CREATE TABLE "users" (
     CHECK (status IN ('online', 'offline')),
   "role" varchar(16) NOT NULL
     CHECK (role IN ('guest', 'user', 'admin')),
+  "last_seen_at" timestamptz DEFAULT now(),
   "created_at" timestamptz DEFAULT now(),
   "updated_at" timestamptz DEFAULT now()
 );
