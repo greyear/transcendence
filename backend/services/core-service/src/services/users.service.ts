@@ -25,17 +25,6 @@ const doesUserExist = async (userId: number): Promise<boolean> => {
 	return (result.rowCount ?? 0) > 0;
 };
 
-const doesFollowRelationExist = async (
-	followerId: number,
-	followedId: number,
-): Promise<boolean> => {
-	const result = await pool.query(
-		"SELECT 1 FROM followers WHERE user_id = $1 AND followed_id = $2 LIMIT 1",
-		[followerId, followedId],
-	);
-	return (result.rowCount ?? 0) > 0;
-};
-
 export const followUser = async (
 	followerId: number,
 	followedId: number,
@@ -53,14 +42,14 @@ export const followUser = async (
 		return { success: false, reason: "user-not-found" };
 	}
 
-	if (await doesFollowRelationExist(followerId, followedId)) {
-		return { success: false, reason: "already-followed" };
-	}
-
-	await pool.query(
-		"INSERT INTO followers (user_id, followed_id) VALUES ($1, $2)",
+	const result = await pool.query(
+		"INSERT INTO followers (user_id, followed_id) VALUES ($1, $2) ON CONFLICT (user_id, followed_id) DO NOTHING",
 		[followerId, followedId],
 	);
+
+	if ((result.rowCount ?? 0) === 0) {
+		return { success: false, reason: "already-followed" };
+	}
 
 	return { success: true };
 };
@@ -82,14 +71,14 @@ export const unfollowUser = async (
 		return { success: false, reason: "user-not-found" };
 	}
 
-	if (!(await doesFollowRelationExist(followerId, followedId))) {
-		return { success: false, reason: "not-followed" };
-	}
-
-	await pool.query(
+	const result = await pool.query(
 		"DELETE FROM followers WHERE user_id = $1 AND followed_id = $2",
 		[followerId, followedId],
 	);
+
+	if ((result.rowCount ?? 0) === 0) {
+		return { success: false, reason: "not-followed" };
+	}
 
 	return { success: true };
 };

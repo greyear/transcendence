@@ -224,7 +224,6 @@ const followUserHandler = async (
  * - 401 Unauthorized - if user is not authenticated
  * - 400 Bad Request - if user ID is not a valid positive integer or user tries to unfollow themselves
  * - 404 Not Found - if the authenticated user or target user does not exist
- * - 409 Conflict - if the follow relationship does not exist
  */
 const unfollowUserHandler = async (
 	req: AuthenticatedRequest,
