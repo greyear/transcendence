@@ -73,6 +73,7 @@
 	},
 	"profilePage": {
 		"loading": "Loading profile...",
+		"error": "Failed to load profile (status: {{status}}).",
 		"notFound": "Profile not found."
 	},
 	"loginPage": {

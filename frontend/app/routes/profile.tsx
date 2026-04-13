@@ -13,45 +13,53 @@ const ProfilePage = () => {
 	const { t } = useTranslation();
 	const [profile, setProfile] = useState<ProfileData | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
-	const [error, setError] = useState("");
+	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
+		null,
+	);
 
 	useEffect(() => {
-		const fetchProfile = async () => {
-			try {
-				setIsLoading(true);
-				setError("");
+		setIsLoading(true);
+		setErrorStatus(null);
+		setProfile(null);
 
-				const response = await fetch(`${API_BASE_URL}/profile`, {
-					credentials: "include",
-				});
-				const data = (await response.json()) as {
-					data?: ProfileData;
-					error?: string;
-				};
+		fetch(`${API_BASE_URL}/profile`, {
+			credentials: "include",
+		})
+			.then((res) => {
+				if (!res.ok) {
+					setErrorStatus(res.status);
+					return null;
+				}
 
-				if (!response.ok) {
-					setError(data.error ?? "Failed to load profile.");
+				return res.json() as Promise<{ data?: ProfileData }>;
+			})
+			.then((body) => {
+				if (!body?.data) {
+					setProfile(null);
 					return;
 				}
 
-				setProfile(data.data ?? null);
-			} catch (fetchError) {
-				console.error(fetchError);
-				setError("Failed to load profile.");
-			} finally {
+				setProfile(body.data);
+			})
+			.catch((error: unknown) => {
+				setErrorStatus("unknown");
+				console.error(error);
+			})
+			.finally(() => {
 				setIsLoading(false);
-			}
-		};
-
-		void fetchProfile();
+			});
 	}, []);
 
 	if (isLoading) {
 		return <p className="profile-page-status">{t("profilePage.loading")}</p>;
 	}
 
-	if (error) {
-		return <p className="profile-page-status">{error}</p>;
+	if (errorStatus !== null) {
+		return (
+			<p className="profile-page-status">
+				{t("profilePage.error", { status: errorStatus })}
+			</p>
+		);
 	}
 
 	if (!profile) {

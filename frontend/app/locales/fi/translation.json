@@ -73,6 +73,7 @@
 	},
 	"profilePage": {
 		"loading": "Ladataan profiilia...",
+		"error": "Profiilin lataus epäonnistui (tila: {{status}}).",
 		"notFound": "Profiilia ei löytynyt."
 	},
 	"loginPage": {
