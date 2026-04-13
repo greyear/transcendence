@@ -1012,9 +1012,22 @@ export const getSearchRecipes = async (): Promise<SearchRecipeDocument[]> => {
 		const query = `
 			SELECT
 				r.id,
-				r.title,
-				r.description,
-				r.instructions,
+				COALESCE(
+					r.title->>'en',
+					r.title->>'fi',
+					r.title->>'ru'
+				) AS title,
+				COALESCE(
+					r.description->>'en',
+					r.description->>'fi',
+					r.description->>'ru'
+				) AS description,
+				COALESCE(
+					r.instructions->'en',
+					r.instructions->'fi',
+					r.instructions->'ru',
+					'[]'::jsonb
+				) AS instructions,
 				r.author_id,
 				r.servings,
 				r.spiciness,
@@ -1084,9 +1097,22 @@ export const getSearchRecipeById = async (
 		const query = `
 			SELECT
 				r.id,
-				r.title,
-				r.description,
-				r.instructions,
+				COALESCE(
+					r.title->>'en',
+					r.title->>'fi',
+					r.title->>'ru'
+				) AS title,
+				COALESCE(
+					r.description->>'en',
+					r.description->>'fi',
+					r.description->>'ru'
+				) AS description,
+				COALESCE(
+					r.instructions->'en',
+					r.instructions->'fi',
+					r.instructions->'ru',
+					'[]'::jsonb
+				) AS instructions,
 				r.author_id,
 				r.servings,
 				r.spiciness,

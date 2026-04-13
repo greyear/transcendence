@@ -73,7 +73,12 @@ describe("Internal Search Routes", () => {
 
 			const recipeRes = await pool.query(
 				`INSERT INTO recipes (title, instructions, status, author_id)
-				 VALUES ('Hidden Search Draft', ARRAY['step 1'], 'draft', $1)
+				 VALUES (
+				 	jsonb_build_object('en', 'Hidden Search Draft', 'fi', 'Hidden Search Draft', 'ru', 'Hidden Search Draft'),
+				 	jsonb_build_object('en', jsonb_build_array('step 1'), 'fi', jsonb_build_array('step 1'), 'ru', jsonb_build_array('step 1')),
+				 	'draft',
+				 	$1
+				 )
 				 RETURNING id`,
 				[998],
 			);
