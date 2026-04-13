@@ -382,6 +382,38 @@ def search_indexed_recipes(
     ]
 
 
+def infer_result_limit(query: str) -> int:
+    prompt = "\n".join(
+        [
+            "Given this recipe search query, return only a single integer from 1 to 20.",
+            "The number must represent how many recipe results the user is asking for.",
+            "If the user does not imply a number, return 5.",
+            "If the user asks for the best or one recipe, return 1.",
+            "Do not explain your answer. Return only the number.",
+            f"Query: {query}",
+        ]
+    )
+
+    try:
+        response = get_generation_client().models.generate_content(
+            model=GEMINI_GEN_MODEL,
+            contents=prompt,
+        )
+    except Exception:
+        logger.exception("Gemini limit inference failed")
+        return 5
+
+    raw_text = (getattr(response, "text", None) or "").strip()
+    if not raw_text:
+        return 5
+
+    digits = "".join(character for character in raw_text if character.isdigit())
+    if not digits:
+        return 5
+
+    return max(1, min(int(digits), 20))
+
+
 def generate_search_summary(query: str, documents: list[dict[str, Any]]) -> str:
     if not documents:
         return "I could not find matching recipes for that search yet."
@@ -501,14 +533,16 @@ def reindex_one(recipe_id: int) -> dict[str, Any]:
 def search_recipes(
     background_tasks: BackgroundTasks,
     q: str = Query(..., min_length=1, max_length=500),
-    limit: int = Query(5, ge=1, le=20),
+    limit: int | None = Query(None, ge=1, le=20),
 ) -> dict[str, Any]:
     query = q.strip()
     if not query:
         raise HTTPException(status_code=400, detail="q must not be blank")
 
+    resolved_limit = limit if limit is not None else infer_result_limit(query)
+
     with psycopg.connect(SEARCH_DATABASE_URL) as connection:
-        documents = search_recipe_documents(connection, query, limit)
+        documents = search_recipe_documents(connection, query, resolved_limit)
 
     results = [
         {
@@ -523,7 +557,13 @@ def search_recipes(
         for row in documents
     ]
 
-    summary = generate_search_summary(query, documents)
+    summary_status = "ok"
+    try:
+        summary = generate_search_summary(query, documents)
+    except HTTPException as error:
+        logger.warning("Falling back to results-only response: %s", error.detail)
+        summary = "Summary temporarily unavailable, but matching recipes were found."
+        summary_status = "unavailable"
 
     if results:
         background_tasks.add_task(refresh_search_documents_if_stale, results)
@@ -531,6 +571,8 @@ def search_recipes(
     return {
         "query": query,
         "summary": summary,
+        "summary_status": summary_status,
         "count": len(results),
+        "limit": resolved_limit,
         "data": results,
     }

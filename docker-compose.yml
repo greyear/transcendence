@@ -135,9 +135,12 @@ services:
       NODE_ENV: development
       PORT: 3002
       DATABASE_URL: postgresql://core_user:core_password@core-db:5432/core_db
+      TRANSLATION_API_URL: http://translation-service:8001/translate
+      TRANSLATION_TIMEOUT_MS: 4000
 
     depends_on:
       - core-db
+      - translation-service
 
     networks:
       - transcendence-network
@@ -183,6 +186,24 @@ services:
     depends_on:
       - search-db
       - core-service
+
+    networks:
+      - transcendence-network
+
+  translation-service:
+    build:
+      context: ./backend/services/translation-service
+      dockerfile: Dockerfile
+    container_name: translation-service
+    restart: unless-stopped
+
+    ports:
+      - "8001:8001"
+
+    environment:
+      PORT: 8001
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_GEN_MODEL: gemini-2.5-flash
 
     networks:
       - transcendence-network

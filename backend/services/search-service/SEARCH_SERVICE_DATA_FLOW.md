@@ -116,9 +116,16 @@ Important detail:
 
 The frontend should call:
 
-- `GET /search/recipes?q=...&limit=...`
+- `GET /search/recipes?q=...`
 
 through `api-gateway`, not directly through `search-service`.
+
+Important detail:
+
+- `limit` still exists as an optional query parameter
+- but the normal product flow does not require frontend to send it
+- if `limit` is omitted, `search-service` infers the result count from the user query text
+- if `limit` is explicitly provided, it overrides the inferred count
 
 ### Full request path
 
@@ -136,14 +143,17 @@ through `api-gateway`, not directly through `search-service`.
 When `/search/recipes` is called:
 
 1. the query text is validated
-2. Gemini creates an embedding for the query
-3. `search-service` compares that query embedding against stored recipe embeddings in `search-db`
-4. PostgreSQL returns the best matching recipe documents
-5. Gemini generates a short summary from those retrieved documents
-6. the endpoint returns:
+2. if `limit` is missing, Gemini infers how many recipe results the user seems to want
+3. Gemini creates an embedding for the query
+4. `search-service` compares that query embedding against stored recipe embeddings in `search-db`
+5. PostgreSQL returns the best matching recipe documents
+6. Gemini generates a short summary from those retrieved documents
+7. the endpoint returns:
   - `query`
   - `summary`
+  - `summary_status`
   - `count`
+  - `limit`
   - `data`
 
 So this endpoint now does two things:
