@@ -22,6 +22,9 @@ import * as help from "./authHelpers.js";
 
 export const authRouter = Router();
 
+const AUTH_SERVICE_URL =
+	process.env.AUTH_SERVICE_URL || "http://auth-service:3001";
+
 // Connection part
 // Fetch env or throw.
 const MONGO_AUTH_URI = process.env.MONGODB_URI || process.env.MONGODB_AUTH_URI;
@@ -109,7 +112,19 @@ authRouter.post(
 			});
 			await newUser.save();
 
+			
+
 			res.status(201).json({ username, email });
+			console.log("res.status:" ,res.status);
+
+			const loginRes = await fetch(`${AUTH_SERVICE_URL}/login`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(req.body),
+			});
+			console.log("request body: " ,req.body);
+			console.log("Login response: ", loginRes);
+
 		} catch (error) {
 			if ((error as { code?: number })?.code === 11000) {
 				res.status(409).json({ error: "Email or username already exists" });
@@ -260,7 +275,16 @@ authRouter.post(
 				await newUser.save();
 
 				res.status(201).json({ googleID, email, name });
-				return;
+				
+				const loginRes = await fetch(`${AUTH_SERVICE_URL}/google`, {
+					method: "POST",
+					headers: { 
+						"Content-Type": "application/json",
+						"Authorization": `Bearer ${token}`
+					},
+				});
+				console.log("Login response: ", loginRes);
+
 			} else {
 				if (!userDocument.get("isActive")) {
 					res.status(403).json({ error: "Account not valid." });

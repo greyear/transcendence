@@ -157,7 +157,6 @@ const postValidateHandler: RequestHandler = async (
 		const response = await fetch(`${AUTH_SERVICE_URL}/validate`, {
 			method: "POST",
 			headers,
-			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
 		res.status(response.status).json(data);
