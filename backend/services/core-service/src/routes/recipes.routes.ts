@@ -44,6 +44,7 @@ import {
 	validateCreateRecipeInput,
 	validateCreateRecipeReviewInput,
 	validateRecipeId,
+	validateReviewId,
 	validateUpdateRecipeInput,
 	validateUpdateRecipeReviewInput,
 } from "../validation/schemas.js";
@@ -725,7 +726,7 @@ const updateReviewHandler = async (
 			throw error;
 		}
 
-		const reviewIdValidation = validateRecipeId(req.params.reviewId);
+		const reviewIdValidation = validateReviewId(req.params.reviewId);
 		if (!reviewIdValidation.valid) {
 			const error: CustomError = new Error(reviewIdValidation.error);
 			error.statusCode = 400;
@@ -801,7 +802,7 @@ const deleteReviewHandler = async (
 			throw error;
 		}
 
-		const reviewIdValidation = validateRecipeId(req.params.reviewId);
+		const reviewIdValidation = validateReviewId(req.params.reviewId);
 		if (!reviewIdValidation.valid) {
 			const error: CustomError = new Error(reviewIdValidation.error);
 			error.statusCode = 400;
@@ -833,8 +834,9 @@ const deleteReviewHandler = async (
 
 		res.status(200).json({
 			data: {
-				id: reviewIdValidation.value,
-				recipe_id: recipeIdValidation.value,
+				id: result.reviewId,
+				recipe_id: result.recipeId,
+				updated_at: result.updatedAt,
 			},
 			message: "Review deleted",
 		});

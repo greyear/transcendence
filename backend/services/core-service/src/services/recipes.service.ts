@@ -97,7 +97,7 @@ type UpdateReviewResult =
 	| { success: false; reason: "not-found" | "forbidden" };
 
 type DeleteReviewResult =
-	| { success: true }
+	| { success: true; reviewId: number; recipeId: number; updatedAt: string }
 	| { success: false; reason: "not-found" | "forbidden" };
 
 const recipeIdRowSchema = z.object({
@@ -1010,7 +1010,7 @@ export const updateReview = async (
 			LEFT JOIN users u ON u.id = rr.author_id
 			WHERE rr.id = $1
 		`,
-			[updateResult.rows[0].id],
+			[reviewId],
 		);
 
 		const reviewParsed = recipeReviewListItemSchema.safeParse(
@@ -1063,12 +1063,26 @@ export const deleteReview = async (
 			return { success: false, reason: "forbidden" };
 		}
 
-		await pool.query(
-			`UPDATE recipe_reviews SET is_deleted = true, updated_at = now() WHERE id = $1`,
+		const updateResult = await pool.query(
+			`UPDATE recipe_reviews
+			 SET is_deleted = true, updated_at = now()
+			 WHERE id = $1
+			 RETURNING id, recipe_id, updated_at`,
 			[reviewId],
 		);
 
-		return { success: true };
+		const resultRow = updateResult.rows[0] as {
+			id: number;
+			recipe_id: number;
+			updated_at: string | Date;
+		};
+
+		return {
+			success: true,
+			reviewId: resultRow.id,
+			recipeId: resultRow.recipe_id,
+			updatedAt: new Date(resultRow.updated_at).toISOString(),
+		};
 	} catch (error) {
 		console.error("Database error in deleteReview:", error);
 		throw error;

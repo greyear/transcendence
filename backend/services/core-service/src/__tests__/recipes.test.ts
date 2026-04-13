@@ -1752,6 +1752,8 @@ describe("Recipes Routes", () => {
 			expect(response.body).toHaveProperty("message", "Review deleted");
 			expect(response.body.data).toHaveProperty("id", reviewId);
 			expect(response.body.data).toHaveProperty("recipe_id", recipeId);
+			expect(response.body.data).toHaveProperty("updated_at");
+			expect(typeof response.body.data.updated_at).toBe("string");
 
 			// Verify soft-delete: row still exists but is_deleted = true
 			const dbReview = await pool.query(
