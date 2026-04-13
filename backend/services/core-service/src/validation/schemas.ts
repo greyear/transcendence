@@ -19,6 +19,7 @@ import { z } from "zod";
  * Maximum value for PostgreSQL INTEGER type (2^31 - 1)
  */
 const MAX_SIGNED_INT = 2147483647;
+const MAX_REVIEW_BODY_LENGTH = 1000;
 
 /**
  * Positive Integer schema
@@ -40,6 +41,10 @@ const positiveIntSchema = z.coerce
 	.max(MAX_SIGNED_INT);
 
 export const userIdSchema = positiveIntSchema;
+
+export const supportedLocaleSchema = z.enum(["en", "fi", "ru"]);
+export type SupportedLocale = z.infer<typeof supportedLocaleSchema>;
+export const DEFAULT_LOCALE: SupportedLocale = "en";
 
 const userPresenceStatusSchema = z.enum(["online", "offline"]);
 
@@ -97,7 +102,21 @@ const createRecipeInputSchema = z.object({
 		),
 });
 
+const ratingInputSchema = z.object({
+	rating: z.coerce.number().int().min(1).max(5),
+});
+
+const updateRecipeInputSchema = createRecipeInputSchema;
+
+const createRecipeReviewInputSchema = z.object({
+	body: z.string().trim().min(1).max(MAX_REVIEW_BODY_LENGTH),
+});
+
 export type CreateRecipeInput = z.infer<typeof createRecipeInputSchema>;
+export type UpdateRecipeInput = z.infer<typeof updateRecipeInputSchema>;
+export type CreateRecipeReviewInput = z.infer<
+	typeof createRecipeReviewInputSchema
+>;
 
 type ValidationResult<T> =
 	| { valid: true; value: T }
@@ -120,10 +139,70 @@ export const validateRecipeId = validateIntId;
 
 export const validateUserId = validateIntId;
 
+export const validateLocale = (
+	input: unknown,
+): ValidationResult<SupportedLocale> => {
+	const result = supportedLocaleSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: "Supported locales are: en, fi, ru",
+	};
+};
+
 export const validateCreateRecipeInput = (
 	input: unknown,
 ): ValidationResult<CreateRecipeInput> => {
 	const result = createRecipeInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+export const validateUpdateRecipeInput = (
+	input: unknown,
+): ValidationResult<UpdateRecipeInput> => {
+	const result = updateRecipeInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+export const validateRatingInput = (
+	input: unknown,
+): ValidationResult<RatingInput> => {
+	const result = ratingInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+export const validateCreateRecipeReviewInput = (
+	input: unknown,
+): ValidationResult<CreateRecipeReviewInput> => {
+	const result = createRecipeReviewInputSchema.safeParse(input);
 
 	if (result.success) {
 		return { valid: true, value: result.data };
@@ -198,6 +277,17 @@ export const myRecipeListItemSchema = z.object({
 	status: recipeStatusSchema,
 });
 
+export const recipeReviewListItemSchema = z.object({
+	id: z.number().int().positive(),
+	recipe_id: z.number().int().positive(),
+	author_id: userIdSchema.nullable(),
+	username: z.string().trim().min(1).max(32).nullable(),
+	avatar: z.string().nullable(),
+	body: z.string(),
+	created_at: z.coerce.date().transform((value) => value.toISOString()),
+	updated_at: z.coerce.date().transform((value) => value.toISOString()),
+});
+
 /**
  * SearchRecipeDocument - minimal published recipe payload for search indexing
  *
@@ -247,6 +337,53 @@ export const userProfileSchema = z.object({
 });
 
 /**
+ * ProfileData schema - slim profile shape returned by GET/PUT /profile
+ * Only the fields the user can see and edit about themselves.
+ */
+export const profileDataSchema = z.object({
+	id: z.number().int().positive(),
+	username: z.string().trim().min(1).max(32),
+	avatar: z.string().nullable(),
+});
+
+export type ProfileData = z.infer<typeof profileDataSchema>;
+
+/**
+ * UpdateProfileInput schema - body for PUT /profile
+ *
+ * Both fields are optional so the user can update just one at a time.
+ * avatar is a string here because multer resolves the file and the route
+ * injects the public URL path before validation runs.
+ * At least one field must be present.
+ */
+const updateProfileInputSchema = z
+	.object({
+		username: z.string().trim().min(1).max(32).optional(),
+		avatar: z.string().nullable().optional(),
+	})
+	.refine(
+		(data) => data.username !== undefined || data.avatar !== undefined,
+		"At least one field (username or avatar) must be provided",
+	);
+
+export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
+
+export const validateUpdateProfileInput = (
+	input: unknown,
+): ValidationResult<UpdateProfileInput> => {
+	const result = updateProfileInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+/**
  * z.infer<typeof recipeSchema> - "extract TypeScript type from Zod schema"
  *
  * This means Recipe type will contain all fields from recipeSchema above
@@ -279,5 +416,8 @@ export type MyRecipeListItem = z.infer<typeof myRecipeListItemSchema>;
  * SearchRecipeDocument type - recipe payload exposed to search-service
  */
 export type SearchRecipeDocument = z.infer<typeof searchRecipeDocumentSchema>;
+export type RecipeReviewListItem = z.infer<typeof recipeReviewListItemSchema>;
 export type UserListItem = z.infer<typeof userListItemSchema>;
 export type UserProfile = z.infer<typeof userProfileSchema>;
+
+export type RatingInput = z.infer<typeof ratingInputSchema>;

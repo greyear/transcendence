@@ -1,0 +1,173 @@
+# 1. Register new user - valid
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"normaluser1","email":"normal1@test.local","realname":"Normal User","password":"TestPass123!"}'
+
+  201: {"username":"normaluser1","email":"normal1@test.local","realname":"Normal User"}
+
+
+# 2. Register - duplicate username
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"normaluser1","email":"other@test.local","realname":"Other","password":"TestPass123!"}'
+
+  409: {"error":"Resource exists"}
+
+
+# 3. Register - duplicate email
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"normaluser2","email":"normal1@test.local","realname":"Other","password":"TestPass123!"}'
+
+  409: {"error":"Resource exists"}
+
+
+# 4. Register - invalid email format
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"normaluser3","email":"notanemail","realname":"Test","password":"TestPass123!"}'
+
+  422: {"error":"Invalid email address"}
+
+
+# 5. Register - password too short
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"normaluser4","email":"user4@test.local","realname":"Test","password":"Short1!"}'
+
+  422: {"error":"The password doesn't match the password requirements"}
+
+
+# 6. Register - username too short
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"ab","email":"user5@test.local","realname":"Test","password":"TestPass123!"}'
+
+  422: {"error":"Invalid username"}
+
+
+# 7. Register - username too long
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"this_is_a_very_long_username_over_20_chars","email":"user6@test.local","realname":"Test","password":"TestPass123!"}'
+
+  422: {"error":"Invalid username"}
+
+
+# 8. Register - username with spaces
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"user name","email":"user7@test.local","realname":"Test","password":"TestPass123!"}'
+
+  422: {"error":"Invalid username"}
+
+# 9. Register - username with special characters
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"user@name!","email":"user8@test.local","realname":"Test","password":"TestPass123!"}'
+
+  422: {"error":"Invalid username"}
+
+# 10. Login - valid by username
+curl -X POST 'http://localhost:3000/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"normaluser1","password":"TestPass123!"}'
+
+  200: {"token":"<token here>","message":"Login successful"}
+
+
+# 11. Login - valid by email
+curl -X POST 'http://localhost:3000/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"normal1@test.local","password":"TestPass123!"}'
+
+  200: {"token":"<token here>","message":"Login successful"}
+
+
+# 12. Login - wrong password
+curl -X POST 'http://localhost:3000/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"normaluser1","password":"WrongPass123!"}'
+
+  401: {"error":"Password mismatch"}
+
+
+# 13. Login - non-existent user
+curl -X POST 'http://localhost:3000/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"doesnotexist","password":"TestPass123!"}'
+
+  404: {"error":"User not found"}
+
+
+# 14. Google - create new user (REPLACE TOKEN)
+curl -X POST 'http://localhost:3000/auth/google' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <REPLACE_WITH_VALID_GOOGLE_ID_TOKEN>'
+
+  201: {"googleID":"118020156076506959118","email":"durgledoggy@gmail.com","name":"Durgle Doggy"}
+  
+
+# 15. Google - existing user login (same token as above)
+curl -X POST 'http://localhost:3000/auth/google' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <REPLACE_WITH_VALID_GOOGLE_ID_TOKEN>'
+
+  200: {"token":"<token here>","message":"Login successful"}
+
+
+# 16. Google - missing token
+curl -X POST 'http://localhost:3000/auth/google' \
+  -H 'Content-Type: application/json'
+
+  401: {"error":"Token not found"}
+
+
+# 17. Google - invalid token
+curl -X POST 'http://localhost:3000/auth/google' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer invalid_token_xyz'
+
+  500: {"error":"Wrong number of segments in token: invalid_token_xyz"}
+
+
+# 18. Conflict - Google user tries normal login with email
+curl -X POST 'http://localhost:3000/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"durgledoggy@gmail.com","password":"anypassword"}'
+
+  401: {"error":"This account uses Google Sign-In only. Please use the Google login option."}
+
+
+# 19. Conflict - register normal user with Google user's existing email
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"conflict_user","email":"durgledoggy@gmail.com","realname":"Conflict","password":"TestPass123!"}'
+
+  409: {"error":"Email already registered with Google Sign-In. Please use Google login."}
+
+
+# 20. Change password - valid (use token from step 11)
+curl -X PATCH 'http://localhost:3000/auth/change-password/normaluser1' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <TOKEN_FROM_STEP_11>' \
+  -d '{"password":"TestPass123!","newPassword":"NewPass456@"}'
+
+  200: {"message":"Password updated successfully"}
+
+
+# 21. Login - verify new password works
+curl -X POST 'http://localhost:3000/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"normaluser1","password":"NewPass456@"}'
+
+  200: {"token":"<token here>","message":"Login successful"}
+
+
+# 22. Change password - no auth header
+curl -X PATCH 'http://localhost:3000/auth/change-password/normaluser1' \
+  -H 'Content-Type: application/json' \
+  -d '{"password":"NewPass456@","newPassword":"AnotherPass789#"}'
+
+  401: {"error":"Invalid token"}
+

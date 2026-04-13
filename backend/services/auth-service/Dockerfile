@@ -19,8 +19,8 @@ COPY src ./src
 # Build TypeScript
 RUN npm run build
 
-ENV NODE_ENV=production
-ENV PORT=3001
+#ENV NODE_ENV=production
+#ENV PORT=3001
 
 EXPOSE 3001
 

@@ -20,14 +20,15 @@ import mongoose from "mongoose";
 import { userModel } from "./auth_schema.js";
 import * as help from "./authHelpers.js";
 
-
 export const authRouter = Router();
 
-//Connection part probably being moved later
-const MONGO_AUTH_URI =
-	process.env.MONGODB_URI ||
-	process.env.MONGODB_AUTH_URI ||
-	"mongodb://127.0.0.1:27017/auth_db";
+// Connection part
+// Fetch env or throw.
+const MONGO_AUTH_URI = process.env.MONGODB_URI || process.env.MONGODB_AUTH_URI;
+if (!MONGO_AUTH_URI) {
+	throw new Error("MONGODB_URI or MONGODB_AUTH_URI env variable is not set");
+}
+
 // Connect to MongoDB
 // https://mongoosejs.com/docs/connections.html
 mongoose
@@ -47,9 +48,10 @@ mongoose
 			findOne() because usernames/emails are unique in the DB
 			Login name request can be either email or username so both fields
 				need checking individually.
-		2. Validate email address and password.
-		3. If not, attempt to hash password and create new user
-		4. Return relevant code
+		2. If user exists check for Google-only account and return relevant message
+		3. If not, attempt to validate email, username and password format
+		4. Attempt to create user in DB
+		5. Return relevant code
 */
 authRouter.post(
 	"/register",
@@ -62,12 +64,25 @@ authRouter.post(
 			});
 
 			if (userDocument) {
+				// Check if it's a Google-only account
+				if (userDocument.get("googleID")) {
+					res.status(409).json({
+						error:
+							"Email already registered with Google Sign-In. Please use Google login.",
+					});
+					return;
+				}
 				res.status(409).json({ error: "Resource exists" });
 				return;
 			}
 
-			if (!help.validateEmail(req.body.email)) {
+			if (!help.validateEmail(email)) {
 				res.status(422).json({ error: "Invalid email address" });
+				return;
+			}
+
+			if (!help.validateUsername(username)) {
+				res.status(422).json({ error: "Invalid username" });
 				return;
 			}
 
@@ -97,7 +112,11 @@ authRouter.post(
 
 			res.status(201).json({ username, email, realname });
 		} catch (error) {
-			next(error);
+			if ((error as any)?.code === 11000) {
+				res.status(409).json({ error: "Email or username already exists" });
+			} else {
+				next(error);
+			}
 		}
 	},
 );
@@ -108,9 +127,10 @@ authRouter.post(
 			findOne() because usernames/emails are unique in the DB
 			Login name request can be either email or username so both fields
 				need checking individually.
-		2. If so, check password using bcrypt
-		3. If good, create JWT and return
-		4. Return relevant code
+		2. If user exists check for Google-only account and return relevant message
+		3. If so, check password using bcrypt
+		4. If good, create JWT and return
+		5. Return relevant code
 */
 authRouter.post(
 	"/login",
@@ -127,6 +147,16 @@ authRouter.post(
 				return;
 			}
 
+			// Check if user is a Google-only account
+			const googleID = userDocument.get("googleID");
+			if (googleID) {
+				res.status(401).json({
+					error:
+						"This account uses Google Sign-In only. Please use the Google login option.",
+				});
+				return;
+			}
+
 			const gotHash = userDocument.get("passwordHash");
 			const passwordMatch = await help.comparePassword(password, gotHash);
 			if (!passwordMatch) {
@@ -138,7 +168,13 @@ authRouter.post(
 			//https://howhttpworks.com/guides/cookie-security
 			//https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
 			//secure = lax seems fine for our use case.
-			const JWToken = help.generateToken(userDocument.get("_id"), username);
+			const actualUsername = userDocument.get("username");
+			const JWToken = help.generateToken(
+				userDocument.get("_id"),
+				actualUsername as string,
+				"mongo",
+			);
+
 			res.cookie("token", JWToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
@@ -166,12 +202,15 @@ authRouter.post(
 	https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
 	https://www.w3tutorials.net/blog/google-sign-in-backend-verification/
 */
-/*
 authRouter.post(
 	"/google",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+			if (!CLIENT_ID) {
+				throw new Error("Missing GOOGLE_CLIENT_ID in environment variables");
+			}
+
 			const client = new OAuth2Client(CLIENT_ID);
 			const token = help.sequenceHeader(req);
 			if (!token) {
@@ -191,6 +230,19 @@ authRouter.post(
 			const googleID = payload.sub;
 			const { email, name } = payload;
 
+			// Ensure realname has a value
+			const realname = name || email?.split("@")[0] || "Google User";
+
+			// Check if email already exists as normal account
+			const existingEmailUser = await userModel.findOne({ email });
+			if (existingEmailUser && !existingEmailUser.get("googleID")) {
+				res.status(409).json({
+					error:
+						"Email already registered with password login. Please use normal login instead.",
+				});
+				return;
+			}
+
 			//Repetiton here, which can be sorted out later.
 			//Google accounts will not require a passwordHash, so just using "empty"
 			//Not sure how correct any of this is, but making a start.
@@ -202,7 +254,7 @@ authRouter.post(
 					id: currentCount,
 					email,
 					passwordHash: "empty",
-					realname: name,
+					realname,
 					googleID,
 				});
 				await newUser.save();
@@ -210,7 +262,11 @@ authRouter.post(
 				res.status(201).json({ googleID, email, name });
 				return;
 			} else {
-				const JWToken = help.generateToken(userDocument.get("_id"), googleID);
+				const JWToken = help.generateToken(
+					userDocument.get("_id"),
+					googleID,
+					"google",
+				);
 
 				res.cookie("token", JWToken, {
 					httpOnly: true,
@@ -225,8 +281,11 @@ authRouter.post(
 				return;
 			}
 		} catch (error) {
-			next(error);
+			if ((error as any)?.code === 11000) {
+				res.status(409).json({ error: "Email or googleID already exists" });
+			} else {
+				next(error);
+			}
 		}
 	},
 );
-*/

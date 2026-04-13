@@ -48,9 +48,9 @@ const postLoginHandler: RequestHandler = async (
 		});
 		const data = await response.json();
 		// Forward Set-Cookie headers from auth service to client
-		const setCookieHeader = response.headers.get('set-cookie');
+		const setCookieHeader = response.headers.get("set-cookie");
 		if (setCookieHeader) {
-			res.set('Set-Cookie', setCookieHeader);
+			res.set("Set-Cookie", setCookieHeader);
 		}
 		res.status(response.status).json(data);
 	} catch (error) {
@@ -64,16 +64,23 @@ const postGoogleHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
+		// Forward Authorization header if present
+		if (req.headers.authorization) {
+			headers.authorization = req.headers.authorization;
+		}
 		const response = await fetch(`${AUTH_SERVICE_URL}/google`, {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers,
 			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
 		// Forward Set-Cookie headers from auth service to client
-		const setCookieHeader = response.headers.get('set-cookie');
+		const setCookieHeader = response.headers.get("set-cookie");
 		if (setCookieHeader) {
-			res.set('Set-Cookie', setCookieHeader);
+			res.set("Set-Cookie", setCookieHeader);
 		}
 		res.status(response.status).json(data);
 	} catch (error) {

@@ -53,8 +53,12 @@ const NavigationList = () => {
 	);
 };
 
+type HeaderProps = {
+	onOpenAuthModal: () => void;
+};
+
 // TODO: add the login state
-export const Header = () => {
+export const Header = ({ onOpenAuthModal }: HeaderProps) => {
 	const { t } = useTranslation();
 	const [isOpen, setIsOpen] = useState(false);
 	const { screenSize } = useScreenSize();
@@ -121,7 +125,7 @@ export const Header = () => {
 					) : (
 						<>
 							<LanguageSelector isHeader variant="dropdown" />
-							<MainButton variant="inverted">
+							<MainButton variant="inverted" onClick={onOpenAuthModal}>
 								{t("common.signInButton")}
 							</MainButton>
 						</>
@@ -131,7 +135,9 @@ export const Header = () => {
 			{isOpen && !isDesktop && (
 				<div className="header-menu-overlay">
 					<NavigationList />
-					<MainButton variant="inverted">{t("common.signInButton")}</MainButton>
+					<MainButton variant="inverted" onClick={onOpenAuthModal}>
+						{t("common.signInButton")}
+					</MainButton>
 					{isMobile && (
 						<SearchField placeholder={t("common.searchPlaceholder")} />
 					)}

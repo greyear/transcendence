@@ -9,7 +9,24 @@ VALUES (1, 'demo_chef', 'user', 'offline')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count)
-VALUES
+SELECT
+  jsonb_build_object('en', v.title, 'fi', v.title, 'ru', v.title),
+  CASE
+    WHEN v.description IS NULL THEN NULL
+    ELSE jsonb_build_object('en', v.description, 'fi', v.description, 'ru', v.description)
+  END,
+  jsonb_build_object(
+    'en', to_jsonb(v.instructions),
+    'fi', to_jsonb(v.instructions),
+    'ru', to_jsonb(v.instructions)
+  ),
+  v.servings,
+  v.spiciness,
+  v.author_id,
+  v.status,
+  v.rating_avg,
+  v.rating_count
+FROM (VALUES
 
 -- 1
 (
@@ -333,4 +350,4 @@ VALUES
     'Enjoy cold or gently warm in the microwave'
   ],
   1, 0, 1, 'published', 4.20, 16
-);
+) AS v(title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count);

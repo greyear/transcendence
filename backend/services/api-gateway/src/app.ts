@@ -16,6 +16,7 @@ import express, { type Express } from "express";
 import "dotenv/config";
 import { authRouter } from "./routes/auth.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
+import { profileRouter } from "./routes/profile.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
 import { searchRouter } from "./routes/search.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
@@ -33,6 +34,7 @@ app.use(
 	cors({
 		origin: process.env.CORS_ORIGIN || "http://localhost:5173",
 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+		credentials: true,
 	}),
 );
 // Parse JSON from request body
@@ -51,6 +53,8 @@ app.use("/recipes", recipesRouter);
 app.use("/search", searchRouter);
 // Mount users router
 app.use("/users", usersRouter);
+// Mount profile router
+app.use("/profile", profileRouter);
 // Auth router
 app.use("/auth", authRouter);
 
