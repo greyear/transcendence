@@ -1077,4 +1077,286 @@ describe("API Gateway - Recipes Routes", () => {
 		expect(response.status).toBe(404);
 		expect(response.body).toEqual({ error: "Recipe not found" });
 	});
+
+	it("should reject PUT /recipes/:id/reviews/:reviewId without authentication", async () => {
+		const response = await request(app)
+			.put("/recipes/77/reviews/501")
+			.send({ body: "Updated review" });
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy PUT /recipes/:id/reviews/:reviewId to core-service", async () => {
+		const payload = { body: "Updated review text" };
+
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			json: async () => ({
+				data: { id: 501, recipe_id: 77, body: "Updated review text" },
+				message: "Review updated",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.put("/recipes/77/reviews/501")
+			.set("Authorization", "Bearer validtoken")
+			.send(payload);
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: { id: 501, recipe_id: 77, body: "Updated review text" },
+			message: "Review updated",
+		});
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			1,
+			expect.stringContaining("/auth/validate"),
+			expect.objectContaining({
+				method: "POST",
+				headers: { Authorization: "Bearer validtoken" },
+			}),
+		);
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining("/recipes/77/reviews/501"),
+			expect.objectContaining({
+				method: "PUT",
+				body: JSON.stringify(payload),
+				headers: expect.objectContaining({
+					"Content-Type": "application/json",
+					"x-user-id": "42",
+				}),
+				signal: expect.any(AbortSignal),
+			}),
+		);
+	});
+
+	it("should forward 403 from core-service for forbidden review update", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 403,
+			json: async () => ({ error: "No permission to update this review" }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.put("/recipes/77/reviews/501")
+			.set("Authorization", "Bearer validtoken")
+			.send({ body: "Updated" });
+
+		expect(response.status).toBe(403);
+		expect(response.body).toEqual({
+			error: "No permission to update this review",
+		});
+	});
+
+	it("should forward 404 from core-service for missing review on update", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 404,
+			json: async () => ({ error: "Review not found" }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.put("/recipes/77/reviews/999999")
+			.set("Authorization", "Bearer validtoken")
+			.send({ body: "Updated" });
+
+		expect(response.status).toBe(404);
+		expect(response.body).toEqual({ error: "Review not found" });
+	});
+
+	it("should return 504 when downstream update review request times out", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		const timeoutError = new Error("Request timed out");
+		timeoutError.name = "TimeoutError";
+		fetchSpy.mockRejectedValueOnce(timeoutError);
+
+		const response = await request(app)
+			.put("/recipes/77/reviews/501")
+			.set("Authorization", "Bearer validtoken")
+			.send({ body: "Updated" });
+
+		expect(response.status).toBe(504);
+		expect(response.body).toEqual({ error: "Gateway Timeout" });
+	});
+
+	it("should return 500 on unexpected proxy error for PUT /recipes/:id/reviews/:reviewId", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockRejectedValueOnce(new Error("boom"));
+
+		const response = await request(app)
+			.put("/recipes/77/reviews/501")
+			.set("Authorization", "Bearer validtoken")
+			.send({ body: "Updated" });
+
+		expect(response.status).toBe(500);
+		expect(response.body).toEqual({ error: "Failed to update review" });
+	});
+
+	it("should reject DELETE /recipes/:id/reviews/:reviewId without authentication", async () => {
+		const response = await request(app).delete("/recipes/77/reviews/501");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should validate token and proxy DELETE /recipes/:id/reviews/:reviewId to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			json: async () => ({
+				data: {
+					id: 501,
+					recipe_id: 77,
+					updated_at: "2026-04-13T12:00:00.000Z",
+				},
+				message: "Review deleted",
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.delete("/recipes/77/reviews/501")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: { id: 501, recipe_id: 77, updated_at: "2026-04-13T12:00:00.000Z" },
+			message: "Review deleted",
+		});
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			1,
+			expect.stringContaining("/auth/validate"),
+			expect.objectContaining({
+				method: "POST",
+				headers: { Authorization: "Bearer validtoken" },
+			}),
+		);
+
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining("/recipes/77/reviews/501"),
+			expect.objectContaining({
+				method: "DELETE",
+				headers: expect.objectContaining({
+					"Content-Type": "application/json",
+					"x-user-id": "42",
+				}),
+				signal: expect.any(AbortSignal),
+			}),
+		);
+	});
+
+	it("should forward 403 from core-service for forbidden review delete", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 403,
+			json: async () => ({ error: "No permission to delete this review" }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.delete("/recipes/77/reviews/501")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(403);
+		expect(response.body).toEqual({
+			error: "No permission to delete this review",
+		});
+	});
+
+	it("should forward 404 from core-service for missing review on delete", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 404,
+			json: async () => ({ error: "Review not found" }),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.delete("/recipes/77/reviews/999999")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(404);
+		expect(response.body).toEqual({ error: "Review not found" });
+	});
+
+	it("should return 504 when downstream delete review request times out", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		const timeoutError = new Error("Request timed out");
+		timeoutError.name = "TimeoutError";
+		fetchSpy.mockRejectedValueOnce(timeoutError);
+
+		const response = await request(app)
+			.delete("/recipes/77/reviews/501")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(504);
+		expect(response.body).toEqual({ error: "Gateway Timeout" });
+	});
+
+	it("should return 500 on unexpected proxy error for DELETE /recipes/:id/reviews/:reviewId", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockRejectedValueOnce(new Error("boom"));
+
+		const response = await request(app)
+			.delete("/recipes/77/reviews/501")
+			.set("Authorization", "Bearer validtoken");
+
+		expect(response.status).toBe(500);
+		expect(response.body).toEqual({ error: "Failed to delete review" });
+	});
 });

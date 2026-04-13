@@ -25,6 +25,7 @@ import {
 	addRecipeToFavorites,
 	archiveRecipe,
 	createRecipe,
+	deleteReview,
 	getAllRecipes,
 	getRecipeById,
 	getRecipeReviews,
@@ -33,6 +34,7 @@ import {
 	removeRecipeFromFavorites,
 	updateRecipe,
 	updateRecipePicture,
+	updateReview,
 } from "../services/recipes.service.js";
 import {
 	resolveRequestedLocale,
@@ -42,7 +44,9 @@ import {
 	validateCreateRecipeInput,
 	validateCreateRecipeReviewInput,
 	validateRecipeId,
+	validateReviewId,
 	validateUpdateRecipeInput,
+	validateUpdateRecipeReviewInput,
 } from "../validation/schemas.js";
 import { ratingsRouter } from "./ratings.routes.js";
 
@@ -109,7 +113,7 @@ const handleRecipePictureMulterError = (
 	next(err);
 };
 
-// middleware for oicture upload to protect from malicious actions
+// middleware for picture upload to protect from malicious actions
 const preCheckRecipePictureOwnership = async (
 	req: AuthenticatedRequest,
 	res: Response,
@@ -693,6 +697,154 @@ const getRecipeReviewsHandler = async (
 	}
 };
 
+/**
+ * PUT /recipes/:id/reviews/:reviewId - update a review
+ *
+ * Possible responses:
+ * - 200 OK: review updated
+ * - 400 Bad Request: invalid ID or body
+ * - 401 Unauthorized: user is not authenticated
+ * - 403 Forbidden: user does not own the review
+ * - 404 Not Found: review or recipe doesn't exist
+ */
+const updateReviewHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const recipeIdValidation = validateRecipeId(req.params.id);
+		if (!recipeIdValidation.valid) {
+			const error: CustomError = new Error(recipeIdValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const reviewIdValidation = validateReviewId(req.params.reviewId);
+		if (!reviewIdValidation.valid) {
+			const error: CustomError = new Error(reviewIdValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const bodyValidation = validateUpdateRecipeReviewInput(req.body);
+		if (!bodyValidation.valid) {
+			const error: CustomError = new Error(bodyValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const result = await updateReview(
+			recipeIdValidation.value,
+			reviewIdValidation.value,
+			req.userId,
+			bodyValidation.value,
+		);
+
+		if (!result.success) {
+			const error: CustomError = new Error();
+
+			switch (result.reason) {
+				case "not-found":
+					error.message = "Review not found";
+					error.statusCode = 404;
+					break;
+				case "forbidden":
+					error.message = "No permission to update this review";
+					error.statusCode = 403;
+					break;
+			}
+
+			throw error;
+		}
+
+		res.status(200).json({
+			data: result.review,
+			message: "Review updated",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+/**
+ * DELETE /recipes/:id/reviews/:reviewId - delete a review
+ *
+ * Possible responses:
+ * - 200 OK: review deleted
+ * - 400 Bad Request: invalid ID
+ * - 401 Unauthorized: user is not authenticated
+ * - 403 Forbidden: user does not own the review
+ * - 404 Not Found: review or recipe doesn't exist
+ */
+const deleteReviewHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const recipeIdValidation = validateRecipeId(req.params.id);
+		if (!recipeIdValidation.valid) {
+			const error: CustomError = new Error(recipeIdValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const reviewIdValidation = validateReviewId(req.params.reviewId);
+		if (!reviewIdValidation.valid) {
+			const error: CustomError = new Error(reviewIdValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const result = await deleteReview(
+			recipeIdValidation.value,
+			reviewIdValidation.value,
+			req.userId,
+		);
+
+		if (!result.success) {
+			const error: CustomError = new Error();
+
+			switch (result.reason) {
+				case "not-found":
+					error.message = "Review not found";
+					error.statusCode = 404;
+					break;
+				case "forbidden":
+					error.message = "No permission to delete this review";
+					error.statusCode = 403;
+					break;
+			}
+
+			throw error;
+		}
+
+		res.status(200).json({
+			data: {
+				id: result.reviewId,
+				recipe_id: result.recipeId,
+				updated_at: result.updatedAt,
+			},
+			message: "Review deleted",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
 // extractUser middleware extracts userId from X-User-Id header
 
 recipesRouter.post("/:id/publish", extractUser, publishRecipeHandler);
@@ -709,6 +861,12 @@ recipesRouter.put(
 );
 
 recipesRouter.post("/:id/reviews", extractUser, leaveRecipeReviewHandler);
+recipesRouter.put("/:id/reviews/:reviewId", extractUser, updateReviewHandler);
+recipesRouter.delete(
+	"/:id/reviews/:reviewId",
+	extractUser,
+	deleteReviewHandler,
+);
 recipesRouter.get("/:id/reviews", getRecipeReviewsHandler);
 recipesRouter.get("/:id", extractUser, getRecipeByIdHandler);
 recipesRouter.put("/:id", extractUser, updateRecipeHandler);

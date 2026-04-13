@@ -175,6 +175,53 @@ const getRecipeReviewsHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
+const updateReviewHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/recipes/${req.params.id}/reviews/${req.params.reviewId}`,
+			{
+				method: "PUT",
+				headers: getInternalHeaders(req),
+				body: JSON.stringify(req.body),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to update review" });
+	}
+};
+
+const deleteReviewHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/recipes/${req.params.id}/reviews/${req.params.reviewId}`,
+			{
+				method: "DELETE",
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to delete review" });
+	}
+};
+
 const updateRecipeHandler: RequestHandler = async (req, res, _next) => {
 	try {
 		const response = await fetch(
@@ -296,6 +343,12 @@ const updateRecipePictureHandler: RequestHandler = async (req, res, _next) => {
 recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
 recipesRouter.put("/:id/picture", requireAuth, updateRecipePictureHandler);
 recipesRouter.post("/:id/reviews", requireAuth, leaveRecipeReviewHandler);
+recipesRouter.put("/:id/reviews/:reviewId", requireAuth, updateReviewHandler);
+recipesRouter.delete(
+	"/:id/reviews/:reviewId",
+	requireAuth,
+	deleteReviewHandler,
+);
 recipesRouter.post("/:id/favorite", requireAuth, favoriteRecipeHandler);
 recipesRouter.delete("/:id/favorite", requireAuth, unfavoriteRecipeHandler);
 recipesRouter.use("/:id/rating", ratingsRouter);
