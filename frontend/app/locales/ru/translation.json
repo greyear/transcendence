@@ -134,6 +134,7 @@
 		"sortBy": "Сортировать по",
 		"shareRecipe": "Поделиться рецептом",
 		"ingredientsAndInstructions": "Ингредиенты и инструкции рецепта",
-		"closeAuthDialog": "Закрыть окно аутентификации"
+		"closeAuthDialog": "Закрыть окно аутентификации",
+		"toProfilePage": "Перейти на страницу профиля"
 	}
 }

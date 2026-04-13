@@ -136,6 +136,6 @@
 		"shareRecipe": "Share recipe",
 		"ingredientsAndInstructions": "Recipe ingredients and instructions",
 		"closeAuthDialog": "Close authentication dialog",
-		"ariaLabels.toProfilePage": "Go to profile page"
+		"toProfilePage": "Go to profile page"
 	}
 }

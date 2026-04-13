@@ -135,6 +135,7 @@
 		"sortBy": "Järjestä",
 		"shareRecipe": "Jaa resepti",
 		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet",
-		"closeAuthDialog": "Sulje tunnistautumisikkuna"
+		"closeAuthDialog": "Sulje tunnistautumisikkuna",
+		"toProfilePage": "Siirry profiilisivulle"
 	}
 }
