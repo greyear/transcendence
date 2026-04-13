@@ -984,7 +984,7 @@ export const updateReview = async (
 			return { success: false, reason: "forbidden" };
 		}
 
-		const updateResult = await pool.query(
+		await pool.query(
 			`
 			UPDATE recipe_reviews
 			SET body = $1, updated_at = now()

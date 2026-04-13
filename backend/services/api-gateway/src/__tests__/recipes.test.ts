@@ -1240,7 +1240,11 @@ describe("API Gateway - Recipes Routes", () => {
 		fetchSpy.mockResolvedValueOnce({
 			status: 200,
 			json: async () => ({
-				data: { id: 501, recipe_id: 77, updated_at: "2026-04-13T12:00:00.000Z" },
+				data: {
+					id: 501,
+					recipe_id: 77,
+					updated_at: "2026-04-13T12:00:00.000Z",
+				},
 				message: "Review deleted",
 			}),
 		} as unknown as Response);
