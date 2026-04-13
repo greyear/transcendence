@@ -14,10 +14,12 @@ import {
 	getPublishedRecipesByUserId,
 } from "../services/recipes.service.js";
 import {
+	followUser,
 	getAllUsers,
 	getFollowers,
 	getFollowing,
 	getUserById,
+	unfollowUser,
 } from "../services/users.service.js";
 import { resolveRequestedLocale } from "../utils/locale.js";
 import { validateUserId } from "../validation/schemas.js";
@@ -154,6 +156,125 @@ const getMyFavoritesHandler = async (
 };
 
 /**
+ * POST /users/:id/follow - follow another user
+ *
+ * Errors:
+ * - 401 Unauthorized - if user is not authenticated
+ * - 400 Bad Request - if user ID is not a valid positive integer or user tries to follow themselves
+ * - 404 Not Found - if the authenticated user or target user does not exist
+ * - 409 Conflict - if the follow relationship already exists
+ */
+const followUserHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const validation = validateUserId(req.params.id);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const result = await followUser(req.userId, validation.value);
+		if (!result.success) {
+			const error: CustomError = new Error();
+
+			switch (result.reason) {
+				case "self-follow":
+					error.message = "Cannot follow yourself";
+					error.statusCode = 400;
+					break;
+				case "user-not-found":
+					error.message = "User not found";
+					error.statusCode = 404;
+					break;
+				case "already-followed":
+					error.message = "User is already followed";
+					error.statusCode = 409;
+					break;
+			}
+
+			throw error;
+		}
+
+		res.status(200).json({
+			data: {
+				follower_id: req.userId,
+				followed_id: validation.value,
+			},
+			message: "User followed",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+/**
+ * DELETE /users/:id/follow - unfollow another user
+ *
+ * Errors:
+ * - 401 Unauthorized - if user is not authenticated
+ * - 400 Bad Request - if user ID is not a valid positive integer or user tries to unfollow themselves
+ * - 404 Not Found - if the authenticated user or target user does not exist
+ */
+const unfollowUserHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const validation = validateUserId(req.params.id);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const result = await unfollowUser(req.userId, validation.value);
+		if (!result.success) {
+			const error: CustomError = new Error();
+
+			switch (result.reason) {
+				case "self-follow":
+					error.message = "Cannot unfollow yourself";
+					error.statusCode = 400;
+					break;
+				case "user-not-found":
+					error.message = "User not found";
+					error.statusCode = 404;
+					break;
+				case "not-followed":
+					error.message = "User is not followed";
+					error.statusCode = 404;
+					break;
+			}
+
+			throw error;
+		}
+
+		res.status(200).json({
+			message: "User unfollowed",
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+/**
  * GET /users/:id/followers - fetch all followers of a user
  *
  * Errors:
@@ -223,6 +344,8 @@ const getFollowingHandler = async (
 // /me/recipes is most specific
 usersRouter.get("/me/recipes", extractUser, getMyRecipesHandler);
 usersRouter.get("/me/favorites", extractUser, getMyFavoritesHandler);
+usersRouter.post("/:id/follow", extractUser, followUserHandler);
+usersRouter.delete("/:id/follow", extractUser, unfollowUserHandler);
 // /:id/followers and /:id/following are more specific than /:id/recipes
 usersRouter.get("/:id/followers", getFollowersHandler);
 usersRouter.get("/:id/following", getFollowingHandler);
