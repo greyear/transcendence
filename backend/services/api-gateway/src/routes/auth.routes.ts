@@ -11,9 +11,12 @@ import {
 	type Response,
 	Router,
 } from "express";
+import z from "zod";
 
 // Auth router
 export const authRouter = Router();
+
+const tokenResponseSchema = z.object({ token: z.string() });
 
 const AUTH_SERVICE_URL =
 	process.env.AUTH_SERVICE_URL || "http://auth-service:3001";
@@ -30,6 +33,14 @@ const postAuthRegisterHandler: RequestHandler = async (
 			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
+
+		if (response.status === 201 && tokenResponseSchema.safeParse(data).success) {
+			const setCookieHeader = response.headers.get("set-cookie");
+			if (setCookieHeader) {
+				res.set("Set-Cookie", setCookieHeader);
+			}
+		}
+
 		res.status(response.status).json(data);
 	} catch (error) {
 		next(error);
@@ -48,30 +59,6 @@ const postLoginHandler: RequestHandler = async (
 			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
-
-		// Extract userId from validated token
-		if (response.status === 200 && (data as { token: string }).token) {
-			const validateHeaders: Record<string, string> = {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${(data as { token: string }).token}`,
-			};
-
-			const validateResponse = await fetch(`${AUTH_SERVICE_URL}/validate`, {
-				method: "POST",
-				headers: validateHeaders,
-			});
-
-			const validateData = (await validateResponse.json()) as { id: string };
-			const userId = validateData.id;
-
-			// Update user status to "online" in core service
-			// Endpoint and final logic will probably change.
-			/*await fetch(`${CORE_SERVICE_URL}/users/${userId}/status`, {
-				method: "PATCH",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ status: "online" }),
-			}); */
-		}
 
 		// Forward Set-Cookie headers from auth service to client
 		const setCookieHeader = response.headers.get("set-cookie");
@@ -104,30 +91,6 @@ const postGoogleHandler: RequestHandler = async (
 			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
-
-		// Extract userId from validated token
-		if (response.status === 200 && (data as { token: string }).token) {
-			const validateHeaders: Record<string, string> = {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${(data as { token: string }).token}`,
-			};
-
-			const validateResponse = await fetch(`${AUTH_SERVICE_URL}/validate`, {
-				method: "POST",
-				headers: validateHeaders,
-			});
-
-			const validateData = (await validateResponse.json()) as { id: string };
-			const userId = validateData.id;
-
-			// Update user status to "online" in core service
-			// Endpoint and final logic will probably change.
-			/*await fetch(`${CORE_SERVICE_URL}/users/${userId}/status`, {
-				method: "PATCH",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ status: "online" }),
-			}); */
-		}
 
 		// Forward Set-Cookie headers from auth service to client
 		const setCookieHeader = response.headers.get("set-cookie");

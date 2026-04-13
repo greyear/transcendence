@@ -5,11 +5,19 @@ import z from "zod";
 
 import { userCounter } from "./auth_schema.js";
 
+export const jwtPayloadSchema = z.object({
+	sub: z.string(),
+	userId: z.number(),
+	username: z.string(),
+	type: z.string(),
+});
+export type AppJwtPayload = z.infer<typeof jwtPayloadSchema>;
+
 // Adding a custom field to the req to store decoded JWT
 declare global {
 	namespace Express {
 		interface Request {
-			decodedJWT?: JwtPayload;
+			decodedJWT?: AppJwtPayload;
 		}
 	}
 }
@@ -162,16 +170,21 @@ export const sequenceHeader = (req: Request) => {
 
 //Take req.headers.authorization and output a decoded JWT if possible
 //Uses decodeToken() and sequenceHeader()
-export const fetchDecodeToken = (req: Request) => {
+export const fetchDecodeToken = (req: Request): AppJwtPayload | null => {
 	try {
 		const tokenHeader = sequenceHeader(req);
-		if (!tokenHeader)
+		if (!tokenHeader) {
 			throw Error("Given header does not contain a parseable token");
-
-		const decodedToken = decodeToken(tokenHeader);
-		if (!decodedToken) throw Error("Whatever was given was not a token");
-
-		return decodedToken;
+		}
+		const decoded = decodeToken(tokenHeader);
+		if (!decoded) {
+				throw Error("Whatever was given was not a token");
+		}
+		const parsed = jwtPayloadSchema.safeParse(decoded);
+		if (!parsed.success) {
+			throw Error("Token payload does not match expected shape");
+		}
+		return parsed.data;
 	} catch (error) {
 		console.error(error);
 		return null;
@@ -180,7 +193,7 @@ export const fetchDecodeToken = (req: Request) => {
 
 // Simple helper to validate JWT and check username
 export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
-	const decodedJWT = fetchDecodeToken(req) as JwtPayload;
+	const decodedJWT = fetchDecodeToken(req);
 	if (!decodedJWT) {
 		res.status(401).json({ error: "Invalid token" });
 		return;

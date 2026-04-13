@@ -14,6 +14,7 @@ import {
 } from "express";
 import { OAuth2Client } from "google-auth-library";
 import mongoose from "mongoose";
+import z from "zod";
 
 // Import of project modules
 //Location of userModel may or may not change later.
@@ -21,6 +22,12 @@ import { userModel } from "./auth_schema.js";
 import * as help from "./authHelpers.js";
 
 export const authRouter = Router();
+
+const loginResponseSchema = z.object({
+	token: z.string(),
+	message: z.string(),
+});
+const mongoErrorSchema = z.object({ code: z.literal(11000) });
 
 const AUTH_SERVICE_URL =
 	process.env.AUTH_SERVICE_URL || "http://auth-service:3001";
@@ -112,21 +119,23 @@ authRouter.post(
 			});
 			await newUser.save();
 
-			
-
-			res.status(201).json({ username, email });
-			console.log("res.status:" ,res.status);
-
 			const loginRes = await fetch(`${AUTH_SERVICE_URL}/login`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(req.body),
 			});
-			console.log("request body: " ,req.body);
-			console.log("Login response: ", loginRes);
+
+			const loginParsed = loginResponseSchema.safeParse(await loginRes.json());
+			const loginPayload = loginParsed.success ? loginParsed.data : {};
+
+			const setCookie = loginRes.headers.get("set-cookie");
+			if (setCookie) {
+				res.set("Set-Cookie", setCookie);
+			}
+			res.status(201).json({ username, email, id: currentCount, loginPayload });
 
 		} catch (error) {
-			if ((error as { code?: number })?.code === 11000) {
+			if (mongoErrorSchema.safeParse(error).success) {
 				res.status(409).json({ error: "Email or username already exists" });
 			} else {
 				next(error);
@@ -161,11 +170,6 @@ authRouter.post(
 				return;
 			}
 
-			if (!userDocument.get("isActive")) {
-				res.status(403).json({ error: "Account not valid." });
-				return;
-			}
-
 			// Check if user is a Google-only account
 			const googleID = userDocument.get("googleID");
 			if (googleID) {
@@ -187,11 +191,15 @@ authRouter.post(
 			//https://howhttpworks.com/guides/cookie-security
 			//https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
 			//secure = lax seems fine for our use case.
-			const actualUsername = userDocument.get("username");
+			const usernameResult = z.string().safeParse(userDocument.get("username"));
+			if (!usernameResult.success) {
+				res.status(500).json({ error: "Invalid username in database" });
+				return;
+			}
 			const JWToken = help.generateToken(
 				userDocument.get("_id"),
 				userDocument.get("id"),
-				actualUsername as string,
+				usernameResult.data,
 				"mongo",
 			);
 
@@ -273,24 +281,23 @@ authRouter.post(
 					googleID,
 				});
 				await newUser.save();
-
-				res.status(201).json({ googleID, email, name });
 				
 				const loginRes = await fetch(`${AUTH_SERVICE_URL}/google`, {
 					method: "POST",
-					headers: { 
+					headers: {
 						"Content-Type": "application/json",
-						"Authorization": `Bearer ${token}`
+						Authorization: `Bearer ${token}`,
 					},
 				});
-				console.log("Login response: ", loginRes);
-
-			} else {
-				if (!userDocument.get("isActive")) {
-					res.status(403).json({ error: "Account not valid." });
-					return;
+				const loginParsed = loginResponseSchema.safeParse(await loginRes.json());
+				const loginPayload = loginParsed.success ? loginParsed.data : {};
+				const setCookie = loginRes.headers.get("set-cookie");
+				if (setCookie) {
+					res.set("Set-Cookie", setCookie);
 				}
 
+				res.status(201).json({ googleID, email, name, id: currentCount, loginPayload });
+			} else {
 				const JWToken = help.generateToken(
 					userDocument.get("_id"),
 					userDocument.get("id"),
@@ -311,7 +318,7 @@ authRouter.post(
 				return;
 			}
 		} catch (error) {
-			if ((error as { code?: number })?.code === 11000) {
+			if (mongoErrorSchema.safeParse(error).success) {
 				res.status(409).json({ error: "Email or googleID already exists" });
 			} else {
 				next(error);

@@ -49,7 +49,6 @@ const authSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 		unique: true,
-		sparse: true,
 	},
 	passwordHash: {
 		type: String,
@@ -61,11 +60,6 @@ const authSchema = new mongoose.Schema({
 		required: false,
 		unique: true,
 		sparse: true,
-	},
-	isActive: {
-		// realname is removed. isActive is added.
-		type: Boolean,
-		default: true,
 	},
 });
 

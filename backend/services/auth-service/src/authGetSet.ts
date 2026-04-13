@@ -29,11 +29,7 @@ authGetSet.delete(
 
 			let userDocument = null;
 			if (req.decodedJWT?.type === "mongo") {
-				userDocument = await userModel.findOneAndUpdate(
-					{ username },
-					{ email: null, isActive: false },
-					{ new: true },
-				);
+				userDocument = await userModel.findOneAndDelete({ username });
 			} else if (req.decodedJWT?.type === "google") {
 				userDocument = await userModel.findOneAndDelete({ googleID: username });
 			}
@@ -118,7 +114,7 @@ authGetSet.post(
 	"/validate",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
+			const decodedToken = help.fetchDecodeToken(req);
 			if (!decodedToken) {
 				res.status(401).json({ error: "Invalid token" });
 				return;
