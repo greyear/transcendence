@@ -4,7 +4,6 @@ import {
 	type Response,
 	Router,
 } from "express";
-import type { JwtPayload } from "jsonwebtoken";
 // Import of project modules
 //Location of userModel may or may not change later.
 import { userModel } from "./auth_schema.js";

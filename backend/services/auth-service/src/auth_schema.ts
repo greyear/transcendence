@@ -30,8 +30,6 @@ const counterSchema = new mongoose.Schema({
  * email may be the same for Google ID, but we shall see
  * 		Google suggests using account Google ID rather than email for user search
  * passwordHash will be "empty" for Google login.
- * isActive allows an account to be made unusable for myriad rationales.
- * 		If the account needs fully deleting, it will need to be done from mongosh.
  */
 const authSchema = new mongoose.Schema({
 	id: {

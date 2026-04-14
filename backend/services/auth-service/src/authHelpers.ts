@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import type { NextFunction, Request, Response } from "express";
-import jwt, { type JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import z from "zod";
 
 import { userCounter } from "./auth_schema.js";
