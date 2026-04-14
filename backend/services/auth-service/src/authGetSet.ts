@@ -4,7 +4,6 @@ import {
 	type Response,
 	Router,
 } from "express";
-import type { JwtPayload } from "jsonwebtoken";
 // Import of project modules
 //Location of userModel may or may not change later.
 import { userModel } from "./auth_schema.js";
@@ -114,7 +113,7 @@ authGetSet.post(
 	"/validate",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
+			const decodedToken = help.fetchDecodeToken(req);
 			if (!decodedToken) {
 				res.status(401).json({ error: "Invalid token" });
 				return;
@@ -149,37 +148,3 @@ authGetSet.post(
 		}
 	},
 );
-
-// /auth/validate/google endpoint to specifically validate a JWT of a google account
-// within the header.
-/*
-authGetSet.post(
-	"/validate/google",
-	async (req: Request, res: Response, next: NextFunction) => {
-		try {
-			const decodedToken = help.fetchDecodeToken(req) as JwtPayload;
-			if (!decodedToken) {
-				res.status(401).json({ error: "Invalid token" });
-				return;
-			}
-
-			const googleID = decodedToken.username; 
-			const userDocument = await userModel.findOne({ googleID });
-			if (!userDocument) {
-				res.status(401).json({ error: "Invalid token" });
-				return;
-			}
-
-			const userID = userDocument.get("id");
-			if (!userID) {
-				res.status(500).json({ error: "User has no id" });
-				return;
-			}
-
-			res.status(200).json({ id: userID });
-		} catch (error) {
-			next(error);
-		}
-	},
-);
-*/
