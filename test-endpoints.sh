@@ -34,7 +34,7 @@ check_endpoint() {
   local url="$BASE_URL$path"
   local actual_status
   
-  actual_status=$(curl -sS -k -o /tmp/test-resp.json -w "%{http_code}" "$url" 2>/dev/null || echo "000")
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" "$url" 2>/dev/null || echo "000")
   
   if [ "$actual_status" = "$expected_status" ]; then
     echo -e "${GREEN}✓${NC} $description -> $actual_status"
@@ -56,7 +56,7 @@ check_post_endpoint() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -k -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X POST \
     -H "Content-Type: application/json" \
     -d "$payload" \
@@ -82,7 +82,7 @@ check_post_endpoint_auth() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -k -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $SMOKE_BEARER_TOKEN" \
@@ -109,7 +109,7 @@ check_put_endpoint() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -k -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X PUT \
     -H "Content-Type: application/json" \
     -d "$payload" \
@@ -135,7 +135,7 @@ check_put_endpoint_auth() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -k -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X PUT \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $SMOKE_BEARER_TOKEN" \
@@ -161,7 +161,7 @@ check_delete_endpoint() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -k -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X DELETE \
     "$url" 2>/dev/null || echo "000")
 
@@ -184,7 +184,7 @@ check_delete_endpoint_auth() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -k -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X DELETE \
     -H "Authorization: Bearer $SMOKE_BEARER_TOKEN" \
     "$url" 2>/dev/null || echo "000")
