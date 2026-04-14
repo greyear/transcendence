@@ -30,15 +30,18 @@ const Layout = () => {
 			return;
 		}
 
-		const sendHeartbeat = () => {
-			void fetch(`${API_BASE_URL}/users/me/heartbeat`, {
+		const sendHeartbeat = async () => {
+			const response = await fetch(`${API_BASE_URL}/users/me/heartbeat`, {
 				method: "POST",
 				credentials: "include",
 			});
+			if (response.status === 401) {
+				setIsAuthenticated(false);
+			}
 		};
 
-		sendHeartbeat();
-		const interval = setInterval(sendHeartbeat, 30_000);
+		void sendHeartbeat();
+		const interval = setInterval(() => void sendHeartbeat(), 30_000);
 		return () => clearInterval(interval);
 	}, [isAuthenticated]);
 
