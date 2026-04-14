@@ -33,7 +33,8 @@
 		"recipes": "Reseptit",
 		"users": "Käyttäjät",
 		"terms": "Käyttöehdot",
-		"policy": "Tietosuojaseloste"
+		"policy": "Tietosuojaseloste",
+		"profile": "Profiili"
 	},
 	"recipesPage": {
 		"title": "Reseptit",
@@ -69,6 +70,16 @@
 		"tabFollowers": "Seuraajat",
 		"tabFollowing": "Seuratut"
 	},
+	"profilePage": {
+		"loading": "Ladataan profiilia...",
+		"error": "Profiilin lataus epäonnistui (tila: {{status}}).",
+		"notFound": "Profiilia ei löytynyt.",
+		"title": "Oma profiili",
+		"username": "Käyttäjätunnus",
+		"userId": "Käyttäjätunnus-ID",
+		"avatar": "Kuva",
+		"noAvatar": "Kuvaa ei ole asetettu"
+	},
 	"loginPage": {
 		"title": "Kirjaudu sisään",
 		"signupTitle": "Luo tili",
@@ -86,7 +97,6 @@
 		"logInButton": "Kirjaudu sisään",
 		"googleLoginButton": "Kirjaudu sisään Googlella",
 		"googleSignupButton": "Luo tili Googlella",
-		"googleUnavailable": "Google-kirjautumista ei ole vielä kytketty frontendissä.",
 		"signupSubmittingButton": "Luodaan tiliä...",
 		"signupSuccess": "Tili luotu. Voit nyt kirjautua sisään.",
 		"toggleSignupPrompt": "Tarvitsetko tilin? Luo sellainen",
@@ -130,6 +140,7 @@
 		"sortBy": "Järjestä",
 		"shareRecipe": "Jaa resepti",
 		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet",
-		"closeAuthDialog": "Sulje tunnistautumisikkuna"
+		"closeAuthDialog": "Sulje tunnistautumisikkuna",
+		"toProfilePage": "Siirry profiilisivulle"
 	}
 }
