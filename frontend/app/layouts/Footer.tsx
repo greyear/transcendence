@@ -35,7 +35,7 @@ export const Footer = ({ isAuthenticated, onOpenAuthModal }: FooterProps) => {
 					</ul>
 				</nav>
 				<div className="footer-buttons-row">
-					{isAuthenticated ? null : (
+					{!isAuthenticated && (
 						<MainButton onClick={onOpenAuthModal}>
 							{t("common.signInButton")}
 						</MainButton>

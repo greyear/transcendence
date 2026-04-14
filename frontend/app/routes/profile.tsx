@@ -3,7 +3,12 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import "~/assets/styles/profile.css";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
-import { useAuth } from "~/contexts/AuthContext";
+
+type ProfileData = {
+	id: number;
+	username: string;
+	avatar: string | null;
+};
 
 const ProfileResponseSchema = z.object({
 	data: z.object({
@@ -15,27 +20,22 @@ const ProfileResponseSchema = z.object({
 
 const ProfilePage = () => {
 	const { t } = useTranslation();
-	const {
-		isAuthenticated,
-		isAuthLoading,
-		profile: contextProfile,
-		setProfile,
-	} = useAuth();
-	const [isFetching, setIsFetching] = useState(false);
-	const [errorStatus, setErrorStatus] = useState<number | "network" | null>(
+	const [profile, setProfile] = useState<ProfileData | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
 		null,
 	);
 
 	useEffect(() => {
-		if (isAuthLoading || contextProfile || !isAuthenticated) {
-			return;
-		}
-
 		let ignore = false;
-		setIsFetching(true);
-		setErrorStatus(null);
 
-		fetch(`${API_BASE_URL}/profile`, { credentials: "include" })
+		setIsLoading(true);
+		setErrorStatus(null);
+		setProfile(null);
+
+		fetch(`${API_BASE_URL}/profile`, {
+			credentials: "include",
+		})
 			.then((res) => {
 				if (!res.ok) {
 					if (!ignore) {
@@ -43,45 +43,45 @@ const ProfilePage = () => {
 					}
 					return null;
 				}
-				const json: Promise<unknown> = res.json();
-				return json;
+				return res.json();
 			})
-			.then((body) => {
+			.then((body: unknown | null) => {
 				if (ignore) {
 					return;
 				}
-				const parsed = ProfileResponseSchema.safeParse(body);
-				if (parsed.success) {
-					setProfile(parsed.data.data);
+
+				if (body === null) {
+					return;
 				}
+
+				const parsed = ProfileResponseSchema.safeParse(body);
+
+				if (!parsed.success) {
+					setProfile(null);
+					return;
+				}
+
+				setProfile(parsed.data.data);
 			})
 			.catch((error: unknown) => {
 				if (!ignore) {
-					setErrorStatus("network");
+					setErrorStatus("unknown");
 				}
 				console.error(error);
 			})
 			.finally(() => {
 				if (!ignore) {
-					setIsFetching(false);
+					setIsLoading(false);
 				}
 			});
 
 		return () => {
 			ignore = true;
 		};
-	}, [isAuthLoading, isAuthenticated, contextProfile, setProfile]);
+	}, []);
 
-	if (isAuthLoading || isFetching) {
+	if (isLoading) {
 		return <p className="profile-page-status">{t("profilePage.loading")}</p>;
-	}
-
-	if (!isAuthenticated) {
-		return (
-			<p className="profile-page-status">
-				{t("profilePage.error", { status: "auth" })}
-			</p>
-		);
 	}
 
 	if (errorStatus !== null) {
@@ -92,7 +92,7 @@ const ProfilePage = () => {
 		);
 	}
 
-	if (!contextProfile) {
+	if (!profile) {
 		return <p className="profile-page-status">{t("profilePage.notFound")}</p>;
 	}
 
@@ -105,15 +105,15 @@ const ProfilePage = () => {
 			<div className="profile-page-details">
 				<p>
 					<span className="text-label">{t("profilePage.username")}</span>
-					{contextProfile.username}
+					{profile.username}
 				</p>
 				<p>
 					<span className="text-label">{t("profilePage.userId")}</span>
-					{contextProfile.id}
+					{profile.id}
 				</p>
 				<p>
 					<span className="text-label">{t("profilePage.avatar")}</span>
-					{contextProfile.avatar ?? t("profilePage.noAvatar")}
+					{profile.avatar ?? t("profilePage.noAvatar")}
 				</p>
 			</div>
 		</section>

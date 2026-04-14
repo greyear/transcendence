@@ -55,7 +55,7 @@ const NavigationList = ({ isAuthenticated }: NavigationListProps) => {
 						{t("layout.users")}
 					</TextIconButton>
 				</li>
-				{isAuthenticated && !isDesktop ? (
+				{isAuthenticated && !isDesktop && (
 					<li>
 						<TextIconButton
 							size="body3"
@@ -66,7 +66,7 @@ const NavigationList = ({ isAuthenticated }: NavigationListProps) => {
 							{t("layout.profile")}
 						</TextIconButton>
 					</li>
-				) : null}
+				)}
 			</ul>
 		</nav>
 	);
@@ -164,7 +164,7 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 			{isOpen && !isDesktop && (
 				<div className="header-menu-overlay">
 					<NavigationList isAuthenticated={isAuthenticated} />
-					{isAuthenticated ? null : (
+					{!isAuthenticated && (
 						<MainButton variant="inverted" onClick={onOpenAuthModal}>
 							{t("common.signInButton")}
 						</MainButton>
