@@ -14,7 +14,6 @@ import {
 	getPublishedRecipesByUserId,
 } from "../services/recipes.service.js";
 import {
-	updateHeartbeat,
 	followUser,
 	getAllUsers,
 	getFollowers,
