@@ -117,14 +117,14 @@ authGetSet.post(
 				return;
 			}
 
-			const searchId = decodedToken.username;
+			const searchId = decodedToken.email;
 			const type = decodedToken.type;
 
 			let userDocument = null;
 			if (type === "mongo") {
 				userDocument = await userModel.findOne({ email: searchId });
 			} else if (type === "google") {
-				userDocument = await userModel.findOne({ googleID: searchId });
+				userDocument = await userModel.findOne({ email: searchId });
 			}
 
 			if (!userDocument) {
@@ -139,6 +139,37 @@ authGetSet.post(
 			}
 
 			res.status(200).json({ id: userID });
+		} catch (error) {
+			next(error);
+		}
+	},
+);
+
+/*
+	Fetch user details endpoint
+		1. Validate JWT from header
+		2. Look up user in DB by userId
+		3. Return id and email
+*/
+authGetSet.get(
+	"/me",
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const decodedToken = help.fetchDecodeToken(req);
+			if (!decodedToken) {
+				res.status(401).json({ error: "Invalid token" });
+				return;
+			}
+
+			const { userId } = decodedToken;
+			const userDocument = await userModel.findOne({ id: userId });
+			if (!userDocument) {
+				res.status(404).json({ error: "User not found" });
+				return;
+			}
+			const email = userDocument.get("email");
+
+			res.status(200).json({ id: userId, email });
 		} catch (error) {
 			next(error);
 		}

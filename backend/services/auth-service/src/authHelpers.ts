@@ -8,7 +8,7 @@ import { userCounter } from "./auth_schema.js";
 export const jwtPayloadSchema = z.object({
 	sub: z.string(),
 	userId: z.number(),
-	username: z.string(),
+	email: z.string(),
 	type: z.string(),
 });
 export type AppJwtPayload = z.infer<typeof jwtPayloadSchema>;
@@ -96,7 +96,7 @@ export const validatePassword = (password: string) => {
 export const generateToken = (
 	id: string,
 	userId: number,
-	username: string,
+	email: string,
 	type: string,
 ) => {
 	const JWTSecret = process.env.JWT_SECRET;
@@ -107,7 +107,7 @@ export const generateToken = (
 	const payload = {
 		sub: id,
 		userId,
-		username,
+		email,
 		type,
 	};
 
@@ -172,14 +172,14 @@ export const fetchDecodeToken = (req: Request): AppJwtPayload | null => {
 	}
 };
 
-// Simple helper to validate JWT and check username
+// Simple helper to validate JWT and check email
 export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 	const decodedJWT = fetchDecodeToken(req);
 	if (!decodedJWT) {
 		res.status(401).json({ error: "Invalid token" });
 		return;
 	}
-	if (decodedJWT.username !== req.body.email) {
+	if (decodedJWT.userId !== parseInt(req.body.userId, 10)) {
 		res.status(401).json({ error: "Incorrect token" });
 		return;
 	}

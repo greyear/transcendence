@@ -180,6 +180,29 @@ const patchChangePasswordHandler: RequestHandler = async (
 	}
 };
 
+const getMeHandler: RequestHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
+		if (req.headers.authorization) {
+			headers.authorization = req.headers.authorization;
+		}
+		const response = await fetch(`${AUTH_SERVICE_URL}/me`, {
+			method: "GET",
+			headers,
+		});
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		next(error);
+	}
+};
+
 //auth_db_operations.ts handlers
 authRouter.post("/register", postAuthRegisterHandler);
 authRouter.post("/login", postLoginHandler);
@@ -187,5 +210,6 @@ authRouter.post("/google", postGoogleHandler);
 
 //authGetSet.ts handlers
 authRouter.post("/validate", postValidateHandler);
+authRouter.get("/me", getMeHandler);
 authRouter.delete("/delete", deleteUserHandler);
 authRouter.patch("/change-password", patchChangePasswordHandler);

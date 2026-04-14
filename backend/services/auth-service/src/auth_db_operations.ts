@@ -249,6 +249,11 @@ authRouter.post(
 			const googleID = payload.sub;
 			const { email, name } = payload;
 
+			if (!email) {
+				res.status(401).json({ error: "Google account has no email" });
+				return;
+			}
+
 			// Check if email already exists as normal account
 			const existingEmailUser = await userModel.findOne({ email });
 			if (existingEmailUser && !existingEmailUser.get("googleID")) {
@@ -276,7 +281,7 @@ authRouter.post(
 				const JWToken = help.generateToken(
 					newUser.get("_id").toString(),
 					currentCount,
-					googleID,
+					email,
 					"google",
 				);
 				res.cookie("token", JWToken, {
@@ -290,7 +295,7 @@ authRouter.post(
 				const JWToken = help.generateToken(
 					userDocument.get("_id"),
 					userDocument.get("id"),
-					googleID,
+					email,
 					"google",
 				);
 
