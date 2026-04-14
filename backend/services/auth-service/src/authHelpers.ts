@@ -55,6 +55,7 @@ export const comparePassword = async (password: string, hash: string) => {
 	Validate username using Zod library
 	https://zod.dev/basics
 	Username rules: 3-20 chars, alphanumeric and underscores only
+	Not used currently, left here in case of mind change.
 */
 export const validateUsername = (username: string) => {
 	const usernamePattern = z

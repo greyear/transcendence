@@ -151,9 +151,9 @@ authRouter.post(
 	"/login",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const { username, password } = req.body; //left as username to reduce work
+			const { email, password } = req.body;
 
-			const userDocument = await userModel.findOne({ email: username });
+			const userDocument = await userModel.findOne({ email });
 
 			if (!userDocument) {
 				res.status(404).json({ error: "User not found" });
@@ -181,15 +181,15 @@ authRouter.post(
 			//https://howhttpworks.com/guides/cookie-security
 			//https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
 			//secure = lax seems fine for our use case.
-			const usernameResult = z.string().safeParse(userDocument.get("username"));
-			if (!usernameResult.success) {
-				res.status(500).json({ error: "Invalid username in database" });
+			const emailResult = z.string().safeParse(userDocument.get("email"));
+			if (!emailResult.success) {
+				res.status(500).json({ error: "Invalid email in database" });
 				return;
 			}
 			const JWToken = help.generateToken(
 				userDocument.get("_id"),
 				userDocument.get("id"),
-				usernameResult.data,
+				emailResult.data,
 				"mongo",
 			);
 
