@@ -1,17 +1,31 @@
 # Auth Service Test Suite Guide
 
-This guide explains how to use the `test-auth2.sh` automated test suite to verify the authentication service functionality.
+## BLUF
+
+| | |
+|---|---|
+| **Script** | `test-auth.sh` |
+| **Location** | `backend/services/auth-service/__tests__/` |
+| **Total tests** | 33 across 7 sections |
+| **Run** | `cd backend/services/auth-service/__tests__ && chmod +x test-auth.sh && ./test-auth.sh` |
+| **Clean DB** | `docker exec -it auth-mongo mongosh -u <user> -p <password>` → `use auth_db` → `db.usermodels.deleteMany({})` → `db.usercounters.deleteMany({})` |
+| **Google token** | Refresh at [developers.google.com/oauthplayground](https://developers.google.com/oauthplayground) and paste into `GOOGLE_ID_TOKEN` at the top of `test-auth.sh` |
+| **Manual curls** | See [`curls2.txt`](./curls2.txt) |
+
+---
+
+This guide explains how to use the `test-auth.sh` automated test suite to verify the authentication service functionality.
 
 ## Overview
 
-The test suite (`test-auth2.sh`) performs comprehensive testing of:
+The test suite (`test-auth.sh`) performs comprehensive testing of:
 - **Normal Authentication**: User registration, login, and password changes
 - **Google Authentication**: Google Sign-In, user creation, and existing user login
 - **Cross-Auth Conflicts**: Ensuring proper handling of users registered via different auth methods
 - **Token Validation**: JWT token verification for both normal and Google auth
 - **Edge Cases**: Invalid inputs, duplicate accounts, missing credentials, etc.
 
-**Total Tests**: 35 test cases covering all major auth workflows
+**Total Tests**: 33 test cases covering all major auth workflows
 
 All tests use direct curl commands with JSON output parsing via `jq` for easy reading.
 
@@ -78,14 +92,13 @@ Google authentication tests require a valid Google ID token.
 
 ### Updating the Test Script
 
-Edit `test-auth2.sh` and replace the placeholder:
+Edit `test-auth.sh` and replace the placeholder at the top of the file:
 
 ```bash
 GOOGLE_ID_TOKEN="insert token when needed"
 ```
 
 With your actual token
-
 
 > **Note**: Google ID tokens expire within an hour. If tests fail with "Token used too late" or similar errors, the token needs to be refreshed from Google OAuth Playground.
 
@@ -96,19 +109,19 @@ With your actual token
 ### Step 1: Navigate to the Tests Directory
 
 ```bash
-cd backend/services/auth-service/tests
+cd backend/services/auth-service/__tests__
 ```
 
 ### Step 2: Make the Script Executable if needed
 
 ```bash
-chmod +x test-auth2.sh
+chmod +x test-auth.sh
 ```
 
 ### Step 3: Run the Test Suite
 
 ```bash
-./test-auth2.sh
+./test-auth.sh
 ```
 
 ### Example Output
@@ -123,38 +136,38 @@ Normal + Google Authentication
 
 1. Register new user - valid
 {
-  "userId": "123456",
-  "username": "normaluser1",
   "email": "normal1@test.local",
-  "message": "User registered successfully"
+  "id": 1,
+  "token": "<token>",
+  "message": "Login successful"
 }
 
-2. Register - duplicate username
+2. Register - duplicate email
 {
-  "error": "Username already exists"
+  "error": "Resource exists"
 }
 
-3. Register - duplicate email
+3. Register - invalid email format
 {
-  "error": "Email already exists"
+  "error": "Invalid email address"
 }
 
 ...
 
 ========== 4. CROSS-AUTH CONFLICT TESTS ==========
 
-19. Conflict - Google user tries normal login with their email
+16. Conflict - Google user tries normal login with their email
 {
-  "error": "Authentication failed"
+  "error": "This account uses Google Sign-In only. Please use the Google login option."
 }
 
 ...
 
-========== 6. PASSWORD CHANGE TESTS ==========
+========== 7. PASSWORD CHANGE TESTS ==========
 
-35. Change password - wrong current password
+33. Change password - wrong current password
 {
-  "error": "Current password is incorrect"
+  "error": "Password mismatch"
 }
 
 ==========================================
@@ -176,7 +189,7 @@ Each test displays:
 
 **Success indicators:**
 - Check the HTTP status codes in responses (201 for created, 200 for success, 401 for unauthorized, 409 for conflict, etc.)
-- Look for expected fields in the JSON response (e.g., "token", "userId", "message")
+- Look for expected fields in the JSON response (e.g., "token", "id", "message")
 - For login/registration, presence of a "token" field indicates success
 
 **Failure indicators:**
@@ -188,72 +201,78 @@ Each test displays:
 
 If you see:
 ```
-3. Register - duplicate email
+2. Register - duplicate email
 {
-  "error": "Email already exists"
+  "error": "Resource exists"
 }
 ```
 
-This indicates the test is working correctly - it properly rejected a duplicate email registration.
+This indicates the test is working correctly — it properly rejected a duplicate email registration.
 
 ---
 
 ## Test Sections Explained
 
-### 1. Normal Registration Tests (Tests 1-9)
+### 1. Normal Registration Tests (Tests 1–6)
 
 Tests user registration with various scenarios:
-- Valid registration (should succeed with 201 and token)
-- Duplicate username (should fail with 409)
+- Valid registration (should succeed with 201, email, id, and token)
 - Duplicate email (should fail with 409)
 - Invalid email format (should fail with 422)
 - Password too short (should fail with 422)
-- Username validation edge cases (should fail with 422)
+- Password missing uppercase (should fail with 422)
+- Missing email field (should fail with 422)
 
-### 2. Normal Login Tests (Tests 10-14)
+### 2. Normal Login Tests (Tests 7–11)
 
 Tests user login functionality:
-- Login by username (should succeed with token)
 - Login by email (should succeed with token)
 - Wrong password (should fail with 401)
-- Non-existent user (should fail with 404)
+- Non-existent email (should fail with 404)
+- Missing email field (should fail with 404)
 - Token extraction for use in later tests
 
-### 3. Google Login Tests (Tests 15-18)
+### 3. Google Login Tests (Tests 12–15)
 
 Tests Google Sign-In:
-- Create new user with Google credentials (should succeed)
+- Create new user with Google credentials (should succeed with 201 and token)
 - Existing user login with same Google account (should succeed and return token)
 - Missing token (should fail with 401)
 - Invalid token (should fail with 500)
 
-### 4. Cross-Auth Conflict Tests (Tests 19-26)
+### 4. Cross-Auth Conflict Tests (Tests 16–21)
 
 Comprehensive tests for interactions between normal and Google auth:
-- Google user attempts normal login with their email (should fail)
-- Attempts to register normal user with Google user's existing email (should fail)
-- Multiple registration attempts with Google email (should fail)
-- Normal user tries Google auth endpoint (should fail)
-- Normal user token fails on Google validation endpoint
-- Google token fails on normal validation endpoint
-- Google user attempts password change (should fail)
+- Google user attempts normal login with their email (should fail with 401)
+- Attempts to register normal user with Google user's existing email (should fail with 409)
+- Second registration attempt with same Google email (should fail with 409)
+- Normal user token sent to Google auth endpoint (should fail with 500)
+- Skipped: would require a Google account with the normal user's email
+- Google user attempts password change (should fail with 401)
 
-### 5. Token Validation Tests (Tests 27-31)
+### 5. Token Validation Tests (Tests 22–25)
 
-Tests JWT token verification:
-- Valid normal user token validation (should succeed)
-- Valid Google user token validation (should succeed)
+Tests JWT token verification and extracts `NORMAL_USER_ID` for use in section 7:
+- Valid normal user token validation (should succeed with 200 and id)
+- Valid Google user token validation (should succeed with 200 and id)
 - Missing token validation (should fail with 401)
 - Invalid token validation (should fail with 401)
-- Missing Google token validation (should fail with 401)
 
-### 6. Password Change Tests (Tests 32-35)
+### 6. Extended Token Validation — Edge Cases (Tests 26–29)
 
-Tests password modification:
-- Change password with valid token (should succeed)
-- New password works for login (should succeed)
-- No auth header fails (should fail with 401)
-- Wrong current password fails (should fail with 401)
+Tests malformed token inputs:
+- Malformed auth header — no Bearer prefix (should fail with 401)
+- Empty bearer token (should fail with 401)
+- Completely invalid JWT structure (should fail with 401)
+- Random non-JWT string (should fail with 401)
+
+### 7. Password Change Tests (Tests 30–33)
+
+Tests password modification. Requires `NORMAL_TOKEN` from test 11 and `NORMAL_USER_ID` from test 22. The request body must include `email`, `userId`, `password`, and `newPassword`:
+- Change password with valid token and correct current password (should succeed with 200)
+- Login with new password to verify change (should succeed with 200 and token)
+- Change password with no auth header (should fail with 401)
+- Change password with wrong current password (should fail with 401)
 
 ---
 
@@ -269,22 +288,26 @@ docker-compose logs auth-service  # Check for startup errors
 
 ### Issue: Google tests fail with token errors
 
-**Solution**: Refresh the Google ID token from Google OAuth Playground (tokens expire)
+**Solution**: Refresh the Google ID token from Google OAuth Playground (tokens expire within an hour)
 
 ### Issue: Tests fail with "Email already exists" even after clean database
 
 **Solution**: Clear MongoDB completely:
 ```bash
-mongosh
+docker exec -it auth-mongo mongosh -u <user> -p <password>
 use auth_db
 db.usermodels.deleteMany({})
 db.usercounters.deleteMany({})
 exit
 ```
 
+### Issue: Section 7 tests are skipped
+
+**Solution**: `NORMAL_USER_ID` is extracted in test 22. If test 22 was skipped (because `NORMAL_TOKEN` was empty), the section 7 guard will fail. Check that login in test 11 succeeded and returned a token.
+
 ### Issue: Some tests pass but others fail inconsistently
 
-**Solution**: Ensure sufficient sleep time between tests. The script includes 1-second delays to allow database operations to complete. If you still see issues, try adding longer delays:
+**Solution**: Ensure sufficient sleep time between tests. The script includes 1-second delays to allow database operations to complete. If you still see issues, try increasing delays:
 
 Edit the test script and increase sleep durations:
 ```bash
@@ -309,7 +332,7 @@ sudo dnf install jq
 
 ## Running Tests Manually
 
-If you prefer to test endpoints manually instead of using the script, see [curls.txt](./curls.txt) for individual curl commands.
+If you prefer to test endpoints manually instead of using the script, see [curls2.txt](./curls2.txt) for individual curl commands matching the current endpoint structure.
 
 ---
 
@@ -327,7 +350,7 @@ curl -s -X [METHOD] "$BASE_URL/[endpoint]" \
 
 Example:
 ```bash
-echo -e "\n36. Example test"
+echo -e "\n34. Example test"
 curl -s -X POST "$BASE_URL/example-endpoint" \
   -H "Content-Type: application/json" \
   -d '{"example":"data"}' | jq .
@@ -339,6 +362,7 @@ curl -s -X POST "$BASE_URL/example-endpoint" \
 - Use `-s` flag for curl to suppress progress
 - Use `$BASE_URL` for the auth service base URL
 - Use `$NORMAL_TOKEN` for normal user tokens or `$GOOGLE_TOKEN` for Google tokens
+- Use `$NORMAL_USER_ID` for password change and delete operations
 
 ---
 
@@ -346,7 +370,7 @@ curl -s -X POST "$BASE_URL/example-endpoint" \
 
 Before committing code changes, ensure:
 
-- [ ] Database is clean (`db.usermodels.deleteMany({})`)
+- [ ] Database is clean (`db.usermodels.deleteMany({})` and `db.usercounters.deleteMany({})`)
 - [ ] Google token is fresh (from Google OAuth Playground)
 - [ ] Services are running and responsive
 - [ ] All tests pass (0 failures)
@@ -359,9 +383,8 @@ Before committing code changes, ensure:
 
 | Task | Command |
 |------|---------|
-| Clean database | `mongosh` → `use auth_db` → `db.usermodels.deleteMany({})` |
+| Clean database | `docker exec -it auth-mongo mongosh` → `use auth_db` → `db.usermodels.deleteMany({})` |
 | Get Google token | Visit [Google OAuth Playground](https://developers.google.com/oauthplayground) |
-| Run tests | `./test-auth2.sh` |
+| Run tests | `./test-auth.sh` |
 | View specific logs | `docker-compose logs auth-service` |
 | Restart services | `docker-compose down && docker-compose up -d` |
-

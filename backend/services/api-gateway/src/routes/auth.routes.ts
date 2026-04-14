@@ -1,7 +1,6 @@
 /**
  * Auth Routes
- *
- *
+ * 
  */
 
 import {
@@ -128,38 +127,12 @@ const postValidateHandler: RequestHandler = async (
 	}
 };
 
-const postValidateGoogleHandler: RequestHandler = async (
-	req: Request,
-	res: Response,
-	next: NextFunction,
-) => {
-	try {
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-		};
-		// Forward Authorization header if present
-		if (req.headers.authorization) {
-			headers.authorization = req.headers.authorization;
-		}
-		const response = await fetch(`${AUTH_SERVICE_URL}/validate/google`, {
-			method: "POST",
-			headers,
-			body: JSON.stringify(req.body),
-		});
-		const data = await response.json();
-		res.status(response.status).json(data);
-	} catch (error) {
-		next(error);
-	}
-};
-
 const deleteUserHandler: RequestHandler = async (
 	req: Request,
 	res: Response,
 	next: NextFunction,
 ) => {
 	try {
-		const { username } = req.params;
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
 		};
@@ -167,9 +140,10 @@ const deleteUserHandler: RequestHandler = async (
 		if (req.headers.authorization) {
 			headers.authorization = req.headers.authorization;
 		}
-		const response = await fetch(`${AUTH_SERVICE_URL}/delete/${username}`, {
+		const response = await fetch(`${AUTH_SERVICE_URL}/delete`, {
 			method: "DELETE",
 			headers,
+			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
 		res.status(response.status).json(data);
@@ -184,7 +158,6 @@ const patchChangePasswordHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		const { username } = req.params;
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
 		};
@@ -193,7 +166,7 @@ const patchChangePasswordHandler: RequestHandler = async (
 			headers.authorization = req.headers.authorization;
 		}
 		const response = await fetch(
-			`${AUTH_SERVICE_URL}/change-password/${username}`,
+			`${AUTH_SERVICE_URL}/change-password`,
 			{
 				method: "PATCH",
 				headers,
@@ -214,6 +187,5 @@ authRouter.post("/google", postGoogleHandler);
 
 //authGetSet.ts handlers
 authRouter.post("/validate", postValidateHandler);
-authRouter.post("/validate/google", postValidateGoogleHandler);
-authRouter.delete("/delete/:username", deleteUserHandler);
-authRouter.patch("/change-password/:username", patchChangePasswordHandler);
+authRouter.delete("/delete", deleteUserHandler);
+authRouter.patch("/change-password", patchChangePasswordHandler);

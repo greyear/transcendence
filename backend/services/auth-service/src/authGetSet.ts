@@ -8,30 +8,27 @@ import {
 //Location of userModel may or may not change later.
 import { userModel } from "./auth_schema.js";
 import * as help from "./authHelpers.js";
+import { IdentityPoolClient } from "google-auth-library";
 
 export const authGetSet = Router();
 
 /*
-	Delete user. /users/:username endpoint
+	Delete user endpoint
 		1. Attempt to validate JWT from header
-		1. findOneAndDelete() to remove matching record
-		2. Return relevant code
+		2. Decode which account identity belongs to
+		3. findOneAndDelete() to remove matching record
+		4. Return relevant code
 	As of now does not require the current password.
 	https://developers.google.com/identity/openid-connect/reference
 */
 authGetSet.delete(
-	"/delete/:username",
+	"/delete",
 	help.compareJWT,
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const username = req.params.username;
+			const { userId } = req.body;
 
-			let userDocument = null;
-			if (req.decodedJWT?.type === "mongo") {
-				userDocument = await userModel.findOneAndDelete({ username });
-			} else if (req.decodedJWT?.type === "google") {
-				userDocument = await userModel.findOneAndDelete({ googleID: username });
-			}
+			const userDocument = await userModel.findOneAndDelete({ id: userId });
 
 			if (!userDocument) {
 				res.status(404).json({ error: "User not found" });
@@ -46,7 +43,7 @@ authGetSet.delete(
 );
 
 /*
-	Change user password. /users/:username endpoint
+	Change user password endpoint
 		1. Attempt to validate JWT from header
 		2. Attempt to validate new password format
 		3. Attempt to validate old password
@@ -56,12 +53,12 @@ authGetSet.delete(
 		6. Return relevant code
 */
 authGetSet.patch(
-	"/change-password/:username",
+	"/change-password",
 	help.compareJWT,
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const { newPassword, password } = req.body;
-			const username = req.params.username;
+			const userId = parseInt(req.body.userId, 10);
 
 			if (!help.validatePassword(newPassword)) {
 				res.status(422).json({
@@ -70,7 +67,7 @@ authGetSet.patch(
 				return;
 			}
 
-			const userDocument = await userModel.findOne({ username });
+			const userDocument = await userModel.findOne({ id: userId });
 			if (!userDocument) {
 				res.status(404).json({ error: "User not found" });
 				return;
@@ -90,7 +87,7 @@ authGetSet.patch(
 			}
 
 			const updatedUser = await userModel.findOneAndUpdate(
-				{ username },
+				{ id: userId },
 				{ passwordHash: hashedPassword },
 				{ new: true },
 			);
@@ -109,6 +106,7 @@ authGetSet.patch(
 
 // /auth/validate endpoint to specifically validate a JWT within the header.
 // Checks against username or email. Content with this as both are unique.
+// References to username here are remnants of a prior version
 authGetSet.post(
 	"/validate",
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -124,9 +122,7 @@ authGetSet.post(
 
 			let userDocument = null;
 			if (type === "mongo") {
-				userDocument = await userModel.findOne({
-					$or: [{ username: searchId }, { email: searchId }],
-				});
+				userDocument = await userModel.findOne({ email: searchId });
 			} else if (type === "google") {
 				userDocument = await userModel.findOne({ googleID: searchId });
 			}

@@ -51,25 +51,6 @@ export const comparePassword = async (password: string, hash: string) => {
 	return false;
 };
 
-/*
-	Validate username using Zod library
-	https://zod.dev/basics
-	Username rules: 3-20 chars, alphanumeric and underscores only
-*/
-export const validateUsername = (username: string) => {
-	const usernamePattern = z
-		.string()
-		.min(3, "Username must be at least 3 characters")
-		.max(20, "Username must be at most 20 characters")
-		.regex(
-			/^[a-zA-Z0-9_]+$/,
-			"Username can only contain alphanumeric characters and underscores",
-		);
-
-	const result = usernamePattern.safeParse(username);
-	return result.success;
-};
-
 //Validate email using Zod library
 //This is not much different to the example they give on their basic manual
 //https://zod.dev/basics
@@ -198,7 +179,7 @@ export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 		res.status(401).json({ error: "Invalid token" });
 		return;
 	}
-	if (decodedJWT.username !== req.params.username) {
+	if (decodedJWT.username !== req.body.email) {
 		res.status(401).json({ error: "Incorrect token" });
 		return;
 	}

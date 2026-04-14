@@ -23,6 +23,7 @@ import * as help from "./authHelpers.js";
 
 export const authRouter = Router();
 
+// zod schemas for checking of type validity
 const loginResponseSchema = z.object({
 	token: z.string(),
 	message: z.string(),
@@ -67,11 +68,9 @@ authRouter.post(
 	"/register",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const { username, email, password } = req.body;
+			const { email, password } = req.body;
 
-			const userDocument = await userModel.findOne({
-				$or: [{ email }, { username }],
-			});
+			const userDocument = await userModel.findOne({ email });
 
 			if (userDocument) {
 				// Check if it's a Google-only account
@@ -88,11 +87,6 @@ authRouter.post(
 
 			if (!help.validateEmail(email)) {
 				res.status(422).json({ error: "Invalid email address" });
-				return;
-			}
-
-			if (!help.validateUsername(username)) {
-				res.status(422).json({ error: "Invalid username" });
 				return;
 			}
 
@@ -113,7 +107,6 @@ authRouter.post(
 
 			const newUser = new userModel({
 				id: currentCount,
-				username,
 				email,
 				passwordHash: hashedPassword,
 			});
@@ -132,7 +125,7 @@ authRouter.post(
 			if (setCookie) {
 				res.set("Set-Cookie", setCookie);
 			}
-			res.status(201).json({ username, email, id: currentCount, ...loginPayload });
+			res.status(201).json({ email, id: currentCount, ...loginPayload });
 
 		} catch (error) {
 			if (mongoErrorSchema.safeParse(error).success) {
@@ -159,11 +152,9 @@ authRouter.post(
 	"/login",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const { username, password } = req.body;
+			const { email, password } = req.body;
 
-			const userDocument = await userModel.findOne({
-				$or: [{ email: username }, { username }],
-			});
+			const userDocument = await userModel.findOne({ email });
 
 			if (!userDocument) {
 				res.status(404).json({ error: "User not found" });
@@ -191,15 +182,15 @@ authRouter.post(
 			//https://howhttpworks.com/guides/cookie-security
 			//https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
 			//secure = lax seems fine for our use case.
-			const usernameResult = z.string().safeParse(userDocument.get("username"));
-			if (!usernameResult.success) {
-				res.status(500).json({ error: "Invalid username in database" });
+			const emailResult = z.string().safeParse(userDocument.get("email"));
+			if (!emailResult.success) {
+				res.status(500).json({ error: "Invalid email in database" });
 				return;
 			}
 			const JWToken = help.generateToken(
 				userDocument.get("_id"),
 				userDocument.get("id"),
-				usernameResult.data,
+				emailResult.data,
 				"mongo",
 			);
 
@@ -268,7 +259,7 @@ authRouter.post(
 				return;
 			}
 
-			//Repetiton here, which can be sorted out later.
+			//Repetiton here, which can be sorted out later. Or not.
 			//Google accounts will not require a passwordHash, so just using "empty"
 			const userDocument = await userModel.findOne({ googleID });
 			if (!userDocument) {
@@ -281,22 +272,20 @@ authRouter.post(
 					googleID,
 				});
 				await newUser.save();
-				
-				const loginRes = await fetch(`${AUTH_SERVICE_URL}/google`, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${token}`,
-					},
-				});
-				const loginParsed = loginResponseSchema.safeParse(await loginRes.json());
-				const loginPayload = loginParsed.success ? loginParsed.data : {};
-				const setCookie = loginRes.headers.get("set-cookie");
-				if (setCookie) {
-					res.set("Set-Cookie", setCookie);
-				}
 
-				res.status(201).json({ googleID, email, name, id: currentCount, ...loginPayload });
+				const JWToken = help.generateToken(
+					newUser.get("_id").toString(),
+					currentCount,
+					googleID,
+					"google",
+				);
+				res.cookie("token", JWToken, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === "production",
+					sameSite: "lax",
+					maxAge: 60 * 60 * 1000,
+				});
+				res.status(201).json({ googleID, email, name, id: currentCount, token: JWToken, message: "Login successful" });
 			} else {
 				const JWToken = help.generateToken(
 					userDocument.get("_id"),
