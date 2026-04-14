@@ -60,20 +60,6 @@ const parseUserRows = <T>(
 	}, []);
 };
 
-// ── Heartbeat ─────────────────────────────────────────────────────────────────
-
-/**
- * Update last_seen_at for a user.
- * Called explicitly by POST /users/me/heartbeat.
- * Also called implicitly by updateLastSeen middleware on every authenticated request.
- */
-export const updateHeartbeat = async (userId: number): Promise<void> => {
-	await pool.query(
-		`UPDATE users SET last_seen_at = now() WHERE id = $1`,
-		[userId],
-	);
-};
-
 // ── User queries ──────────────────────────────────────────────────────────────
 
 export const getAllUsers = async (): Promise<UserListItem[]> => {

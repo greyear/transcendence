@@ -352,7 +352,6 @@ const heartbeatHandler = async (
             error.statusCode = 401;
             throw error;
         }
-        await updateHeartbeat(req.userId);
         res.status(200).json({ message: "OK" });
     } catch (error) {
         next(error);
@@ -362,14 +361,14 @@ const heartbeatHandler = async (
 // Register more specific routes FIRST, then less specific
 usersRouter.post("/me/heartbeat", heartbeatHandler);
 // /me/recipes is most specific
-usersRouter.get("/me/recipes", extractUser, getMyRecipesHandler);
-usersRouter.get("/me/favorites", extractUser, getMyFavoritesHandler);
-usersRouter.post("/:id/follow", extractUser, followUserHandler);
-usersRouter.delete("/:id/follow", extractUser, unfollowUserHandler);
+usersRouter.get("/me/recipes", getMyRecipesHandler);
+usersRouter.get("/me/favorites", getMyFavoritesHandler);
+usersRouter.post("/:id/follow", followUserHandler);
+usersRouter.delete("/:id/follow", unfollowUserHandler);
 // /:id/followers and /:id/following are more specific than /:id/recipes
 usersRouter.get("/:id/followers", getFollowersHandler);
 usersRouter.get("/:id/following", getFollowingHandler);
 // /:id/recipes is less specific, should be last
 usersRouter.get("/:id/recipes", getUserRecipesHandler);
-usersRouter.get("/:id", extractUser, getUserByIdHandler);
+usersRouter.get("/:id", getUserByIdHandler);
 usersRouter.get("/", getAllUsersHandler);
