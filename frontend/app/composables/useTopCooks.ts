@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
+import { z } from "zod";
 import { API_BASE_URL } from "./apiBaseUrl";
 
-export type TopCook = {
-	id: number;
-	username: string;
-	avatar: string | null;
-	recipes_count: number;
-};
+const TopCookSchema = z.object({
+	id: z.number(),
+	username: z.string(),
+	avatar: z.string().nullable(),
+	recipes_count: z.number(),
+});
+
+const TopCooksResponseSchema = z.object({
+	data: z.array(TopCookSchema),
+});
+
+export type TopCook = z.infer<typeof TopCookSchema>;
 
 export const useTopCooks = () => {
 	const [cookList, setCookList] = useState<TopCook[]>([]);
@@ -14,24 +21,30 @@ export const useTopCooks = () => {
 	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
 		null,
 	);
-
 	useEffect(() => {
 		fetch(`${API_BASE_URL}/users`)
 			.then((res) => {
 				if (!res.ok) {
-					const message = `Failed to fetch users: ${res.status}`;
-					console.error(message);
+					console.error(`Failed to fetch users: ${res.status}`);
 					setErrorStatus(res.status);
-					return { data: [] };
+					return null;
 				}
 				return res.json();
 			})
 			.then((body) => {
-				const allCooks: TopCook[] = body.data ?? [];
-				const sortedCooks = [...allCooks].sort(
+				if (body === null) {
+					return;
+				}
+				const parsed = TopCooksResponseSchema.safeParse(body);
+				if (!parsed.success) {
+					console.error("Unexpected /users response shape", parsed.error);
+					setErrorStatus("unknown");
+					return;
+				}
+				const sorted = [...parsed.data.data].sort(
 					(a, b) => b.recipes_count - a.recipes_count,
 				);
-				setCookList(sortedCooks);
+				setCookList(sorted);
 			})
 			.catch((error: unknown) => {
 				console.error(error);
@@ -41,6 +54,5 @@ export const useTopCooks = () => {
 				setIsLoading(false);
 			});
 	}, []);
-
 	return { cookList, isLoading, errorStatus };
 };
