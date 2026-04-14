@@ -31,12 +31,16 @@ const Layout = () => {
 		}
 
 		const sendHeartbeat = async () => {
-			const response = await fetch(`${API_BASE_URL}/users/me/heartbeat`, {
-				method: "POST",
-				credentials: "include",
-			});
-			if (response.status === 401) {
-				setIsAuthenticated(false);
+			try {
+				const response = await fetch(`${API_BASE_URL}/users/me/heartbeat`, {
+					method: "POST",
+					credentials: "include",
+				});
+				if (response.status === 401) {
+					setIsAuthenticated(false);
+				}
+			} catch (error) {
+				console.error(`Heartbeat failed: ${error}`);
 			}
 		};
 
