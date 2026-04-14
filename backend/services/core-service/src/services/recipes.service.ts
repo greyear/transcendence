@@ -113,6 +113,10 @@ const requesterRoleRowSchema = z.object({
 	role: z.enum(["guest", "user", "admin"]),
 });
 
+const countRowSchema = z.object({
+	count: z.coerce.number().int().nonnegative(),
+});
+
 // PostgreSQL SQLSTATE for foreign_key_violation.
 const PG_FOREIGN_KEY_VIOLATION = "23503";
 
@@ -871,6 +875,70 @@ export const getMyFavoriteRecipes = async (
 		);
 	} catch (error) {
 		console.error("Database error in getMyFavoriteRecipes:", error);
+		throw error;
+	}
+};
+
+export const getFavoriteRecipesByUserId = async (
+	userId: number,
+	currentUserId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<FavoriteRecipeListItem[] | null> => {
+	try {
+		// Check if target user exists
+		const userCheckResult = await pool.query(
+			"SELECT id FROM users WHERE id = $1",
+			[userId],
+		);
+
+		if (userCheckResult.rows.length === 0) {
+			const error: any = new Error("User not found");
+			error.code = "USER_NOT_FOUND";
+			throw error;
+		}
+
+		// Check if current user and target user are mutual followers
+		const mutualFollowResult = await pool.query(
+			`SELECT COUNT(*) FROM followers 
+			 WHERE (user_id = $1 AND followed_id = $2) 
+			 OR (user_id = $2 AND followed_id = $1)`,
+			[currentUserId, userId],
+		);
+
+		const countParsed = countRowSchema.safeParse(
+			mutualFollowResult.rows[0],
+		);
+		if (!countParsed.success) {
+			throw new Error(z.prettifyError(countParsed.error));
+		}
+		const count = countParsed.data.count;
+		if (count !== 2) {
+			// Not mutual followers - access denied
+			return null;
+		}
+
+		const query = `
+	SELECT
+		r.id,
+		COALESCE(r.title->>$3, r.title->>'en') AS title,
+		COALESCE(r.description->>$3, r.description->>'en') AS description,
+		u.avatar
+      FROM favorites f
+      JOIN recipes r ON r.id = f.recipe_id
+      LEFT JOIN users u ON u.id = r.author_id
+      WHERE f.user_id = $1 AND r.status = 'published'
+      ORDER BY f.created_at DESC
+    `;
+
+		const result = await pool.query(query, [userId, userId, locale]);
+
+		return parseRecipeRows(
+			result.rows,
+			favoriteRecipeListItemSchema,
+			"favorite recipe",
+		);
+	} catch (error) {
+		console.error("Database error in getFavoriteRecipesByUserId:", error);
 		throw error;
 	}
 };

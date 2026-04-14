@@ -247,3 +247,29 @@ export const unfollowUser = async (
 
 	return { success: true };
 };
+
+// ── Mutual Follow Check ──────────────────────────────────────────────────────
+
+/**
+ * Check if two users follow each other (mutual follow relationship)
+ * Returns true only if both users follow each other
+ */
+export const areMutualFollowers = async (
+	userId1: number,
+	userId2: number,
+): Promise<boolean> => {
+	try {
+		const result = await pool.query(
+			`SELECT COUNT(*) FROM followers 
+			 WHERE (user_id = $1 AND followed_id = $2) 
+			 OR (user_id = $2 AND followed_id = $1)`,
+			[userId1, userId2],
+		);
+
+		const count = parseInt(result.rows[0].count, 10);
+		return count === 2; // Both directions must exist
+	} catch (error) {
+		console.error("Database error in areMutualFollowers:", error);
+		throw error;
+	}
+};
