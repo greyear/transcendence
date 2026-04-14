@@ -5,7 +5,7 @@
 # Auth Endpoint Test Script
 # Tests all auth endpoints with valid, invalid, and edge cases
 
-BASE_URL="http://localhost:3000/auth"
+BASE_URL="https://localhost/auth"
 PASS=0
 FAIL=0
 
