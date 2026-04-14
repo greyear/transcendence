@@ -30,7 +30,7 @@
 	top: 0;
 	bottom: 0;
 	z-index: 1;
-	width: 20px;
+	width: 30px;
 	pointer-events: none;
 	opacity: 0;
 	transition: opacity 160ms ease;
@@ -54,6 +54,12 @@
 	opacity: 1;
 }
 
+.cooks-row-status {
+	color: var(--text-secondary);
+	margin: 0;
+	padding: var(--space-m) 0;
+}
+
 @media (min-width: 1440px) {
 	.cooks-row-wrapper {
 		--cooks-row-inline-offset: max(
@@ -68,10 +74,4 @@
 		padding-left: var(--cooks-row-inline-offset);
 		padding-right: var(--cooks-row-inline-offset);
 	}
-}
-
-.cooks-row-status {
-	color: var(--text-secondary);
-	margin: 0;
-	padding: var(--space-m) 0;
 }
