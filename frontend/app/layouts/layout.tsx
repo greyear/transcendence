@@ -1,29 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Outlet } from "react-router";
 import { AuthModal } from "~/components/auth/AuthModal";
-import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { AuthProvider, useAuth } from "~/contexts/AuthContext";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 
-const Layout = () => {
+const LayoutContent = () => {
+	const { isAuthenticated, signIn } = useAuth();
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-	const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-	useEffect(() => {
-		const restoreAuthState = async () => {
-			try {
-				const response = await fetch(`${API_BASE_URL}/profile`, {
-					credentials: "include",
-				});
-
-				setIsAuthenticated(response.ok);
-			} catch {
-				setIsAuthenticated(false);
-			}
-		};
-
-		void restoreAuthState();
-	}, []);
 
 	return (
 		<>
@@ -42,12 +26,18 @@ const Layout = () => {
 				isOpen={isAuthModalOpen}
 				onClose={() => setIsAuthModalOpen(false)}
 				onSuccess={() => {
-					setIsAuthenticated(true);
+					signIn();
 					setIsAuthModalOpen(false);
 				}}
 			/>
 		</>
 	);
 };
+
+const Layout = () => (
+	<AuthProvider>
+		<LayoutContent />
+	</AuthProvider>
+);
 
 export default Layout;

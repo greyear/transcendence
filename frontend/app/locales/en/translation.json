@@ -1,7 +1,6 @@
 {
 	"common": {
 		"signInButton": "Sign In",
-		"signedInButton": "Signed In",
 		"searchPlaceholder": "Search for...",
 		"sortButton": "Sort",
 		"filterButton": "Filter",
@@ -74,7 +73,12 @@
 	"profilePage": {
 		"loading": "Loading profile...",
 		"error": "Failed to load profile (status: {{status}}).",
-		"notFound": "Profile not found."
+		"notFound": "Profile not found.",
+		"title": "My profile",
+		"username": "Username",
+		"userId": "User ID",
+		"avatar": "Avatar",
+		"noAvatar": "No avatar set"
 	},
 	"loginPage": {
 		"title": "Log in",

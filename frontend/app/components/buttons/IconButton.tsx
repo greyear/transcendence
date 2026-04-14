@@ -1,70 +1,65 @@
-import type { MouseEventHandler, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import "../../assets/styles/iconButton.css";
 import { Link } from "react-router";
 
 type IconButtonVariants = "default" | "transparent" | "language";
 
-type IconButtonProps = {
+type BaseProps = {
 	children: ReactNode;
 	variant?: IconButtonVariants;
 	className?: string;
-	to?: string;
-	onClick?: MouseEventHandler<HTMLElement>;
-	onMouseDown?: MouseEventHandler<HTMLElement>;
-	"aria-expanded"?: boolean;
-	"aria-haspopup"?: boolean | "true" | "false";
-	"aria-label"?: string;
-	"aria-pressed"?: boolean | "mixed";
-	"data-initial-focus"?: boolean;
-	disabled?: boolean;
-	type?: "button" | "submit" | "reset";
 };
 
-export const IconButton = ({
-	children,
-	className = "",
-	variant = "default",
-	to,
-	onClick,
-	onMouseDown,
-	"aria-expanded": ariaExpanded,
-	"aria-haspopup": ariaHaspopup,
-	"aria-label": ariaLabel,
-	"aria-pressed": ariaPressed,
-	"data-initial-focus": dataInitialFocus,
-	disabled = false,
-	type = "button",
-}: IconButtonProps) => {
+type ButtonIconButtonProps = BaseProps &
+	Omit<ComponentPropsWithoutRef<"button">, keyof BaseProps> & {
+		to?: never;
+		"data-initial-focus"?: boolean;
+	};
+
+type LinkIconButtonProps = BaseProps &
+	Omit<
+		ComponentPropsWithoutRef<typeof Link>,
+		keyof BaseProps | "to" | "aria-pressed"
+	> & {
+		to: string;
+	};
+
+type IconButtonProps = ButtonIconButtonProps | LinkIconButtonProps;
+
+export const IconButton = (props: IconButtonProps) => {
+	const { children, className = "", variant = "default" } = props;
 	const combinedClasses = `icon-button ${variant} ${className}`.trim();
 
-	if (to) {
+	if (props.to !== undefined) {
+		const {
+			to,
+			variant: _v,
+			className: _c,
+			children: _ch,
+			...linkProps
+		} = props;
 		return (
-			<Link
-				to={to}
-				className={combinedClasses}
-				onClick={onClick}
-				aria-expanded={ariaExpanded}
-				aria-haspopup={ariaHaspopup}
-				aria-label={ariaLabel}
-				aria-pressed={ariaPressed}
-			>
+			<Link to={to} className={combinedClasses} {...linkProps}>
 				{children}
 			</Link>
 		);
 	}
 
+	const {
+		to: _to,
+		"data-initial-focus": dataInitialFocus,
+		type = "button",
+		variant: _v,
+		className: _c,
+		children: _ch,
+		...buttonRest
+	} = props;
 	return (
 		<button
 			type={type}
 			className={combinedClasses}
-			onClick={onClick}
-			onMouseDown={onMouseDown}
-			aria-expanded={ariaExpanded}
-			aria-haspopup={ariaHaspopup}
-			aria-label={ariaLabel}
-			aria-pressed={ariaPressed}
 			data-initial-focus={dataInitialFocus}
-			disabled={disabled}
+			{...buttonRest}
 		>
 			{children}
 		</button>

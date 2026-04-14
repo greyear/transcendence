@@ -1,7 +1,6 @@
 {
 	"common": {
 		"signInButton": "Kirjaudu",
-		"signedInButton": "Kirjautunut",
 		"searchPlaceholder": "Hae...",
 		"sortButton": "Järjestä",
 		"filterButton": "Suodata",
@@ -74,7 +73,12 @@
 	"profilePage": {
 		"loading": "Ladataan profiilia...",
 		"error": "Profiilin lataus epäonnistui (tila: {{status}}).",
-		"notFound": "Profiilia ei löytynyt."
+		"notFound": "Profiilia ei löytynyt.",
+		"title": "Oma profiili",
+		"username": "Käyttäjätunnus",
+		"userId": "Käyttäjätunnus-ID",
+		"avatar": "Kuva",
+		"noAvatar": "Kuvaa ei ole asetettu"
 	},
 	"loginPage": {
 		"title": "Kirjaudu sisään",

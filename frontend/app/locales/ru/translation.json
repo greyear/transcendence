@@ -1,7 +1,6 @@
 {
 	"common": {
 		"signInButton": "Войти",
-		"signedInButton": "Вход выполнен",
 		"searchPlaceholder": "Поиск...",
 		"sortButton": "Сортировать",
 		"filterButton": "Фильтры",
@@ -34,7 +33,8 @@
 		"recipes": "Рецепты",
 		"users": "Авторы рецептов",
 		"terms": "Условия использования",
-		"policy": "Конфиденциальность"
+		"policy": "Конфиденциальность",
+		"profile": "Профиль"
 	},
 	"recipesPage": {
 		"title": "Рецепты",
@@ -73,7 +73,12 @@
 	"profilePage": {
 		"loading": "Загрузка профиля...",
 		"error": "Не удалось загрузить профиль (статус: {{status}}).",
-		"notFound": "Профиль не найден."
+		"notFound": "Профиль не найден.",
+		"title": "Мой профиль",
+		"username": "Имя пользователя",
+		"userId": "ID пользователя",
+		"avatar": "Аватар",
+		"noAvatar": "Аватар не установлен"
 	},
 	"loginPage": {
 		"title": "Войти",
