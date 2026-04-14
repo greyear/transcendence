@@ -1,7 +1,7 @@
 {
 	"common": {
 		"signInButton": "Sign In",
-		"searchPlaceholder": "Search for ...",
+		"searchPlaceholder": "Search for...",
 		"sortButton": "Sort",
 		"filterButton": "Filter",
 		"sortOptions": {
@@ -43,12 +43,58 @@
 		"tabMy": "My recipes",
 		"tabSaved": "Saved recipes"
 	},
+	"recipesGrid": {
+		"loading": "Loading recipes...",
+		"empty": "No recipes found.",
+		"error": "Failed to fetch recipes (status: {{status}})."
+	},
+	"recipePage": {
+		"loading": "Loading...",
+		"invalidRecipe": "Invalid recipe.",
+		"error": "Failed to fetch recipe (status: {{status}}).",
+		"errorLoadingRecipe": "Failed to load recipe.",
+		"recipeNotFound": "Recipe not found.",
+		"rate": "Rate",
+		"ingredients": "Ingredients",
+		"noIngredientsAvailable": "No ingredients available for this recipe.",
+		"instructions": "Instructions",
+		"noInstructionsAvailable": "No instructions available for this recipe.",
+		"step": "Step {{number}}",
+		"share": "Share"
+	},
 	"usersPage": {
 		"title": "Users",
 		"totalCount": "Total users:",
 		"tabAll": "All",
 		"tabFollowers": "Followers",
 		"tabFollowing": "Following"
+	},
+	"loginPage": {
+		"title": "Log in",
+		"signupTitle": "Create an account",
+		"usernameLabel": "Username or email",
+		"signupUsernameLabel": "Username",
+		"usernameRequirements": "Use 3-20 characters with letters, numbers, and underscores only.",
+		"emailLabel": "Email",
+		"passwordLabel": "Password",
+		"passwordRequirements": "Use 8-64 characters, including uppercase, lowercase, a number, and a special character.",
+		"genericError": "Sign in failed. Please try again.",
+		"networkError": "The request could not reach the server. This may be a local network or CORS issue.",
+		"loginSuccess": "Login request completed.",
+		"submittingButton": "Signing in...",
+		"signupButton": "Sign Up",
+		"logInButton": "Log in",
+		"googleLoginButton": "Log in with Google",
+		"googleSignupButton": "Sign up with Google",
+		"signupSubmittingButton": "Creating account...",
+		"signupSuccess": "Account created. You can sign in now.",
+		"toggleSignupPrompt": "Need an account? Create one",
+		"toggleLoginPrompt": "Already have an account? Back to sign in"
+	},
+	"usersGrid": {
+		"loading": "Loading users...",
+		"empty": "No users found.",
+		"error": "Failed to fetch users (status: {{status}})."
 	},
 	"userCard": {
 		"recipes": "recipes",
@@ -82,6 +128,9 @@
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
 		"allUsers": "All users",
-		"sortBy": "Sort by"
+		"sortBy": "Sort by",
+		"shareRecipe": "Share recipe",
+		"ingredientsAndInstructions": "Recipe ingredients and instructions",
+		"closeAuthDialog": "Close authentication dialog"
 	}
 }

@@ -49,8 +49,7 @@ const updateProfileHandler: RequestHandler = async (req, res, _next) => {
 			body: req,
 			duplex: "half",
 			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
-		} as RequestInit,
-		);
+		} as RequestInit);
 		const data = await response.json();
 		res.status(response.status).json(data);
 	} catch (error) {

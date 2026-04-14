@@ -174,24 +174,115 @@ curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-## 12. Expected Status Quick Map
+## 12. User Followers & Following
+
+```bash
+# list followers of a user (public)
+curl -i "http://localhost:3000/users/1/followers"
+
+# list users being followed by a user (public)
+curl -i "http://localhost:3000/users/1/following"
+
+# non-existent user
+curl -i "http://localhost:3000/users/999999/followers"
+curl -i "http://localhost:3000/users/999999/following"
+
+# invalid user id
+curl -i "http://localhost:3000/users/abc/followers"
+curl -i "http://localhost:3000/users/abc/following"
+```
+
+## 13. Follow/Unfollow User (Protected)
+
+Replace TARGET_USER_ID with a user id you want to follow.
+
+```bash
+TARGET_USER_ID=2
+
+# should return 401 without token
+curl -i -X POST "http://localhost:3000/users/$TARGET_USER_ID/follow"
+
+# follow user (with token)
+curl -i -X POST "http://localhost:3000/users/$TARGET_USER_ID/follow" \
+  -H "Authorization: Bearer $TOKEN"
+
+# duplicate follow should return 409 (already followed)
+curl -i -X POST "http://localhost:3000/users/$TARGET_USER_ID/follow" \
+  -H "Authorization: Bearer $TOKEN"
+
+# unfollow user (with token)
+curl -i -X DELETE "http://localhost:3000/users/$TARGET_USER_ID/follow" \
+  -H "Authorization: Bearer $TOKEN"
+
+# second unfollow should return 404 (not followed anymore)
+curl -i -X DELETE "http://localhost:3000/users/$TARGET_USER_ID/follow" \
+  -H "Authorization: Bearer $TOKEN"
+
+# try to follow non-existent user
+curl -i -X POST "http://localhost:3000/users/999999/follow" \
+  -H "Authorization: Bearer $TOKEN"
+
+# try to follow yourself (invalid)
+curl -i -X POST "http://localhost:3000/users/YOUR_USER_ID/follow" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## 14. Recipe Reviews
+
+Replace RECIPE_ID with an existing recipe id.
+
+```bash
+RECIPE_ID=1
+
+# should return 401 without token
+curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/reviews" \
+  -H "Content-Type: application/json" \
+  -d '{"body":"Looks great"}'
+
+# authorized request (publishes review)
+curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/reviews" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"body":"Looks great"}'
+
+# list of reviews under recipe (public)
+curl -i "http://localhost:3000/recipes/$RECIPE_ID/reviews"
+
+# non-existent recipe
+curl -i "http://localhost:3000/recipes/999999/reviews"
+```
+
+
+## 15. Expected Status Quick Map
 
 - GET /health -> 200
 - GET /health/db -> 200
+
 - GET /recipes -> 200
 - GET /recipes/:id -> 200 or 404 or 403
+- GET /recipes/:id/reviews -> 200 or 404
 - GET /recipes/abc -> 400
+
 - GET /users -> 200
 - GET /users/:id -> 200 or 404
 - GET /users/abc -> 400
 - GET /users/:id/recipes -> 200 or 404
+- GET /users/:id/followers -> 200 or 404
+- GET /users/:id/following -> 200 or 404
 - GET /users/me/recipes (no token) -> 401
 - GET /users/me/favorites (no token) -> 401
+
+- POST /users/:id/follow (no token) -> 401
+- POST /users/:id/follow (with token) -> 200 or 400 or 404 or 409
+- DELETE /users/:id/follow (no token) -> 401
+- DELETE /users/:id/follow (with token) -> 200 or 400 or 404
 
 - POST /recipes (no token) -> 401
 - POST /recipes/:id/publish (no token) -> 401
 - POST /recipes/:id/favorite (no token) -> 401
 - POST /recipes/:id/favorite (with token) -> 200 or 404 or 409
+- POST /recipes/:id/reviews (no token) -> 401
+- POST /recipes/:id/reviews (with token) -> 201 or 404
 
 - PUT /recipes/:id -> 200 or 400 or 401 or 403 or 404 or 409
 

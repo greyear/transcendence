@@ -40,9 +40,9 @@ ON followers (followed_id);
 // RECIPES
 Table recipes {
   id integer [primary key, increment]
-  title varchar [not null]
-  description text [note: 'Short recipe summary or preview text']
-  instructions text[] [note: 'Step-by-step cooking instructions as array of strings']
+  title jsonb [not null, note: 'Localized JSON: {en, fi, ru}']
+  description jsonb [note: 'Localized JSON or null: {en, fi, ru}']
+  instructions jsonb [not null, note: 'Localized steps JSON: {en:[...], fi:[...], ru:[...]}']
   servings integer [not null, default: 1, note: 'Number of servings']
   spiciness smallint [note: '0 = none, 1 = mild, 2 = medium, 3 = hot; CHECK 0..3']
   author_id integer [null, note: 'Reference to users.id (auth service user ID)']

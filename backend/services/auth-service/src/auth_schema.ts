@@ -9,7 +9,7 @@ const counterSchema = new mongoose.Schema({
 		type: String,
 		default: "CounterDB",
 		required: true,
-		unique: true
+		unique: true,
 	},
 	seq: {
 		type: Number,
@@ -50,7 +50,7 @@ const authSchema = new mongoose.Schema({
 	},
 	realname: {
 		type: String,
-		required: true,
+		required: false,
 		unique: false,
 	},
 	googleID: {
