@@ -31,8 +31,8 @@ export const CooksRow = forwardRef<CooksRowHandle, CooksRowProps>(
 		const { t } = useTranslation();
 		const listRef = useRef<HTMLUListElement | null>(null);
 		const { cookList, isLoading, errorStatus } = useTopCooks();
-		const [hasLeftFade, setHasLeftFade] = useState(false);
-		const [hasRightFade, setHasRightFade] = useState(false);
+		const [canScrollLeft, setCanScrollLeft] = useState(false);
+		const [canScrollRight, setCanScrollRight] = useState(false);
 
 		useImperativeHandle(ref, () => ({
 			scrollLeft: () => {
@@ -50,15 +50,12 @@ export const CooksRow = forwardRef<CooksRowHandle, CooksRowProps>(
 		}));
 
 		useLayoutEffect(() => {
-			if (cookList.length > 0) {
-				listRef.current?.scrollTo({ left: 0, behavior: "auto" });
+			if (cookList.length === 0) {
+				return;
 			}
-		}, [cookList]);
 
-		const previousScrollStateRef = useRef({
-			canScrollLeft: false,
-			canScrollRight: false,
-		});
+			listRef.current?.scrollTo({ left: 0, behavior: "auto" });
+		}, [cookList.length]);
 
 		useEffect(() => {
 			const list = listRef.current;
@@ -70,23 +67,10 @@ export const CooksRow = forwardRef<CooksRowHandle, CooksRowProps>(
 			const updateScrollState = () => {
 				const { clientWidth, scrollWidth, scrollLeft } = list;
 
-				const nextState = {
-					canScrollLeft: scrollLeft > EDGE_TOLERANCE_PX,
-					canScrollRight:
-						scrollLeft + clientWidth < scrollWidth - EDGE_TOLERANCE_PX,
-				};
-
-				setHasLeftFade(nextState.canScrollLeft);
-				setHasRightFade(nextState.canScrollRight);
-
-				const previousState = previousScrollStateRef.current;
-				if (
-					previousState.canScrollLeft !== nextState.canScrollLeft ||
-					previousState.canScrollRight !== nextState.canScrollRight
-				) {
-					previousScrollStateRef.current = nextState;
-					onScrollStateChange?.(nextState);
-				}
+				setCanScrollLeft(scrollLeft > EDGE_TOLERANCE_PX);
+				setCanScrollRight(
+					scrollLeft + clientWidth < scrollWidth - EDGE_TOLERANCE_PX,
+				);
 			};
 
 			updateScrollState();
@@ -98,7 +82,11 @@ export const CooksRow = forwardRef<CooksRowHandle, CooksRowProps>(
 				list.removeEventListener("scroll", updateScrollState);
 				window.removeEventListener("resize", updateScrollState);
 			};
-		}, [cookList, onScrollStateChange]);
+		}, [cookList.length]);
+
+		useEffect(() => {
+			onScrollStateChange?.({ canScrollLeft, canScrollRight });
+		}, [canScrollLeft, canScrollRight, onScrollStateChange]);
 
 		if (isLoading) {
 			return <p className="cooks-row-status">{t("cooksRow.loading")}</p>;
@@ -118,7 +106,7 @@ export const CooksRow = forwardRef<CooksRowHandle, CooksRowProps>(
 
 		return (
 			<div
-				className={`cooks-row-wrapper${hasLeftFade ? " has-left-fade" : ""}${hasRightFade ? " has-right-fade" : ""}`}
+				className={`cooks-row-wrapper${canScrollLeft ? " has-left-fade" : ""}${canScrollRight ? " has-right-fade" : ""}`}
 			>
 				<ul className="cooks-row" ref={listRef}>
 					{cookList.map(({ id, username, avatar }) => (

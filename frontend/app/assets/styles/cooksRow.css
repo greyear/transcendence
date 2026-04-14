@@ -1,6 +1,7 @@
 .cooks-row-wrapper {
 	position: relative;
 	--cooks-row-inline-offset: var(--space-l);
+	--fade-width: var(--space-l);
 }
 
 .cooks-row {
@@ -30,7 +31,7 @@
 	top: 0;
 	bottom: 0;
 	z-index: 1;
-	width: 30px;
+	width: var(--fade-width);
 	pointer-events: none;
 	opacity: 0;
 	transition: opacity 160ms ease;
@@ -62,6 +63,7 @@
 
 @media (min-width: 1440px) {
 	.cooks-row-wrapper {
+		--fade-width: 100px;
 		--cooks-row-inline-offset: max(
 			var(--space-l),
 			calc((100vw - var(--desktop-content-width)) / 2)
