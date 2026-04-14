@@ -25,6 +25,23 @@ const Layout = () => {
 		void restoreAuthState();
 	}, []);
 
+	useEffect(() => {
+		if (!isAuthenticated) {
+			return;
+		}
+
+		const sendHeartbeat = () => {
+			void fetch(`${API_BASE_URL}/users/me/heartbeat`, {
+				method: "POST",
+				credentials: "include",
+			});
+		};
+
+		sendHeartbeat();
+		const interval = setInterval(sendHeartbeat, 30_000);
+		return () => clearInterval(interval);
+	}, [isAuthenticated]);
+
 	return (
 		<>
 			<Header
