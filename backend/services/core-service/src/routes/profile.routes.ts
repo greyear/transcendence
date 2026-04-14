@@ -179,7 +179,7 @@ const updateProfileHandler = async (
 
 // ── Route registration ────────────────────────────────────────────────────────
 
-profileRouter.get("/", extractUser, getProfileHandler);
+profileRouter.get("/", getProfileHandler);
 
 // avatarUpload.single("avatar") processes the multipart field named "avatar"
 // It runs before the handler, so req.file is available if a file was uploaded

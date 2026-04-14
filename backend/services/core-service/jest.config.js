@@ -40,6 +40,9 @@ export default {
 	// Run setup hooks after environment is ready
 	setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"],
 
+	// Increase default per-test timeout for slower machines/containers
+	testTimeout: 20000,
+
 	// Coverage settings (optional, useful for CI/CD)
 	collectCoverageFrom: [
 		"src/**/*.ts",

@@ -8,6 +8,7 @@ Table users {
   avatar varchar(2048) [note: 'Public URL to avatar file in object storage/CDN']
   status varchar(16) [note: 'online | offline (visible only to mutual followers)']
   role varchar(16) [not null, note: 'admin | user | guest']
+  last_seen_at timestamptz [default: `now()`]
   created_at timestamptz [default: `now()`]
   updated_at timestamptz [default: `now()`, note: 'Used to detect profile changes or reset cache']
 }

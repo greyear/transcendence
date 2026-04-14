@@ -187,6 +187,6 @@ const deleteRatingHandler = async (
 
 // ── Route registration ────────────────────────────────────────────────────────
 
-ratingsRouter.post("/", extractUser, createRatingHandler);
-ratingsRouter.put("/", extractUser, updateRatingHandler);
-ratingsRouter.delete("/", extractUser, deleteRatingHandler);
+ratingsRouter.post("/", createRatingHandler);
+ratingsRouter.put("/", updateRatingHandler);
+ratingsRouter.delete("/", deleteRatingHandler);

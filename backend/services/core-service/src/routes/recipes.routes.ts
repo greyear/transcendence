@@ -847,32 +847,31 @@ const deleteReviewHandler = async (
 
 // extractUser middleware extracts userId from X-User-Id header
 
-recipesRouter.post("/:id/publish", extractUser, publishRecipeHandler);
+recipesRouter.post("/:id/publish", publishRecipeHandler);
 
-recipesRouter.post("/:id/favorite", extractUser, favoriteRecipeHandler);
-recipesRouter.delete("/:id/favorite", extractUser, unfavoriteRecipeHandler);
+recipesRouter.post("/:id/favorite", favoriteRecipeHandler);
+recipesRouter.delete("/:id/favorite", unfavoriteRecipeHandler);
 recipesRouter.put(
 	"/:id/picture",
-	extractUser,
 	preCheckRecipePictureOwnership,
 	recipePictureUpload.single("picture"),
 	handleRecipePictureMulterError,
 	updateRecipePictureHandler,
 );
 
-recipesRouter.post("/:id/reviews", extractUser, leaveRecipeReviewHandler);
-recipesRouter.put("/:id/reviews/:reviewId", extractUser, updateReviewHandler);
+recipesRouter.post("/:id/reviews", leaveRecipeReviewHandler);
+recipesRouter.put("/:id/reviews/:reviewId", updateReviewHandler);
 recipesRouter.delete(
 	"/:id/reviews/:reviewId",
 	extractUser,
 	deleteReviewHandler,
 );
 recipesRouter.get("/:id/reviews", getRecipeReviewsHandler);
-recipesRouter.get("/:id", extractUser, getRecipeByIdHandler);
-recipesRouter.put("/:id", extractUser, updateRecipeHandler);
-recipesRouter.delete("/:id", extractUser, deleteRecipeHandler);
+recipesRouter.get("/:id", getRecipeByIdHandler);
+recipesRouter.put("/:id", updateRecipeHandler);
+recipesRouter.delete("/:id", deleteRecipeHandler);
 
 recipesRouter.get("/", getAllRecipesHandler);
-recipesRouter.post("/", extractUser, createRecipeHandler);
+recipesRouter.post("/", createRecipeHandler);
 
 recipesRouter.use("/:id/rating", ratingsRouter);
