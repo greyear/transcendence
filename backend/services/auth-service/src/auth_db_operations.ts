@@ -124,7 +124,7 @@ authRouter.post(
 			if (setCookie) {
 				res.set("Set-Cookie", setCookie);
 			}
-			res.status(201).json({ email, id: currentCount, loginPayload });
+			res.status(201).json({ email, id: currentCount, ...loginPayload });
 
 		} catch (error) {
 			if (mongoErrorSchema.safeParse(error).success) {
@@ -286,7 +286,7 @@ authRouter.post(
 					res.set("Set-Cookie", setCookie);
 				}
 
-				res.status(201).json({ googleID, email, name, id: currentCount, loginPayload });
+				res.status(201).json({ googleID, email, name, id: currentCount, ...loginPayload });
 			} else {
 				const JWToken = help.generateToken(
 					userDocument.get("_id"),
