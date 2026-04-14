@@ -112,17 +112,27 @@ const createRecipeReviewInputSchema = z.object({
 	body: z.string().trim().min(1).max(MAX_REVIEW_BODY_LENGTH),
 });
 
+const updateRecipeReviewInputSchema = z.object({
+	body: z.string().trim().min(1).max(MAX_REVIEW_BODY_LENGTH),
+});
+
 export type CreateRecipeInput = z.infer<typeof createRecipeInputSchema>;
 export type UpdateRecipeInput = z.infer<typeof updateRecipeInputSchema>;
 export type CreateRecipeReviewInput = z.infer<
 	typeof createRecipeReviewInputSchema
+>;
+export type UpdateRecipeReviewInput = z.infer<
+	typeof updateRecipeReviewInputSchema
 >;
 
 type ValidationResult<T> =
 	| { valid: true; value: T }
 	| { valid: false; error: string };
 
-const validateIntId = (id: unknown): ValidationResult<number> => {
+const validatePositiveIntId = (
+	id: unknown,
+	label: string,
+): ValidationResult<number> => {
 	const result = positiveIntSchema.safeParse(id);
 
 	if (result.success) {
@@ -131,13 +141,18 @@ const validateIntId = (id: unknown): ValidationResult<number> => {
 
 	return {
 		valid: false,
-		error: `Must be a positive integer in range 1..${MAX_SIGNED_INT}`,
+		error: `Invalid ${label}. Must be a positive integer in range 1..${MAX_SIGNED_INT}`,
 	};
 };
 
-export const validateRecipeId = validateIntId;
+export const validateRecipeId = (id: unknown): ValidationResult<number> =>
+	validatePositiveIntId(id, "recipe id");
 
-export const validateUserId = validateIntId;
+export const validateUserId = (id: unknown): ValidationResult<number> =>
+	validatePositiveIntId(id, "user id");
+
+export const validateReviewId = (id: unknown): ValidationResult<number> =>
+	validatePositiveIntId(id, "review id");
 
 export const validateLocale = (
 	input: unknown,
@@ -214,12 +229,23 @@ export const validateCreateRecipeReviewInput = (
 	};
 };
 
-/**
- * TYPES (describes Recipe object structure)
- */
+export const validateUpdateRecipeReviewInput = (
+	input: unknown,
+): ValidationResult<UpdateRecipeReviewInput> => {
+	const result = updateRecipeReviewInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
 
 /**
- * Zod schema for Recipe - describes what fields should exist and their types
+ * TYPES (describes Recipe object structure)
  *
  * z.object({...}) - object with fields
  * z.string() - string type
