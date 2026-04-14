@@ -28,103 +28,106 @@ export type CooksRowHandle = {
 
 export const CooksRow = forwardRef<CooksRowHandle, CooksRowProps>(
 	({ onScrollStateChange }, ref) => {
-	const { t } = useTranslation();
-	const listRef = useRef<HTMLUListElement | null>(null);
-	const { cookList, isLoading, errorStatus } = useTopCooks();
-	const [hasLeftFade, setHasLeftFade] = useState(false);
-	const [hasRightFade, setHasRightFade] = useState(false);
+		const { t } = useTranslation();
+		const listRef = useRef<HTMLUListElement | null>(null);
+		const { cookList, isLoading, errorStatus } = useTopCooks();
+		const [hasLeftFade, setHasLeftFade] = useState(false);
+		const [hasRightFade, setHasRightFade] = useState(false);
 
-	useImperativeHandle(ref, () => ({
-		scrollLeft: () => {
-			listRef.current?.scrollBy({
-				left: -getScrollAmount(listRef.current),
-				behavior: "smooth",
-			});
-		},
-		scrollRight: () => {
-			listRef.current?.scrollBy({
-				left: getScrollAmount(listRef.current),
-				behavior: "smooth",
-			});
-		},
-	}));
+		useImperativeHandle(ref, () => ({
+			scrollLeft: () => {
+				listRef.current?.scrollBy({
+					left: -getScrollAmount(listRef.current),
+					behavior: "smooth",
+				});
+			},
+			scrollRight: () => {
+				listRef.current?.scrollBy({
+					left: getScrollAmount(listRef.current),
+					behavior: "smooth",
+				});
+			},
+		}));
 
-	useLayoutEffect(() => {
-		listRef.current?.scrollTo({ left: 0, behavior: "auto" });
-	}, [cookList.length]);
+		useLayoutEffect(() => {
+			if (cookList.length > 0) {
+				listRef.current?.scrollTo({ left: 0, behavior: "auto" });
+			}
+		}, [cookList]);
 
-	const previousScrollStateRef = useRef({
-		canScrollLeft: false,
-		canScrollRight: false,
-	});
+		const previousScrollStateRef = useRef({
+			canScrollLeft: false,
+			canScrollRight: false,
+		});
 
-	useEffect(() => {
-		const list = listRef.current;
+		useEffect(() => {
+			const list = listRef.current;
 
-		if (!list) {
-			return;
-		}
+			if (!list || cookList.length === 0) {
+				return;
+			}
 
-		const updateScrollState = () => {
-			const { clientWidth, scrollWidth, scrollLeft } = list;
+			const updateScrollState = () => {
+				const { clientWidth, scrollWidth, scrollLeft } = list;
 
-			const nextState = {
-				canScrollLeft: scrollLeft > EDGE_TOLERANCE_PX,
-				canScrollRight:
-					scrollLeft + clientWidth < scrollWidth - EDGE_TOLERANCE_PX,
+				const nextState = {
+					canScrollLeft: scrollLeft > EDGE_TOLERANCE_PX,
+					canScrollRight:
+						scrollLeft + clientWidth < scrollWidth - EDGE_TOLERANCE_PX,
+				};
+
+				setHasLeftFade(nextState.canScrollLeft);
+				setHasRightFade(nextState.canScrollRight);
+
+				const previousState = previousScrollStateRef.current;
+				if (
+					previousState.canScrollLeft !== nextState.canScrollLeft ||
+					previousState.canScrollRight !== nextState.canScrollRight
+				) {
+					previousScrollStateRef.current = nextState;
+					onScrollStateChange?.(nextState);
+				}
 			};
 
-			setHasLeftFade(nextState.canScrollLeft);
-			setHasRightFade(nextState.canScrollRight);
+			updateScrollState();
 
-			const previousState = previousScrollStateRef.current;
-			if (
-				previousState.canScrollLeft !== nextState.canScrollLeft ||
-				previousState.canScrollRight !== nextState.canScrollRight
-			) {
-				previousScrollStateRef.current = nextState;
-				onScrollStateChange?.(nextState);
-			}
-		};
+			list.addEventListener("scroll", updateScrollState, { passive: true });
+			window.addEventListener("resize", updateScrollState);
 
-		updateScrollState();
+			return () => {
+				list.removeEventListener("scroll", updateScrollState);
+				window.removeEventListener("resize", updateScrollState);
+			};
+		}, [cookList, onScrollStateChange]);
 
-		list.addEventListener("scroll", updateScrollState, { passive: true });
-		window.addEventListener("resize", updateScrollState);
+		if (isLoading) {
+			return <p className="cooks-row-status">{t("cooksRow.loading")}</p>;
+		}
 
-		return () => {
-			list.removeEventListener("scroll", updateScrollState);
-			window.removeEventListener("resize", updateScrollState);
-		};
-	}, [cookList.length, onScrollStateChange]);
+		if (errorStatus !== null) {
+			return (
+				<p className="cooks-row-status">
+					{t("cooksRow.error", { status: errorStatus })}
+				</p>
+			);
+		}
 
-	if (isLoading) {
-		return <p className="cooks-row-status">{t("cooksRow.loading")}</p>;
-	}
+		if (cookList.length === 0) {
+			return <p className="cooks-row-status">{t("cooksRow.empty")}</p>;
+		}
 
-	if (errorStatus !== null) {
 		return (
-			<p className="cooks-row-status">
-				{t("cooksRow.error", { status: errorStatus })}
-			</p>
+			<div
+				className={`cooks-row-wrapper${hasLeftFade ? " has-left-fade" : ""}${hasRightFade ? " has-right-fade" : ""}`}
+			>
+				<ul className="cooks-row" ref={listRef}>
+					{cookList.map(({ id, username, avatar }) => (
+						<li key={id}>
+							<CookCard id={id} username={username} avatar={avatar} />
+						</li>
+					))}
+				</ul>
+			</div>
 		);
-	}
-
-	if (cookList.length === 0) {
-		return <p className="cooks-row-status">{t("cooksRow.empty")}</p>;
-	}
-
-	return (
-		<div
-			className={`cooks-row-wrapper${hasLeftFade ? " has-left-fade" : ""}${hasRightFade ? " has-right-fade" : ""}`}
-		>
-			<ul className="cooks-row" ref={listRef}>
-				{cookList.map(({ id, username, avatar }) => (
-					<li key={id}>
-						<CookCard id={id} username={username} avatar={avatar} />
-					</li>
-				))}
-			</ul>
-		</div>
-	);
-},);
+	},
+);
