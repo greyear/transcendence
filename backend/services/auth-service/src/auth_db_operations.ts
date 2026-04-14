@@ -67,11 +67,9 @@ authRouter.post(
 	"/register",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const { username, email, password } = req.body;
+			const { email, password } = req.body;
 
-			const userDocument = await userModel.findOne({
-				$or: [{ email }, { username }],
-			});
+			const userDocument = await userModel.findOne({ email });
 
 			if (userDocument) {
 				// Check if it's a Google-only account
@@ -88,11 +86,6 @@ authRouter.post(
 
 			if (!help.validateEmail(email)) {
 				res.status(422).json({ error: "Invalid email address" });
-				return;
-			}
-
-			if (!help.validateUsername(username)) {
-				res.status(422).json({ error: "Invalid username" });
 				return;
 			}
 
@@ -113,7 +106,6 @@ authRouter.post(
 
 			const newUser = new userModel({
 				id: currentCount,
-				username,
 				email,
 				passwordHash: hashedPassword,
 			});
@@ -132,7 +124,7 @@ authRouter.post(
 			if (setCookie) {
 				res.set("Set-Cookie", setCookie);
 			}
-			res.status(201).json({ username, email, id: currentCount, loginPayload });
+			res.status(201).json({ email, id: currentCount, loginPayload });
 
 		} catch (error) {
 			if (mongoErrorSchema.safeParse(error).success) {
@@ -159,11 +151,9 @@ authRouter.post(
 	"/login",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const { username, password } = req.body;
+			const { username, password } = req.body; //left as username to reduce work
 
-			const userDocument = await userModel.findOne({
-				$or: [{ email: username }, { username }],
-			});
+			const userDocument = await userModel.findOne({ email: username });
 
 			if (!userDocument) {
 				res.status(404).json({ error: "User not found" });
