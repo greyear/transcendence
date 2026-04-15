@@ -5,10 +5,10 @@ import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.css";
 import { ArrowEmailForward, Reports, StarSolid } from "iconoir-react";
 import { IconButton } from "~/components/buttons/IconButton";
-import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { RatingModal } from "~/components/rating/ratingModal";
-import { FavoriteButton } from "../components/buttons/FavoriteButton";
+import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import type { LayoutOutletContext } from "~/layouts/layout";
+import { FavoriteButton } from "../components/buttons/FavoriteButton";
 
 type RecipeIngredient = {
 	ingredient_id: number;
@@ -217,10 +217,7 @@ const RecipePage = () => {
 					)}
 				</section>
 			</section>
-			<RatingModal
-				isOpen={isRatingModalOpen}
-				onClose={onCloseRatingModal}
-			/>
+			<RatingModal isOpen={isRatingModalOpen} onClose={onCloseRatingModal} />
 		</section>
 	);
 };

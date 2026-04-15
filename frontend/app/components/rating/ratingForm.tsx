@@ -1,8 +1,8 @@
 import "~/assets/styles/rating.css";
 import { StarSolid, Xmark } from "iconoir-react";
 import { type FormEvent, type RefObject, useState } from "react";
-import { IconButton } from "~/components/buttons/IconButton";
 import { useTranslation } from "react-i18next";
+import { IconButton } from "~/components/buttons/IconButton";
 import { MainButton } from "~/components/buttons/MainButton";
 
 type RatingFormProps = {
@@ -35,7 +35,9 @@ export const RatingForm = ({ dialogRef, onClose }: RatingFormProps) => {
 			tabIndex={-1}
 		>
 			<div className="rating-card-header">
-				<h1 className="h2" id="rating-modal-title">{t("ratingModal.title")}</h1>
+				<h1 className="h2" id="rating-modal-title">
+					{t("ratingModal.title")}
+				</h1>
 
 				{onClose ? (
 					<div className="rating-modal-close-row">
@@ -53,39 +55,39 @@ export const RatingForm = ({ dialogRef, onClose }: RatingFormProps) => {
 			<div className="rating-card-body">
 				<form className="rating-form" onSubmit={handleSubmit}>
 					<div className="rating-field">
-						<span
-							className="rating-field-label text-label"
-							id="rating-label"
-						>
+						<span className="rating-field-label text-label" id="rating-label">
 							{t("ratingModal.rateRecipe")}{" "}
 							<span className="required-asterisk" aria-hidden="true">
 								*
 							</span>
 						</span>
-						<input id="rating-value" name="rating" type="hidden" value={rating} />
-						<div
-							className="rating-stars"
-							role="radiogroup"
-							aria-labelledby="rating-label"
-						>
+						<div className="rating-stars">
 							{RATING_VALUES.map((value) => (
-								<button
-									key={value}
-									type="button"
-									className={`rating-star-button ${value <= rating ? "active" : ""}`}
-									onClick={() => setRating(value)}
-									aria-label={`${value} star${value === 1 ? "" : "s"}`}
-									role="radio"
-									aria-checked={rating === value}
-								>
-									<StarSolid />
-								</button>
+								<label key={value} className="rating-star-option">
+									<input
+										className="rating-star-input"
+										name="rating"
+										type="radio"
+										value={value}
+										checked={rating === value}
+										aria-label={`${value} star${value === 1 ? "" : "s"}`}
+										onChange={() => setRating(value)}
+									/>
+									<span
+										className={`rating-star-button ${value <= rating ? "active" : ""}`}
+									>
+										<StarSolid />
+									</span>
+								</label>
 							))}
 						</div>
 					</div>
 
 					<div className="rating-field">
-						<label className="rating-field-label text-label" htmlFor="rating-review">
+						<label
+							className="rating-field-label text-label"
+							htmlFor="rating-review"
+						>
 							{t("ratingModal.describeRecipe")}
 						</label>
 						<textarea

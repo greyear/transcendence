@@ -13,9 +13,9 @@ export type LayoutOutletContext = {
 const Layout = () => {
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
-	const [authSuccessAction, setAuthSuccessAction] = useState<(() => void) | null>(
-		null,
-	);
+	const [authSuccessAction, setAuthSuccessAction] = useState<
+		(() => void) | null
+	>(null);
 
 	const openAuthModal = (onSuccessAction?: () => void) => {
 		setAuthSuccessAction(() => onSuccessAction ?? null);

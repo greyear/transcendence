@@ -59,6 +59,16 @@
 	gap: var(--space-s);
 }
 
+.rating-star-option {
+	position: relative;
+	display: inline-flex;
+}
+
+.rating-star-input {
+	position: absolute;
+	opacity: 0;
+}
+
 .rating-star-button {
 	display: inline-flex;
 	align-items: center;
@@ -72,7 +82,7 @@
 	height: var(--icon-button-size);
 }
 
-.rating-star-button svg {
+.rating-stars .rating-star-button svg {
 	width: var(--icon-size);
 	height: var(--icon-size);
 	stroke-width: 1.5;

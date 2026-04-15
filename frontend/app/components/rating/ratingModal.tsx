@@ -17,10 +17,7 @@ const FOCUSABLE_SELECTOR = [
 
 const INITIAL_FOCUS_SELECTOR = "[data-initial-focus]";
 
-export const RatingModal = ({
-	isOpen,
-	onClose,
-}: RatingModalProps) => {
+export const RatingModal = ({ isOpen, onClose }: RatingModalProps) => {
 	const dialogRef = useRef<HTMLElement>(null);
 
 	useLayoutEffect(() => {
