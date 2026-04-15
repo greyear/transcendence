@@ -35,21 +35,23 @@ const AUTH_SERVICE_URL =
 
 // Needed for notifying core about new registrations.
 const CORE_SERVICE_URL =
-    process.env.CORE_SERVICE_URL || "http://core-service:3002";
+	process.env.CORE_SERVICE_URL || "http://core-service:3002";
 // Helper to notify core about new registration.
 async function notifyCoreService(id: number, email: string): Promise<void> {
-    try {
-        const res = await fetch(`${CORE_SERVICE_URL}/profile`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id, email }),
-        });
-        if (!res.ok) {
-            console.error(`core-service /profile returned ${res.status} for user ${id}`);
-        }
-    } catch (error) {
-        console.error(`Failed to notify core-service of new user ${id}:`, error);
-    }
+	try {
+		const res = await fetch(`${CORE_SERVICE_URL}/profile`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ id, email }),
+		});
+		if (!res.ok) {
+			console.error(
+				`core-service /profile returned ${res.status} for user ${id}`,
+			);
+		}
+	} catch (error) {
+		console.error(`Failed to notify core-service of new user ${id}:`, error);
+	}
 }
 
 // Connection part
@@ -148,7 +150,6 @@ authRouter.post(
 				res.set("Set-Cookie", setCookie);
 			}
 			res.status(201).json({ email, id: currentCount, ...loginPayload });
-
 		} catch (error) {
 			if (mongoErrorSchema.safeParse(error).success) {
 				res.status(409).json({ error: "Email or username already exists" });
@@ -315,7 +316,14 @@ authRouter.post(
 					sameSite: "lax",
 					maxAge: 60 * 60 * 1000,
 				});
-				res.status(201).json({ googleID, email, name, id: currentCount, token: JWToken, message: "Login successful" });
+				res.status(201).json({
+					googleID,
+					email,
+					name,
+					id: currentCount,
+					token: JWToken,
+					message: "Login successful",
+				});
 			} else {
 				const JWToken = help.generateToken(
 					userDocument.get("_id"),

@@ -159,7 +159,7 @@ export const fetchDecodeToken = (req: Request): AppJwtPayload | null => {
 		}
 		const decoded = decodeToken(tokenHeader);
 		if (!decoded) {
-				throw Error("Whatever was given was not a token");
+			throw Error("Whatever was given was not a token");
 		}
 		const parsed = jwtPayloadSchema.safeParse(decoded);
 		if (!parsed.success) {

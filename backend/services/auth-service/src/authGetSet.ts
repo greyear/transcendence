@@ -8,7 +8,6 @@ import {
 //Location of userModel may or may not change later.
 import { userModel } from "./auth_schema.js";
 import * as help from "./authHelpers.js";
-import { IdentityPoolClient } from "google-auth-library";
 
 export const authGetSet = Router();
 

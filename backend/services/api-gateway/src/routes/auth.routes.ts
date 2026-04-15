@@ -1,6 +1,6 @@
 /**
  * Auth Routes
- * 
+ *
  */
 
 import {
@@ -33,7 +33,10 @@ const postAuthRegisterHandler: RequestHandler = async (
 		});
 		const data = await response.json();
 
-		if (response.status === 201 && tokenResponseSchema.safeParse(data).success) {
+		if (
+			response.status === 201 &&
+			tokenResponseSchema.safeParse(data).success
+		) {
 			const setCookieHeader = response.headers.get("set-cookie");
 			if (setCookieHeader) {
 				res.set("Set-Cookie", setCookieHeader);
@@ -165,14 +168,11 @@ const patchChangePasswordHandler: RequestHandler = async (
 		if (req.headers.authorization) {
 			headers.authorization = req.headers.authorization;
 		}
-		const response = await fetch(
-			`${AUTH_SERVICE_URL}/change-password`,
-			{
-				method: "PATCH",
-				headers,
-				body: JSON.stringify(req.body),
-			},
-		);
+		const response = await fetch(`${AUTH_SERVICE_URL}/change-password`, {
+			method: "PATCH",
+			headers,
+			body: JSON.stringify(req.body),
+		});
 		const data = await response.json();
 		res.status(response.status).json(data);
 	} catch (error) {
