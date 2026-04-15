@@ -1,30 +1,12 @@
-import { Menu, PlusCircle, XmarkCircle } from "iconoir-react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
-import { SelectField } from "~/components/inputs/SelectField";
+import type { IngredientRow } from "~/components/recipe/RecipeIngredientRow";
+import { RecipeIngredientRow } from "~/components/recipe/RecipeIngredientRow";
+import type { InstructionRow } from "~/components/recipe/RecipeInstructionItem";
+import { RecipeInstructionItem } from "~/components/recipe/RecipeInstructionItem";
+import { RecipePhotoUpload } from "~/components/recipe/RecipePhotoUpload";
 import "../assets/styles/recipe-create.css";
-
-const UNIT_OPTIONS = [
-	"tsp",
-	"tbsp",
-	"cup",
-	"ml",
-	"l",
-	"g",
-	"kg",
-	"oz",
-	"lb",
-	"piece",
-];
-
-const UNIT_SELECT_OPTIONS = UNIT_OPTIONS.map((u) => ({ label: u, value: u }));
-
-const IngredientSchema = z.object({
-	amount: z.string().min(1, "Ingredient amount is required"),
-	unit: z.string().min(1, "Ingredient unit is required"),
-	name: z.string().min(1, "Ingredient name is required"),
-});
 
 const RecipeFormSchema = z.object({
 	title: z.string().min(1, "Recipe title is required"),
@@ -38,24 +20,18 @@ const RecipeFormSchema = z.object({
 	cookHours: z.string(),
 	cookMinutes: z.string(),
 	ingredients: z
-		.array(IngredientSchema)
+		.array(
+			z.object({
+				amount: z.string().min(1, "Ingredient amount is required"),
+				unit: z.string().min(1, "Ingredient unit is required"),
+				name: z.string().min(1, "Ingredient name is required"),
+			}),
+		)
 		.min(1, "At least one ingredient is required"),
 	instructions: z
 		.array(z.object({ text: z.string().min(1, "Step text is required") }))
 		.min(1, "At least one instruction step is required"),
 });
-
-type IngredientRow = {
-	id: string;
-	amount: string;
-	unit: string;
-	name: string;
-};
-
-type InstructionRow = {
-	id: string;
-	text: string;
-};
 
 const createIngredient = (): IngredientRow => ({
 	id: Math.random().toString(36).slice(2),
@@ -85,6 +61,7 @@ const RecipeCreate = () => {
 		setIngredients([createIngredient(), createIngredient()]);
 		setInstructions([createInstruction(), createInstruction()]);
 	}, []);
+
 	const [formError, setFormError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -249,31 +226,10 @@ const RecipeCreate = () => {
 			</header>
 
 			<form className="recipe-create-form" onSubmit={handleSubmit} noValidate>
-				<label
-					htmlFor="recipe-photo"
-					className="recipe-photo-upload"
-					aria-label="Add a recipe photo"
-				>
-					{photoPreview ? (
-						<img
-							src={photoPreview}
-							alt="Recipe preview"
-							className="recipe-photo-preview"
-						/>
-					) : (
-						<span className="recipe-photo-button">
-							<PlusCircle aria-hidden="true" />
-							Add a photo
-						</span>
-					)}
-					<input
-						id="recipe-photo"
-						type="file"
-						accept="image/*"
-						className="recipe-photo-input"
-						onChange={handlePhotoChange}
-					/>
-				</label>
+				<RecipePhotoUpload
+					photoPreview={photoPreview}
+					onChange={handlePhotoChange}
+				/>
 
 				<div className="recipe-create-field">
 					<label htmlFor="recipe-title" className="recipe-create-label">
@@ -403,74 +359,25 @@ const RecipeCreate = () => {
 					</h2>
 					<ul className="recipe-create-list" aria-label="Ingredients list">
 						{ingredients.map((ingredient, index) => (
-							<li
+							<RecipeIngredientRow
 								key={ingredient.id}
-								className="recipe-ingredient-row"
-								draggable
+								ingredient={ingredient}
+								index={index}
+								isOnly={ingredients.length === 1}
+								onDragHandlePointerDown={() => {
+									ingredientDragAllowed.current = true;
+								}}
 								onPointerUp={() => {
 									ingredientDragAllowed.current = false;
 								}}
 								onDragStart={(e) => handleIngredientDragStart(e, index)}
 								onDragOver={(e) => handleIngredientDragOver(e, index)}
 								onDragEnd={handleIngredientDragEnd}
-							>
-								<span
-									className="recipe-drag-handle"
-									aria-hidden="true"
-									onPointerDown={() => {
-										ingredientDragAllowed.current = true;
-									}}
-								>
-									<Menu />
-								</span>
-								<input
-									type="number"
-									className="recipe-create-input recipe-ingredient-amount text-body3"
-									placeholder="Amount"
-									min={0}
-									value={ingredient.amount}
-									onChange={(e) =>
-										handleIngredientChange(
-											ingredient.id,
-											"amount",
-											e.target.value,
-										)
-									}
-									aria-label={`Ingredient ${index + 1} amount`}
-								/>
-								<div className="recipe-unit-wrapper">
-									<SelectField
-										options={UNIT_SELECT_OPTIONS}
-										value={ingredient.unit}
-										onChange={(value) =>
-											handleIngredientChange(ingredient.id, "unit", value)
-										}
-									/>
-								</div>
-								<input
-									type="text"
-									className="recipe-create-input recipe-ingredient-name text-body3"
-									placeholder="e.g. milk"
-									value={ingredient.name}
-									onChange={(e) =>
-										handleIngredientChange(
-											ingredient.id,
-											"name",
-											e.target.value,
-										)
-									}
-									aria-label={`Ingredient ${index + 1} name`}
-								/>
-								<button
-									type="button"
-									className="recipe-remove-button"
-									onClick={() => handleRemoveIngredient(ingredient.id)}
-									aria-label={`Remove ingredient ${index + 1}`}
-									disabled={ingredients.length === 1}
-								>
-									<XmarkCircle aria-hidden="true" />
-								</button>
-							</li>
+								onChange={(field, value) =>
+									handleIngredientChange(ingredient.id, field, value)
+								}
+								onRemove={() => handleRemoveIngredient(ingredient.id)}
+							/>
 						))}
 					</ul>
 					<button
@@ -494,52 +401,23 @@ const RecipeCreate = () => {
 					</h2>
 					<ol className="recipe-create-list recipe-instructions-list">
 						{instructions.map((step, index) => (
-							<li
+							<RecipeInstructionItem
 								key={step.id}
-								className="recipe-instruction-item"
-								draggable
+								step={step}
+								index={index}
+								isOnly={instructions.length === 1}
+								onDragHandlePointerDown={() => {
+									instructionDragAllowed.current = true;
+								}}
 								onPointerUp={() => {
 									instructionDragAllowed.current = false;
 								}}
 								onDragStart={(e) => handleInstructionDragStart(e, index)}
 								onDragOver={(e) => handleInstructionDragOver(e, index)}
 								onDragEnd={handleInstructionDragEnd}
-							>
-								<span className="recipe-step-label text-caption">
-									Step {index + 1}
-								</span>
-								<div className="recipe-instruction-row">
-									<span
-										className="recipe-drag-handle"
-										aria-hidden="true"
-										onPointerDown={() => {
-											instructionDragAllowed.current = true;
-										}}
-									>
-										<Menu />
-									</span>
-									<textarea
-										className="recipe-instruction-textarea"
-										value={step.text}
-										rows={1}
-										onChange={(e) => {
-											handleInstructionChange(step.id, e.target.value);
-											e.target.style.height = "auto";
-											e.target.style.height = `${e.target.scrollHeight}px`;
-										}}
-										aria-label={`Step ${index + 1} description`}
-									/>
-									<button
-										type="button"
-										className="recipe-remove-button"
-										onClick={() => handleRemoveInstruction(step.id)}
-										aria-label={`Remove step ${index + 1}`}
-										disabled={instructions.length === 1}
-									>
-										<XmarkCircle aria-hidden="true" />
-									</button>
-								</div>
-							</li>
+								onChange={(value) => handleInstructionChange(step.id, value)}
+								onRemove={() => handleRemoveInstruction(step.id)}
+							/>
 						))}
 					</ol>
 					<button
