@@ -585,7 +585,7 @@ describe("API Gateway - Users Routes", () => {
 				expect.objectContaining({
 					headers: expect.objectContaining({
 						"Content-Type": "application/json",
-						"X-User-Id": "42",
+						"x-user-id": "42",
 					}),
 					signal: expect.any(AbortSignal),
 				}),
@@ -653,7 +653,9 @@ describe("API Gateway - Users Routes", () => {
 			} as unknown as Response);
 
 			fetchSpy.mockRejectedValueOnce(
-				new DOMException("The operation was aborted", "AbortError"),
+				Object.assign(new Error("Request timed out"), {
+					name: "TimeoutError",
+				}),
 			);
 
 			const response = await request(app)

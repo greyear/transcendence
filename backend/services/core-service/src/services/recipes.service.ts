@@ -920,8 +920,8 @@ export const getFavoriteRecipesByUserId = async (
 		const query = `
 	SELECT
 		r.id,
-		COALESCE(r.title->>$3, r.title->>'en') AS title,
-		COALESCE(r.description->>$3, r.description->>'en') AS description,
+		COALESCE(r.title->>$2, r.title->>'en') AS title,
+		COALESCE(r.description->>$2, r.description->>'en') AS description,
 		u.avatar
       FROM favorites f
       JOIN recipes r ON r.id = f.recipe_id
@@ -930,7 +930,7 @@ export const getFavoriteRecipesByUserId = async (
       ORDER BY f.created_at DESC
     `;
 
-		const result = await pool.query(query, [userId, userId, locale]);
+		const result = await pool.query(query, [userId, locale]);
 
 		return parseRecipeRows(
 			result.rows,
@@ -938,7 +938,9 @@ export const getFavoriteRecipesByUserId = async (
 			"favorite recipe",
 		);
 	} catch (error) {
-		console.error("Database error in getFavoriteRecipesByUserId:", error);
+		if (!(error instanceof Error && (error as any).code === "USER_NOT_FOUND")) {
+			console.error("Database error in getFavoriteRecipesByUserId:", error);
+		}
 		throw error;
 	}
 };
