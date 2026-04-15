@@ -1,7 +1,8 @@
 import { Menu, PlusCircle, XmarkCircle } from "iconoir-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
+import { SelectField } from "~/components/inputs/SelectField";
 import "../assets/styles/recipe-create.css";
 
 const UNIT_OPTIONS = [
@@ -16,6 +17,8 @@ const UNIT_OPTIONS = [
 	"lb",
 	"piece",
 ];
+
+const UNIT_SELECT_OPTIONS = UNIT_OPTIONS.map((u) => ({ label: u, value: u }));
 
 const IngredientSchema = z.object({
 	amount: z.string().min(1, "Ingredient amount is required"),
@@ -75,19 +78,20 @@ const RecipeCreate = () => {
 	const [prepMinutes, setPrepMinutes] = useState("");
 	const [cookHours, setCookHours] = useState("");
 	const [cookMinutes, setCookMinutes] = useState("");
-	const [ingredients, setIngredients] = useState<IngredientRow[]>([
-		createIngredient(),
-		createIngredient(),
-	]);
-	const [instructions, setInstructions] = useState<InstructionRow[]>([
-		createInstruction(),
-		createInstruction(),
-	]);
+	const [ingredients, setIngredients] = useState<IngredientRow[]>([]);
+	const [instructions, setInstructions] = useState<InstructionRow[]>([]);
+
+	useEffect(() => {
+		setIngredients([createIngredient(), createIngredient()]);
+		setInstructions([createInstruction(), createInstruction()]);
+	}, []);
 	const [formError, setFormError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const ingredientDragIndex = useRef<number | null>(null);
+	const ingredientDragAllowed = useRef(false);
 	const instructionDragIndex = useRef<number | null>(null);
+	const instructionDragAllowed = useRef(false);
 
 	const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -118,7 +122,14 @@ const RecipeCreate = () => {
 		);
 	};
 
-	const handleIngredientDragStart = (index: number) => {
+	const handleIngredientDragStart = (
+		e: React.DragEvent<HTMLLIElement>,
+		index: number,
+	) => {
+		if (!ingredientDragAllowed.current) {
+			e.preventDefault();
+			return;
+		}
 		ingredientDragIndex.current = index;
 	};
 
@@ -142,6 +153,7 @@ const RecipeCreate = () => {
 
 	const handleIngredientDragEnd = () => {
 		ingredientDragIndex.current = null;
+		ingredientDragAllowed.current = false;
 	};
 
 	const handleAddInstruction = () => {
@@ -158,7 +170,14 @@ const RecipeCreate = () => {
 		);
 	};
 
-	const handleInstructionDragStart = (index: number) => {
+	const handleInstructionDragStart = (
+		e: React.DragEvent<HTMLLIElement>,
+		index: number,
+	) => {
+		if (!instructionDragAllowed.current) {
+			e.preventDefault();
+			return;
+		}
 		instructionDragIndex.current = index;
 	};
 
@@ -182,6 +201,7 @@ const RecipeCreate = () => {
 
 	const handleInstructionDragEnd = () => {
 		instructionDragIndex.current = null;
+		instructionDragAllowed.current = false;
 	};
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -387,11 +407,20 @@ const RecipeCreate = () => {
 								key={ingredient.id}
 								className="recipe-ingredient-row"
 								draggable
-								onDragStart={() => handleIngredientDragStart(index)}
+								onPointerUp={() => {
+									ingredientDragAllowed.current = false;
+								}}
+								onDragStart={(e) => handleIngredientDragStart(e, index)}
 								onDragOver={(e) => handleIngredientDragOver(e, index)}
 								onDragEnd={handleIngredientDragEnd}
 							>
-								<span className="recipe-drag-handle" aria-hidden="true">
+								<span
+									className="recipe-drag-handle"
+									aria-hidden="true"
+									onPointerDown={() => {
+										ingredientDragAllowed.current = true;
+									}}
+								>
 									<Menu />
 								</span>
 								<input
@@ -409,24 +438,15 @@ const RecipeCreate = () => {
 									}
 									aria-label={`Ingredient ${index + 1} amount`}
 								/>
-								<select
-									className="recipe-unit-select text-body3"
-									value={ingredient.unit}
-									onChange={(e) =>
-										handleIngredientChange(
-											ingredient.id,
-											"unit",
-											e.target.value,
-										)
-									}
-									aria-label={`Ingredient ${index + 1} unit`}
-								>
-									{UNIT_OPTIONS.map((unit) => (
-										<option key={unit} value={unit}>
-											{unit}
-										</option>
-									))}
-								</select>
+								<div className="recipe-unit-wrapper">
+									<SelectField
+										options={UNIT_SELECT_OPTIONS}
+										value={ingredient.unit}
+										onChange={(value) =>
+											handleIngredientChange(ingredient.id, "unit", value)
+										}
+									/>
+								</div>
 								<input
 									type="text"
 									className="recipe-create-input recipe-ingredient-name text-body3"
@@ -478,7 +498,10 @@ const RecipeCreate = () => {
 								key={step.id}
 								className="recipe-instruction-item"
 								draggable
-								onDragStart={() => handleInstructionDragStart(index)}
+								onPointerUp={() => {
+									instructionDragAllowed.current = false;
+								}}
+								onDragStart={(e) => handleInstructionDragStart(e, index)}
 								onDragOver={(e) => handleInstructionDragOver(e, index)}
 								onDragEnd={handleInstructionDragEnd}
 							>
@@ -486,7 +509,13 @@ const RecipeCreate = () => {
 									Step {index + 1}
 								</span>
 								<div className="recipe-instruction-row">
-									<span className="recipe-drag-handle" aria-hidden="true">
+									<span
+										className="recipe-drag-handle"
+										aria-hidden="true"
+										onPointerDown={() => {
+											instructionDragAllowed.current = true;
+										}}
+									>
 										<Menu />
 									</span>
 									<textarea

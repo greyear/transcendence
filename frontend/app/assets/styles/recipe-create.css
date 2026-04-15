@@ -198,22 +198,10 @@
 	grid-area: amount;
 }
 
-.recipe-unit-select {
+.recipe-unit-wrapper {
 	grid-area: unit;
-	height: 44px;
-	border-radius: var(--radius-s);
-	background-color: var(--surface-primary);
-	border: 1px solid var(--borders-input);
-	padding: 0 var(--space-s);
-	color: var(--text-primary);
-	cursor: pointer;
-	font-size: var(--fs-body3);
-	font-family: inherit;
-}
-
-.recipe-unit-select:focus {
-	outline: none;
-	border-color: var(--borders-action);
+	width: 90px;
+	flex-shrink: 0;
 }
 
 .recipe-ingredient-name {
@@ -348,9 +336,8 @@
 		flex-grow: 0;
 	}
 
-	.recipe-unit-select {
-		flex-shrink: 0;
-		height: 48px;
+	.recipe-unit-wrapper {
+		width: 90px;
 	}
 
 	.recipe-ingredient-name {
