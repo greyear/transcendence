@@ -33,6 +33,25 @@ const mongoErrorSchema = z.object({ code: z.literal(11000) });
 const AUTH_SERVICE_URL =
 	process.env.AUTH_SERVICE_URL || "http://auth-service:3001";
 
+// Needed for notifying core about new registrations.
+const CORE_SERVICE_URL =
+    process.env.CORE_SERVICE_URL || "http://core-service:3002";
+// Helper to notify core about new registration.
+async function notifyCoreService(id: number, email: string): Promise<void> {
+    try {
+        const res = await fetch(`${CORE_SERVICE_URL}/profile`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, email }),
+        });
+        if (!res.ok) {
+            console.error(`core-service /profile returned ${res.status} for user ${id}`);
+        }
+    } catch (error) {
+        console.error(`Failed to notify core-service of new user ${id}:`, error);
+    }
+}
+
 // Connection part
 // Fetch env or throw.
 const MONGO_AUTH_URI = process.env.MONGODB_URI || process.env.MONGODB_AUTH_URI;
@@ -111,6 +130,9 @@ authRouter.post(
 				passwordHash: hashedPassword,
 			});
 			await newUser.save();
+
+			// Call core notify helper, just send and forget.
+			void notifyCoreService(currentCount, email);
 
 			const loginRes = await fetch(`${AUTH_SERVICE_URL}/login`, {
 				method: "POST",
@@ -277,6 +299,9 @@ authRouter.post(
 					googleID,
 				});
 				await newUser.save();
+
+				// Call core notify helper, just send and forget.
+				void notifyCoreService(currentCount, email);
 
 				const JWToken = help.generateToken(
 					newUser.get("_id").toString(),
