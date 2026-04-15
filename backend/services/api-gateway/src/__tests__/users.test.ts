@@ -664,3 +664,5 @@ describe("API Gateway - Users Routes", () => {
 			expect(response.body).toEqual({ error: "Gateway Timeout" });
 		});
 	});
+
+});
