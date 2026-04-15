@@ -168,7 +168,10 @@
 	margin: 0;
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-m);
+
+	li {
+		margin-bottom: var(--space-m);
+	}
 }
 
 .recipe-ingredient-row {
