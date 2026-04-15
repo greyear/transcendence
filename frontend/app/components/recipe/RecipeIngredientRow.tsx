@@ -1,3 +1,4 @@
+import type { DraggableProvided } from "@hello-pangea/dnd";
 import { Menu, XmarkCircle } from "iconoir-react";
 import { SelectField } from "~/components/inputs/SelectField";
 
@@ -25,6 +26,7 @@ export type IngredientRow = {
 
 type RecipeIngredientRowProps = {
 	ingredient: IngredientRow;
+	provided: DraggableProvided;
 	index: number;
 	isOnly: boolean;
 	onChange: (field: keyof Omit<IngredientRow, "id">, value: string) => void;
@@ -33,15 +35,20 @@ type RecipeIngredientRowProps = {
 
 export const RecipeIngredientRow = ({
 	ingredient,
+	provided,
 	index,
 	isOnly,
 	onChange,
 	onRemove,
 }: RecipeIngredientRowProps) => {
 	return (
-		<li className="recipe-ingredient-row">
-			<span className="recipe-drag-handle" aria-hidden="true">
-				<Menu />
+		<li
+			ref={provided.innerRef}
+			{...provided.draggableProps}
+			className="recipe-ingredient-row"
+		>
+			<span className="recipe-drag-handle" {...provided.dragHandleProps}>
+				<Menu aria-hidden="true" />
 			</span>
 			<input
 				type="number"

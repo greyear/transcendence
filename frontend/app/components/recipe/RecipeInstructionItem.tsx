@@ -1,3 +1,4 @@
+import type { DraggableProvided } from "@hello-pangea/dnd";
 import { Menu, XmarkCircle } from "iconoir-react";
 
 export type InstructionRow = {
@@ -7,6 +8,7 @@ export type InstructionRow = {
 
 type RecipeInstructionItemProps = {
 	step: InstructionRow;
+	provided: DraggableProvided;
 	index: number;
 	isOnly: boolean;
 	onChange: (value: string) => void;
@@ -15,17 +17,22 @@ type RecipeInstructionItemProps = {
 
 export const RecipeInstructionItem = ({
 	step,
+	provided,
 	index,
 	isOnly,
 	onChange,
 	onRemove,
 }: RecipeInstructionItemProps) => {
 	return (
-		<li className="recipe-instruction-item">
+		<li
+			ref={provided.innerRef}
+			{...provided.draggableProps}
+			className="recipe-instruction-item"
+		>
 			<span className="recipe-step-label text-caption">Step {index + 1}</span>
 			<div className="recipe-instruction-row">
-				<span className="recipe-drag-handle" aria-hidden="true">
-					<Menu />
+				<span className="recipe-drag-handle" {...provided.dragHandleProps}>
+					<Menu aria-hidden="true" />
 				</span>
 				<textarea
 					className="recipe-instruction-textarea"
