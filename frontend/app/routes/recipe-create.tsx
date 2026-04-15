@@ -3,12 +3,16 @@ import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { useId, useState } from "react";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
+import { RecipeFormField } from "~/components/recipe/RecipeFormField";
+import { RecipeFormFieldset } from "~/components/recipe/RecipeFormFieldset";
 import type { IngredientRow } from "~/components/recipe/RecipeIngredientRow";
 import { RecipeIngredientRow } from "~/components/recipe/RecipeIngredientRow";
 import type { InstructionRow } from "~/components/recipe/RecipeInstructionItem";
 import { RecipeInstructionItem } from "~/components/recipe/RecipeInstructionItem";
 import { RecipePhotoUpload } from "~/components/recipe/RecipePhotoUpload";
 import "../assets/styles/recipe-create.css";
+
+const newId = () => Math.random().toString(36).slice(2);
 
 type IngredientFields = Omit<IngredientRow, "id">;
 type InstructionFields = Omit<InstructionRow, "id">;
@@ -38,8 +42,6 @@ const RecipeFormSchema = z.object({
 		.min(1, "At least one instruction step is required"),
 });
 
-const newId = () => Math.random().toString(36).slice(2);
-
 const RecipeCreate = () => {
 	const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 	const [title, setTitle] = useState("");
@@ -57,24 +59,20 @@ const RecipeCreate = () => {
 
 	const [ingredientIds, setIngredientIds] = useState<string[]>([
 		`${baseId}-i0`,
-		`${baseId}-i1`,
 	]);
 	const [ingredientFields, setIngredientFields] = useState<
 		Record<string, IngredientFields>
 	>({
 		[`${baseId}-i0`]: { amount: "", unit: "g", name: "" },
-		[`${baseId}-i1`]: { amount: "", unit: "g", name: "" },
 	});
 
 	const [instructionIds, setInstructionIds] = useState<string[]>([
 		`${baseId}-s0`,
-		`${baseId}-s1`,
 	]);
 	const [instructionFields, setInstructionFields] = useState<
 		Record<string, InstructionFields>
 	>({
 		[`${baseId}-s0`]: { text: "" },
-		[`${baseId}-s1`]: { text: "" },
 	});
 
 	const handleDragEnd = (result: DropResult) => {
@@ -201,13 +199,7 @@ const RecipeCreate = () => {
 						onChange={handlePhotoChange}
 					/>
 
-					<div className="recipe-create-field">
-						<label htmlFor="recipe-title" className="recipe-create-label">
-							Recipe Title{" "}
-							<span className="recipe-create-required" aria-hidden="true">
-								*
-							</span>
-						</label>
+					<RecipeFormField label="Recipe Title" htmlFor="recipe-title" required>
 						<input
 							id="recipe-title"
 							type="text"
@@ -216,15 +208,13 @@ const RecipeCreate = () => {
 							value={title}
 							onChange={(e) => setTitle(e.target.value)}
 						/>
-					</div>
+					</RecipeFormField>
 
-					<div className="recipe-create-field">
-						<label htmlFor="recipe-description" className="recipe-create-label">
-							Short Description{" "}
-							<span className="recipe-create-required" aria-hidden="true">
-								*
-							</span>
-						</label>
+					<RecipeFormField
+						label="Short Description"
+						htmlFor="recipe-description"
+						required
+					>
 						<textarea
 							id="recipe-description"
 							className="recipe-create-textarea text-body3"
@@ -233,15 +223,9 @@ const RecipeCreate = () => {
 							onChange={(e) => setDescription(e.target.value)}
 							maxLength={128}
 						/>
-					</div>
+					</RecipeFormField>
 
-					<div className="recipe-create-field">
-						<label htmlFor="recipe-servings" className="recipe-create-label">
-							Servings{" "}
-							<span className="recipe-create-required" aria-hidden="true">
-								*
-							</span>
-						</label>
+					<RecipeFormField label="Servings" htmlFor="recipe-servings" required>
 						<input
 							id="recipe-servings"
 							type="number"
@@ -251,15 +235,9 @@ const RecipeCreate = () => {
 							value={servings}
 							onChange={(e) => setServings(e.target.value)}
 						/>
-					</div>
+					</RecipeFormField>
 
-					<fieldset className="recipe-create-fieldset">
-						<legend className="recipe-create-label">
-							Prep Time{" "}
-							<span className="recipe-create-required" aria-hidden="true">
-								*
-							</span>
-						</legend>
+					<RecipeFormFieldset legend="Prep Time" required>
 						<div className="recipe-create-time-row">
 							<input
 								id="prep-hours"
@@ -283,15 +261,9 @@ const RecipeCreate = () => {
 								aria-label="Prep time minutes"
 							/>
 						</div>
-					</fieldset>
+					</RecipeFormFieldset>
 
-					<fieldset className="recipe-create-fieldset">
-						<legend className="recipe-create-label">
-							Cook Time{" "}
-							<span className="recipe-create-required" aria-hidden="true">
-								*
-							</span>
-						</legend>
+					<RecipeFormFieldset legend="Cook Time" required>
 						<div className="recipe-create-time-row">
 							<input
 								id="cook-hours"
@@ -315,7 +287,7 @@ const RecipeCreate = () => {
 								aria-label="Cook time minutes"
 							/>
 						</div>
-					</fieldset>
+					</RecipeFormFieldset>
 
 					<section
 						className="recipe-create-field"
