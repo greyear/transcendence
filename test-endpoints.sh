@@ -4,7 +4,7 @@
 
 set -e
 
-BASE_URL="${API_BASE_URL:-http://localhost:3000}"
+BASE_URL="${API_BASE_URL:-https://localhost}"
 SMOKE_BEARER_TOKEN="${SMOKE_BEARER_TOKEN:-}"
 FAIL=0
 TESTS_PASSED=0
@@ -34,7 +34,7 @@ check_endpoint() {
   local url="$BASE_URL$path"
   local actual_status
   
-  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" "$url" 2>/dev/null || echo "000")
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" "$url" 2>/dev/null || echo "000")
   
   if [ "$actual_status" = "$expected_status" ]; then
     echo -e "${GREEN}✓${NC} $description -> $actual_status"
@@ -56,7 +56,7 @@ check_post_endpoint() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X POST \
     -H "Content-Type: application/json" \
     -d "$payload" \
@@ -82,7 +82,7 @@ check_post_endpoint_auth() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $SMOKE_BEARER_TOKEN" \
@@ -109,7 +109,7 @@ check_put_endpoint() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X PUT \
     -H "Content-Type: application/json" \
     -d "$payload" \
@@ -135,7 +135,7 @@ check_put_endpoint_auth() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X PUT \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $SMOKE_BEARER_TOKEN" \
@@ -161,7 +161,7 @@ check_delete_endpoint() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X DELETE \
     "$url" 2>/dev/null || echo "000")
 
@@ -184,7 +184,7 @@ check_delete_endpoint_auth() {
   local url="$BASE_URL$path"
   local actual_status
 
-  actual_status=$(curl -sS -o /tmp/test-resp.json -w "%{http_code}" \
+  actual_status=$(curl -sS --cacert certs/cert.pem -o /tmp/test-resp.json -w "%{http_code}" \
     -X DELETE \
     -H "Authorization: Bearer $SMOKE_BEARER_TOKEN" \
     "$url" 2>/dev/null || echo "000")
@@ -253,6 +253,13 @@ check_endpoint "/recipes/1/reviews" "200" "GET /recipes/1/reviews"
 check_endpoint "/recipes/999999/reviews" "404" "GET /recipes/999999/reviews (non-existent recipe)"
 
 echo ""
+echo "User Follow Endpoints (Protected):"
+check_post_endpoint "/users/1/follow" '{}' "401" "POST /users/1/follow (no token -> 401)"
+check_delete_endpoint "/users/1/follow" "401" "DELETE /users/1/follow (no token -> 401)"
+check_post_endpoint "/users/abc/follow" '{}' "401" "POST /users/abc/follow (no token, auth first -> 401)"
+check_delete_endpoint "/users/abc/follow" "401" "DELETE /users/abc/follow (no token, auth first -> 401)"
+
+echo ""
 echo "PUT/DELETE Endpoints:"
 check_put_endpoint "/recipes/1" '{"title":"Smoke Update","description":"Updated by smoke test","instructions":["Mix ingredients"],"servings":2,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":100,"unit":"g"}],"category_ids":[]}' "401" "PUT /recipes/1 (no token -> 401)"
 check_delete_endpoint "/recipes/1" "401" "DELETE /recipes/1 (no token -> 401)"
@@ -262,6 +269,16 @@ check_delete_endpoint "/recipes/1/favorite" "401" "DELETE /recipes/1/favorite (n
 check_endpoint "/users/me/favorites" "401" "GET /users/me/favorites (no token -> 401)"
 
 if [ -n "$SMOKE_BEARER_TOKEN" ]; then
+  echo ""
+  echo "User Follow Endpoints (authenticated):"
+  check_post_endpoint_auth "/users/abc/follow" '{}' "400" "POST /users/abc/follow (invalid ID -> 400)"
+  check_delete_endpoint_auth "/users/abc/follow" "400" "DELETE /users/abc/follow (invalid ID -> 400)"
+  check_post_endpoint_auth "/users/999/follow" '{}' "404" "POST /users/999/follow (non-existent target user -> 404)"
+  check_post_endpoint_auth "/users/1/follow" '{}' "200" "POST /users/1/follow (with token -> 200)"
+  check_post_endpoint_auth "/users/1/follow" '{}' "409" "POST /users/1/follow (already followed -> 409)"
+  check_delete_endpoint_auth "/users/1/follow" "200" "DELETE /users/1/follow (with token -> 200)"
+  check_delete_endpoint_auth "/users/1/follow" "404" "DELETE /users/1/follow (not followed -> 404)"
+
   echo ""
   echo "POST Endpoints (authenticated):"
 

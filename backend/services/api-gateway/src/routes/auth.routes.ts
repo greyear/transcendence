@@ -1,6 +1,7 @@
 /**
  * Auth Routes
  *
+ *
  */
 
 import {
@@ -10,9 +11,12 @@ import {
 	type Response,
 	Router,
 } from "express";
+import z from "zod";
 
 // Auth router
 export const authRouter = Router();
+
+const tokenResponseSchema = z.object({ token: z.string() });
 
 const AUTH_SERVICE_URL =
 	process.env.AUTH_SERVICE_URL || "http://auth-service:3001";
@@ -29,6 +33,14 @@ const postAuthRegisterHandler: RequestHandler = async (
 			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
+
+		if (response.status === 201 && tokenResponseSchema.safeParse(data).success) {
+			const setCookieHeader = response.headers.get("set-cookie");
+			if (setCookieHeader) {
+				res.set("Set-Cookie", setCookieHeader);
+			}
+		}
+
 		res.status(response.status).json(data);
 	} catch (error) {
 		next(error);
@@ -47,11 +59,13 @@ const postLoginHandler: RequestHandler = async (
 			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
+
 		// Forward Set-Cookie headers from auth service to client
 		const setCookieHeader = response.headers.get("set-cookie");
 		if (setCookieHeader) {
 			res.set("Set-Cookie", setCookieHeader);
 		}
+
 		res.status(response.status).json(data);
 	} catch (error) {
 		next(error);
@@ -77,11 +91,13 @@ const postGoogleHandler: RequestHandler = async (
 			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
+
 		// Forward Set-Cookie headers from auth service to client
 		const setCookieHeader = response.headers.get("set-cookie");
 		if (setCookieHeader) {
 			res.set("Set-Cookie", setCookieHeader);
 		}
+
 		res.status(response.status).json(data);
 	} catch (error) {
 		next(error);
@@ -104,7 +120,6 @@ const postValidateHandler: RequestHandler = async (
 		const response = await fetch(`${AUTH_SERVICE_URL}/validate`, {
 			method: "POST",
 			headers,
-			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
 		res.status(response.status).json(data);

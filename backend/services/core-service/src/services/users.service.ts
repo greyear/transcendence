@@ -7,70 +7,32 @@ import {
 	userProfileSchema,
 } from "../validation/schemas.js";
 
-/**
- * Retrieves a list of users who are followers of a specific user.
- * @param userId - The ID of the user whose followers are to be retrieved.
- * @returns A promise that resolves to an array of user list items.
- */
-export const getFollowers = async (userId: number) => {
-	// First, verify that the user exists
-	const userExists = await pool.query("SELECT id FROM users WHERE id = $1", [
-		userId,
-	]);
+export type FollowOperationResult =
+	| { success: true }
+	| {
+			success: false;
+			reason:
+				| "self-follow"
+				| "user-not-found"
+				| "already-followed"
+				| "not-followed";
+	  };
 
-	if (userExists.rows.length === 0) {
-		throw new Error("User not found");
-	}
-
-	// Get all followers of this user
-	const result = await pool.query(
-		`SELECT
-			u.id,
-			u.username,
-			u.avatar,
-			(SELECT COUNT(*) FROM recipes r WHERE r.author_id = u.id AND r.status = 'published') AS recipes_count
-		FROM users u
-		JOIN followers f ON u.id = f.user_id
-		WHERE f.followed_id = $1
-		ORDER BY u.username ASC`,
-		[userId],
-	);
-
-	// Validate each user object against the schema
-	return userListItemSchema.array().parse(result.rows);
-};
+// ── Online status ─────────────────────────────────────────────────────────────
 
 /**
- * Retrieves a list of users that a specific user is following.
- * @param userId - The ID of the user whose followed users are to be retrieved.
- * @returns A promise that resolves to an array of user list items.
+ * A user is considered online if their last activity was within 60 seconds.
+ * Embedded directly in queries — no separate column read needed.
  */
-export const getFollowing = async (userId: number) => {
-	// First, verify that the user exists
-	const userExists = await pool.query("SELECT id FROM users WHERE id = $1", [
+const IS_ONLINE_SQL = `(u.last_seen_at > now() - interval '60 seconds')`;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+const doesUserExist = async (userId: number): Promise<boolean> => {
+	const result = await pool.query("SELECT id FROM users WHERE id = $1", [
 		userId,
 	]);
-
-	if (userExists.rows.length === 0) {
-		throw new Error("User not found");
-	}
-
-	// Get all users that this user is following
-	const result = await pool.query(
-		`SELECT
-			u.id,
-			u.username,
-			u.avatar,
-			(SELECT COUNT(*) FROM recipes r WHERE r.author_id = u.id AND r.status = 'published') AS recipes_count
-		FROM users u
-		JOIN followers f ON u.id = f.followed_id
-		WHERE f.user_id = $1
-		ORDER BY u.username ASC`,
-		[userId],
-	);
-
-	// Validate each user object against the schema
-	return userListItemSchema.array().parse(result.rows);
+	return (result.rowCount ?? 0) > 0;
 };
 
 const rowIdSchema = z
@@ -94,10 +56,11 @@ const parseUserRows = <T>(
 				z.prettifyError(validation.error),
 			);
 		}
-
 		return acc;
 	}, []);
 };
+
+// ── User queries ──────────────────────────────────────────────────────────────
 
 export const getAllUsers = async (): Promise<UserListItem[]> => {
 	try {
@@ -111,7 +74,7 @@ export const getAllUsers = async (): Promise<UserListItem[]> => {
 			LEFT JOIN recipes r ON r.author_id = u.id
 			GROUP BY u.id, u.username, u.avatar
 			ORDER BY u.id ASC
-    `);
+		`);
 
 		return parseUserRows(result.rows, userListItemSchema, "user");
 	} catch (error) {
@@ -125,8 +88,6 @@ export const getUserById = async (
 	requesterId?: number,
 ): Promise<UserProfile | null> => {
 	try {
-		// requesterId is optional: guests call this endpoint without X-User-Id,
-		// so we pass null to the SQL check and keep status hidden for them.
 		const result = await pool.query(
 			`
 			SELECT
@@ -136,18 +97,17 @@ export const getUserById = async (
 				CASE
 					WHEN $2::int IS NOT NULL
 						AND EXISTS (
-							SELECT 1
-							FROM followers f1
-							WHERE f1.user_id = $2
-								AND f1.followed_id = u.id
+							SELECT 1 FROM followers f1
+							WHERE f1.user_id = $2 AND f1.followed_id = u.id
 						)
 						AND EXISTS (
-							SELECT 1
-							FROM followers f2
-							WHERE f2.user_id = u.id
-								AND f2.followed_id = $2
+							SELECT 1 FROM followers f2
+							WHERE f2.user_id = u.id AND f2.followed_id = $2
 						)
-					THEN u.status
+					THEN CASE
+						WHEN ${IS_ONLINE_SQL} THEN 'online'
+						ELSE 'offline'
+					END
 					ELSE NULL
 				END AS status,
 				(
@@ -158,7 +118,7 @@ export const getUserById = async (
 			FROM users u
 			WHERE u.id = $1
 			LIMIT 1
-    `,
+			`,
 			[userId, requesterId ?? null],
 		);
 
@@ -176,4 +136,114 @@ export const getUserById = async (
 		console.error("Database error in getUserById:", error);
 		throw error;
 	}
+};
+
+export const getFollowers = async (userId: number) => {
+	const userExists = await pool.query("SELECT id FROM users WHERE id = $1", [
+		userId,
+	]);
+
+	if (userExists.rows.length === 0) {
+		throw new Error("User not found");
+	}
+
+	const result = await pool.query(
+		`SELECT
+			u.id,
+			u.username,
+			u.avatar,
+			(SELECT COUNT(*) FROM recipes r WHERE r.author_id = u.id AND r.status = 'published') AS recipes_count
+		FROM users u
+		JOIN followers f ON u.id = f.user_id
+		WHERE f.followed_id = $1
+		ORDER BY u.username ASC`,
+		[userId],
+	);
+
+	return userListItemSchema.array().parse(result.rows);
+};
+
+export const getFollowing = async (userId: number) => {
+	const userExists = await pool.query("SELECT id FROM users WHERE id = $1", [
+		userId,
+	]);
+
+	if (userExists.rows.length === 0) {
+		throw new Error("User not found");
+	}
+
+	const result = await pool.query(
+		`SELECT
+			u.id,
+			u.username,
+			u.avatar,
+			(SELECT COUNT(*) FROM recipes r WHERE r.author_id = u.id AND r.status = 'published') AS recipes_count
+		FROM users u
+		JOIN followers f ON u.id = f.followed_id
+		WHERE f.user_id = $1
+		ORDER BY u.username ASC`,
+		[userId],
+	);
+
+	return userListItemSchema.array().parse(result.rows);
+};
+
+// ── Follow / Unfollow ─────────────────────────────────────────────────────────
+
+export const followUser = async (
+	followerId: number,
+	followedId: number,
+): Promise<FollowOperationResult> => {
+	if (followerId === followedId) {
+		return { success: false, reason: "self-follow" };
+	}
+
+	const [followerExists, followedExists] = await Promise.all([
+		doesUserExist(followerId),
+		doesUserExist(followedId),
+	]);
+
+	if (!followerExists || !followedExists) {
+		return { success: false, reason: "user-not-found" };
+	}
+
+	const result = await pool.query(
+		"INSERT INTO followers (user_id, followed_id) VALUES ($1, $2) ON CONFLICT (user_id, followed_id) DO NOTHING",
+		[followerId, followedId],
+	);
+
+	if ((result.rowCount ?? 0) === 0) {
+		return { success: false, reason: "already-followed" };
+	}
+
+	return { success: true };
+};
+
+export const unfollowUser = async (
+	followerId: number,
+	followedId: number,
+): Promise<FollowOperationResult> => {
+	if (followerId === followedId) {
+		return { success: false, reason: "self-follow" };
+	}
+
+	const [followerExists, followedExists] = await Promise.all([
+		doesUserExist(followerId),
+		doesUserExist(followedId),
+	]);
+
+	if (!followerExists || !followedExists) {
+		return { success: false, reason: "user-not-found" };
+	}
+
+	const result = await pool.query(
+		"DELETE FROM followers WHERE user_id = $1 AND followed_id = $2",
+		[followerId, followedId],
+	);
+
+	if ((result.rowCount ?? 0) === 0) {
+		return { success: false, reason: "not-followed" };
+	}
+
+	return { success: true };
 };

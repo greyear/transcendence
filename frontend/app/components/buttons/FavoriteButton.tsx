@@ -11,7 +11,7 @@ type Props = {
 export const FavoriteButton = ({ disabled = false }: Props) => {
 	const { t } = useTranslation();
 	const [isActive, setIsActive] = useState(false);
-	const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+	const handleClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
 		e.stopPropagation();
 		e.preventDefault();
 		setIsActive((prev) => !prev);

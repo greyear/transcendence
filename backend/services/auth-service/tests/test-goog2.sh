@@ -2,7 +2,7 @@
 
 GOOGLE_ID_TOKEN="replace wiht ID"
 
-BASE_URL="http://localhost:3000/auth"
+BASE_URL="https://localhost/auth"
 
 echo "=========================================="
 echo "Test: Google User Tries Normal Login"

@@ -34,7 +34,7 @@
 
 | Endpoint | Method | Auth | Parameters |
 |---|---|---|---|
-| `/register` | POST | — | body: `username`, `email`, `realname`, `password` |
+| `/register` | POST | — | body: `username`, `email`, `password` |
 | `/login` | POST | — | body: `username` (or email), `password` |
 | `/auth/validate` | POST | JWT (header) | `Authorization: Bearer <token>` |
 | `/users/:username` | DELETE | JWT (header) | `username` (path), `Authorization: Bearer <token>` |

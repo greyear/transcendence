@@ -1,4 +1,4 @@
-import { Bell, Menu, Xmark } from "iconoir-react";
+import { Bell, Menu, ProfileCircle, Xmark } from "iconoir-react";
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
@@ -11,9 +11,16 @@ import { LanguageSelector } from "~/components/LanguageSelector";
 import { handleDropdownClose } from "~/composables/closeDropdownHandler";
 import { useScreenSize } from "~/composables/useScreenSize";
 
-const NavigationList = () => {
+type NavigationListProps = {
+	isAuthenticated: boolean;
+};
+
+const NavigationList = ({ isAuthenticated }: NavigationListProps) => {
 	const { t } = useTranslation();
 	const { pathname } = useLocation();
+	const { screenSize } = useScreenSize();
+
+	const isDesktop = screenSize === "desktop";
 
 	return (
 		<nav aria-label={t("ariaLabels.headerMain")}>
@@ -48,17 +55,29 @@ const NavigationList = () => {
 						{t("layout.users")}
 					</TextIconButton>
 				</li>
+				{isAuthenticated && !isDesktop && (
+					<li>
+						<TextIconButton
+							size="body3"
+							to="/profile"
+							variant="inverted"
+							selected={pathname.startsWith("/profile")}
+						>
+							{t("layout.profile")}
+						</TextIconButton>
+					</li>
+				)}
 			</ul>
 		</nav>
 	);
 };
 
 type HeaderProps = {
+	isAuthenticated: boolean;
 	onOpenAuthModal: () => void;
 };
 
-// TODO: add the login state
-export const Header = ({ onOpenAuthModal }: HeaderProps) => {
+export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 	const { t } = useTranslation();
 	const [isOpen, setIsOpen] = useState(false);
 	const { screenSize } = useScreenSize();
@@ -99,7 +118,7 @@ export const Header = ({ onOpenAuthModal }: HeaderProps) => {
 				>
 					RCP
 				</Link>
-				{isDesktop && <NavigationList />}
+				{isDesktop && <NavigationList isAuthenticated={isAuthenticated} />}
 				<div className="header-top-icon-row">
 					{!isMobile && (
 						<SearchField
@@ -125,19 +144,31 @@ export const Header = ({ onOpenAuthModal }: HeaderProps) => {
 					) : (
 						<>
 							<LanguageSelector isHeader variant="dropdown" />
-							<MainButton variant="inverted" onClick={onOpenAuthModal}>
-								{t("common.signInButton")}
-							</MainButton>
+							{isAuthenticated ? (
+								<IconButton
+									className="profile-button"
+									to="/profile"
+									aria-label={t("ariaLabels.toProfilePage")}
+								>
+									<ProfileCircle />
+								</IconButton>
+							) : (
+								<MainButton variant="inverted" onClick={onOpenAuthModal}>
+									{t("common.signInButton")}
+								</MainButton>
+							)}
 						</>
 					)}
 				</div>
 			</div>
 			{isOpen && !isDesktop && (
 				<div className="header-menu-overlay">
-					<NavigationList />
-					<MainButton variant="inverted" onClick={onOpenAuthModal}>
-						{t("common.signInButton")}
-					</MainButton>
+					<NavigationList isAuthenticated={isAuthenticated} />
+					{!isAuthenticated && (
+						<MainButton variant="inverted" onClick={onOpenAuthModal}>
+							{t("common.signInButton")}
+						</MainButton>
+					)}
 					{isMobile && (
 						<SearchField placeholder={t("common.searchPlaceholder")} />
 					)}

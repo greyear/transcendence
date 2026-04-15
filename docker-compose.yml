@@ -1,6 +1,24 @@
-
-
 services:
+
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--configFile=/traefik/traefik.yml"
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./traefik/traefik.yml:/traefik/traefik.yml:ro"
+      - "./traefik/dynamic.yml:/traefik/dynamic.yml:ro"
+      - "./certs:/certs:ro"
+
+    networks:
+      - transcendence-network
 
   auth-db:
     image: mongo:6
@@ -84,8 +102,8 @@ services:
     container_name: api-gateway
     restart: unless-stopped
 
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
 
     environment:
       NODE_ENV: development
@@ -94,6 +112,13 @@ services:
       CORE_SERVICE_URL: http://core-service:3002
       NOTIFICATION_SERVICE_URL: http://notification-service:3003
       SEARCH_SERVICE_URL: http://search-service:8000
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gateway-https.rule=Host(`localhost`)"
+      - "traefik.http.routers.gateway-https.entrypoints=websecure"
+      - "traefik.http.routers.gateway-https.tls=true"
+      - "traefik.http.services.gateway.loadbalancer.server.port=3000"
 
     depends_on:
       - auth-service

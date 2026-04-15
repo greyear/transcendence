@@ -37,6 +37,7 @@ import {
 	recipeStatusSchema,
 	type SupportedLocale,
 	type UpdateRecipeInput,
+	type UpdateRecipeReviewInput,
 } from "../validation/schemas.js";
 import {
 	localizeInstructionStepsFromSource,
@@ -92,6 +93,14 @@ type RemoveFavoriteResult =
 type LeaveRecipeReviewResult =
 	| { success: true; reviewId: number }
 	| { success: false; reason: "not-found" | "unauthorized" };
+
+type UpdateReviewResult =
+	| { success: true; review: RecipeReviewListItem }
+	| { success: false; reason: "not-found" | "forbidden" };
+
+type DeleteReviewResult =
+	| { success: true; reviewId: number; recipeId: number; updatedAt: string }
+	| { success: false; reason: "not-found" | "forbidden" };
 
 const recipeIdRowSchema = z.object({
 	id: z.coerce.number().int().positive(),
@@ -260,10 +269,10 @@ const scheduleRecipeLocalization = (
 
 			const result = await pool.query(
 				`
-					UPDATE recipes
-					SET title = $1, description = $2, instructions = $3, updated_at = now()
-					WHERE id = $4 AND updated_at = $5
-				`,
+				UPDATE recipes
+				SET title = $1, description = $2, instructions = $3, updated_at = now()
+				WHERE id = $4 AND updated_at = $5
+			`,
 				[
 					localizedTitle,
 					localizedDescription,
@@ -940,6 +949,144 @@ export const getRecipeReviews = async (
 		);
 	} catch (error) {
 		console.error("Database error in getRecipeReviews:", error);
+		throw error;
+	}
+};
+
+/**
+ * Update a specific review
+ *
+ * Access rules:
+ * - Only the review author can update it
+ * - Review must belong to the given recipe and not be soft-deleted
+ *
+ * Returns:
+ * - { success: true, review } on success
+ * - { success: false, reason: "not-found" } if review doesn't exist or is deleted
+ * - { success: false, reason: "forbidden" } if user doesn't own the review
+ */
+export const updateReview = async (
+	recipeId: number,
+	reviewId: number,
+	userId: number,
+	input: UpdateRecipeReviewInput,
+): Promise<UpdateReviewResult> => {
+	try {
+		const existingResult = await pool.query(
+			`SELECT author_id FROM recipe_reviews WHERE id = $1 AND recipe_id = $2 AND is_deleted = false`,
+			[reviewId, recipeId],
+		);
+
+		if (existingResult.rowCount === 0) {
+			return { success: false, reason: "not-found" };
+		}
+
+		const { author_id } = existingResult.rows[0];
+		if (author_id !== userId) {
+			return { success: false, reason: "forbidden" };
+		}
+
+		await pool.query(
+			`
+			UPDATE recipe_reviews
+			SET body = $1, updated_at = now()
+			WHERE id = $2
+			RETURNING id, recipe_id, author_id, body, created_at, updated_at
+		`,
+			[input.body, reviewId],
+		);
+
+		// Join user data to match the RecipeReviewListItem shape
+		const reviewResult = await pool.query(
+			`
+			SELECT
+				rr.id,
+				rr.recipe_id,
+				rr.author_id,
+				u.username,
+				u.avatar,
+				rr.body,
+				rr.created_at,
+				rr.updated_at
+			FROM recipe_reviews rr
+			LEFT JOIN users u ON u.id = rr.author_id
+			WHERE rr.id = $1
+		`,
+			[reviewId],
+		);
+
+		const reviewParsed = recipeReviewListItemSchema.safeParse(
+			reviewResult.rows[0],
+		);
+		if (!reviewParsed.success) {
+			throw new Error(z.prettifyError(reviewParsed.error));
+		}
+
+		return { success: true, review: reviewParsed.data };
+	} catch (error) {
+		console.error("Database error in updateReview:", error);
+		throw error;
+	}
+};
+
+/**
+ * Soft-delete a specific review
+ *
+ * Access rules:
+ * - Only the review author can delete it
+ * - Review must belong to the given recipe and not already be deleted
+ *
+ * Uses soft-delete (is_deleted = true) to preserve data integrity
+ * and keep review history for audit purposes.
+ *
+ * Returns:
+ * - { success: true } on success
+ * - { success: false, reason: "not-found" } if review doesn't exist or is already deleted
+ * - { success: false, reason: "forbidden" } if user doesn't own the review
+ */
+export const deleteReview = async (
+	recipeId: number,
+	reviewId: number,
+	userId: number,
+): Promise<DeleteReviewResult> => {
+	try {
+		// Check review exists, belongs to recipe, is not deleted, and get its author
+		const existingResult = await pool.query(
+			`SELECT author_id FROM recipe_reviews WHERE id = $1 AND recipe_id = $2 AND is_deleted = false`,
+			[reviewId, recipeId],
+		);
+
+		if (existingResult.rowCount === 0) {
+			return { success: false, reason: "not-found" };
+		}
+
+		const { author_id } = existingResult.rows[0];
+		if (author_id !== userId) {
+			return { success: false, reason: "forbidden" };
+		}
+
+		const updateResult = await pool.query(
+			`UPDATE recipe_reviews
+			 SET is_deleted = true, updated_at = now()
+			 WHERE id = $1
+			 RETURNING id, recipe_id, updated_at`,
+			[reviewId],
+		);
+
+		const resultRow = updateResult.rows[0] as {
+			id: number;
+			recipe_id: number;
+			updated_at: string | Date;
+		};
+
+		return {
+			success: true,
+			reviewId: resultRow.id,
+			recipeId: resultRow.recipe_id,
+			updatedAt: new Date(resultRow.updated_at).toISOString(),
+		};
+	} catch (error) {
+		console.error("Database error in deleteReview:", error);
 		throw error;
 	}
 };

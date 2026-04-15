@@ -1,24 +1,65 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import "../../assets/styles/iconButton.css";
+import { Link } from "react-router";
 
 type IconButtonVariants = "default" | "transparent" | "language";
 
-interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+type BaseProps = {
 	children: ReactNode;
 	variant?: IconButtonVariants;
-}
+	className?: string;
+};
 
-export const IconButton = ({
-	children,
-	className = "",
-	variant = "default",
-	...props
-}: IconButtonProps) => {
+type ButtonIconButtonProps = BaseProps &
+	Omit<ComponentPropsWithoutRef<"button">, keyof BaseProps> & {
+		to?: never;
+		"data-initial-focus"?: boolean;
+	};
+
+type LinkIconButtonProps = BaseProps &
+	Omit<
+		ComponentPropsWithoutRef<typeof Link>,
+		keyof BaseProps | "to" | "aria-pressed"
+	> & {
+		to: string;
+	};
+
+type IconButtonProps = ButtonIconButtonProps | LinkIconButtonProps;
+
+export const IconButton = (props: IconButtonProps) => {
+	const { children, className = "", variant = "default" } = props;
+	const combinedClasses = `icon-button ${variant} ${className}`.trim();
+
+	if (props.to !== undefined) {
+		const {
+			to,
+			variant: _v,
+			className: _c,
+			children: _ch,
+			...linkProps
+		} = props;
+		return (
+			<Link to={to} className={combinedClasses} {...linkProps}>
+				{children}
+			</Link>
+		);
+	}
+
+	const {
+		to: _to,
+		"data-initial-focus": dataInitialFocus,
+		type = "button",
+		variant: _v,
+		className: _c,
+		children: _ch,
+		...buttonRest
+	} = props;
 	return (
 		<button
-			type="button"
-			className={`icon-button ${variant} ${className}`.trim()}
-			{...props}
+			type={type}
+			className={combinedClasses}
+			data-initial-focus={dataInitialFocus}
+			{...buttonRest}
 		>
 			{children}
 		</button>

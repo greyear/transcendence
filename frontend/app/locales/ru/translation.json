@@ -33,7 +33,8 @@
 		"recipes": "Рецепты",
 		"users": "Авторы рецептов",
 		"terms": "Условия использования",
-		"policy": "Конфиденциальность"
+		"policy": "Конфиденциальность",
+		"profile": "Профиль"
 	},
 	"recipesPage": {
 		"title": "Рецепты",
@@ -69,6 +70,16 @@
 		"tabFollowers": "Подписчики",
 		"tabFollowing": "Подписки"
 	},
+	"profilePage": {
+		"loading": "Загрузка профиля...",
+		"error": "Не удалось загрузить профиль (статус: {{status}}).",
+		"notFound": "Профиль не найден.",
+		"title": "Мой профиль",
+		"username": "Имя пользователя",
+		"userId": "ID пользователя",
+		"avatar": "Аватар",
+		"noAvatar": "Аватар не установлен"
+	},
 	"loginPage": {
 		"title": "Войти",
 		"signupTitle": "Создать аккаунт",
@@ -80,13 +91,12 @@
 		"passwordRequirements": "Используйте 8-64 символа, включая заглавную букву, строчную букву, цифру и специальный символ.",
 		"genericError": "Не удалось войти. Попробуйте еще раз.",
 		"networkError": "Запрос не смог дойти до сервера. Возможно, это локальная сетевая проблема или проблема CORS.",
-		"loginSuccess": "Запрос на вход выполнен.",
+		"loginSuccess": "Вход выполнен.",
 		"submittingButton": "Выполняется вход...",
 		"signupButton": "Зарегистрироваться",
 		"logInButton": "Войти",
 		"googleLoginButton": "Войти через Google",
 		"googleSignupButton": "Зарегистрироваться через Google",
-		"googleUnavailable": "Вход через Google на фронтенде пока не подключен.",
 		"signupSubmittingButton": "Создается аккаунт...",
 		"signupSuccess": "Аккаунт создан. Теперь можно войти.",
 		"toggleSignupPrompt": "Нет аккаунта? Создать",
@@ -116,6 +126,8 @@
 		"firstPage": "Первая страница",
 		"previousPage": "Предыдущая страница",
 		"nextPage": "Следующая страница",
+		"scrollCooksLeft": "Прокрутить поваров влево",
+		"scrollCooksRight": "Прокрутить поваров вправо",
 		"lastPage": "Последняя страница",
 		"page": "Страница {{page}}",
 		"pagination": "Навигация по страницам",
@@ -130,6 +142,7 @@
 		"sortBy": "Сортировать по",
 		"shareRecipe": "Поделиться рецептом",
 		"ingredientsAndInstructions": "Ингредиенты и инструкции рецепта",
-		"closeAuthDialog": "Закрыть окно аутентификации"
+		"closeAuthDialog": "Закрыть окно аутентификации",
+		"toProfilePage": "Перейти на страницу профиля"
 	}
 }

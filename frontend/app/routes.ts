@@ -11,6 +11,7 @@ export default [
 		route("/recipes/:id", "routes/recipe.tsx"),
 		route("/users", "routes/users.tsx"),
 		route("/recipes", "routes/recipes.tsx"),
+		route("/profile", "routes/profile.tsx"),
 	]),
 	route("/set-locale", "routes/set-locale.ts"),
 ] satisfies RouteConfig;

@@ -7,7 +7,7 @@ type ModerationAction = "approve" | "discard";
 
 type Props = {
 	action: ModerationAction;
-	onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+	onClick?: (e: React.MouseEvent<HTMLElement>) => void;
 	disabled?: boolean;
 };
 
@@ -17,7 +17,7 @@ export const ModerationButton = ({
 	disabled = false,
 }: Props) => {
 	const { t } = useTranslation();
-	const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+	const handleClick = (e: React.MouseEvent<HTMLElement>) => {
 		e.stopPropagation();
 		e.preventDefault();
 		onClick?.(e);

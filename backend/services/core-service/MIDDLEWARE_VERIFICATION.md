@@ -37,7 +37,11 @@ Current routes in core-service include read and write endpoints.
 `/users` router (`src/routes/users.routes.ts`):
 - `GET /users/:id/recipes` -> no `extractUser` (public profile recipes)
 - `GET /users/:id` -> uses `extractUser` before handler (user profile with visibility rules)
+- `GET /users/:id/followers` -> no `extractUser` (public followers list)
+- `GET /users/:id/following` -> no `extractUser` (public following list)
 - `GET /users/me/recipes` -> uses `extractUser` before handler
+- `POST /users/:id/follow` -> uses `extractUser`, requires `req.userId`
+- `DELETE /users/:id/follow` -> uses `extractUser`, requires `req.userId`
 
 Health router (`src/routes/health.routes.ts`):
 - `GET /health`
@@ -188,6 +192,69 @@ Notes:
   - User is authenticated (`X-User-Id` present), AND
   - User and target follow each other (mutual follow)
 - Otherwise, `status` is `null`.
+
+### GET /users/:id/followers
+
+Flow:
+1. CORS
+2. JSON parser
+3. Validate `:id` (`validateUserId`)
+4. Service call `getFollowers(id)`
+5. Return `200`, `400`, or `404`
+
+Notes:
+- Public endpoint (unauthenticated users can access).
+- Returns list of users who follow the specified user.
+
+### GET /users/:id/following
+
+Flow:
+1. CORS
+2. JSON parser
+3. Validate `:id` (`validateUserId`)
+4. Service call `getFollowing(id)`
+5. Return `200`, `400`, or `404`
+
+Notes:
+- Public endpoint (unauthenticated users can access).
+- Returns list of users that the specified user is following.
+
+### POST /users/:id/follow
+
+Flow:
+1. CORS
+2. JSON parser
+3. `extractUser`
+4. If `req.userId` is missing -> `401`
+5. Validate `:id` (`validateUserId`)
+6. Service call `followUser(req.userId, id)`
+7. Return `200`, `400`, `404`, or `409`
+8. Unexpected errors go to `next(error)`
+
+Notes:
+- Creates follow relationship between authenticated user and target user.
+- Returns `400` if user tries to follow themselves.
+- Returns `404` if either user doesn't exist.
+- Returns `409` if follow relationship already exists.
+- Success returns `200` with relationship data.
+
+### DELETE /users/:id/follow
+
+Flow:
+1. CORS
+2. JSON parser
+3. `extractUser`
+4. If `req.userId` is missing -> `401`
+5. Validate `:id` (`validateUserId`)
+6. Service call `unfollowUser(req.userId, id)`
+7. Return `200`, `400`, `404`, or `409`
+8. Unexpected errors go to `next(error)`
+
+Notes:
+- Removes follow relationship between authenticated user and target user.
+- Returns `400` if user tries to unfollow themselves.
+- Returns `404` if either user doesn't exist or follow relationship doesn't exist.
+- Success returns `200` with success message.
 
 ### GET /users/me/recipes
 

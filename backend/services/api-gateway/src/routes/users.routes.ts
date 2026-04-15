@@ -178,10 +178,80 @@ const getFollowingHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
+const followUserHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/users/${req.params.id}/follow`,
+			{
+				method: "POST",
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to follow user" });
+	}
+};
+
+const unfollowUserHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/users/${req.params.id}/follow`,
+			{
+				method: "DELETE",
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to unfollow user" });
+	}
+};
+
+const heartbeatHandler: RequestHandler = async (req, res, _next) => {
+    try {
+        const response = await fetch(`${CORE_SERVICE_URL}/users/me/heartbeat`, {
+            method: "POST",
+            headers: getInternalHeaders(req),
+            signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+        });
+        const data = await response.json();
+        res.status(response.status).json(data);
+    } catch (error) {
+        if (isTimeoutError(error)) {
+            res.status(504).json({ error: "Gateway Timeout" });
+            return;
+        }
+        console.error("Error proxying to core-service:", error);
+        res.status(500).json({ error: "Failed to send heartbeat" });
+    }
+};
+
 // Register more specific routes FIRST, then less specific
+usersRouter.post("/me/heartbeat", requireAuth, heartbeatHandler);
 // /me/recipes is most specific
 usersRouter.get("/me/recipes", requireAuth, getMyRecipesHandler);
 usersRouter.get("/me/favorites", requireAuth, getMyFavoritesHandler);
+usersRouter.post("/:id/follow", requireAuth, followUserHandler);
+usersRouter.delete("/:id/follow", requireAuth, unfollowUserHandler);
 // /:id/followers and /:id/following are more specific than /:id/recipes
 usersRouter.get("/:id/followers", getFollowersHandler);
 usersRouter.get("/:id/following", getFollowingHandler);

@@ -12,6 +12,8 @@ import path from "node:path";
 import cors from "cors";
 import express, { type Express } from "express";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+import { extractUser } from "./middleware/extractUser.js";
+import { updateLastSeen } from "./middleware/updateLastSeen.js";
 import { healthRouter } from "./routes/health.routes.js";
 import { internalSearchRouter } from "./routes/internalSearch.routes.js";
 import { profileRouter } from "./routes/profile.routes.js";
@@ -45,8 +47,12 @@ app.use(
 app.use(express.json());
 // Serve uploaded avatars as static files at /avatars/*
 app.use("/avatars", express.static(path.resolve("uploads/avatars")));
-// Serve uploaded pictures as static files at /recipes/*
+// Serve uploaded pictures as static files at /recipe-pictures/*
 app.use("/recipe-pictures", express.static(path.resolve("uploads/recipes")));
+// Extract userId from X-User-Id header on every request
+app.use(extractUser);
+// Update last_seen_at on every authenticated request
+app.use(updateLastSeen);
 
 // ===== ROUTES =====
 // /health/* → healthRouter

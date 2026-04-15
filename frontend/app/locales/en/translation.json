@@ -33,7 +33,8 @@
 		"recipes": "Recipes",
 		"users": "Users",
 		"terms": "Terms and Conditions",
-		"policy": "Privacy Policy"
+		"policy": "Privacy Policy",
+		"profile": "Profile"
 	},
 	"recipesPage": {
 		"title": "Recipes",
@@ -68,6 +69,16 @@
 		"tabAll": "All",
 		"tabFollowers": "Followers",
 		"tabFollowing": "Following"
+	},
+	"profilePage": {
+		"loading": "Loading profile...",
+		"error": "Failed to load profile (status: {{status}}).",
+		"notFound": "Profile not found.",
+		"title": "My profile",
+		"username": "Username",
+		"userId": "User ID",
+		"avatar": "Avatar",
+		"noAvatar": "No avatar set"
 	},
 	"loginPage": {
 		"title": "Log in",
@@ -115,6 +126,8 @@
 		"firstPage": "First page",
 		"previousPage": "Previous page",
 		"nextPage": "Next page",
+		"scrollCooksLeft": "Scroll cooks left",
+		"scrollCooksRight": "Scroll cooks right",
 		"lastPage": "Last page",
 		"page": "Page {{page}}",
 		"pagination": "Pagination",
@@ -129,6 +142,7 @@
 		"sortBy": "Sort by",
 		"shareRecipe": "Share recipe",
 		"ingredientsAndInstructions": "Recipe ingredients and instructions",
-		"closeAuthDialog": "Close authentication dialog"
+		"closeAuthDialog": "Close authentication dialog",
+		"toProfilePage": "Go to profile page"
 	}
 }

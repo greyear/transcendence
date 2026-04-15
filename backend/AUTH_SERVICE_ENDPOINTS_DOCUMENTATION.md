@@ -11,7 +11,7 @@ This document consolidates all authentication service endpoints, including imple
 
 | Endpoint | Method | Parameters | Input | Output | Success Code | Error Codes | Auth Required |
 |----------|--------|------------|-------|--------|--------------|-------------|---------------|
-| `/auth/register` | POST | None | `username`, `email`, `realname`, `password` | `userId`, `username`, `email`, `message` | 201 | 409, 422, 400 | No |
+| `/auth/register` | POST | None | `username`, `email`, `password` | `userId`, `username`, `email`, `message` | 201 | 409, 422, 400 | No |
 | `/auth/login` | POST | None | `username` (email or username), `password` | `token`, `user` object | 200 | 401, 404, 400 | No |
 | `/auth/google` | POST | None | Google ID Token (in Authorization header) | `token`, `user` object | 201/200 | 401, 500, 409 | No (header auth) |
 | `/auth/validate` | POST | None | None (token in header) | `valid: true`, `user` object | 200 | 401, 400 | Yes |
@@ -38,7 +38,6 @@ This document consolidates all authentication service endpoints, including imple
 {
   "username": "string",
   "email": "string",
-  "realname": "string",
   "password": "string"
 }
 ```
@@ -47,7 +46,6 @@ This document consolidates all authentication service endpoints, including imple
 - Username: 3-20 characters, alphanumeric with optional underscores, no spaces or special characters
 - Email: Valid email format
 - Password: Minimum 8 characters, must contain uppercase, lowercase, number, and special character
-- Real name: Non-empty string
 
 **Success Response (201)**:
 ```json

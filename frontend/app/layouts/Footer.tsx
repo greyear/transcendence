@@ -5,10 +5,11 @@ import "../assets/styles/footer.css";
 import { useTranslation } from "react-i18next";
 
 type FooterProps = {
+	isAuthenticated: boolean;
 	onOpenAuthModal: () => void;
 };
 
-export const Footer = ({ onOpenAuthModal }: FooterProps) => {
+export const Footer = ({ isAuthenticated, onOpenAuthModal }: FooterProps) => {
 	const { t } = useTranslation();
 
 	return (
@@ -34,9 +35,11 @@ export const Footer = ({ onOpenAuthModal }: FooterProps) => {
 					</ul>
 				</nav>
 				<div className="footer-buttons-row">
-					<MainButton onClick={onOpenAuthModal}>
-						{t("common.signInButton")}
-					</MainButton>
+					{!isAuthenticated && (
+						<MainButton onClick={onOpenAuthModal}>
+							{t("common.signInButton")}
+						</MainButton>
+					)}
 					<LanguageSelector isHeader={false} />
 				</div>
 			</div>
