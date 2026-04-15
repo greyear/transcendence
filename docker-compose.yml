@@ -88,7 +88,6 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3000
-      CORS_ORIGIN: "http://localhost:5173/"
       AUTH_SERVICE_URL: http://auth-service:3001
       CORE_SERVICE_URL: http://core-service:3002
       NOTIFICATION_SERVICE_URL: http://notification-service:3003
@@ -138,7 +137,6 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3002
-      CORS_ORIGIN: "http://localhost:5173/"
       DATABASE_URL: postgresql://core_user:core_password@core-db:5432/core_db
 
     depends_on:
