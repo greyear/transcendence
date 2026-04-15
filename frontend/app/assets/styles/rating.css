@@ -107,3 +107,10 @@
 .required-asterisk {
 	color: var(--surface-error);
 }
+
+@media (min-width: 1440px) {
+	.rating-modal-title {
+		font-size: var(--fs-h2);
+		line-height: var(--lh-h2);
+	}
+}

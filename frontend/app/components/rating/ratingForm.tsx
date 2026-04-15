@@ -35,7 +35,7 @@ export const RatingForm = ({ dialogRef, onClose }: RatingFormProps) => {
 			tabIndex={-1}
 		>
 			<div className="rating-card-header">
-				<h1 className="h2" id="rating-modal-title">
+				<h1 className="rating-modal-title" id="rating-modal-title">
 					{t("ratingModal.title")}
 				</h1>
 
