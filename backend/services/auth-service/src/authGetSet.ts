@@ -149,6 +149,7 @@ authGetSet.post(
 		1. Validate JWT from header
 		2. Look up user in DB by userId
 		3. Return id and email
+	Probably better to combine the /validate result into here.
 */
 authGetSet.get(
 	"/me",

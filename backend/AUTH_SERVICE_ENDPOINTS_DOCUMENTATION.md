@@ -11,11 +11,13 @@ This document consolidates all authentication service endpoints, including imple
 
 | Endpoint | Method | Parameters | Input | Output | Success Code | Error Codes | Auth Required |
 |----------|--------|------------|-------|--------|--------------|-------------|---------------|
-| `/auth/register` | POST | None | `username`, `email`, `password` | `userId`, `username`, `email`, `message` | 201 | 409, 422, 400 | No |
-| `/auth/login` | POST | None | `username` (email or username), `password` | `token`, `user` object | 200 | 401, 404, 400 | No |
-| `/auth/google` | POST | None | Google ID Token (in Authorization header) | `token`, `user` object | 201/200 | 401, 500, 409 | No (header auth) |
-| `/auth/validate` | POST | None | None (token in header) | `valid: true`, `user` object | 200 | 401, 400 | Yes |
-| `/auth/change-password/:username` | PATCH | `username` | `password` (current), `newPassword` | `message`, `user` object | 200 | 401, 403, 400, 404 | Yes (Normal) |
+| `/auth/register` | POST | None | `email`, `password` | `id`, `email`, `token`, `message` | 201 | 409, 422, 500 | No |
+| `/auth/login` | POST | None | `email`, `password` | `token`, `message` | 200 | 401, 404 | No |
+| `/auth/google` | POST | None | Google ID Token (Authorization header) | `token`, `message`, user fields | 201/200 | 401, 409, 500 | No (header auth) |
+| `/auth/validate` | POST | None | Token (Authorization header) | `id` | 200 | 401, 500 | Yes |
+| `/auth/me` | GET | None | Token (Authorization header) | `id`, `email` | 200 | 401, 404 | Yes |
+| `/auth/delete` | DELETE | None | `userId` (body) | `message` | 200 | 401, 404 | Yes |
+| `/auth/change-password` | PATCH | None | `userId`, `password`, `newPassword` (body) | `message` | 200 | 401, 422, 404, 500 | Yes |
 
 **Key**:
 - **Input**: JSON body fields or Authorization header data
@@ -31,53 +33,54 @@ This document consolidates all authentication service endpoints, including imple
 ### 1. User Registration
 
 #### `POST /auth/register`
-**Purpose**: Register a new user with normal (non-OAuth) authentication
+**Purpose**: Register a new user with email/password authentication
 
 **Request Body**:
 ```json
 {
-  "username": "string",
   "email": "string",
   "password": "string"
 }
 ```
 
 **Validation Rules**:
-- Username: 3-20 characters, alphanumeric with optional underscores, no spaces or special characters
-- Email: Valid email format
-- Password: Minimum 8 characters, must contain uppercase, lowercase, number, and special character
+- Email: Valid email format (validated via Zod)
+- Password: 8–64 characters, must contain at least one uppercase, one lowercase, one number, and one special character
 
 **Success Response (201)**:
 ```json
 {
-  "userId": "string",
-  "username": "string",
+  "id": "number",
   "email": "string",
-  "message": "User registered successfully"
+  "token": "JWT token string",
+  "message": "Login successful"
 }
 ```
 
+Token is also set as an `httpOnly` cookie named `token` (1 hour expiry).
+
 **Error Responses**:
-- `409 Conflict`: Username already exists, Email already exists
-- `422 Unprocessable Entity`: Invalid format, validation failed
-- `400 Bad Request`: Missing required fields
+- `409 Conflict`: Email already exists; or email registered via Google Sign-In
+- `422 Unprocessable Entity`: Invalid email or password format
+- `500 Internal Server Error`: Password hashing failed
 
 **Implementation Notes**:
-- Password is hashed before storage
-- User is created with normal authentication type
-- Email and username uniqueness enforced at database level
+- Password hashed with bcrypt (salt cost 12) before storage
+- User ID is a sequential integer generated from a MongoDB counter
+- Email uniqueness enforced at database level (MongoDB unique index, error code 11000)
+- After saving, calls internal `/login` to generate and return the JWT in the same response
 
 ---
 
-### 2. User Login (Normal Authentication)
+### 2. User Login
 
 #### `POST /auth/login`
-**Purpose**: Login with username/email and password
+**Purpose**: Login with email and password
 
 **Request Body**:
 ```json
 {
-  "username": "string (username or email)",
+  "email": "string",
   "password": "string"
 }
 ```
@@ -86,30 +89,26 @@ This document consolidates all authentication service endpoints, including imple
 ```json
 {
   "token": "JWT token string",
-  "user": {
-    "userId": "string",
-    "username": "string",
-    "email": "string"
-  }
+  "message": "Login successful"
 }
 ```
 
+Token is also set as an `httpOnly` cookie named `token` (1 hour expiry).
+
 **Error Responses**:
-- `401 Unauthorized`: Wrong password
-- `404 Not Found`: User does not exist
-- `400 Bad Request`: Missing credentials
+- `401 Unauthorized`: Wrong password; or account is Google Sign-In only
+- `404 Not Found`: No user found with that email
 
 **Implementation Notes**:
-- Accepts both username and email in the username field
-- Returns JWT token valid for authenticated requests
-- Token includes user claims (userId, username, etc.)
+- Accepts email only (no username field)
+- Google-only accounts are rejected with a specific error message directing the user to `/auth/google`
 
 ---
 
 ### 3. Google OAuth Authentication
 
 #### `POST /auth/google`
-**Purpose**: Authenticate using Google ID token or create new Google user
+**Purpose**: Authenticate using a Google ID token, creating a new user if necessary
 
 **Request Headers**:
 ```
@@ -117,78 +116,98 @@ Authorization: Bearer <Google ID Token>
 Content-Type: application/json
 ```
 
-**Success Responses**:
-- `201 Created`: New Google user created
-- `200 OK`: Existing Google user logged in
-
-**Response Body**:
+**Success Response — New user (201)**:
 ```json
 {
+  "id": "number",
+  "googleID": "string",
+  "email": "string",
+  "name": "string",
   "token": "JWT token string",
-  "user": {
-    "userId": "string",
-    "email": "string",
-    "name": "string",
-    "authType": "google"
-  }
+  "message": "Login successful"
 }
 ```
 
+**Success Response — Existing user (200)**:
+```json
+{
+  "token": "JWT token string",
+  "message": "Login successful"
+}
+```
+
+Token is also set as an `httpOnly` cookie named `token` (1 hour expiry).
+
 **Error Responses**:
-- `401 Unauthorized`: Missing or invalid authorization header
-- `500 Internal Server Error`: Token verification failed, invalid token format
-- `409 Conflict`: Email already exists with different auth method
+- `401 Unauthorized`: Missing or invalid Authorization header; payload missing from Google token; Google account has no email
+- `409 Conflict`: Email already registered with password login
+- `500 Internal Server Error`: `GOOGLE_CLIENT_ID` env variable not set; token verification failure
 
 **Implementation Notes**:
-- Validates Google ID token signature and expiry
-- Creates user if first-time login
-- Returns existing user if already registered via Google
-- Maintains separate user record from normal auth users
-- Cross-auth conflict handling: prevents registering normal user with Google user's email
+- Google ID token verified using `google-auth-library` `verifyIdToken()`
+- Google users have `passwordHash` set to `"empty"` in the database
+- User ID is a sequential integer generated from the same MongoDB counter as normal users
+- Cross-auth conflict: if the email exists as a normal account, registration is rejected with 409
 
 ---
 
-### 4. Token Validation (Normal Auth)
+### 4. Token Validation
 
 #### `POST /auth/validate`
-**Purpose**: Verify JWT token validity for authenticated users
+**Purpose**: Verify a JWT token and return the user's internal ID
 
 **Request Headers**:
 ```
 Authorization: Bearer <JWT Token>
-Content-Type: application/json
 ```
 
 **Success Response (200)**:
 ```json
 {
-  "valid": true,
-  "user": {
-    "userId": "string",
-    "username": "string",
-    "email": "string"
-  }
+  "id": "number"
 }
 ```
 
 **Error Responses**:
-- `401 Unauthorized`: Missing token, invalid token, expired token
-- `400 Bad Request`: Malformed token
+- `401 Unauthorized`: Missing, invalid, or expired token; user not found in database
+- `500 Internal Server Error`: User record has no ID
 
 **Implementation Notes**:
-- Validates JWT signature, expiry, and claims
-- Does not require request body
-- Returns user data embedded in token
+- Validates JWT signature and expiry
+- Looks up the user in MongoDB by email from token claims
+- Works for both `mongo` and `google` token types
+- Used by the API gateway to validate requests before forwarding to other services
 
 ---
 
-### 5. Password Change
+### 5. Fetch Current User
 
-#### `PATCH /auth/change-password/:username`
-**Purpose**: Change password for authenticated normal auth user
+#### `GET /auth/me`
+**Purpose**: Return the authenticated user's ID and email
 
-**URL Parameters**:
-- `username`: Username of the user changing password
+**Request Headers**:
+```
+Authorization: Bearer <JWT Token>
+```
+
+**Success Response (200)**:
+```json
+{
+  "id": "number",
+  "email": "string"
+}
+```
+
+**Error Responses**:
+- `401 Unauthorized`: Missing, invalid, or expired token
+- `404 Not Found`: User not found in database
+
+---
+
+### 6. Delete User
+
+#### `DELETE /auth/delete`
+**Purpose**: Permanently delete the authenticated user's account
 
 **Request Headers**:
 ```
@@ -199,39 +218,69 @@ Content-Type: application/json
 **Request Body**:
 ```json
 {
+  "userId": "number"
+}
+```
+
+**Success Response (200)**:
+```json
+{
+  "message": "User deleted"
+}
+```
+
+**Error Responses**:
+- `401 Unauthorized`: Missing or invalid token; `userId` in body does not match token
+- `404 Not Found`: User not found in database
+
+**Implementation Notes**:
+- `compareJWT` middleware verifies the token is valid and that `userId` in the body matches the `userId` claim in the JWT
+- Deletes the MongoDB document via `findOneAndDelete`
+
+---
+
+### 7. Change Password
+
+#### `PATCH /auth/change-password`
+**Purpose**: Change the password for an authenticated normal-auth user
+
+**Request Headers**:
+```
+Authorization: Bearer <JWT Token>
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "userId": "number",
   "password": "string (current password)",
   "newPassword": "string (new password)"
 }
 ```
 
 **New Password Validation Rules**:
-- Minimum 8 characters
-- Must contain uppercase, lowercase, number, and special character
-- Cannot be same as current password
+- 8–64 characters
+- Must contain at least one uppercase, one lowercase, one number, and one special character
 
 **Success Response (200)**:
 ```json
 {
-  "message": "Password changed successfully",
-  "user": {
-    "userId": "string",
-    "username": "string"
-  }
+  "message": "Password updated successfully"
 }
 ```
 
 **Error Responses**:
-- `401 Unauthorized`: Missing auth token, invalid token
-- `403 Forbidden`: User attempting to change another user's password
-- `400 Bad Request`: Current password is incorrect, new password invalid
-- `404 Not Found`: User not found
+- `401 Unauthorized`: Missing or invalid token; `userId` in body does not match token; current password incorrect
+- `422 Unprocessable Entity`: New password does not meet requirements
+- `404 Not Found`: User not found in database
+- `500 Internal Server Error`: Password hashing failed
 
 **Implementation Notes**:
-- Requires valid JWT token in Authorization header
-- Token username must match URL parameter username
-- Old password verification required before change
-- Not available for Google-authenticated users
-- New password is hashed before storage
+- `compareJWT` middleware verifies the token is valid and that `userId` in the body matches the JWT
+- Current password verified against stored bcrypt hash before any change is made
+- Not usable by Google-only accounts (they have no password hash to verify against)
+- No URL parameters — user is identified entirely via `userId` in the request body
 
 ---
 
@@ -239,11 +288,13 @@ Content-Type: application/json
 
 | Method | Endpoint | Category | Purpose |
 |--------|----------|----------|---------|
-| POST | `/auth/register` | Registration | Register normal user |
-| POST | `/auth/login` | Login | Login normal user |
+| POST | `/auth/register` | Registration | Register new user |
+| POST | `/auth/login` | Login | Login with email and password |
 | POST | `/auth/google` | Google Auth | Google Sign-In or registration |
-| POST | `/auth/validate` | Validation | Validate normal auth token |
-| PATCH | `/auth/change-password/:username` | Account | Change user password |
+| POST | `/auth/validate` | Validation | Validate JWT, return user ID |
+| GET | `/auth/me` | Account | Return current user's ID and email |
+| DELETE | `/auth/delete` | Account | Delete authenticated user |
+| PATCH | `/auth/change-password` | Account | Change user password |
 
 ---
 
@@ -253,55 +304,43 @@ Content-Type: application/json
 ```
 1. User registers with POST /auth/register
    ↓
-2. Credentials stored (password hashed)
+2. Email and hashed password stored in MongoDB
    ↓
-3. User logs in with POST /auth/login
+3. JWT returned immediately in response and Set-Cookie header
    ↓
-4. JWT token returned
+4. Subsequent requests include token in Authorization header or cookie
    ↓
-5. Token included in Authorization header for protected endpoints
-   ↓
-6. Token verified with POST /auth/validate
+5. Token verified with POST /auth/validate (used by API gateway)
 ```
 
 ### Google Authentication Flow
 ```
-1. Frontend obtains Google ID token
+1. Frontend obtains Google ID token via Google Sign-In
    ↓
-2. Frontend sends POST /auth/google with token
+2. Frontend sends POST /auth/google with token in Authorization header
    ↓
-3. Backend verifies Google token signature
+3. Backend verifies token signature using google-auth-library
    ↓
-4. New user created OR existing user retrieved
+4. New user created (201) OR existing Google user logged in (200)
    ↓
-5. JWT token returned
+5. JWT returned in response and Set-Cookie header
    ↓
-6. Token valid for protected endpoints
-   ↓
-7. Token verified with POST /auth/validate/google
+6. Token valid for all protected endpoints
 ```
 
 ### Cross-Auth Conflict Handling
 ```
 Scenario: Google user tries normal login
   → POST /auth/login with Google user's email
-  → Returns 401 (auth failed) - Google users must use /auth/google
+  → Returns 401 — Google users must use /auth/google
 
-Scenario: Normal user tries to register with Google user's email
-  → POST /auth/register with Google user's email
-  → Returns 409 (conflict) - email already exists
+Scenario: Normal user tries Google registration with same email
+  → POST /auth/google with that email
+  → Returns 409 — email already registered with password login
 
-Scenario: Normal token used on Google validation
-  → POST /auth/validate/google with normal JWT
-  → Returns 401 (invalid for this endpoint)
-
-Scenario: Google token used on normal validation
-  → POST /auth/validate with Google JWT
-  → Returns 401 (invalid for this endpoint)
-
-Scenario: Normal JWT sent to Google auth endpoint
-  → POST /auth/google with normal JWT (not Google token)
-  → Returns 500 (token verification failed) - not a valid Google token format
+Scenario: Normal user tries to register with existing email
+  → POST /auth/register with duplicate email
+  → Returns 409 — email already exists
 ```
 
 ---
@@ -310,76 +349,58 @@ Scenario: Normal JWT sent to Google auth endpoint
 
 ### Token Structure
 - **Type**: JWT (JSON Web Token)
-- **Algorithm**: HS256 or RS256 (depending on environment)
-- **Expiry**: Configurable (typically 24 hours)
-- **Claims**: userId, username/email, email, authType, iat, exp
+- **Algorithm**: HS256
+- **Expiry**: 1 hour
+- **Claims**: `sub` (MongoDB `_id`), `userId` (numeric), `email`, `type` (`"mongo"` or `"google"`)
+- **Delivery**: Returned in JSON response body and set as `httpOnly`, `SameSite=lax` cookie
 
 ### Password Security
-- **Hashing**: bcrypt with configurable salt rounds
-- **Validation**: Uppercase, lowercase, number, and special character required
-- **Minimum Length**: 8 characters
+- **Hashing**: bcrypt with salt cost 12
+- **Validation**: 8–64 characters, uppercase, lowercase, number, and special character required
 - **Storage**: Only hash stored, never plaintext
+- **Google accounts**: `passwordHash` stored as `"empty"`, password endpoints not applicable
+
+### Authorised Endpoint Protection (`compareJWT`)
+Endpoints that modify or delete user data use the `compareJWT` middleware:
+1. Extracts and decodes JWT from `Authorization: Bearer` header
+2. Verifies `userId` in the request body matches `userId` in the token payload
+3. Attaches decoded token to `req.decodedJWT` for use in the handler
 
 ### Error Handling
-- **Validation Errors**: 422 with field-level error details
-- **Auth Errors**: 401 for missing/invalid credentials
-- **Conflict Errors**: 409 for duplicate username/email or auth type conflicts
+- **Validation Errors**: 422 for password format failures
+- **Auth Errors**: 401 for missing/invalid/mismatched credentials or tokens
+- **Conflict Errors**: 409 for duplicate email or auth-type conflicts (MongoDB error code 11000)
 - **Not Found**: 404 for non-existent users
-- **Server Errors**: 500 for token verification or system failures
+- **Server Errors**: 500 for hashing failures, missing env variables, or token verification failures
 
 ### CORS & Security Headers
 - **Authorization Header**: Required format is `Bearer <token>`
 - **Content-Type**: Must be `application/json`
-- **Response Headers**: Appropriate CORS headers included
-- **Token Extraction**: Bearer token extraction only (case-insensitive)
+- **Cookie**: Token also set as `httpOnly`, `SameSite=lax`; `Secure` flag enabled in production
 
 ---
 
 ## Testing
 
-See [TEST_GUIDE.md](./backend/services/auth-service/tests/TEST_GUIDE.md) for comprehensive test suite documentation.
+See [TEST_GUIDE.md](./services/auth-service/__tests__/TEST_GUIDE.md) for test suite documentation.
 
-**Available Test Scripts**:
-- `test-auth2.sh` - Complete auth test suite (35 tests)
-- `test-goog.sh` - Google auth specific tests
-- `curls.txt` - Individual curl commands for manual testing
-
----
-
-## Rate Limiting & Security Considerations
-
-### Recommended Rate Limits
-- `/auth/register` - 5 requests per hour per IP
-- `/auth/login` - 10 failed attempts per 15 minutes per IP
-- `/auth/google` - 20 requests per hour per IP
-- `/auth/change-password` - 5 requests per hour per user
-
-### Security Best Practices
-- Always use HTTPS in production
-- Implement rate limiting on authentication endpoints
-- Log authentication failures for security monitoring
-- Periodically rotate JWT signing keys
-- Implement CSRF protection for web clients
-- Store tokens securely on client-side (httpOnly cookies recommended)
-- Implement token refresh mechanism for long-lived sessions
+**Available Test Files**:
+- `test-auth.sh` — shell-based auth test suite
+- `curls2.txt` — individual curl commands for manual endpoint testing
 
 ---
 
-## Migration & Deployment Notes
+## Deployment Notes
 
 ### Database Requirements
-- User collection with fields: userId, username, email, password (hashed), authType, createdAt, updatedAt
-- Unique indexes on username and email
-- Separate tracking for Google ID and normal auth credentials
+- MongoDB collection with fields: `id` (numeric, unique), `email` (unique), `passwordHash`, `googleID` (optional)
+- Separate counter collection (`CounterDB`) for sequential ID generation
+- Unique indexes on `email` and `googleID`
 
 ### Environment Variables Required
 ```
 JWT_SECRET=<secret for signing tokens>
 GOOGLE_CLIENT_ID=<Google OAuth client ID>
-MONGODB_URL=<MongoDB connection string>
+MONGODB_URI=<MongoDB connection string>
+AUTH_SERVICE_URL=<internal URL of auth-service, default: http://auth-service:3001>
 ```
-
-### Breaking Changes & Deprecations
-- Password change endpoint requires Authorization header (not in body)
-- Google tokens must come through Authorization header (not body)
-- Cross-auth conflicts now properly enforced (previously allowed duplicate emails)
