@@ -9,11 +9,6 @@ type RecipeInstructionItemProps = {
 	step: InstructionRow;
 	index: number;
 	isOnly: boolean;
-	onDragHandlePointerDown: () => void;
-	onPointerUp: () => void;
-	onDragStart: (e: React.DragEvent<HTMLLIElement>) => void;
-	onDragOver: (e: React.DragEvent<HTMLLIElement>) => void;
-	onDragEnd: () => void;
 	onChange: (value: string) => void;
 	onRemove: () => void;
 };
@@ -22,30 +17,14 @@ export const RecipeInstructionItem = ({
 	step,
 	index,
 	isOnly,
-	onDragHandlePointerDown,
-	onPointerUp,
-	onDragStart,
-	onDragOver,
-	onDragEnd,
 	onChange,
 	onRemove,
 }: RecipeInstructionItemProps) => {
 	return (
-		<li
-			className="recipe-instruction-item"
-			draggable
-			onPointerUp={onPointerUp}
-			onDragStart={onDragStart}
-			onDragOver={onDragOver}
-			onDragEnd={onDragEnd}
-		>
+		<li className="recipe-instruction-item">
 			<span className="recipe-step-label text-caption">Step {index + 1}</span>
 			<div className="recipe-instruction-row">
-				<span
-					className="recipe-drag-handle"
-					aria-hidden="true"
-					onPointerDown={onDragHandlePointerDown}
-				>
+				<span className="recipe-drag-handle" aria-hidden="true">
 					<Menu />
 				</span>
 				<textarea

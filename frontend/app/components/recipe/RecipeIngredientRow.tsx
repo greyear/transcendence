@@ -27,11 +27,6 @@ type RecipeIngredientRowProps = {
 	ingredient: IngredientRow;
 	index: number;
 	isOnly: boolean;
-	onDragHandlePointerDown: () => void;
-	onPointerUp: () => void;
-	onDragStart: (e: React.DragEvent<HTMLLIElement>) => void;
-	onDragOver: (e: React.DragEvent<HTMLLIElement>) => void;
-	onDragEnd: () => void;
 	onChange: (field: keyof Omit<IngredientRow, "id">, value: string) => void;
 	onRemove: () => void;
 };
@@ -40,28 +35,12 @@ export const RecipeIngredientRow = ({
 	ingredient,
 	index,
 	isOnly,
-	onDragHandlePointerDown,
-	onPointerUp,
-	onDragStart,
-	onDragOver,
-	onDragEnd,
 	onChange,
 	onRemove,
 }: RecipeIngredientRowProps) => {
 	return (
-		<li
-			className="recipe-ingredient-row"
-			draggable
-			onPointerUp={onPointerUp}
-			onDragStart={onDragStart}
-			onDragOver={onDragOver}
-			onDragEnd={onDragEnd}
-		>
-			<span
-				className="recipe-drag-handle"
-				aria-hidden="true"
-				onPointerDown={onDragHandlePointerDown}
-			>
+		<li className="recipe-ingredient-row">
+			<span className="recipe-drag-handle" aria-hidden="true">
 				<Menu />
 			</span>
 			<input

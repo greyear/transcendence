@@ -1,3 +1,4 @@
+import { dragAndDrop } from "@formkit/drag-and-drop/react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
@@ -54,7 +55,13 @@ const RecipeCreate = () => {
 	const [prepMinutes, setPrepMinutes] = useState("");
 	const [cookHours, setCookHours] = useState("");
 	const [cookMinutes, setCookMinutes] = useState("");
+	const [formError, setFormError] = useState<string | null>(null);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const ingredientsRef = useRef<HTMLUListElement | null>(null);
 	const [ingredients, setIngredients] = useState<IngredientRow[]>([]);
+
+	const instructionsRef = useRef<HTMLOListElement | null>(null);
 	const [instructions, setInstructions] = useState<InstructionRow[]>([]);
 
 	useEffect(() => {
@@ -62,13 +69,21 @@ const RecipeCreate = () => {
 		setInstructions([createInstruction(), createInstruction()]);
 	}, []);
 
-	const [formError, setFormError] = useState<string | null>(null);
-	const [isSubmitting, setIsSubmitting] = useState(false);
+	useEffect(() => {
+		dragAndDrop<HTMLUListElement, IngredientRow>({
+			parent: ingredientsRef,
+			state: [ingredients, setIngredients],
+			dragHandle: ".recipe-drag-handle",
+		});
+	}, [ingredients]);
 
-	const ingredientDragIndex = useRef<number | null>(null);
-	const ingredientDragAllowed = useRef(false);
-	const instructionDragIndex = useRef<number | null>(null);
-	const instructionDragAllowed = useRef(false);
+	useEffect(() => {
+		dragAndDrop<HTMLOListElement, InstructionRow>({
+			parent: instructionsRef,
+			state: [instructions, setInstructions],
+			dragHandle: ".recipe-drag-handle",
+		});
+	}, [instructions]);
 
 	const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -99,40 +114,6 @@ const RecipeCreate = () => {
 		);
 	};
 
-	const handleIngredientDragStart = (
-		e: React.DragEvent<HTMLLIElement>,
-		index: number,
-	) => {
-		if (!ingredientDragAllowed.current) {
-			e.preventDefault();
-			return;
-		}
-		ingredientDragIndex.current = index;
-	};
-
-	const handleIngredientDragOver = (
-		e: React.DragEvent<HTMLLIElement>,
-		overIndex: number,
-	) => {
-		e.preventDefault();
-		const fromIndex = ingredientDragIndex.current;
-		if (fromIndex === null || fromIndex === overIndex) {
-			return;
-		}
-		setIngredients((prev) => {
-			const next = [...prev];
-			const [item] = next.splice(fromIndex, 1);
-			next.splice(overIndex, 0, item);
-			return next;
-		});
-		ingredientDragIndex.current = overIndex;
-	};
-
-	const handleIngredientDragEnd = () => {
-		ingredientDragIndex.current = null;
-		ingredientDragAllowed.current = false;
-	};
-
 	const handleAddInstruction = () => {
 		setInstructions((prev) => [...prev, createInstruction()]);
 	};
@@ -145,40 +126,6 @@ const RecipeCreate = () => {
 		setInstructions((prev) =>
 			prev.map((step) => (step.id === id ? { ...step, text: value } : step)),
 		);
-	};
-
-	const handleInstructionDragStart = (
-		e: React.DragEvent<HTMLLIElement>,
-		index: number,
-	) => {
-		if (!instructionDragAllowed.current) {
-			e.preventDefault();
-			return;
-		}
-		instructionDragIndex.current = index;
-	};
-
-	const handleInstructionDragOver = (
-		e: React.DragEvent<HTMLLIElement>,
-		overIndex: number,
-	) => {
-		e.preventDefault();
-		const fromIndex = instructionDragIndex.current;
-		if (fromIndex === null || fromIndex === overIndex) {
-			return;
-		}
-		setInstructions((prev) => {
-			const next = [...prev];
-			const [item] = next.splice(fromIndex, 1);
-			next.splice(overIndex, 0, item);
-			return next;
-		});
-		instructionDragIndex.current = overIndex;
-	};
-
-	const handleInstructionDragEnd = () => {
-		instructionDragIndex.current = null;
-		instructionDragAllowed.current = false;
 	};
 
 	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -357,22 +304,17 @@ const RecipeCreate = () => {
 							*
 						</span>
 					</h2>
-					<ul className="recipe-create-list" aria-label="Ingredients list">
+					<ul
+						ref={ingredientsRef}
+						className="recipe-create-list"
+						aria-label="Ingredients list"
+					>
 						{ingredients.map((ingredient, index) => (
 							<RecipeIngredientRow
 								key={ingredient.id}
 								ingredient={ingredient}
 								index={index}
 								isOnly={ingredients.length === 1}
-								onDragHandlePointerDown={() => {
-									ingredientDragAllowed.current = true;
-								}}
-								onPointerUp={() => {
-									ingredientDragAllowed.current = false;
-								}}
-								onDragStart={(e) => handleIngredientDragStart(e, index)}
-								onDragOver={(e) => handleIngredientDragOver(e, index)}
-								onDragEnd={handleIngredientDragEnd}
 								onChange={(field, value) =>
 									handleIngredientChange(ingredient.id, field, value)
 								}
@@ -399,22 +341,16 @@ const RecipeCreate = () => {
 							*
 						</span>
 					</h2>
-					<ol className="recipe-create-list recipe-instructions-list">
+					<ol
+						ref={instructionsRef}
+						className="recipe-create-list recipe-instructions-list"
+					>
 						{instructions.map((step, index) => (
 							<RecipeInstructionItem
 								key={step.id}
 								step={step}
 								index={index}
 								isOnly={instructions.length === 1}
-								onDragHandlePointerDown={() => {
-									instructionDragAllowed.current = true;
-								}}
-								onPointerUp={() => {
-									instructionDragAllowed.current = false;
-								}}
-								onDragStart={(e) => handleInstructionDragStart(e, index)}
-								onDragOver={(e) => handleInstructionDragOver(e, index)}
-								onDragEnd={handleInstructionDragEnd}
 								onChange={(value) => handleInstructionChange(step.id, value)}
 								onRemove={() => handleRemoveInstruction(step.id)}
 							/>
