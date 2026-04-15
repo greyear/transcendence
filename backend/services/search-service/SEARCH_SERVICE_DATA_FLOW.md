@@ -72,6 +72,9 @@ There are 2 admin endpoints in `search-service`:
 - `POST /admin/reindex`
 - `POST /admin/reindex/{recipe_id}`
 
+These are internal maintenance endpoints.
+If `INTERNAL_SERVICE_TOKEN` is configured, callers must send `X-Internal-Service-Token`.
+
 ### Full reindex
 
 Flow:
@@ -187,6 +190,7 @@ against
 
 If a mismatch is detected:
 - the stale recipe is reindexed in the background
+- deleted recipes are pruned from `search-db` during maintenance/reindex flows
 
 This means:
 - users get the best current response immediately

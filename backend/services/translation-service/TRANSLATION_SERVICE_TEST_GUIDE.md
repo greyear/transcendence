@@ -31,12 +31,12 @@ If needed, restart the relevant services with current code:
 docker compose up -d --build translation-service core-service api-gateway
 ```
 
-## 1. Test Translation Service Directly
+## 1. Test Translation Service From Inside The Container
 
 ### Health check
 
 ```bash
-curl http://localhost:8001/health
+docker compose exec translation-service python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8001/health').read().decode())"
 ```
 
 Expected:
@@ -48,9 +48,7 @@ Expected:
 ### Single text translation
 
 ```bash
-curl -s -X POST http://localhost:8001/translate \
-  -H "Content-Type: application/json" \
-  -d '{"source_language":"fi","target_languages":["en","ru"],"text":"Pasta"}' | jq
+docker compose exec translation-service python -c "import json, os, urllib.request; req = urllib.request.Request('http://127.0.0.1:8001/translate', data=json.dumps({'source_language':'fi','target_languages':['en','ru'],'text':'Pasta'}).encode(), headers={'Content-Type':'application/json','X-Internal-Service-Token': os.environ.get('INTERNAL_SERVICE_TOKEN','')}, method='POST'); print(urllib.request.urlopen(req).read().decode())"
 ```
 
 What to check:
@@ -62,9 +60,7 @@ What to check:
 ### Batch translation
 
 ```bash
-curl -s -X POST http://localhost:8001/translate \
-  -H "Content-Type: application/json" \
-  -d '{"source_language":"fi","target_languages":["en","ru"],"texts":["Keita vesi","Lisää pasta"]}' | jq
+docker compose exec translation-service python -c "import json, os, urllib.request; req = urllib.request.Request('http://127.0.0.1:8001/translate', data=json.dumps({'source_language':'fi','target_languages':['en','ru'],'texts':['Keita vesi','Lisää pasta']}).encode(), headers={'Content-Type':'application/json','X-Internal-Service-Token': os.environ.get('INTERNAL_SERVICE_TOKEN','')}, method='POST'); print(urllib.request.urlopen(req).read().decode())"
 ```
 
 What to check:
@@ -155,8 +151,8 @@ This is acceptable current behavior for project scope.
 
 The easiest high-value checks are:
 
-1. direct `/translate` single-text request
-2. direct `/translate` batch request
+1. internal `/translate` single-text request
+2. internal `/translate` batch request
 3. one recipe create with `X-Source-Language`
 4. one localized recipe read with `?lang=fi`
 

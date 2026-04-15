@@ -34,7 +34,8 @@ docker compose up -d --build search-service core-service api-gateway
 Full reindex:
 
 ```bash
-curl -X POST http://localhost:8000/admin/reindex
+curl -X POST http://localhost:8000/admin/reindex \
+  -H "X-Internal-Service-Token: dev-internal-token"
 ```
 
 What to check:
@@ -46,7 +47,7 @@ Example expected shape:
 
 ```json
 {
-  "status": "accepted",
+  "status": "completed",
   "scope": "all",
   "provider": "gemini",
   "indexed_count": 21

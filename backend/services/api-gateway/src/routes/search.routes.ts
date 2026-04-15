@@ -1,4 +1,5 @@
 import { type RequestHandler, Router } from "express";
+import { getInternalHeaders } from "../utils/internalHeaders.js";
 import {
 	createTimeoutSignal,
 	CORE_SERVICE_TIMEOUT_MS,
@@ -27,6 +28,7 @@ const getSearchRecipesHandler: RequestHandler = async (req, res, _next) => {
 		const response = await fetch(
 			`${SEARCH_SERVICE_URL}/search/recipes?${query.toString()}`,
 			{
+				headers: getInternalHeaders(req),
 				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 			},
 		);

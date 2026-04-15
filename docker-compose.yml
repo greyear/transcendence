@@ -53,6 +53,12 @@ services:
       - ./backend/infrastructure/postgres/core/01-init-core.sql:/docker-entrypoint-initdb.d/01-init-core.sql
       - ./backend/infrastructure/postgres/core/02-seed-core.sql:/docker-entrypoint-initdb.d/02-seed-core.sql
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U core_user -d core_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
     networks:
       - transcendence-network
 
@@ -91,6 +97,12 @@ services:
     volumes:
       - search_pg_data:/var/lib/postgresql/data
       - ./backend/infrastructure/postgres/search/01-init-search.sql:/docker-entrypoint-initdb.d/01-init-search.sql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U search_user -d search_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
     networks:
       - transcendence-network
@@ -162,10 +174,13 @@ services:
       DATABASE_URL: postgresql://core_user:core_password@core-db:5432/core_db
       TRANSLATION_API_URL: http://translation-service:8001/translate
       TRANSLATION_TIMEOUT_MS: 4000
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-dev-internal-token}
 
     depends_on:
-      - core-db
-      - translation-service
+      core-db:
+        condition: service_healthy
+      translation-service:
+        condition: service_healthy
 
     networks:
       - transcendence-network
@@ -202,15 +217,20 @@ services:
       PORT: 8000
       SEARCH_DATABASE_URL: postgresql://search_user:search_password@search-db:5432/search_db
       CORE_SERVICE_URL: http://core-service:3002
+      CORE_SERVICE_TIMEOUT_MS: 10000
       LLM_PROVIDER: gemini
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_EMBED_MODEL: gemini-embedding-001
       GEMINI_GEN_MODEL: gemini-2.5-flash
       OLLAMA_URL: http://host.docker.internal:11434
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-dev-internal-token}
+      SEARCH_PRUNE_INTERVAL_SECONDS: 300
 
     depends_on:
-      - search-db
-      - core-service
+      search-db:
+        condition: service_healthy
+      core-service:
+        condition: service_started
 
     networks:
       - transcendence-network
@@ -222,13 +242,20 @@ services:
     container_name: translation-service
     restart: unless-stopped
 
-    ports:
-      - "8001:8001"
-
     environment:
       PORT: 8001
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_GEN_MODEL: gemini-2.5-flash
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-dev-internal-token}
+      TRANSLATION_MAX_TEXT_LENGTH: 2000
+      TRANSLATION_MAX_BATCH_ITEMS: 20
+      TRANSLATION_MAX_TOTAL_CHARS: 12000
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
     networks:
       - transcendence-network

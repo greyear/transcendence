@@ -33,6 +33,7 @@ There are 4 moving parts:
 - small Gemini-backed HTTP service
 - accepts either one text or many texts
 - returns strict JSON translations for the requested target languages
+- is intended for internal service-to-service use, not direct public access
 
 ## Why A Separate Translation Service Exists
 
@@ -117,6 +118,8 @@ Ingredients and categories are not translated by this service right now.
 There is one endpoint in `translation-service`:
 
 - `POST /translate`
+
+If `INTERNAL_SERVICE_TOKEN` is configured, callers must send `X-Internal-Service-Token`.
 
 It supports 2 payload shapes.
 
