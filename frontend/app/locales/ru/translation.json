@@ -51,9 +51,7 @@
 	},
 	"recipePage": {
 		"loading": "Загрузка...",
-		"invalidRecipe": "Рецепт не существует.",
 		"error": "Не удалось загрузить рецепт (статус: {{status}}).",
-		"errorLoadingRecipe": "Не удалось загрузить рецепт.",
 		"recipeNotFound": "Рецепт не найден.",
 		"rate": "Оценить",
 		"ingredients": "Ингредиенты",
@@ -62,6 +60,12 @@
 		"noInstructionsAvailable": "Для этого рецепта шаги не добавлены.",
 		"step": "Шаг {{number}}",
 		"share": "Поделиться"
+	},
+	"ratingModal": {
+		"title": "Поделитесь впечатлениями об этом рецепте",
+		"rateRecipe": "Оцените этот рецепт",
+		"describeRecipe": "Опишите рецепт (необязательно)",
+		"submit": "Отправить"
 	},
 	"usersPage": {
 		"title": "Авторы рецептов",
@@ -143,6 +147,7 @@
 		"shareRecipe": "Поделиться рецептом",
 		"ingredientsAndInstructions": "Ингредиенты и инструкции рецепта",
 		"closeAuthDialog": "Закрыть окно аутентификации",
-		"toProfilePage": "Перейти на страницу профиля"
+		"toProfilePage": "Перейти на страницу профиля",
+		"closeRatingDialog": "Закрыть окно оценки"
 	}
 }

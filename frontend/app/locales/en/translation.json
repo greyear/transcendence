@@ -51,9 +51,7 @@
 	},
 	"recipePage": {
 		"loading": "Loading...",
-		"invalidRecipe": "Invalid recipe.",
 		"error": "Failed to fetch recipe (status: {{status}}).",
-		"errorLoadingRecipe": "Failed to load recipe.",
 		"recipeNotFound": "Recipe not found.",
 		"rate": "Rate",
 		"ingredients": "Ingredients",
@@ -62,6 +60,12 @@
 		"noInstructionsAvailable": "No instructions available for this recipe.",
 		"step": "Step {{number}}",
 		"share": "Share"
+	},
+	"ratingModal": {
+		"title": "Share your thoughts about this recipe",
+		"rateRecipe": "Rate this recipe",
+		"describeRecipe": "Describe the recipe (optional)",
+		"submit": "Submit"
 	},
 	"usersPage": {
 		"title": "Users",
@@ -143,6 +147,7 @@
 		"shareRecipe": "Share recipe",
 		"ingredientsAndInstructions": "Recipe ingredients and instructions",
 		"closeAuthDialog": "Close authentication dialog",
-		"toProfilePage": "Go to profile page"
+		"toProfilePage": "Go to profile page",
+		"closeRatingDialog": "Close rating dialog"
 	}
 }
