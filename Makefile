@@ -1,4 +1,4 @@
-.PHONY: help up down restart clean re logs logs-db db-status db-reset wait-core-seed dev-api dev-core dev-all test-core test-biome test-jest-core test-jest-api test-jest-all test-all check-node
+.PHONY: help up down restart clean re logs logs-db db-status db-reset wait-core-seed dev-api dev-core dev-all test-core test-biome test-jest-core test-jest-api test-jest-all test-all check-node certs
 
 help:
 	@echo "Transcendence Development Commands:"
@@ -30,7 +30,11 @@ help:
 	@echo "Requirements for local dev:"
 	@echo "  Node.js >= 18 (recommended 20 LTS)"
 
-up:
+certs:
+	@chmod +x scripts/generate-certs.sh
+	@./scripts/generate-certs.sh
+
+up: certs
 	docker-compose up -d
 	@echo "✓ Services started"
 
@@ -47,7 +51,7 @@ clean:
 	docker-compose down -v
 	@echo "✓ Cleanup completed"
 
-re:
+re: certs
 	@echo "Rebuilding and restarting all services..."
 	docker-compose down -v --remove-orphans
 	docker-compose up -d --build
@@ -106,24 +110,13 @@ dev-all:
 	@echo ""
 	@echo "Or use tmux/screen to run them in one window"
 
-# ===== Code Quality & Formatting =====
-# Biome check for code consistency
-
 test-biome:
 	@echo "Running Biome check..."
 	npm run check
 
-# ===== Smoke Tests =====
-# Functional black-box tests using bash scripts
-# These test the entire stack with Docker containers
-
 test-core:
 	@echo "Running core-service endpoint smoke tests..."
 	npm test
-
-# ===== Jest Tests =====
-# Unit and integration tests using Jest + Supertest
-# These test individual services without requiring Docker
 
 test-jest-core:
 	@echo "Running Jest tests for core-service..."
@@ -143,4 +136,3 @@ test-all:
 	@$(MAKE) test-core
 	@$(MAKE) test-jest-all
 	@echo "✓ All tests completed"
-

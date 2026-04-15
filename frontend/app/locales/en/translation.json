@@ -126,6 +126,8 @@
 		"firstPage": "First page",
 		"previousPage": "Previous page",
 		"nextPage": "Next page",
+		"scrollCooksLeft": "Scroll cooks left",
+		"scrollCooksRight": "Scroll cooks right",
 		"lastPage": "Last page",
 		"page": "Page {{page}}",
 		"pagination": "Pagination",

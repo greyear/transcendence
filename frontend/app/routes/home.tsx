@@ -1,10 +1,12 @@
+import { useRef, useState } from "react";
+import { IconButton } from "~/components/buttons/IconButton";
 import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
-import { CooksRow } from "~/components/CooksRow";
+import { CooksRow, type CooksRowHandle } from "~/components/CooksRow";
 import { RecipesGrid } from "~/components/RecipesGrid";
 import { useScreenSize } from "~/composables/useScreenSize";
 import "../assets/styles/home.css";
-import { NavArrowRight } from "iconoir-react";
+import { NavArrowLeft, NavArrowRight } from "iconoir-react";
 import { useTranslation } from "react-i18next";
 import heroImage from "~/assets/images/hero-image.jpg";
 
@@ -12,6 +14,11 @@ const HomePage = () => {
 	const { t } = useTranslation();
 	const { screenSize } = useScreenSize();
 	const recipesPerPage = screenSize === "mobile" ? 4 : 6;
+	const cooksRowRef = useRef<CooksRowHandle | null>(null);
+	const [cooksRowState, setCooksRowState] = useState({
+		canScrollLeft: false,
+		canScrollRight: false,
+	});
 
 	return (
 		<section className="home-page" aria-labelledby="hero-heading">
@@ -53,16 +60,36 @@ const HomePage = () => {
 			>
 				<div className="home-page-cooks-header">
 					<h2 id="cooks-heading">{t("homePage.followCooks")}</h2>
-					<TextIconButton
-						to="/users"
-						className="text-body2"
-						aria-label={t("ariaLabels.allUsers")}
-					>
-						{t("homePage.all")}
-						<NavArrowRight aria-hidden="true" />
-					</TextIconButton>
+					<div className="home-page-cooks-actions">
+						<TextIconButton
+							to="/users"
+							className="text-body2"
+							aria-label={t("ariaLabels.allUsers")}
+						>
+							{t("homePage.all")}
+							<NavArrowRight aria-hidden="true" />
+						</TextIconButton>
+						{screenSize !== "mobile" ? (
+							<div className="home-page-cooks-scroll-controls">
+								<IconButton
+									aria-label={t("ariaLabels.scrollCooksLeft")}
+									onClick={() => cooksRowRef.current?.scrollLeft()}
+									disabled={!cooksRowState.canScrollLeft}
+								>
+									<NavArrowLeft aria-hidden="true" />
+								</IconButton>
+								<IconButton
+									aria-label={t("ariaLabels.scrollCooksRight")}
+									onClick={() => cooksRowRef.current?.scrollRight()}
+									disabled={!cooksRowState.canScrollRight}
+								>
+									<NavArrowRight aria-hidden="true" />
+								</IconButton>
+							</div>
+						) : null}
+					</div>
 				</div>
-				<CooksRow />
+				<CooksRow ref={cooksRowRef} onScrollStateChange={setCooksRowState} />
 			</section>
 		</section>
 	);
