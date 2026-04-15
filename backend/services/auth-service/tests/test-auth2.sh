@@ -7,7 +7,7 @@
 #This token will need refreshing periodically. https://developers.google.com/oauthplayground
 GOOGLE_ID_TOKEN="insert token"
 
-BASE_URL="http://localhost:3000/auth"
+BASE_URL="https://localhost:8443/auth"
 
 echo "=========================================="
 echo "Complete Auth Test Suite"

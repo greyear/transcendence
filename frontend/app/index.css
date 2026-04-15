@@ -190,6 +190,7 @@ body {
 	font-weight: var(--fw-body3);
 	color: var(--text-primary);
 	background-color: var(--bg-main);
+	overflow-x: clip;
 }
 
 h1,

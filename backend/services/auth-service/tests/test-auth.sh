@@ -5,7 +5,7 @@
 # Auth Endpoint Test Script
 # Tests all auth endpoints with valid, invalid, and edge cases
 
-BASE_URL="http://localhost:3000/auth"
+BASE_URL="https://localhost:8443/auth"
 PASS=0
 FAIL=0
 
@@ -31,7 +31,7 @@ test_endpoint() {
     echo -e "\n${YELLOW}Testing:${NC} $test_name"
     
     # Build curl command
-    local curl_cmd="curl -s -w '%{http_code}' -X $method '$BASE_URL$endpoint'"
+    local curl_cmd="curl -s --cacert certs/cert.pem -w '%{http_code}' -X $method '$BASE_URL$endpoint'"
     if [ -n "$headers" ]; then
         curl_cmd="$curl_cmd $headers"
     fi
@@ -152,7 +152,7 @@ test_endpoint \
 echo -e "\n\n${YELLOW}=== LOGIN ENDPOINT TESTS ===${NC}"
 
 # Valid login by username
-LOGIN_RESPONSE=$(curl -s -X POST "$BASE_URL/login" \
+LOGIN_RESPONSE=$(curl -s --cacert certs/cert.pem -X POST "$BASE_URL/login" \
     -H "Content-Type: application/json" \
     -d '{"username":"testuser1","password":"TestPass123!"}')
 TOKEN=$(extract_token "$LOGIN_RESPONSE")
@@ -257,7 +257,7 @@ test_endpoint \
     "200"
 
 # Get new token for further tests
-NEW_LOGIN=$(curl -s -X POST "$BASE_URL/login" \
+NEW_LOGIN=$(curl -s --cacert certs/cert.pem -X POST "$BASE_URL/login" \
     -H "Content-Type: application/json" \
     -d '{"username":"testuser1","password":"NewPass456@"}')
 NEW_TOKEN=$(extract_token "$NEW_LOGIN")
@@ -308,12 +308,12 @@ fi
 echo -e "\n\n${YELLOW}=== DELETE ENDPOINT TESTS ===${NC}"
 
 # Create user for deletion test
-curl -s -X POST "$BASE_URL/register" \
+curl -s --cacert certs/cert.pem -X POST "$BASE_URL/register" \
     -H "Content-Type: application/json" \
     -d '{"username":"todelete","email":"todelete@test.local","realname":"To Delete","password":"TestPass123!"}' > /dev/null
 
 # Get token for deletion test
-DELETE_LOGIN=$(curl -s -X POST "$BASE_URL/login" \
+DELETE_LOGIN=$(curl -s --cacert certs/cert.pem -X POST "$BASE_URL/login" \
     -H "Content-Type: application/json" \
     -d '{"username":"todelete","password":"TestPass123!"}')
 DELETE_TOKEN=$(extract_token "$DELETE_LOGIN")
