@@ -7,6 +7,7 @@ node_modules/
 
 # Build outputs
 dist/
+*.bak
 
 # Test coverage
 **/coverage/**
