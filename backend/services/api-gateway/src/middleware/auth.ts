@@ -143,7 +143,7 @@ const validateTokenWithAuthService = async (
 	token: string,
 ): Promise<AuthResult> => {
 	try {
-		const response = await fetch(`${AUTH_SERVICE_URL}/auth/validate`, {
+		const response = await fetch(`${AUTH_SERVICE_URL}/validate`, {
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${token}`,
