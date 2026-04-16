@@ -23,6 +23,8 @@ export const RatingForm = ({ dialogRef, onClose }: RatingFormProps) => {
 		if (rating === 0) {
 			return;
 		}
+
+		// TODO: Add submit logic
 	};
 
 	return (
@@ -35,9 +37,9 @@ export const RatingForm = ({ dialogRef, onClose }: RatingFormProps) => {
 			tabIndex={-1}
 		>
 			<div className="rating-card-header">
-				<h1 className="rating-modal-title" id="rating-modal-title">
+				<h2 className="rating-modal-title" id="rating-modal-title">
 					{t("ratingModal.title")}
-				</h1>
+				</h2>
 
 				{onClose ? (
 					<div className="rating-modal-close-row">
@@ -61,7 +63,12 @@ export const RatingForm = ({ dialogRef, onClose }: RatingFormProps) => {
 								*
 							</span>
 						</span>
-						<div className="rating-stars">
+						<div
+							className="rating-stars"
+							role="radiogroup"
+							aria-labelledby="rating-label"
+							aria-required="true"
+						>
 							{RATING_VALUES.map((value) => (
 								<label key={value} className="rating-star-option">
 									<input
@@ -70,7 +77,7 @@ export const RatingForm = ({ dialogRef, onClose }: RatingFormProps) => {
 										type="radio"
 										value={value}
 										checked={rating === value}
-										aria-label={`${value} star${value === 1 ? "" : "s"}`}
+										aria-label={t("ratingModal.ratingOption", { value })}
 										onChange={() => setRating(value)}
 									/>
 									<span

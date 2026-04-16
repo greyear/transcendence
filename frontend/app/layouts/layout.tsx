@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router";
 import { AuthModal } from "~/components/auth/AuthModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
@@ -13,12 +13,9 @@ export type LayoutOutletContext = {
 const Layout = () => {
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
-	const [authSuccessAction, setAuthSuccessAction] = useState<
-		(() => void) | null
-	>(null);
-
+	const authSuccessActionRef = useRef<(() => void) | null>(null);
 	const openAuthModal = (onSuccessAction?: () => void) => {
-		setAuthSuccessAction(() => onSuccessAction ?? null);
+		authSuccessActionRef.current = onSuccessAction ?? null;
 		setIsAuthModalOpen(true);
 	};
 
@@ -79,13 +76,13 @@ const Layout = () => {
 				isOpen={isAuthModalOpen}
 				onClose={() => {
 					setIsAuthModalOpen(false);
-					setAuthSuccessAction(null);
+					authSuccessActionRef.current = null;
 				}}
 				onSuccess={() => {
 					setIsAuthenticated(true);
 					setIsAuthModalOpen(false);
-					authSuccessAction?.();
-					setAuthSuccessAction(null);
+					authSuccessActionRef.current?.();
+					authSuccessActionRef.current = null;
 				}}
 			/>
 		</>

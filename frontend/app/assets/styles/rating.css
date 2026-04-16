@@ -17,18 +17,6 @@
 	gap: var(--space-m);
 }
 
-.rating-modal-backdrop {
-	position: fixed;
-	inset: 0;
-	z-index: 1000;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: var(--space-l);
-	background-color: var(--overlay-backdrop);
-	backdrop-filter: blur(4px);
-}
-
 .rating-modal-close-row {
 	display: flex;
 	flex-shrink: 0;
@@ -36,6 +24,12 @@
 
 .rating-modal-close-row .icon-button svg {
 	color: var(--icons-dark);
+}
+
+.rating-modal-title {
+	font-size: var(--fs-h1);
+	line-height: var(--lh-h1);
+	font-weight: var(--fw-h1);
 }
 
 .rating-field {
@@ -92,6 +86,12 @@
 	color: var(--icons-dark);
 }
 
+.rating-star-input:focus-visible + .rating-star-button {
+	outline: 2px solid var(--icons-dark);
+	outline-offset: 2px;
+	border-radius: var(--radius-s);
+}
+
 .rating-textarea {
 	width: 100%;
 	min-height: 48px;
@@ -112,5 +112,6 @@
 	.rating-modal-title {
 		font-size: var(--fs-h2);
 		line-height: var(--lh-h2);
+		font-weight: var(--fw-h2);
 	}
 }

@@ -65,6 +65,7 @@
 		"title": "Share your thoughts about this recipe",
 		"rateRecipe": "Rate this recipe",
 		"describeRecipe": "Describe the recipe (optional)",
+		"ratingOption": "{{value}} out of 5 stars",
 		"submit": "Submit"
 	},
 	"usersPage": {

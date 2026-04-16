@@ -65,6 +65,7 @@
 		"title": "Kerro ajatuksesi tästä reseptistä",
 		"rateRecipe": "Arvioi tämä resepti",
 		"describeRecipe": "Kuvaile reseptiä (valinnainen)",
+		"ratingOption": "{{value}} tähteä viidestä",
 		"submit": "Lähetä"
 	},
 	"usersPage": {
