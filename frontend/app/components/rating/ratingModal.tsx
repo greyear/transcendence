@@ -1,19 +1,18 @@
 import { useRef } from "react";
 import { Modal } from "~/components/Modal";
-import { AuthForm } from "./AuthForm";
+import { RatingForm } from "./ratingForm";
 
-type AuthModalProps = {
+type RatingModalProps = {
 	isOpen: boolean;
 	onClose: () => void;
-	onSuccess: () => void;
 };
 
-export const AuthModal = ({ isOpen, onClose, onSuccess }: AuthModalProps) => {
+export const RatingModal = ({ isOpen, onClose }: RatingModalProps) => {
 	const dialogRef = useRef<HTMLElement>(null);
 
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} dialogRef={dialogRef}>
-			<AuthForm dialogRef={dialogRef} onClose={onClose} onSuccess={onSuccess} />
+			<RatingForm dialogRef={dialogRef} onClose={onClose} />
 		</Modal>
 	);
 };
