@@ -36,7 +36,7 @@
 |---|---|---|---|
 | `/register` | POST | — | body: `username`, `email`, `password` |
 | `/login` | POST | — | body: `username` (or email), `password` |
-| `/auth/validate` | POST | JWT (header) | `Authorization: Bearer <token>` |
+| `/validate` | POST | JWT (header) | `Authorization: Bearer <token>` |
 | `/users/:username` | DELETE | JWT (header) | `username` (path), `Authorization: Bearer <token>` |
 | `/users/:username/change-password` | PATCH | JWT (header) | `username` (path), body: `password`, `newPassword` |
 

@@ -103,7 +103,7 @@ authGetSet.patch(
 	},
 );
 
-// /auth/validate endpoint to specifically validate a JWT within the header.
+// /validate endpoint to specifically validate a JWT within the header.
 // Checks against username or email. Content with this as both are unique.
 // References to username here are remnants of a prior version
 authGetSet.post(
