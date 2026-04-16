@@ -198,7 +198,7 @@ curl -X DELETE 'http://localhost:3000/auth/delete/normaluser1' \
 # ========== TOKEN VALIDATION TESTS ==========
 
 # 26. Validate - normal user with valid token (use token from step 11)
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'http://localhost:3000/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <TOKEN_FROM_STEP_11>'
 
@@ -206,7 +206,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 27. Validate - Google user with valid token (use token from step 15)
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'http://localhost:3000/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <TOKEN_FROM_STEP_15>'
 
@@ -214,21 +214,21 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 28. Validate normal - missing token
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'http://localhost:3000/validate' \
   -H 'Content-Type: application/json'
 
   401: {"error":"Token not found"}
 
 
 # 29. Validate Google - missing token
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'http://localhost:3000/validate' \
   -H 'Content-Type: application/json'
 
   401: {"error":"Token not found"}
 
 
 # 30. Validate normal - invalid token format
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'http://localhost:3000/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer invalid_token_xyz'
 
@@ -236,7 +236,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 31. Validate Google - invalid token format
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'http://localhost:3000/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer invalid_token_xyz'
 
@@ -244,7 +244,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 32. Validate normal - malformed auth header (no Bearer)
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'http://localhost:3000/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: <TOKEN_FROM_STEP_11>'
 
@@ -252,7 +252,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 33. Validate normal - empty token
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'http://localhost:3000/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer '
 
@@ -260,7 +260,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 34. Validate normal - wrong token type (Google token)
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'http://localhost:3000/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <TOKEN_FROM_STEP_15>'
 
@@ -268,7 +268,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 35. Validate Google - wrong token type (normal user token)
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'http://localhost:3000/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <TOKEN_FROM_STEP_11>'
 

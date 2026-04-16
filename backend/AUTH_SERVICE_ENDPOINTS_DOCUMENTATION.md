@@ -14,7 +14,7 @@ This document consolidates all authentication service endpoints, including imple
 | `/auth/register` | POST | None | `username`, `email`, `password` | `userId`, `username`, `email`, `message` | 201 | 409, 422, 400 | No |
 | `/auth/login` | POST | None | `username` (email or username), `password` | `token`, `user` object | 200 | 401, 404, 400 | No |
 | `/auth/google` | POST | None | Google ID Token (in Authorization header) | `token`, `user` object | 201/200 | 401, 500, 409 | No (header auth) |
-| `/auth/validate` | POST | None | None (token in header) | `valid: true`, `user` object | 200 | 401, 400 | Yes |
+| `/validate` | POST | None | None (token in header) | `valid: true`, `user` object | 200 | 401, 400 | Yes |
 | `/auth/change-password/:username` | PATCH | `username` | `password` (current), `newPassword` | `message`, `user` object | 200 | 401, 403, 400, 404 | Yes (Normal) |
 
 **Key**:
@@ -150,7 +150,7 @@ Content-Type: application/json
 
 ### 4. Token Validation (Normal Auth)
 
-#### `POST /auth/validate`
+#### `POST /validate`
 **Purpose**: Verify JWT token validity for authenticated users
 
 **Request Headers**:
@@ -242,7 +242,7 @@ Content-Type: application/json
 | POST | `/auth/register` | Registration | Register normal user |
 | POST | `/auth/login` | Login | Login normal user |
 | POST | `/auth/google` | Google Auth | Google Sign-In or registration |
-| POST | `/auth/validate` | Validation | Validate normal auth token |
+| POST | `/validate` | Validation | Validate normal auth token |
 | PATCH | `/auth/change-password/:username` | Account | Change user password |
 
 ---
@@ -261,7 +261,7 @@ Content-Type: application/json
    ↓
 5. Token included in Authorization header for protected endpoints
    ↓
-6. Token verified with POST /auth/validate
+6. Token verified with POST /validate
 ```
 
 ### Google Authentication Flow
@@ -278,7 +278,7 @@ Content-Type: application/json
    ↓
 6. Token valid for protected endpoints
    ↓
-7. Token verified with POST /auth/validate/google
+7. Token verified with POST /validate/google
 ```
 
 ### Cross-Auth Conflict Handling
@@ -292,11 +292,11 @@ Scenario: Normal user tries to register with Google user's email
   → Returns 409 (conflict) - email already exists
 
 Scenario: Normal token used on Google validation
-  → POST /auth/validate/google with normal JWT
+  → POST /validate/google with normal JWT
   → Returns 401 (invalid for this endpoint)
 
 Scenario: Google token used on normal validation
-  → POST /auth/validate with Google JWT
+  → POST /validate with Google JWT
   → Returns 401 (invalid for this endpoint)
 
 Scenario: Normal JWT sent to Google auth endpoint

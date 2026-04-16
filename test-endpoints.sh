@@ -4,7 +4,7 @@
 
 set -e
 
-BASE_URL="${API_BASE_URL:-https://localhost}"
+BASE_URL="${API_BASE_URL:-https://localhost:8443}"
 SMOKE_BEARER_TOKEN="${SMOKE_BEARER_TOKEN:-}"
 FAIL=0
 TESTS_PASSED=0

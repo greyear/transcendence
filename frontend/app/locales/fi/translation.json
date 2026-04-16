@@ -51,9 +51,7 @@
 	},
 	"recipePage": {
 		"loading": "Ladataan...",
-		"invalidRecipe": "Virheellinen resepti.",
 		"error": "Reseptin haku epäonnistui (tila: {{status}}).",
-		"errorLoadingRecipe": "Reseptin lataaminen epäonnistui.",
 		"recipeNotFound": "Reseptiä ei löytynyt.",
 		"rate": "Arvioi",
 		"ingredients": "Ainekset",
@@ -62,6 +60,13 @@
 		"noInstructionsAvailable": "Tälle reseptille ei ole saatavilla ohjeita.",
 		"step": "Vaihe {{number}}",
 		"share": "Jaa"
+	},
+	"ratingModal": {
+		"title": "Kerro ajatuksesi tästä reseptistä",
+		"rateRecipe": "Arvioi tämä resepti",
+		"describeRecipe": "Kuvaile reseptiä (valinnainen)",
+		"ratingOption": "{{value}} tähteä viidestä",
+		"submit": "Lähetä"
 	},
 	"usersPage": {
 		"title": "Käyttäjät",
@@ -143,6 +148,7 @@
 		"shareRecipe": "Jaa resepti",
 		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet",
 		"closeAuthDialog": "Sulje tunnistautumisikkuna",
-		"toProfilePage": "Siirry profiilisivulle"
+		"toProfilePage": "Siirry profiilisivulle",
+		"closeRatingDialog": "Sulje arviointi-ikkuna"
 	}
 }

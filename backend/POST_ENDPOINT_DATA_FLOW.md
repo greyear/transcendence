@@ -56,7 +56,7 @@ In gateway:
 
 What `requireAuth` does (`backend/services/api-gateway/src/middleware/auth.ts`):
 1. Reads token from cookie/header
-2. Calls auth-service `POST /auth/validate`
+2. Calls auth-service `POST /validate`
 3. Parses auth response
 4. Sets internal `X-User-Id` header for downstream core-service call
 

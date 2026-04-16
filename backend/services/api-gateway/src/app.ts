@@ -32,7 +32,7 @@ const app: Express = express();
 // CORS: allow frontend origin, override via CORS_ORIGIN env in production
 app.use(
 	cors({
-		origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+		origin: process.env.CORS_ORIGIN || "https://localhost:5173",
 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
 		credentials: true,
 	}),

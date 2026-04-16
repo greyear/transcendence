@@ -2,7 +2,7 @@
 
 GOOGLE_ID_TOKEN="replace with ID"
 
-BASE_URL="https://localhost/auth"
+BASE_URL="https://localhost:8443/auth"
 
 echo "=========================================="
 echo "Google Auth Complete Flow Test Suite"
