@@ -88,7 +88,7 @@ authGetSet.patch(
 			const updatedUser = await userModel.findOneAndUpdate(
 				{ id: userId },
 				{ passwordHash: hashedPassword },
-				{ new: true },
+				{ returnDocument: 'after' },
 			);
 
 			if (updatedUser) {
