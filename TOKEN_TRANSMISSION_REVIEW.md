@@ -21,7 +21,7 @@ Source: `backend/services/api-gateway/src/middleware/auth.ts`
 Validation call:
 
 ```http
-POST /auth/validate
+POST /validate
 Authorization: Bearer <jwt>
 ```
 
