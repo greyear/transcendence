@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
+import { InputField } from "~/components/inputs/InputField";
 import { RecipeFormField } from "~/components/recipe/RecipeFormField";
 import { RecipeFormFieldset } from "~/components/recipe/RecipeFormFieldset";
 import type { IngredientRow } from "~/components/recipe/RecipeIngredientRow";
@@ -113,11 +114,10 @@ const RecipeCreate = () => {
 				/>
 
 				<RecipeFormField label="Recipe Title" htmlFor="recipe-title" required>
-					<input
+					<InputField
 						id="recipe-title"
-						type="text"
-						className="recipe-create-input text-body3"
 						placeholder="Recipe Title"
+						floatingLabel={false}
 						value={title}
 						onChange={(e) => setTitle(e.target.value)}
 					/>
@@ -139,11 +139,11 @@ const RecipeCreate = () => {
 				</RecipeFormField>
 
 				<RecipeFormField label="Servings" htmlFor="recipe-servings" required>
-					<input
+					<InputField
 						id="recipe-servings"
 						type="number"
-						className="recipe-create-input text-body3"
 						placeholder="e.g. 2"
+						floatingLabel={false}
 						min={1}
 						value={servings}
 						onChange={(e) => setServings(e.target.value)}
@@ -152,20 +152,18 @@ const RecipeCreate = () => {
 
 				<RecipeFormFieldset legend="Prep Time" required>
 					<div className="recipe-create-time-row">
-						<input
+						<InputField
 							id="prep-hours"
 							type="number"
-							className="recipe-create-input text-body3"
 							placeholder="hours"
 							min={0}
 							value={prepHours}
 							onChange={(e) => setPrepHours(e.target.value)}
 							aria-label="Prep time hours"
 						/>
-						<input
+						<InputField
 							id="prep-minutes"
 							type="number"
-							className="recipe-create-input text-body3"
 							placeholder="minutes"
 							min={0}
 							max={59}
@@ -178,20 +176,18 @@ const RecipeCreate = () => {
 
 				<RecipeFormFieldset legend="Cook Time" required>
 					<div className="recipe-create-time-row">
-						<input
+						<InputField
 							id="cook-hours"
 							type="number"
-							className="recipe-create-input text-body3"
 							placeholder="hours"
 							min={0}
 							value={cookHours}
 							onChange={(e) => setCookHours(e.target.value)}
 							aria-label="Cook time hours"
 						/>
-						<input
+						<InputField
 							id="cook-minutes"
 							type="number"
-							className="recipe-create-input text-body3"
 							placeholder="minutes"
 							min={0}
 							max={59}

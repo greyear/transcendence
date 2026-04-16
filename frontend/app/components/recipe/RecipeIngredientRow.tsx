@@ -1,5 +1,6 @@
 import type { DraggableProvided } from "@hello-pangea/dnd";
 import { Menu, XmarkCircle } from "iconoir-react";
+import { InputField } from "~/components/inputs/InputField";
 import { SelectField } from "~/components/inputs/SelectField";
 
 const UNIT_OPTIONS = [
@@ -50,25 +51,25 @@ export const RecipeIngredientRow = ({
 			<span className="recipe-drag-handle" {...provided.dragHandleProps}>
 				<Menu aria-hidden="true" />
 			</span>
-			<input
+			<InputField
+				id={`${ingredient.id}-amount`}
 				type="number"
-				className="recipe-create-input recipe-ingredient-amount text-body3"
+				className="recipe-ingredient-amount"
 				placeholder="Amount"
 				min={0}
 				value={ingredient.amount}
 				onChange={(e) => onChange("amount", e.target.value)}
 				aria-label={`Ingredient ${index + 1} amount`}
 			/>
-			<div className="recipe-unit-wrapper">
-				<SelectField
-					options={UNIT_SELECT_OPTIONS}
-					value={ingredient.unit}
-					onChange={(value) => onChange("unit", value)}
-				/>
-			</div>
-			<input
+			<SelectField
+				options={UNIT_SELECT_OPTIONS}
+				value={ingredient.unit}
+				onChange={(value) => onChange("unit", value)}
+			/>
+			<InputField
+				id={`${ingredient.id}-name`}
 				type="text"
-				className="recipe-create-input recipe-ingredient-name text-body3"
+				className="recipe-ingredient-name"
 				placeholder="e.g. milk"
 				value={ingredient.name}
 				onChange={(e) => onChange("name", e.target.value)}

@@ -7,7 +7,7 @@
 .recipe-create-header {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-s);
+	gap: var(--space-l);
 }
 
 .recipe-create-header h1 {
@@ -25,10 +25,10 @@
 	align-items: center;
 	justify-content: center;
 	width: 100%;
-	min-height: 96px;
-	border: 2px dashed var(--surface-action-inactive);
+	min-height: 100px;
+	border: 2px dashed var(--borders-action);
 	border-radius: var(--radius-m);
-	background-color: rgba(180, 192, 155, 0.2);
+	background-color: var(--surface-action-inactive);
 	cursor: pointer;
 	overflow: hidden;
 	position: relative;
@@ -57,7 +57,7 @@
 	line-height: var(--lh-body3);
 	pointer-events: none;
 	position: relative;
-	z-index: 1;
+	z-index: 2;
 }
 
 .recipe-photo-button svg {
@@ -85,16 +85,19 @@
 .recipe-create-field {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-s);
+	gap: var(--space-m);
 }
 
 .recipe-create-fieldset {
+	display: flex;
+	flex-direction: column;
 	border: none;
 	padding: 0;
 	margin: 0;
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-s);
+}
+
+.recipe-create-fieldset > * + * {
+	margin-top: var(--space-m);
 }
 
 /* Labels */
@@ -157,7 +160,7 @@
 .recipe-create-time-row {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: var(--space-m);
+	gap: var(--space-s);
 }
 
 /* Ingredient / instruction lists */
@@ -170,7 +173,7 @@
 	flex-direction: column;
 
 	li {
-		margin-bottom: var(--space-m);
+		margin-bottom: var(--space-s);
 	}
 }
 
@@ -199,12 +202,6 @@
 
 .recipe-ingredient-amount {
 	grid-area: amount;
-}
-
-.recipe-unit-wrapper {
-	grid-area: unit;
-	width: 90px;
-	flex-shrink: 0;
 }
 
 .recipe-ingredient-name {
@@ -246,6 +243,10 @@
 
 .recipe-instructions-list {
 	list-style: none;
+
+	li {
+		margin-bottom: var(--space-l);
+	}
 }
 
 .recipe-instruction-item {
@@ -260,7 +261,7 @@
 
 .recipe-instruction-row {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	gap: var(--space-s);
 }
 
@@ -319,10 +320,6 @@
 }
 
 @media (min-width: 768px) {
-	.recipe-create-header h1 {
-		text-align: left;
-	}
-
 	.recipe-ingredient-row {
 		display: flex;
 		align-items: center;
@@ -337,10 +334,6 @@
 		width: 80px;
 		flex-shrink: 0;
 		flex-grow: 0;
-	}
-
-	.recipe-unit-wrapper {
-		width: 90px;
 	}
 
 	.recipe-ingredient-name {

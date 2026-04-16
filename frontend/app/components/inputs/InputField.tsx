@@ -9,6 +9,7 @@ type BaseProps = Omit<InputHTMLAttributes<HTMLInputElement>, "placeholder"> & {
 	id: string;
 	hint?: string;
 	error?: string;
+	floatingLabel?: boolean;
 };
 
 type WithLabel = BaseProps & {
@@ -31,6 +32,7 @@ export const InputField = ({
 	hint,
 	error,
 	id,
+	floatingLabel,
 	onBlur,
 	onFocus,
 	onInvalid,
@@ -44,7 +46,7 @@ export const InputField = ({
 
 	const isPassword = type === "password";
 	const inputType = isPassword && showPassword ? "text" : type;
-	const isFloating = !label && !!placeholder;
+	const isFloating = floatingLabel !== false && !label && !!placeholder;
 	const labelText = label || placeholder;
 
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {

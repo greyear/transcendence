@@ -23,7 +23,7 @@
 main {
 	width: 100%;
 	margin: 0 auto;
-	padding: var(--space-l);
+	padding: var(--space-xl) var(--space-l);
 }
 
 :root {
