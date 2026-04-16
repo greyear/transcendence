@@ -5,7 +5,4 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
 	plugins: [basicSsl(), reactRouter(), tsconfigPaths()],
-	ssr: {
-		noExternal: ["@formkit/drag-and-drop"],
-	},
 });
