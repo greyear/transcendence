@@ -20,6 +20,12 @@ export type UpdateProfileResult =
 	| { success: true; profile: ProfileData }
 	| { success: false; reason: "not-found" | "username-taken" };
 
+export type RegisterProfileResult = {
+	success: true;
+	profile: ProfileData;
+	created: boolean;
+};
+
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
 /** PostgreSQL SQLSTATE for unique_violation (duplicate username). */
@@ -42,6 +48,8 @@ const parseProfileRow = (row: unknown): ProfileData | null => {
 	}
 	return result.data;
 };
+
+const buildDefaultUsername = (userId: number): string => `username_${userId}`;
 
 // ── Exported service functions ────────────────────────────────────────────────
 
@@ -66,6 +74,59 @@ export const getProfile = async (
 		return parseProfileRow(result.rows[0]);
 	} catch (error) {
 		console.error("Database error in getProfile:", error);
+		throw error;
+	}
+};
+
+/**
+ * Create a new core profile for a freshly registered auth user.
+ *
+ * This is an internal, idempotent operation:
+ * - creates the row if it does not exist
+ * - returns the existing profile if the row already exists
+ */
+export const registerProfile = async (
+	userId: number,
+): Promise<RegisterProfileResult> => {
+	try {
+		const resolvedUsername = buildDefaultUsername(userId);
+		console.info(
+			`[core-service] registerProfile:attempt userId=${userId} username=${resolvedUsername}`,
+		);
+
+		const result = await pool.query(
+			`
+			INSERT INTO users (id, username, role, status)
+			VALUES ($1, $2, 'user', 'offline')
+			ON CONFLICT (id) DO NOTHING
+			RETURNING id, username, avatar
+			`,
+			[userId, resolvedUsername],
+		);
+
+		if (result.rowCount === 0) {
+			console.info(
+				`[core-service] registerProfile:already-exists userId=${userId}`,
+			);
+			const profile = await getProfile(userId);
+			if (!profile) {
+				throw new Error(`User ${userId} could not be loaded after register`);
+			}
+			console.info(
+				`[core-service] registerProfile:existing-profile userId=${userId} username=${profile.username}`,
+			);
+			return { success: true, profile, created: false };
+		}
+
+		const profile = parseProfileRow(result.rows[0]);
+		if (!profile) {
+			throw new Error(`Created profile for user ${userId} could not be parsed`);
+		}
+
+		console.info(`[core-service] registerProfile:created userId=${userId}`);
+		return { success: true, profile, created: true };
+	} catch (error) {
+		console.error("Database error in registerProfile:", error);
 		throw error;
 	}
 };

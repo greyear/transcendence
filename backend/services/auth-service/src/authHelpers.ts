@@ -188,15 +188,31 @@ export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 	next();
 };
 
-//Create a sequential and unique userID
+// Create a sequential and unique userID.
+// We keep auth user IDs above seeded core IDs to avoid collisions with demo data.
+const MIN_AUTH_USER_ID = 100000;
+
 export const makeID = async (): Promise<number> => {
-	const counter = await userCounter.findOneAndUpdate(
+	const counter = await userCounter.findOne({ name: "CounterDB" });
+
+	if (!counter) {
+		await userCounter.create({ name: "CounterDB", seq: MIN_AUTH_USER_ID });
+		return MIN_AUTH_USER_ID;
+	}
+
+	if (counter.seq < MIN_AUTH_USER_ID) {
+		counter.seq = MIN_AUTH_USER_ID;
+		await counter.save();
+		return MIN_AUTH_USER_ID;
+	}
+
+	const updatedCounter = await userCounter.findOneAndUpdate(
 		{ name: "CounterDB" },
 		{ $inc: { seq: 1 } },
-		{ new: false, upsert: true, setDefaultsOnInsert: true },
+		{ new: false },
 	);
 
-	return counter ? counter.seq : 1;
+	return updatedCounter ? updatedCounter.seq : MIN_AUTH_USER_ID;
 };
 
 // Error handling middleware

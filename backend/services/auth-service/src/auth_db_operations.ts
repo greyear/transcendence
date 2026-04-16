@@ -33,24 +33,40 @@ const mongoErrorSchema = z.object({ code: z.literal(11000) });
 const AUTH_SERVICE_URL =
 	process.env.AUTH_SERVICE_URL || "http://auth-service:3001";
 
-// Needed for notifying core about new registrations.
+// Needed for creating the corresponding core profile after registration.
 const CORE_SERVICE_URL =
 	process.env.CORE_SERVICE_URL || "http://core-service:3002";
-// Helper to notify core about new registration.
-async function notifyCoreService(id: number, email: string): Promise<void> {
+
+// Helper to create the corresponding core profile for a new auth user.
+async function registerCoreProfile(id: number): Promise<void> {
 	try {
-		const res = await fetch(`${CORE_SERVICE_URL}/profile`, {
-			method: "PUT",
+		console.info(`[auth-service] registerCoreProfile:start userId=${id}`);
+		const res = await fetch(`${CORE_SERVICE_URL}/profile/register`, {
+			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ id, email }),
+			body: JSON.stringify({ id }),
 		});
+
+		console.info(
+			`[auth-service] registerCoreProfile:response userId=${id} status=${res.status}`,
+		);
+
 		if (!res.ok) {
+			const responseBody = await res.json().catch(() => null);
 			console.error(
-				`core-service /profile returned ${res.status} for user ${id}`,
+				`[auth-service] registerCoreProfile:failed userId=${id} payload=${JSON.stringify(responseBody)}`,
 			);
+			const errorMessage =
+				responseBody && typeof responseBody === "object" && "error" in responseBody
+					? String(responseBody.error)
+					: `core-service /profile/register returned ${res.status} for user ${id}`;
+			throw new Error(errorMessage);
 		}
+
+		console.info(`[auth-service] registerCoreProfile:success userId=${id}`);
 	} catch (error) {
-		console.error(`Failed to notify core-service of new user ${id}:`, error);
+		console.error(`Failed to register core profile for user ${id}:`, error);
+		throw error;
 	}
 }
 
@@ -90,6 +106,7 @@ authRouter.post(
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const { email, password } = req.body;
+			console.info(`[auth-service] register:start email=${email}`);
 
 			const userDocument = await userModel.findOne({ email });
 
@@ -125,6 +142,9 @@ authRouter.post(
 			}
 
 			const currentCount = await help.makeID();
+			console.info(
+				`[auth-service] register:generated-user-id email=${email} userId=${currentCount}`,
+			);
 
 			const newUser = new userModel({
 				id: currentCount,
@@ -132,9 +152,19 @@ authRouter.post(
 				passwordHash: hashedPassword,
 			});
 			await newUser.save();
+			console.info(
+				`[auth-service] register:mongo-user-created email=${email} userId=${currentCount}`,
+			);
 
-			// Call core notify helper, just send and forget.
-			void notifyCoreService(currentCount, email);
+			try {
+				await registerCoreProfile(currentCount);
+			} catch (error) {
+				console.error(
+					`[auth-service] register:core-sync-failed rolling back mongo userId=${currentCount}`,
+				);
+				await userModel.deleteOne({ id: currentCount });
+				throw error;
+			}
 
 			const loginRes = await fetch(`${AUTH_SERVICE_URL}/login`, {
 				method: "POST",
@@ -149,6 +179,9 @@ authRouter.post(
 			if (setCookie) {
 				res.set("Set-Cookie", setCookie);
 			}
+			console.info(
+				`[auth-service] register:completed email=${email} userId=${currentCount} loginStatus=${loginRes.status}`,
+			);
 			res.status(201).json({ email, id: currentCount, ...loginPayload });
 		} catch (error) {
 			if (mongoErrorSchema.safeParse(error).success) {
@@ -175,11 +208,20 @@ authRouter.post(
 	"/login",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const { email, password } = req.body;
+			const email: string | undefined = req.body.email ?? req.body.username;
+			const { password } = req.body;
+
+			if (!email || typeof password !== "string") {
+				res.status(400).json({ error: "Email and password are required" });
+				return;
+			}
+
+			console.info(`[auth-service] login:start email=${email}`);
 
 			const userDocument = await userModel.findOne({ email });
 
 			if (!userDocument) {
+				console.warn(`[auth-service] login:user-not-found email=${email}`);
 				res.status(404).json({ error: "User not found" });
 				return;
 			}
@@ -197,6 +239,7 @@ authRouter.post(
 			const gotHash = userDocument.get("passwordHash");
 			const passwordMatch = await help.comparePassword(password, gotHash);
 			if (!passwordMatch) {
+				console.warn(`[auth-service] login:password-mismatch email=${email}`);
 				res.status(401).json({ error: "Password mismatch" });
 				return;
 			}
@@ -223,6 +266,9 @@ authRouter.post(
 				sameSite: "lax",
 				maxAge: 60 * 60 * 1000, //1 hour in ms
 			});
+			console.info(
+				`[auth-service] login:success email=${email} userId=${userDocument.get("id")}`,
+			);
 			res.status(200).json({
 				token: JWToken,
 				message: "Login successful",
@@ -301,8 +347,12 @@ authRouter.post(
 				});
 				await newUser.save();
 
-				// Call core notify helper, just send and forget.
-				void notifyCoreService(currentCount, email);
+				try {
+					await registerCoreProfile(currentCount);
+				} catch (error) {
+					await userModel.deleteOne({ id: currentCount });
+					throw error;
+				}
 
 				const JWToken = help.generateToken(
 					newUser.get("_id").toString(),
