@@ -185,7 +185,7 @@ authRouter.post(
 			res.status(201).json({ email, id: currentCount, ...loginPayload });
 		} catch (error) {
 			if (mongoErrorSchema.safeParse(error).success) {
-				res.status(409).json({ error: "Email or username already exists" });
+				res.status(409).json({ error: "User or counter already exist" });
 			} else {
 				next(error);
 			}
@@ -396,7 +396,7 @@ authRouter.post(
 			}
 		} catch (error) {
 			if (mongoErrorSchema.safeParse(error).success) {
-				res.status(409).json({ error: "Email or googleID already exists" });
+				res.status(409).json({ error: "User or counter already exist" });
 			} else {
 				next(error);
 			}
