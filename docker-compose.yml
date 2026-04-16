@@ -56,25 +56,6 @@ services:
     networks:
       - transcendence-network
 
-  notification-db:
-    image: postgres:15
-    container_name: notification-postgres
-    restart: unless-stopped
-
-    environment:
-      POSTGRES_DB: notification_db
-      POSTGRES_USER: notification_user
-      POSTGRES_PASSWORD: notification_password
-
-    ports:
-      - "5434:5432"
-
-    volumes:
-      - notification_pg_data:/var/lib/postgresql/data
-
-    networks:
-      - transcendence-network
-
   api-gateway:
     build:
       context: ./backend/services/api-gateway
@@ -146,27 +127,8 @@ services:
     networks:
       - transcendence-network
 
-  notification-service:
-    build:
-      context: ./backend/services/notification-service
-      dockerfile: Dockerfile
-    container_name: notification-service
-    restart: unless-stopped
-
-    environment:
-      NODE_ENV: development
-      PORT: 3003
-      DATABASE_URL: postgresql://notification_user:notification_password@notification-db:5432/notification_db
-
-    depends_on:
-      - notification-db
-
-    networks:
-      - transcendence-network
-
 volumes:
   core_pg_data:
-  notification_pg_data:
 
 networks:
   transcendence-network:
