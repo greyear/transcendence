@@ -11,7 +11,7 @@
  *
  * Shared flow:
  * 1. Extract token from cookie or Authorization header
- * 2. Send token to auth-service POST /auth/validate
+ * 2. Send token to auth-service POST /validate
  * 3. Parse and validate the response with Zod ({ id: number })
  * 4. Set req.userId + X-User-Id header (forwarded to core-service)
  *
@@ -47,7 +47,7 @@ function getErrorMessage(error: unknown): string {
 const MAX_SIGNED_INT = 2147483647;
 
 /**
- * Zod schema for the auth-service /auth/validate response.
+ * Zod schema for the auth-service /validate response.
  * Expects { id: <positive integer> } - coerces string to number just in case.
  */
 const authUserIdSchema = z.coerce
@@ -143,7 +143,7 @@ const validateTokenWithAuthService = async (
 	token: string,
 ): Promise<AuthResult> => {
 	try {
-		const response = await fetch(`${AUTH_SERVICE_URL}/auth/validate`, {
+		const response = await fetch(`${AUTH_SERVICE_URL}/validate`, {
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${token}`,
