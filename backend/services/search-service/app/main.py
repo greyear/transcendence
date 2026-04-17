@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import threading
+import uuid
 from datetime import datetime, timezone
 from typing import Any
 
@@ -31,6 +32,9 @@ _embedding_client: genai.Client | None = None
 _generation_client: genai.Client | None = None
 _maintenance_lock = threading.Lock()
 _last_prune_completed_at = datetime.min.replace(tzinfo=timezone.utc)
+_reindex_jobs: dict[str, dict[str, Any]] = {}
+_reindex_jobs_lock = threading.Lock()
+_reindex_worker_lock = threading.Lock()
 
 
 def utc_now_iso() -> str:
@@ -322,6 +326,105 @@ def delete_search_document(
         )
 
 
+def create_or_get_active_reindex_job() -> tuple[dict[str, Any], bool]:
+    with _reindex_jobs_lock:
+        for job in _reindex_jobs.values():
+            if job["status"] in {"queued", "running"}:
+                return job.copy(), False
+
+        job_id = str(uuid.uuid4())
+        job = {
+            "job_id": job_id,
+            "status": "queued",
+            "provider": LLM_PROVIDER,
+            "total_count": None,
+            "indexed_count": 0,
+            "deleted_count": 0,
+            "error": None,
+            "created_at": utc_now_iso(),
+            "started_at": None,
+            "finished_at": None,
+        }
+        _reindex_jobs[job_id] = job
+        return job.copy(), True
+
+
+def get_reindex_job(job_id: str) -> dict[str, Any] | None:
+    with _reindex_jobs_lock:
+        job = _reindex_jobs.get(job_id)
+        return job.copy() if job else None
+
+
+def update_reindex_job(job_id: str, **updates: Any) -> None:
+    with _reindex_jobs_lock:
+        job = _reindex_jobs.get(job_id)
+        if job is not None:
+            job.update(updates)
+
+
+def reindex_error_message(error: Exception) -> str:
+    if isinstance(error, HTTPException):
+        return str(error.detail)
+    return str(error) or error.__class__.__name__
+
+
+def run_reindex_job(job_id: str) -> None:
+    if not _reindex_worker_lock.acquire(blocking=False):
+        update_reindex_job(
+            job_id,
+            status="failed",
+            error="Another full reindex job is already running",
+            finished_at=utc_now_iso(),
+        )
+        return
+
+    try:
+        update_reindex_job(job_id, status="running", started_at=utc_now_iso())
+
+        with _maintenance_lock:
+            recipes = fetch_all_search_recipes()
+            active_recipe_ids = {
+                recipe["id"] for recipe in recipes if isinstance(recipe.get("id"), int)
+            }
+            update_reindex_job(job_id, total_count=len(recipes))
+
+            indexed_count = 0
+            deleted_count = 0
+            with psycopg.connect(SEARCH_DATABASE_URL) as connection:
+                for recipe in recipes:
+                    upsert_search_document(connection, recipe)
+                    indexed_count += 1
+                    update_reindex_job(job_id, indexed_count=indexed_count)
+
+                with connection.cursor() as cursor:
+                    cursor.execute("SELECT recipe_id FROM recipe_search_docs")
+                    existing_ids = {row[0] for row in cursor.fetchall()}
+
+                stale_ids = existing_ids - active_recipe_ids
+                for recipe_id in stale_ids:
+                    delete_search_document(connection, recipe_id)
+                    deleted_count += 1
+                    update_reindex_job(job_id, deleted_count=deleted_count)
+
+        update_reindex_job(
+            job_id,
+            status="completed",
+            indexed_count=indexed_count,
+            deleted_count=deleted_count,
+            finished_at=utc_now_iso(),
+        )
+    except Exception as error:
+        logger.exception("Full reindex job %s failed", job_id)
+        update_reindex_job(
+            job_id,
+            status="failed",
+            error=reindex_error_message(error),
+            finished_at=utc_now_iso(),
+        )
+    finally:
+        _reindex_worker_lock.release()
+
+
 def search_recipe_documents(
     connection: psycopg.Connection[Any], query: str, limit: int
 ) -> list[dict[str, Any]]:
@@ -504,15 +607,17 @@ def refresh_search_documents_if_stale(results: list[dict[str, Any]]) -> None:
 def prune_deleted_search_documents_if_due() -> None:
     global _last_prune_completed_at
 
-    now = datetime.now(timezone.utc)
-    if (now - _last_prune_completed_at).total_seconds() < SEARCH_PRUNE_INTERVAL_SECONDS:
-        return
-
     if not _maintenance_lock.acquire(blocking=False):
         logger.info("Skipping prune because search maintenance is already running")
         return
 
     try:
+        now = datetime.now(timezone.utc)
+        if (
+            now - _last_prune_completed_at
+        ).total_seconds() < SEARCH_PRUNE_INTERVAL_SECONDS:
+            return
+
         recipes = fetch_all_search_recipes()
         active_recipe_ids = {
             recipe["id"] for recipe in recipes if isinstance(recipe.get("id"), int)
@@ -534,7 +639,10 @@ def prune_deleted_search_documents_if_due() -> None:
 
 def require_internal_service_token(x_internal_service_token: str | None) -> None:
     if not INTERNAL_SERVICE_TOKEN:
-        return
+        raise HTTPException(
+            status_code=503,
+            detail="INTERNAL_SERVICE_TOKEN is not configured",
+        )
     if x_internal_service_token != INTERNAL_SERVICE_TOKEN:
         raise HTTPException(status_code=403, detail="Forbidden")
 
@@ -548,33 +656,38 @@ def health() -> dict[str, Any]:
     }
 
 
-@app.post("/admin/reindex")
+@app.post("/admin/reindex", status_code=202)
 def reindex_all(
+    background_tasks: BackgroundTasks,
     x_internal_service_token: str | None = Header(default=None),
 ) -> dict[str, Any]:
     require_internal_service_token(x_internal_service_token)
-    recipes = fetch_all_search_recipes()
+    job, created = create_or_get_active_reindex_job()
+    if created:
+        background_tasks.add_task(run_reindex_job, job["job_id"])
 
-    with psycopg.connect(SEARCH_DATABASE_URL) as connection:
-        active_recipe_ids = {
-            recipe["id"] for recipe in recipes if isinstance(recipe.get("id"), int)
-        }
-        for recipe in recipes:
-            upsert_search_document(connection, recipe)
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT recipe_id FROM recipe_search_docs")
-            existing_ids = {row[0] for row in cursor.fetchall()}
+    response_status = "accepted" if created else "already_running"
+    return {
+        "status": response_status,
+        "scope": "all",
+        "job_id": job["job_id"],
+        "job_status": job["status"],
+        "status_url": f"/admin/reindex/jobs/{job['job_id']}",
+    }
 
-        stale_ids = existing_ids - active_recipe_ids
-        for recipe_id in stale_ids:
-            delete_search_document(connection, recipe_id)
+
+@app.get("/admin/reindex/jobs/{job_id}")
+def get_reindex_job_status(
+    job_id: str,
+    x_internal_service_token: str | None = Header(default=None),
+) -> dict[str, Any]:
+    require_internal_service_token(x_internal_service_token)
+    job = get_reindex_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Reindex job not found")
 
     return {
-        "status": "completed",
-        "scope": "all",
-        "provider": LLM_PROVIDER,
-        "indexed_count": len(recipes),
-        "deleted_count": len(stale_ids),
+        "data": job,
     }
 
 

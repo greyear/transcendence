@@ -175,7 +175,7 @@ services:
       DATABASE_URL: postgresql://core_user:core_password@core-db:5432/core_db
       TRANSLATION_API_URL: http://translation-service:8001/translate
       TRANSLATION_TIMEOUT_MS: 4000
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-dev-internal-token}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
 
     depends_on:
       core-db:
@@ -224,7 +224,7 @@ services:
       GEMINI_EMBED_MODEL: gemini-embedding-001
       GEMINI_GEN_MODEL: gemini-2.5-flash
       OLLAMA_URL: http://host.docker.internal:11434
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-dev-internal-token}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
       SEARCH_PRUNE_INTERVAL_SECONDS: 300
 
     depends_on:
@@ -247,7 +247,7 @@ services:
       PORT: 8001
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_GEN_MODEL: gemini-2.5-flash
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:-dev-internal-token}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
       TRANSLATION_MAX_TEXT_LENGTH: 2000
       TRANSLATION_MAX_BATCH_ITEMS: 20
       TRANSLATION_MAX_TOTAL_CHARS: 12000

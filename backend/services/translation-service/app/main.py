@@ -213,7 +213,10 @@ def health() -> dict[str, str]:
 
 def require_internal_service_token(x_internal_service_token: str | None) -> None:
     if not INTERNAL_SERVICE_TOKEN:
-        return
+        raise HTTPException(
+            status_code=503,
+            detail="INTERNAL_SERVICE_TOKEN is not configured",
+        )
     if x_internal_service_token != INTERNAL_SERVICE_TOKEN:
         raise HTTPException(status_code=403, detail="Forbidden")
 

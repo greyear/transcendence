@@ -34,25 +34,41 @@ docker compose up -d --build search-service core-service api-gateway
 Full reindex:
 
 ```bash
-curl -X POST http://localhost:8000/admin/reindex \
-  -H "X-Internal-Service-Token: dev-internal-token"
+set -a; source .env; set +a
+curl -s -X POST http://localhost:8000/admin/reindex \
+  -H "X-Internal-Service-Token: $INTERNAL_SERVICE_TOKEN" | jq
 ```
 
 What to check:
 
-- response succeeds
-- `indexed_count` looks reasonable for the seeded/local dataset
+- response returns quickly
+- `status` is `accepted`
+- response includes a `job_id`
 
 Example expected shape:
 
 ```json
 {
-  "status": "completed",
+  "status": "accepted",
   "scope": "all",
-  "provider": "gemini",
-  "indexed_count": 21
+  "job_id": "91e27f62-0d95-49a6-93ea-f9381c9d5669",
+  "job_status": "queued",
+  "status_url": "/admin/reindex/jobs/91e27f62-0d95-49a6-93ea-f9381c9d5669"
 }
 ```
+
+Check job progress:
+
+```bash
+JOB_ID="<job_id from the previous response>"
+curl -s "http://localhost:8000/admin/reindex/jobs/$JOB_ID" \
+  -H "X-Internal-Service-Token: $INTERNAL_SERVICE_TOKEN" | jq
+```
+
+What to check:
+
+- `status` eventually becomes `completed`
+- `indexed_count` looks reasonable for the seeded/local dataset
 
 ## 2. Inspect Indexed Search Data
 

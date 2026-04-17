@@ -119,7 +119,8 @@ There is one endpoint in `translation-service`:
 
 - `POST /translate`
 
-If `INTERNAL_SERVICE_TOKEN` is configured, callers must send `X-Internal-Service-Token`.
+Callers must send `X-Internal-Service-Token`; Docker Compose now requires
+`INTERNAL_SERVICE_TOKEN` to be set instead of falling back to a default value.
 
 It supports 2 payload shapes.
 

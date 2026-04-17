@@ -67,24 +67,29 @@ They return the fields needed for search indexing, including:
 
 Reindexing is how `search-db` gets populated or refreshed.
 
-There are 2 admin endpoints in `search-service`:
+There are 3 admin endpoints in `search-service`:
 
 - `POST /admin/reindex`
+- `GET /admin/reindex/jobs/{job_id}`
 - `POST /admin/reindex/{recipe_id}`
 
-These are internal maintenance endpoints.
-If `INTERNAL_SERVICE_TOKEN` is configured, callers must send `X-Internal-Service-Token`.
+These are admin maintenance endpoints.
+Callers must send `X-Internal-Service-Token`; Docker Compose now requires
+`INTERNAL_SERVICE_TOKEN` to be set instead of falling back to a default value.
 
 ### Full reindex
 
 Flow:
 
-1. `search-service` calls `core-service /internal/search/recipes`
-2. it receives published recipe documents
-3. each recipe is normalized into one search document
-4. one combined `searchable_text` field is built
-5. Gemini creates an embedding vector from that text
-6. the document is inserted or updated in `search-db`
+1. `POST /admin/reindex` creates an in-process reindex job and returns `job_id`
+2. the HTTP request finishes immediately with `status: accepted`
+3. a background task calls `core-service /internal/search/recipes`
+4. each recipe is normalized into one search document
+5. one combined `searchable_text` field is built
+6. Gemini creates an embedding vector from that text
+7. the document is inserted or updated in `search-db`
+8. stale search rows are deleted
+9. `GET /admin/reindex/jobs/{job_id}` returns progress and final status
 
 ### Single recipe reindex
 
