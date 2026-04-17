@@ -2,7 +2,16 @@
 
 A full-stack recipe-sharing platform for discovering, creating, and managing recipes with social features. Users can follow other cooks, save favourites, leave comments, and browse a wide range of culinary content.
 
-Below is the application README. For the project and progress log, click [here](docs/README2.md).
+Below is the application README. For more details regarding the project and its progress, click [here](docs/README2.md).
+
+## Team members and roles
+
+Our team consists of 5 members:
+	- Anya Zinchenko (Project Manager and Product Owner)
+	- Nick Saveliev (Product Owner and Technical Lead)
+	- Eric Lehtonen (Developer)
+	- Jimi Karhu (Developer)
+	- Seela Salorinta (Developer)
 
 ## Quick Start (Makefile)
 

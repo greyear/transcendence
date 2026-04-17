@@ -85,4 +85,8 @@
 21. 15/4/2026
 22. 16/4/2026 - Group work together at Hive
     1. Integration and debugging of integration
-    2. 
+    2. Anya: Pagination and follower endpoints
+	3. Eric: Documentation and repo cleaning.
+	4. Nick: Working on recipe creation
+	5. Seela: Recipe reviews and fixing a 401/token issue
+23. 17/4/2026 
