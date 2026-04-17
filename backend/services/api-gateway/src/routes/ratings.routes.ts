@@ -28,7 +28,6 @@ export const ratingsRouter = Router({ mergeParams: true });
  */
 const createRatingHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		console.log("gateway POST /recipes/:id/rating req.body", req.body);
 		const response = await fetch(
 			`${CORE_SERVICE_URL}/recipes/${req.params.id}/rating`,
 			{
@@ -56,7 +55,6 @@ const createRatingHandler: RequestHandler = async (req, res, _next) => {
  */
 const updateRatingHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		console.log("gateway PUT /recipes/:id/rating req.body", req.body);
 		const response = await fetch(
 			`${CORE_SERVICE_URL}/recipes/${req.params.id}/rating`,
 			{

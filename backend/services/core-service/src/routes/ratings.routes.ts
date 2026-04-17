@@ -39,7 +39,6 @@ const createRatingHandler = async (
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		console.log("core POST /recipes/:id/rating req.body", req.body);
 		if (req.userId === undefined) {
 			const error: CustomError = new Error("Authentication required");
 			error.statusCode = 401;
@@ -95,7 +94,6 @@ const updateRatingHandler = async (
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		console.log("core PUT /recipes/:id/rating req.body", req.body);
 		if (req.userId === undefined) {
 			const error: CustomError = new Error("Authentication required");
 			error.statusCode = 401;
