@@ -194,7 +194,7 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(fetchSpy).toHaveBeenNthCalledWith(
 			1,
-			expect.stringContaining("/auth/validate"),
+			expect.stringContaining("/validate"),
 			expect.objectContaining({
 				method: "POST",
 				headers: { Authorization: "Bearer validtoken" },
@@ -281,7 +281,7 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(fetchSpy).toHaveBeenNthCalledWith(
 			1,
-			expect.stringContaining("/auth/validate"),
+			expect.stringContaining("/validate"),
 			expect.objectContaining({
 				method: "POST",
 				headers: { Authorization: "Bearer validtoken" },
@@ -460,7 +460,7 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(fetchSpy).toHaveBeenNthCalledWith(
 			1,
-			expect.stringContaining("/auth/validate"),
+			expect.stringContaining("/validate"),
 			expect.objectContaining({
 				method: "POST",
 				headers: { Authorization: "Bearer validtoken" },
@@ -576,7 +576,7 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(fetchSpy).toHaveBeenNthCalledWith(
 			1,
-			expect.stringContaining("/auth/validate"),
+			expect.stringContaining("/validate"),
 			expect.objectContaining({
 				method: "POST",
 				headers: { Authorization: "Bearer validtoken" },
@@ -801,7 +801,7 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(fetchSpy).toHaveBeenNthCalledWith(
 			1,
-			expect.stringContaining("/auth/validate"),
+			expect.stringContaining("/validate"),
 			expect.objectContaining({
 				method: "POST",
 				headers: { Authorization: "Bearer validtoken" },
@@ -1118,7 +1118,7 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(fetchSpy).toHaveBeenNthCalledWith(
 			1,
-			expect.stringContaining("/auth/validate"),
+			expect.stringContaining("/validate"),
 			expect.objectContaining({
 				method: "POST",
 				headers: { Authorization: "Bearer validtoken" },
@@ -1261,7 +1261,7 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(fetchSpy).toHaveBeenNthCalledWith(
 			1,
-			expect.stringContaining("/auth/validate"),
+			expect.stringContaining("/validate"),
 			expect.objectContaining({
 				method: "POST",
 				headers: { Authorization: "Bearer validtoken" },

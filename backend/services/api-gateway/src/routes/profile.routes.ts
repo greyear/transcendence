@@ -24,11 +24,17 @@ export const profileRouter = Router();
 
 const getProfileHandler: RequestHandler = async (req, res, _next) => {
 	try {
+		console.info(
+			`[api-gateway] profile:get start userId=${String((req as any).userId)} x-user-id=${String(req.headers["x-user-id"] ?? "")}`,
+		);
 		const response = await fetch(`${CORE_SERVICE_URL}/profile`, {
 			headers: getInternalHeaders(req),
 			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 		});
 		const data = await response.json();
+		console.info(
+			`[api-gateway] profile:get done status=${response.status} userId=${String((req as any).userId)}`,
+		);
 		res.status(response.status).json(data);
 	} catch (error) {
 		if (isTimeoutError(error)) {

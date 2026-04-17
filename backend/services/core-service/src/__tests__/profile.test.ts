@@ -71,6 +71,43 @@ describe("GET /profile", () => {
 	});
 });
 
+// ── POST /profile/register ───────────────────────────────────────────────────
+
+describe("POST /profile/register", () => {
+	it("should create a core profile with default values", async () => {
+		const userId = TEST_USER_BASE_ID + 11;
+
+		try {
+			const response = await request(app)
+				.post("/profile/register")
+				.send({ id: userId });
+
+			expect(response.status).toBe(201);
+			expect(response.body).toHaveProperty("message", "Profile registered");
+			expect(response.body.data).toHaveProperty("id", userId);
+			expect(response.body.data).toHaveProperty(
+				"username",
+				`username_${userId}`,
+			);
+			expect(response.body.data).toHaveProperty("avatar", null);
+
+			const dbResult = await pool.query(
+				`SELECT username, role, status, avatar FROM users WHERE id = $1`,
+				[userId],
+			);
+
+			expect(dbResult.rows[0]).toMatchObject({
+				username: `username_${userId}`,
+				role: "user",
+				status: "offline",
+				avatar: null,
+			});
+		} finally {
+			await deleteUsers(userId);
+		}
+	});
+});
+
 // ── PUT /profile ──────────────────────────────────────────────────────────────
 
 describe("PUT /profile", () => {

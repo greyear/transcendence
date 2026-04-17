@@ -23,6 +23,10 @@
 	border: none;
 }
 
+.input-field::placeholder {
+	color: var(--text-secondary);
+}
+
 .input-field:focus {
 	outline: none;
 }

@@ -44,7 +44,11 @@ const RecipesPage = () => {
 			<PageHeader
 				title={t("recipesPage.title")}
 				totalLabel={`${t("recipesPage.totalCount")} ${totalCount}`}
-				action={<MainButton>{t("recipesPage.createButton")}</MainButton>}
+				action={
+					<MainButton to="/recipes/create">
+						{t("recipesPage.createButton")}
+					</MainButton>
+				}
 			/>
 
 			<SearchField placeholder={t("common.searchPlaceholder")} />
