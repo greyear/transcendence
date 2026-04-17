@@ -36,6 +36,7 @@ import {
 	type SupportedLocale,
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
+	PaginatedResponse,
 } from "../validation/schemas.js";
 import {
 	localizeInstructionStepsFromSource,
@@ -420,14 +421,6 @@ export const getAllRecipes = async (
 	}
 };
 
-export type PaginatedRecipes = {
-	data: RecipeListItem[];
-	total_count: number;
-	total_pages: number;
-	page: number;
-	per_page: number;
-};
-
 /**
  * Get published recipes for exact page
  */
@@ -435,7 +428,7 @@ export const getAllRecipesPaginated = async (
 	page: number,
 	perPage: number,
 	locale: SupportedLocale = DEFAULT_LOCALE,
-): Promise<PaginatedRecipes> => {
+): Promise<PaginatedResponse<RecipeListItem>> => {
 	try {
 		const offset = (page - 1) * perPage;
 

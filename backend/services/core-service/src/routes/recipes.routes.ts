@@ -26,7 +26,6 @@ import {
 	archiveRecipe,
 	createRecipe,
 	deleteReview,
-	getAllRecipes,
 	getAllRecipesPaginated,
 	getRecipeById,
 	getRecipeReviews,
@@ -48,6 +47,7 @@ import {
 	validateReviewId,
 	validateUpdateRecipeInput,
 	validateUpdateRecipeReviewInput,
+	validatePaginationQuery,
 } from "../validation/schemas.js";
 import { ratingsRouter } from "./ratings.routes.js";
 
@@ -489,13 +489,12 @@ const getAllRecipesHandler = async (
 	try {
 		const locale = resolveRequestedLocale(req);
 
-		const page = Math.max(1, Number.parseInt(req.query.page as string) || 1);
-		const perPage = Math.min(
-			100,
-			Math.max(1, Number.parseInt(req.query.per_page as string) || 12),
-		);
-
-		const result = await getAllRecipesPaginated(page, perPage, locale);
+		const pagination = validatePaginationQuery(req.query);
+		if (!pagination.valid) {
+			res.status(400).json({ error: pagination.error });
+			return;
+		}
+		const result = await getAllRecipesPaginated(pagination.value.page, pagination.value.per_page, locale);
 		res.status(200).json(result);
 	} catch (error) {
 		next(error);

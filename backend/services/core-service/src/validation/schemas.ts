@@ -412,21 +412,31 @@ export type FavoriteRecipeListItem = z.infer<
 	typeof favoriteRecipeListItemSchema
 >;
 
-export const PaginatedResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
-	z.object({
-		data: z.array(itemSchema),
-		total_pages: z.number().int().nonnegative(),
-		total_count: z.number().int().nonnegative(),
-		page: z.number().int().positive(),
-		per_page: z.number().int().positive(),
-	});
-
 export type PaginatedResponse<T> = {
 	data: T[];
 	total_count: number;
 	total_pages: number;
 	page: number;
 	per_page: number;
+};
+
+const paginationQuerySchema = z.object({
+	page: z.coerce.number().int().positive().default(1),
+	per_page: z.coerce.number().int().min(1).max(100).default(12),
+});
+
+export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
+
+export const validatePaginationQuery = (
+	input: unknown,
+): ValidationResult<PaginationQuery> => {
+	const result = paginationQuerySchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+	
+	return { valid: false, error: result.error.issues[0]?.message ?? "Invalid pagination parameters" };
 };
 
 /**
