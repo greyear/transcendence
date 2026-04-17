@@ -32,7 +32,9 @@ jobs:
 
       - name: Wait for API Gateway to be ready
         run: |
-          echo "Waiting for API Gateway to be ready..."
+          echo "Creating certificates for API Gateway..."
+          make certs
+          echo "Certificates created, waiting for API Gateway to be ready..."
           for i in {1..60}; do
             if curl -f -k https://localhost:8443/health >/dev/null 2>&1; then
               echo "✓ API Gateway is ready"
