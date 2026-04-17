@@ -88,10 +88,7 @@
 	"loginPage": {
 		"title": "Log in",
 		"signupTitle": "Create an account",
-		"usernameLabel": "Username or email",
-		"signupUsernameLabel": "Username",
-		"usernameRequirements": "Use 3-20 characters with letters, numbers, and underscores only.",
-		"emailLabel": "Email",
+		"emailLabel": "Email address",
 		"passwordLabel": "Password",
 		"passwordRequirements": "Use 8-64 characters, including uppercase, lowercase, a number, and a special character.",
 		"genericError": "Sign in failed. Please try again.",
@@ -103,7 +100,7 @@
 		"googleLoginButton": "Log in with Google",
 		"googleSignupButton": "Sign up with Google",
 		"signupSubmittingButton": "Creating account...",
-		"signupSuccess": "Account created. You can sign in now.",
+		"signupSuccess": "Account created. You are signed in.",
 		"toggleSignupPrompt": "Need an account? Create one",
 		"toggleLoginPrompt": "Already have an account? Back to sign in"
 	},

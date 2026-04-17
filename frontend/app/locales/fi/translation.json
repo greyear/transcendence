@@ -88,10 +88,7 @@
 	"loginPage": {
 		"title": "Kirjaudu sisään",
 		"signupTitle": "Luo tili",
-		"usernameLabel": "Käyttäjätunnus tai sähköposti",
-		"signupUsernameLabel": "Käyttäjätunnus",
-		"usernameRequirements": "Käytä 3-20 merkkiä ja vain kirjaimia, numeroita sekä alaviivaa.",
-		"emailLabel": "Sähköposti",
+		"emailLabel": "Sähköpostiosoite",
 		"passwordLabel": "Salasana",
 		"passwordRequirements": "Käytä 8-64 merkkiä ja sisällytä iso kirjain, pieni kirjain, numero sekä erikoismerkki.",
 		"genericError": "Kirjautuminen epäonnistui. Yritä uudelleen.",
@@ -103,7 +100,7 @@
 		"googleLoginButton": "Kirjaudu sisään Googlella",
 		"googleSignupButton": "Luo tili Googlella",
 		"signupSubmittingButton": "Luodaan tiliä...",
-		"signupSuccess": "Tili luotu. Voit nyt kirjautua sisään.",
+		"signupSuccess": "Tili luotu. Olet kirjautunut sisään.",
 		"toggleSignupPrompt": "Tarvitsetko tilin? Luo sellainen",
 		"toggleLoginPrompt": "Onko sinulla jo tili? Kirjaudu sisään"
 	},
