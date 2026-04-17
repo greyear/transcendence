@@ -178,6 +178,9 @@
 	cursor: grab;
 	width: var(--icon-button-size);
 	height: var(--icon-button-size);
+	background: transparent;
+	border: none;
+	padding: 0;
 }
 
 .recipe-drag-handle svg {

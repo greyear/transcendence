@@ -24,14 +24,14 @@
 		"all": "все"
 	},
 	"cooksRow": {
-		"loading": "Загружаем авторов...",
-		"empty": "Авторы не найдены.",
-		"error": "Не удалось загрузить авторов (статус: {{status}})."
+		"loading": "Загружаем пользователей...",
+		"empty": "Пользователи не найдены.",
+		"error": "Не удалось загрузить пользователей (статус: {{status}})."
 	},
 	"layout": {
 		"home": "Главная",
 		"recipes": "Рецепты",
-		"users": "Авторы рецептов",
+		"users": "Пользователи",
 		"terms": "Условия использования",
 		"policy": "Конфиденциальность",
 		"profile": "Профиль"
@@ -69,7 +69,7 @@
 		"submit": "Отправить"
 	},
 	"usersPage": {
-		"title": "Авторы рецептов",
+		"title": "Пользователи",
 		"totalCount": "Всего авторов:",
 		"tabAll": "Все",
 		"tabFollowers": "Подписчики",
@@ -169,6 +169,61 @@
 		"changesText": "Мы можем периодически обновлять настоящие Условия использования. Продолжение использования платформы после внесения изменений означает принятие обновлённых условий.",
 		"contactTitle": "Контакты",
 		"contactText": "Если у вас есть вопросы по настоящим условиям, свяжитесь с нами по адресу msavelie@student.hive.fi."
+	},
+	"formValidation": {
+		"required": "Это поле обязательно.",
+		"invalidEmail": "Введите корректный адрес электронной почты.",
+		"tooShort": "Введите не менее {{count}} символов.",
+		"tooLong": "Введите не более {{count}} символов.",
+		"patternMismatch": "Значение не соответствует требуемому формату."
+	},
+	"recipeCreatePage": {
+		"title": "Добавить рецепт",
+		"subtitle": "Знаете рецепт, достойный славы? Поделитесь им с нами <3",
+		"recipeTitleLabel": "Название рецепта",
+		"recipeTitlePlaceholder": "Название рецепта",
+		"descriptionLabel": "Краткое описание",
+		"descriptionPlaceholder": "Опишите свой рецепт так, чтобы слюнки потекли.",
+		"servingsLabel": "Порции",
+		"servingsPlaceholder": "например, 2",
+		"prepTimeLegend": "Время подготовки",
+		"cookTimeLegend": "Время приготовления",
+		"hoursPlaceholder": "часы",
+		"minutesPlaceholder": "минуты",
+		"ingredientsHeading": "Ингредиенты",
+		"instructionsHeading": "Инструкции",
+		"ingredientNamePlaceholder": "Название ингредиента",
+		"ingredientAmountPlaceholder": "Кол-во",
+		"instructionPlaceholder": "Опишите этот шаг…",
+		"addIngredient": "+ Добавить ингредиент",
+		"addStep": "+ Добавить шаг",
+		"addPhoto": "Добавить фото",
+		"recipePreview": "Превью рецепта",
+		"submitButton": "Создать",
+		"submittingButton": "Создание...",
+		"createSuccess": "Рецепт создан.",
+		"createError": "Не удалось создать рецепт (код: {{status}}).",
+		"networkError": "Не удалось связаться с сервером. Попробуйте снова.",
+		"genericError": "Исправьте ошибки выше."
+	},
+	"recipeCreateAria": {
+		"addPhoto": "Добавить фото рецепта",
+		"prepHours": "Время подготовки в часах",
+		"prepMinutes": "Время подготовки в минутах",
+		"cookHours": "Время приготовления в часах",
+		"cookMinutes": "Время приготовления в минутах",
+		"ingredientsList": "Список ингредиентов",
+		"instructionsList": "Список инструкций",
+		"ingredientName": "Название ингредиента {{number}}",
+		"ingredientAmount": "Количество ингредиента {{number}}",
+		"ingredientUnit": "Единица измерения ингредиента {{number}}",
+		"ingredientLegend": "Ингредиент {{number}}",
+		"removeIngredient": "Удалить ингредиент {{number}}",
+		"reorderIngredient": "Переместить ингредиент {{number}}",
+		"stepLabel": "Шаг {{number}}",
+		"stepDescription": "Описание шага {{number}}",
+		"removeStep": "Удалить шаг {{number}}",
+		"reorderStep": "Переместить шаг {{number}}"
 	},
 	"ariaLabels": {
 		"addToFavorites": "Добавить в избранное",

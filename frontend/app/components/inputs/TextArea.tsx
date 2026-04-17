@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from "react";
+import { useTranslation } from "react-i18next";
 import "../../assets/styles/textArea.css";
 
 type TextAreaProps = {
@@ -30,7 +31,15 @@ export const TextArea = ({
 	describedBy,
 	footer,
 }: TextAreaProps) => {
-	const [error, setError] = useState("");
+	const { t } = useTranslation();
+	const [errorState, setErrorState] = useState<
+		{ kind: "required" } | { kind: "custom"; message: string } | null
+	>(null);
+	const error = errorState
+		? errorState.kind === "required"
+			? t("formValidation.required")
+			: errorState.message
+		: "";
 	const errorId = `${id}-error`;
 	const describedByIds =
 		[error ? errorId : null, describedBy].filter(Boolean).join(" ") ||
@@ -54,14 +63,17 @@ export const TextArea = ({
 				aria-describedby={describedByIds}
 				onChange={(e) => {
 					onChange(e.target.value);
-					setError("");
+					setErrorState(null);
 				}}
 				onBlur={(e) => {
 					if (!e.currentTarget.checkValidity()) {
-						setError(
+						setErrorState(
 							e.currentTarget.validity.valueMissing
-								? "This field is required."
-								: e.currentTarget.validationMessage,
+								? { kind: "required" }
+								: {
+										kind: "custom",
+										message: e.currentTarget.validationMessage,
+									},
 						);
 					}
 				}}

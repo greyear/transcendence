@@ -1,4 +1,5 @@
 import { PlusCircle } from "iconoir-react";
+import { useTranslation } from "react-i18next";
 
 type RecipePhotoUploadProps = {
 	photoPreview: string | null;
@@ -9,22 +10,23 @@ export const RecipePhotoUpload = ({
 	photoPreview,
 	onChange,
 }: RecipePhotoUploadProps) => {
+	const { t } = useTranslation();
 	return (
 		<label
 			htmlFor="recipe-photo"
 			className="recipe-photo-upload"
-			aria-label="Add a recipe photo"
+			aria-label={t("recipeCreateAria.addPhoto")}
 		>
 			{photoPreview ? (
 				<img
 					src={photoPreview}
-					alt="Recipe preview"
+					alt={t("recipeCreatePage.recipePreview")}
 					className="recipe-photo-preview"
 				/>
 			) : (
 				<span className="recipe-photo-button">
 					<PlusCircle aria-hidden="true" />
-					Add a photo
+					{t("recipeCreatePage.addPhoto")}
 				</span>
 			)}
 			<input
