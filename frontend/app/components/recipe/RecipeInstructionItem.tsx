@@ -1,10 +1,17 @@
 import type { DraggableProvided } from "@hello-pangea/dnd";
 import { Menu, XmarkCircle } from "iconoir-react";
+import { IconButton } from "~/components/buttons/IconButton";
+import { TextArea } from "~/components/inputs/TextArea";
 
 export type InstructionRow = {
 	id: string;
 	text: string;
 };
+
+export const createInstruction = (): InstructionRow => ({
+	id: crypto.randomUUID(),
+	text: "",
+});
 
 type RecipeInstructionItemProps = {
 	step: InstructionRow;
@@ -34,26 +41,26 @@ export const RecipeInstructionItem = ({
 				<span className="recipe-drag-handle" {...provided.dragHandleProps}>
 					<Menu aria-hidden="true" />
 				</span>
-				<textarea
-					className="recipe-instruction-textarea"
+				<TextArea
+					id={step.id}
+					wrapperClassName="recipe-instruction-body"
+					className="recipe-instruction-textarea text-body3"
 					value={step.text}
+					onChange={onChange}
+					placeholder="Describe this step…"
+					required
 					rows={1}
-					onChange={(e) => {
-						onChange(e.target.value);
-						e.target.style.height = "auto";
-						e.target.style.height = `${e.target.scrollHeight}px`;
-					}}
 					aria-label={`Step ${index + 1} description`}
 				/>
-				<button
-					type="button"
+				<IconButton
+					variant="transparent"
 					className="recipe-remove-button"
 					onClick={onRemove}
 					aria-label={`Remove step ${index + 1}`}
 					disabled={isOnly}
 				>
 					<XmarkCircle aria-hidden="true" />
-				</button>
+				</IconButton>
 			</div>
 		</li>
 	);

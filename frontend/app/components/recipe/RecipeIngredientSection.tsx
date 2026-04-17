@@ -1,54 +1,44 @@
 import type { DropResult } from "@hello-pangea/dnd";
-import { DragDropContext } from "@hello-pangea/dnd";
-import { useId, useState } from "react";
+import { DragDropContext, Draggable } from "@hello-pangea/dnd";
 import type { IngredientRow } from "~/components/recipe/RecipeIngredientRow";
-import { RecipeIngredientRow } from "~/components/recipe/RecipeIngredientRow";
-import { RecipeSortableItem } from "~/components/recipe/RecipeSortableItem";
+import {
+	createIngredient,
+	RecipeIngredientRow,
+} from "~/components/recipe/RecipeIngredientRow";
 import { RecipeSortableList } from "~/components/recipe/RecipeSortableList";
 
-const newId = () => Math.random().toString(36).slice(2);
-
 type RecipeIngredientSectionProps = {
+	rows: IngredientRow[];
 	onChange: (rows: IngredientRow[]) => void;
 };
 
 export const RecipeIngredientSection = ({
+	rows,
 	onChange,
 }: RecipeIngredientSectionProps) => {
-	const baseId = useId();
-	const [rows, setRows] = useState<IngredientRow[]>([
-		{ id: `${baseId}-i0`, amount: "", unit: "g", name: "" },
-	]);
-
-	const update = (next: IngredientRow[]) => {
-		setRows(next);
-		onChange(next);
-	};
-
 	const handleDragEnd = (result: DropResult) => {
 		if (!result.destination) {
 			return;
 		}
 		const next = [...rows];
-		const [removed] = next.splice(result.source.index, 1);
-		next.splice(result.destination.index, 0, removed);
-		update(next);
+		const [moved] = next.splice(result.source.index, 1);
+		next.splice(result.destination.index, 0, moved);
+		onChange(next);
 	};
 
 	const handleAdd = () => {
-		update([...rows, { id: newId(), amount: "", unit: "g", name: "" }]);
+		onChange([...rows, createIngredient()]);
 	};
 
 	const handleRemove = (id: string) => {
-		update(rows.filter((r) => r.id !== id));
+		onChange(rows.filter((r) => r.id !== id));
 	};
 
 	const handleChange = (
 		id: string,
-		field: keyof Omit<IngredientRow, "id">,
-		value: string,
+		patch: Partial<Omit<IngredientRow, "id">>,
 	) => {
-		update(rows.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
+		onChange(rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
 	};
 
 	return (
@@ -70,20 +60,18 @@ export const RecipeIngredientSection = ({
 					ariaLabel="Ingredients list"
 				>
 					{rows.map((row, index) => (
-						<RecipeSortableItem key={row.id} id={row.id} index={index}>
+						<Draggable key={row.id} draggableId={row.id} index={index}>
 							{(provided) => (
 								<RecipeIngredientRow
 									provided={provided}
 									ingredient={row}
 									index={index}
 									isOnly={rows.length === 1}
-									onChange={(field, value) =>
-										handleChange(row.id, field, value)
-									}
+									onChange={(patch) => handleChange(row.id, patch)}
 									onRemove={() => handleRemove(row.id)}
 								/>
 							)}
-						</RecipeSortableItem>
+						</Draggable>
 					))}
 				</RecipeSortableList>
 			</DragDropContext>

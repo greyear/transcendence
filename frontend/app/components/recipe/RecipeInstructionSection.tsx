@@ -1,50 +1,41 @@
 import type { DropResult } from "@hello-pangea/dnd";
-import { DragDropContext } from "@hello-pangea/dnd";
-import { useId, useState } from "react";
+import { DragDropContext, Draggable } from "@hello-pangea/dnd";
 import type { InstructionRow } from "~/components/recipe/RecipeInstructionItem";
-import { RecipeInstructionItem } from "~/components/recipe/RecipeInstructionItem";
-import { RecipeSortableItem } from "~/components/recipe/RecipeSortableItem";
+import {
+	createInstruction,
+	RecipeInstructionItem,
+} from "~/components/recipe/RecipeInstructionItem";
 import { RecipeSortableList } from "~/components/recipe/RecipeSortableList";
 
-const newId = () => Math.random().toString(36).slice(2);
-
 type RecipeInstructionSectionProps = {
+	rows: InstructionRow[];
 	onChange: (rows: InstructionRow[]) => void;
 };
 
 export const RecipeInstructionSection = ({
+	rows,
 	onChange,
 }: RecipeInstructionSectionProps) => {
-	const baseId = useId();
-	const [rows, setRows] = useState<InstructionRow[]>([
-		{ id: `${baseId}-s0`, text: "" },
-	]);
-
-	const update = (next: InstructionRow[]) => {
-		setRows(next);
-		onChange(next);
-	};
-
 	const handleDragEnd = (result: DropResult) => {
 		if (!result.destination) {
 			return;
 		}
 		const next = [...rows];
-		const [removed] = next.splice(result.source.index, 1);
-		next.splice(result.destination.index, 0, removed);
-		update(next);
+		const [moved] = next.splice(result.source.index, 1);
+		next.splice(result.destination.index, 0, moved);
+		onChange(next);
 	};
 
 	const handleAdd = () => {
-		update([...rows, { id: newId(), text: "" }]);
+		onChange([...rows, createInstruction()]);
 	};
 
 	const handleRemove = (id: string) => {
-		update(rows.filter((r) => r.id !== id));
+		onChange(rows.filter((r) => r.id !== id));
 	};
 
 	const handleChange = (id: string, value: string) => {
-		update(rows.map((r) => (r.id === id ? { ...r, text: value } : r)));
+		onChange(rows.map((r) => (r.id === id ? { ...r, text: value } : r)));
 	};
 
 	return (
@@ -63,9 +54,10 @@ export const RecipeInstructionSection = ({
 					droppableId="instructions"
 					type="instructions"
 					className="recipe-create-list recipe-instructions-list"
+					ariaLabel="Instructions list"
 				>
 					{rows.map((row, index) => (
-						<RecipeSortableItem key={row.id} id={row.id} index={index}>
+						<Draggable key={row.id} draggableId={row.id} index={index}>
 							{(provided) => (
 								<RecipeInstructionItem
 									provided={provided}
@@ -76,7 +68,7 @@ export const RecipeInstructionSection = ({
 									onRemove={() => handleRemove(row.id)}
 								/>
 							)}
-						</RecipeSortableItem>
+						</Draggable>
 					))}
 				</RecipeSortableList>
 			</DragDropContext>

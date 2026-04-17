@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
 import { InputField } from "~/components/inputs/InputField";
+import { TextArea } from "~/components/inputs/TextArea";
 import { RecipeFormField } from "~/components/recipe/RecipeFormField";
 import { RecipeFormFieldset } from "~/components/recipe/RecipeFormFieldset";
 import type { IngredientRow } from "~/components/recipe/RecipeIngredientRow";
@@ -11,58 +12,150 @@ import { RecipeInstructionSection } from "~/components/recipe/RecipeInstructionS
 import { RecipePhotoUpload } from "~/components/recipe/RecipePhotoUpload";
 import "../assets/styles/recipe-create.css";
 
-const RecipeFormSchema = z.object({
-	title: z.string().min(1, "Recipe title is required"),
-	description: z
-		.string()
-		.min(1, "Description is required")
-		.max(128, "Description must be at most 128 characters"),
-	servings: z.string().min(1, "Servings is required"),
-	prepHours: z.string(),
-	prepMinutes: z.string(),
-	cookHours: z.string(),
-	cookMinutes: z.string(),
-	ingredients: z
-		.array(
-			z.object({
-				amount: z.string().min(1, "Ingredient amount is required"),
-				unit: z.string().min(1, "Ingredient unit is required"),
-				name: z.string().min(1, "Ingredient name is required"),
-			}),
-		)
-		.min(1, "At least one ingredient is required"),
-	instructions: z
-		.array(z.object({ text: z.string().min(1, "Step text is required") }))
-		.min(1, "At least one instruction step is required"),
-});
+const DESCRIPTION_MAX = 128;
+
+type NumOrEmpty = number | "";
+
+const emptyToUndef = (v: unknown) => (v === "" ? undefined : v);
+
+const servingsSchema = z.preprocess(
+	emptyToUndef,
+	z
+		.number({ error: "Servings is required" })
+		.int("Servings must be a whole number")
+		.positive("Servings must be a positive integer"),
+);
+
+const hoursSchema = (field: string) =>
+	z.preprocess(
+		emptyToUndef,
+		z
+			.number({ error: `${field} is required` })
+			.int("Hours must be a whole number")
+			.nonnegative("Hours must be 0 or more"),
+	);
+
+const minutesSchema = (field: string) =>
+	z.preprocess(
+		emptyToUndef,
+		z
+			.number({ error: `${field} is required` })
+			.int("Minutes must be a whole number")
+			.min(0, "Minutes must be 0–59")
+			.max(59, "Minutes must be 0–59"),
+	);
+
+const amountSchema = z.preprocess(
+	emptyToUndef,
+	z
+		.number({ error: "Ingredient amount is required" })
+		.positive("Ingredient amount must be positive"),
+);
+
+const RecipeFormSchema = z
+	.object({
+		title: z.string().min(1, "Recipe title is required"),
+		description: z
+			.string()
+			.min(1, "Description is required")
+			.max(
+				DESCRIPTION_MAX,
+				`Description must be at most ${DESCRIPTION_MAX} characters`,
+			),
+		servings: servingsSchema,
+		prepHours: hoursSchema("Prep hours"),
+		prepMinutes: minutesSchema("Prep minutes"),
+		cookHours: hoursSchema("Cook hours"),
+		cookMinutes: minutesSchema("Cook minutes"),
+		ingredients: z
+			.array(
+				z.object({
+					amount: amountSchema,
+					unit: z.string().min(1, "Ingredient unit is required"),
+					name: z.string().min(1, "Ingredient name is required"),
+				}),
+			)
+			.min(1, "At least one ingredient is required"),
+		instructions: z
+			.array(z.object({ text: z.string().min(1, "Step text is required") }))
+			.min(1, "At least one instruction step is required"),
+	})
+	.refine((d) => d.prepHours * 60 + d.prepMinutes > 0, {
+		message: "Prep time must be greater than 0",
+		path: ["prepHours"],
+	})
+	.refine((d) => d.cookHours * 60 + d.cookMinutes > 0, {
+		message: "Cook time must be greater than 0",
+		path: ["cookHours"],
+	});
+
+type FormState = {
+	title: string;
+	description: string;
+	servings: NumOrEmpty;
+	prepHours: NumOrEmpty;
+	prepMinutes: NumOrEmpty;
+	cookHours: NumOrEmpty;
+	cookMinutes: NumOrEmpty;
+};
+
+type NumericField =
+	| "servings"
+	| "prepHours"
+	| "prepMinutes"
+	| "cookHours"
+	| "cookMinutes";
+
+const initialForm: FormState = {
+	title: "",
+	description: "",
+	servings: "",
+	prepHours: "",
+	prepMinutes: "",
+	cookHours: "",
+	cookMinutes: "",
+};
 
 const RecipeCreate = () => {
+	const baseId = useId();
 	const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-	const [title, setTitle] = useState("");
-	const [description, setDescription] = useState("");
-	const [servings, setServings] = useState("");
-	const [prepHours, setPrepHours] = useState("");
-	const [prepMinutes, setPrepMinutes] = useState("");
-	const [cookHours, setCookHours] = useState("");
-	const [cookMinutes, setCookMinutes] = useState("");
-	const [formError, setFormError] = useState<string | null>(null);
-	const [isSubmitting, setIsSubmitting] = useState(false);
-
-	// Refs hold the latest section values without causing re-renders on every keystroke.
-	// Default rows match each section's initial state so Zod gives field-level errors
-	// (e.g. "Ingredient amount is required") even if the user never touches those sections.
-	const ingredientsRef = useRef<IngredientRow[]>([
-		{ id: "", amount: "", unit: "g", name: "" },
+	const [form, setForm] = useState<FormState>(initialForm);
+	const [ingredients, setIngredients] = useState<IngredientRow[]>(() => [
+		{ id: `${baseId}-i0`, amount: "", unit: "g", name: "" },
 	]);
-	const instructionsRef = useRef<InstructionRow[]>([{ id: "", text: "" }]);
+	const [instructions, setInstructions] = useState<InstructionRow[]>(() => [
+		{ id: `${baseId}-s0`, text: "" },
+	]);
+	const [formError, setFormError] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!photoPreview) {
+			return;
+		}
+		return () => {
+			URL.revokeObjectURL(photoPreview);
+		};
+	}, [photoPreview]);
+
+	const setText =
+		(field: "title" | "description") =>
+		(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+			setForm((prev) => ({ ...prev, [field]: e.target.value }));
+		};
+
+	const setNumber =
+		(field: NumericField) => (e: React.ChangeEvent<HTMLInputElement>) => {
+			const v = e.target.valueAsNumber;
+			setForm((prev) => ({
+				...prev,
+				[field]: Number.isNaN(v) ? "" : v,
+			}));
+		};
 
 	const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
 		if (!file) {
 			return;
-		}
-		if (photoPreview) {
-			URL.revokeObjectURL(photoPreview);
 		}
 		setPhotoPreview(URL.createObjectURL(file));
 	};
@@ -72,15 +165,9 @@ const RecipeCreate = () => {
 		setFormError(null);
 
 		const parsed = RecipeFormSchema.safeParse({
-			title,
-			description,
-			servings,
-			prepHours,
-			prepMinutes,
-			cookHours,
-			cookMinutes,
-			ingredients: ingredientsRef.current,
-			instructions: instructionsRef.current,
+			...form,
+			ingredients,
+			instructions,
 		});
 
 		if (!parsed.success) {
@@ -90,9 +177,7 @@ const RecipeCreate = () => {
 			return;
 		}
 
-		setIsSubmitting(true);
 		// TODO: submit to API
-		setIsSubmitting(false);
 	};
 
 	return (
@@ -118,8 +203,9 @@ const RecipeCreate = () => {
 						id="recipe-title"
 						placeholder="Recipe Title"
 						floatingLabel={false}
-						value={title}
-						onChange={(e) => setTitle(e.target.value)}
+						required
+						value={form.title}
+						onChange={setText("title")}
 					/>
 				</RecipeFormField>
 
@@ -128,13 +214,26 @@ const RecipeCreate = () => {
 					htmlFor="recipe-description"
 					required
 				>
-					<textarea
+					<TextArea
 						id="recipe-description"
-						className="recipe-create-textarea text-body3"
-						placeholder="Describe your recipe in a way that makes mouths water. Max 128 characters"
-						value={description}
-						onChange={(e) => setDescription(e.target.value)}
-						maxLength={128}
+						className="recipe-description-textarea text-body3"
+						placeholder="Describe your recipe in a way that makes mouths water."
+						value={form.description}
+						onChange={(value) =>
+							setForm((prev) => ({ ...prev, description: value }))
+						}
+						maxLength={DESCRIPTION_MAX}
+						required
+						describedBy="recipe-description-counter"
+						footer={
+							<p
+								id="recipe-description-counter"
+								className="recipe-description-counter text-caption-s"
+								aria-live="polite"
+							>
+								{form.description.length} / {DESCRIPTION_MAX}
+							</p>
+						}
 					/>
 				</RecipeFormField>
 
@@ -145,8 +244,9 @@ const RecipeCreate = () => {
 						placeholder="e.g. 2"
 						floatingLabel={false}
 						min={1}
-						value={servings}
-						onChange={(e) => setServings(e.target.value)}
+						required
+						value={form.servings}
+						onChange={setNumber("servings")}
 					/>
 				</RecipeFormField>
 
@@ -157,8 +257,9 @@ const RecipeCreate = () => {
 							type="number"
 							placeholder="hours"
 							min={0}
-							value={prepHours}
-							onChange={(e) => setPrepHours(e.target.value)}
+							required
+							value={form.prepHours}
+							onChange={setNumber("prepHours")}
 							aria-label="Prep time hours"
 						/>
 						<InputField
@@ -167,8 +268,9 @@ const RecipeCreate = () => {
 							placeholder="minutes"
 							min={0}
 							max={59}
-							value={prepMinutes}
-							onChange={(e) => setPrepMinutes(e.target.value)}
+							required
+							value={form.prepMinutes}
+							onChange={setNumber("prepMinutes")}
 							aria-label="Prep time minutes"
 						/>
 					</div>
@@ -181,8 +283,9 @@ const RecipeCreate = () => {
 							type="number"
 							placeholder="hours"
 							min={0}
-							value={cookHours}
-							onChange={(e) => setCookHours(e.target.value)}
+							required
+							value={form.cookHours}
+							onChange={setNumber("cookHours")}
 							aria-label="Cook time hours"
 						/>
 						<InputField
@@ -191,41 +294,29 @@ const RecipeCreate = () => {
 							placeholder="minutes"
 							min={0}
 							max={59}
-							value={cookMinutes}
-							onChange={(e) => setCookMinutes(e.target.value)}
+							required
+							value={form.cookMinutes}
+							onChange={setNumber("cookMinutes")}
 							aria-label="Cook time minutes"
 						/>
 					</div>
 				</RecipeFormFieldset>
 
-				<RecipeIngredientSection
-					onChange={(rows) => {
-						ingredientsRef.current = rows;
-					}}
-				/>
+				<RecipeIngredientSection rows={ingredients} onChange={setIngredients} />
 
 				<RecipeInstructionSection
-					onChange={(rows) => {
-						instructionsRef.current = rows;
-					}}
+					rows={instructions}
+					onChange={setInstructions}
 				/>
 
 				{formError ? (
-					<p
-						className="recipe-create-error text-caption-s"
-						role="alert"
-						aria-live="polite"
-					>
+					<p className="recipe-create-error text-caption-s" role="alert">
 						{formError}
 					</p>
 				) : null}
 
-				<MainButton
-					type="submit"
-					className="recipe-create-submit"
-					disabled={isSubmitting}
-				>
-					{isSubmitting ? "Creating..." : "Create"}
+				<MainButton type="submit" className="recipe-create-submit">
+					Create
 				</MainButton>
 			</form>
 		</section>

@@ -14,6 +14,7 @@ type SelectFieldProps = {
 	inputId?: string;
 	name?: string;
 	className?: string;
+	ariaLabel?: string;
 };
 
 export const SelectField = ({
@@ -24,6 +25,7 @@ export const SelectField = ({
 	inputId,
 	name,
 	className,
+	ariaLabel,
 }: SelectFieldProps) => {
 	const selectedOption =
 		value !== undefined
@@ -41,6 +43,7 @@ export const SelectField = ({
 				value={selectedOption}
 				onChange={(opt) => onChange?.(opt?.value ?? "")}
 				classNamePrefix="react-select"
+				aria-label={ariaLabel}
 				isSearchable
 				unstyled
 			/>
