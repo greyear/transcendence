@@ -142,7 +142,7 @@
 	border: 1px solid var(--borders-input);
 	padding: 12px;
 	color: var(--text-primary);
-	resize: vertical;
+	resize: none;
 	font-family: inherit;
 }
 

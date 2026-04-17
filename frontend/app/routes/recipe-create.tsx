@@ -67,7 +67,7 @@ const RecipeCreate = () => {
 		setPhotoPreview(URL.createObjectURL(file));
 	};
 
-	const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setFormError(null);
 
