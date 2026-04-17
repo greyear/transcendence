@@ -66,8 +66,7 @@
 		"confirmDeleteFeedback": "Delete your review and rating?",
 		"deleteReviewError": "Failed to delete review (status: {{status}}).",
 		"deleteRatingError": "Review was deleted, but rating deletion failed (status: {{status}}).",
-		"step": "Step {{number}}",
-		"share": "Share"
+		"step": "Step {{number}}"
 	},
 	"ratingModal": {
 		"title": "Share your thoughts about this recipe",

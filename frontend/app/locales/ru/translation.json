@@ -66,8 +66,7 @@
 		"confirmDeleteFeedback": "Удалить ваш отзыв и оценку?",
 		"deleteReviewError": "Не удалось удалить отзыв (статус: {{status}}).",
 		"deleteRatingError": "Отзыв удален, но оценку удалить не удалось (статус: {{status}}).",
-		"step": "Шаг {{number}}",
-		"share": "Поделиться"
+		"step": "Шаг {{number}}"
 	},
 	"ratingModal": {
 		"title": "Поделитесь впечатлениями об этом рецепте",

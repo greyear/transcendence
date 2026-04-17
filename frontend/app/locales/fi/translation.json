@@ -66,8 +66,7 @@
 		"confirmDeleteFeedback": "Poistetaanko arvostelusi ja arvosanasi?",
 		"deleteReviewError": "Arvostelun poistaminen epäonnistui (tila: {{status}}).",
 		"deleteRatingError": "Arvostelu poistettiin, mutta arvosanan poistaminen epäonnistui (tila: {{status}}).",
-		"step": "Vaihe {{number}}",
-		"share": "Jaa"
+		"step": "Vaihe {{number}}"
 	},
 	"ratingModal": {
 		"title": "Kerro ajatuksesi tästä reseptistä",
