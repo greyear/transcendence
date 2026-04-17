@@ -13,6 +13,8 @@ export default [
 		route("/users", "routes/users.tsx"),
 		route("/recipes", "routes/recipes.tsx"),
 		route("/profile", "routes/profile.tsx"),
+		route("/policy", "routes/policy.tsx"),
+		route("/terms", "routes/terms.tsx"),
 	]),
 	route("/set-locale", "routes/set-locale.ts"),
 ] satisfies RouteConfig;

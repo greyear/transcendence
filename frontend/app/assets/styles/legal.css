@@ -1,0 +1,51 @@
+.legal-page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xl);
+}
+
+.legal-page-header {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-s);
+}
+
+.legal-page-header h1 {
+	margin: 0;
+	color: var(--text-primary);
+}
+
+.legal-page-last-updated {
+	margin: 0;
+	color: var(--text-secondary);
+}
+
+.legal-page-intro {
+	margin: 0;
+	color: var(--text-primary);
+}
+
+.legal-page-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-s);
+}
+
+.legal-page-section h2 {
+	margin: 0;
+	color: var(--text-primary);
+}
+
+.legal-page-section p {
+	margin: 0;
+	color: var(--text-primary);
+}
+
+.legal-page-list {
+	margin: 0;
+	padding-left: var(--space-l);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xs);
+	color: var(--text-primary);
+}
