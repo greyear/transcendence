@@ -2,7 +2,10 @@
 
 set -e
 
-if [ -f "certs/cert.pem" ] && [ -f "certs/key.pem" ]; then
+CERT_FILE="certs/cert.pem"
+KEY_FILE="certs/key.pem"
+
+if [ -s "$CERT_FILE" ] && [ -s "$KEY_FILE" ]; then
     echo "Certificates already exist, skipping generation"
     echo "Note: if you need to regenerate, run: rm -rf certs/ && make certs"
     exit 0
@@ -11,6 +14,7 @@ fi
 echo "Generating self-signed certificates..."
 
 mkdir -p certs
+chmod -R u+w certs
 
 openssl req -x509 -newkey rsa:4096 \
     -keyout certs/key.pem \

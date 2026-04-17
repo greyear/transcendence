@@ -21,16 +21,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Generate certificates
+        run: |
+          rm -rf certs
+          mkdir certs
+          make certs
+
       - name: Start services with docker compose
         run: docker compose up -d
 
       - name: Wait for API Gateway to be ready
         run: |
-          echo "Creating certificates for API Gateway..."
-          make certs
-          echo "Certificates created, waiting for API Gateway to be ready..."
+          echo "Waiting for API Gateway to be ready..."
           for i in {1..60}; do
-            if curl -f https://localhost:8443/health >/dev/null 2>&1; then
+            if curl -f -k https://localhost:8443/health >/dev/null 2>&1; then
               echo "✓ API Gateway is ready"
               exit 0
             fi
