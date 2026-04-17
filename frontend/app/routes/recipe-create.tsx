@@ -1,4 +1,6 @@
 import { useEffect, useId, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useOutletContext } from "react-router";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
 import { InputField } from "~/components/inputs/InputField";
@@ -10,6 +12,8 @@ import { RecipeIngredientSection } from "~/components/recipe/RecipeIngredientSec
 import type { InstructionRow } from "~/components/recipe/RecipeInstructionItem";
 import { RecipeInstructionSection } from "~/components/recipe/RecipeInstructionSection";
 import { RecipePhotoUpload } from "~/components/recipe/RecipePhotoUpload";
+import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import type { LayoutOutletContext } from "~/layouts/layout";
 import "../assets/styles/recipe-create.css";
 
 const DESCRIPTION_MAX = 128;
@@ -116,8 +120,16 @@ const initialForm: FormState = {
 	cookMinutes: "",
 };
 
+type CreateRecipeResponse = {
+	data?: { id: number };
+};
+
 const RecipeCreate = () => {
 	const baseId = useId();
+	const { t } = useTranslation();
+	const navigate = useNavigate();
+	const { isAuthenticated, openAuthModal } =
+		useOutletContext<LayoutOutletContext>();
 	const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 	const [form, setForm] = useState<FormState>(initialForm);
 	const [ingredients, setIngredients] = useState<IngredientRow[]>(() => [
@@ -127,6 +139,7 @@ const RecipeCreate = () => {
 		{ id: `${baseId}-s0`, text: "" },
 	]);
 	const [formError, setFormError] = useState<string | null>(null);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	useEffect(() => {
 		if (!photoPreview) {
@@ -160,6 +173,63 @@ const RecipeCreate = () => {
 		setPhotoPreview(URL.createObjectURL(file));
 	};
 
+	const submitRecipe = async (
+		parsed: z.infer<typeof RecipeFormSchema>,
+	): Promise<void> => {
+		setIsSubmitting(true);
+		setFormError(null);
+
+		const payload = {
+			title: parsed.title,
+			description: parsed.description,
+			servings: parsed.servings,
+			spiciness: 0,
+			instructions: parsed.instructions.map((step) => step.text),
+			ingredients: parsed.ingredients.map((ingredient) => ({
+				name: ingredient.name,
+				amount: ingredient.amount,
+				unit: ingredient.unit,
+			})),
+			category_ids: [],
+		};
+
+		try {
+			const response = await fetch(`${API_BASE_URL}/recipes`, {
+				method: "POST",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+			});
+
+			if (response.status === 401) {
+				openAuthModal(() => {
+					void submitRecipe(parsed);
+				});
+				return;
+			}
+
+			if (!response.ok) {
+				setFormError(
+					t("recipeCreatePage.createError", { status: response.status }),
+				);
+				return;
+			}
+
+			const body: CreateRecipeResponse = await response.json();
+			const newId = body.data?.id;
+			if (typeof newId === "number") {
+				navigate(`/recipes/${newId}`);
+				return;
+			}
+			navigate("/recipes");
+		} catch (error) {
+			console.error(error);
+			setFormError(t("recipeCreatePage.networkError"));
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
 	const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setFormError(null);
@@ -172,12 +242,19 @@ const RecipeCreate = () => {
 
 		if (!parsed.success) {
 			setFormError(
-				parsed.error.issues[0]?.message ?? "Please fix the errors above.",
+				parsed.error.issues[0]?.message ?? t("recipeCreatePage.genericError"),
 			);
 			return;
 		}
 
-		// TODO: submit to API
+		if (!isAuthenticated) {
+			openAuthModal(() => {
+				void submitRecipe(parsed.data);
+			});
+			return;
+		}
+
+		void submitRecipe(parsed.data);
 	};
 
 	return (
@@ -186,10 +263,8 @@ const RecipeCreate = () => {
 			aria-labelledby="recipe-create-heading"
 		>
 			<header className="recipe-create-header">
-				<h1 id="recipe-create-heading">Add a Recipe</h1>
-				<p className="text-caption">
-					{"Know the recipe that is worth to be famous? Share it with us <3"}
-				</p>
+				<h1 id="recipe-create-heading">{t("recipeCreatePage.title")}</h1>
+				<p className="text-caption">{t("recipeCreatePage.subtitle")}</p>
 			</header>
 
 			<form className="recipe-create-form" onSubmit={handleSubmit} noValidate>
@@ -198,10 +273,14 @@ const RecipeCreate = () => {
 					onChange={handlePhotoChange}
 				/>
 
-				<RecipeFormField label="Recipe Title" htmlFor="recipe-title" required>
+				<RecipeFormField
+					label={t("recipeCreatePage.recipeTitleLabel")}
+					htmlFor="recipe-title"
+					required
+				>
 					<InputField
 						id="recipe-title"
-						placeholder="Recipe Title"
+						placeholder={t("recipeCreatePage.recipeTitlePlaceholder")}
 						floatingLabel={false}
 						required
 						value={form.title}
@@ -210,14 +289,14 @@ const RecipeCreate = () => {
 				</RecipeFormField>
 
 				<RecipeFormField
-					label="Short Description"
+					label={t("recipeCreatePage.descriptionLabel")}
 					htmlFor="recipe-description"
 					required
 				>
 					<TextArea
 						id="recipe-description"
 						className="recipe-description-textarea text-body3"
-						placeholder="Describe your recipe in a way that makes mouths water."
+						placeholder={t("recipeCreatePage.descriptionPlaceholder")}
 						value={form.description}
 						onChange={(value) =>
 							setForm((prev) => ({ ...prev, description: value }))
@@ -237,11 +316,15 @@ const RecipeCreate = () => {
 					/>
 				</RecipeFormField>
 
-				<RecipeFormField label="Servings" htmlFor="recipe-servings" required>
+				<RecipeFormField
+					label={t("recipeCreatePage.servingsLabel")}
+					htmlFor="recipe-servings"
+					required
+				>
 					<InputField
 						id="recipe-servings"
 						type="number"
-						placeholder="e.g. 2"
+						placeholder={t("recipeCreatePage.servingsPlaceholder")}
 						floatingLabel={false}
 						min={1}
 						required
@@ -250,54 +333,60 @@ const RecipeCreate = () => {
 					/>
 				</RecipeFormField>
 
-				<RecipeFormFieldset legend="Prep Time" required>
+				<RecipeFormFieldset
+					legend={t("recipeCreatePage.prepTimeLegend")}
+					required
+				>
 					<div className="recipe-create-time-row">
 						<InputField
 							id="prep-hours"
 							type="number"
-							placeholder="hours"
+							placeholder={t("recipeCreatePage.hoursPlaceholder")}
 							min={0}
 							required
 							value={form.prepHours}
 							onChange={setNumber("prepHours")}
-							aria-label="Prep time hours"
+							aria-label={t("recipeCreateAria.prepHours")}
 						/>
 						<InputField
 							id="prep-minutes"
 							type="number"
-							placeholder="minutes"
+							placeholder={t("recipeCreatePage.minutesPlaceholder")}
 							min={0}
 							max={59}
 							required
 							value={form.prepMinutes}
 							onChange={setNumber("prepMinutes")}
-							aria-label="Prep time minutes"
+							aria-label={t("recipeCreateAria.prepMinutes")}
 						/>
 					</div>
 				</RecipeFormFieldset>
 
-				<RecipeFormFieldset legend="Cook Time" required>
+				<RecipeFormFieldset
+					legend={t("recipeCreatePage.cookTimeLegend")}
+					required
+				>
 					<div className="recipe-create-time-row">
 						<InputField
 							id="cook-hours"
 							type="number"
-							placeholder="hours"
+							placeholder={t("recipeCreatePage.hoursPlaceholder")}
 							min={0}
 							required
 							value={form.cookHours}
 							onChange={setNumber("cookHours")}
-							aria-label="Cook time hours"
+							aria-label={t("recipeCreateAria.cookHours")}
 						/>
 						<InputField
 							id="cook-minutes"
 							type="number"
-							placeholder="minutes"
+							placeholder={t("recipeCreatePage.minutesPlaceholder")}
 							min={0}
 							max={59}
 							required
 							value={form.cookMinutes}
 							onChange={setNumber("cookMinutes")}
-							aria-label="Cook time minutes"
+							aria-label={t("recipeCreateAria.cookMinutes")}
 						/>
 					</div>
 				</RecipeFormFieldset>
@@ -315,8 +404,14 @@ const RecipeCreate = () => {
 					</p>
 				) : null}
 
-				<MainButton type="submit" className="recipe-create-submit">
-					Create
+				<MainButton
+					type="submit"
+					className="recipe-create-submit"
+					disabled={isSubmitting}
+				>
+					{isSubmitting
+						? t("recipeCreatePage.submittingButton")
+						: t("recipeCreatePage.submitButton")}
 				</MainButton>
 			</form>
 		</section>
