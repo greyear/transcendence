@@ -21,21 +21,41 @@
 	background-color: var(--surface-card);
 	border: 1px solid var(--borders-action);
 	color: var(--text-primary);
-}
-
-.auth-social-button-content {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: var(--space-s);
 	width: 100%;
+	pointer-events: none;
 }
 
 .auth-social-google {
-	display: inline-flex;
+	stroke-width: 1;
+}
+
+.auth-google-button-shell {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+.auth-google-render-target {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	display: flex;
 	align-items: center;
 	justify-content: center;
-	stroke-width: 1;
+	width: 100%;
+	opacity: 0;
+}
+
+.auth-google-render-target[aria-hidden="true"] {
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.auth-google-render-target > *,
+.auth-google-render-target iframe {
+	width: 100%;
+	height: 100%;
 }
 
 .auth-form {
@@ -73,7 +93,6 @@
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
-	gap: var(--space-xs);
 }
 
 .auth-modal-close-row {
