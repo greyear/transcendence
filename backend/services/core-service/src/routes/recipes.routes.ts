@@ -27,6 +27,7 @@ import {
 	createRecipe,
 	deleteReview,
 	getAllRecipes,
+	getAllRecipesPaginated,
 	getRecipeById,
 	getRecipeReviews,
 	leaveRecipeReview,
@@ -476,7 +477,7 @@ const unfavoriteRecipeHandler = async (
 };
 
 /**
- * GET /recipes - fetch all published recipes
+ * GET /recipes - fetch all published recipes with pagination
  *
  * Note: No authentication needed - returns only published recipes
  */
@@ -487,8 +488,15 @@ const getAllRecipesHandler = async (
 ): Promise<void> => {
 	try {
 		const locale = resolveRequestedLocale(req);
-		const recipes = await getAllRecipes(locale);
-		res.status(200).json({ data: recipes, count: recipes.length });
+
+		const page = Math.max(1, Number.parseInt(req.query.page as string) || 1);
+		const perPage = Math.min(
+			100,
+			Math.max(1, Number.parseInt(req.query.per_page as string) || 12),
+		);
+
+		const result = await getAllRecipesPaginated(page, perPage, locale);
+		res.status(200).json(result);
 	} catch (error) {
 		next(error);
 	}

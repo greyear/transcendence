@@ -420,6 +420,57 @@ export const getAllRecipes = async (
 	}
 };
 
+export type PaginatedRecipes = {
+	data: RecipeListItem[];
+	total_count: number;
+	total_pages: number;
+	page: number;
+	per_page: number;
+};
+
+/**
+ * Get published recipes for exact page
+ */
+export const getAllRecipesPaginated = async (
+	page: number,
+	perPage: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<PaginatedRecipes> => {
+	try {
+		const offset = (page - 1) * perPage;
+
+		const [dataResult, countResult] = await Promise.all([
+			pool.query(
+				`
+				SELECT
+					id,
+					COALESCE(title->>$1, title->>'en') AS title,
+					COALESCE(description->>$1, description->>'en') AS description,
+					author_id,
+					rating_avg
+				FROM recipes
+				WHERE status = 'published'
+				ORDER BY created_at DESC
+				LIMIT $2 OFFSET $3
+				`,
+				[locale, perPage, offset],
+			),
+			pool.query(
+				`SELECT COUNT(*)::int AS total FROM recipes WHERE status = 'published'`,
+			),
+		]);
+
+		const total_count = countResult.rows[0].total as number;
+		const total_pages = Math.ceil(total_count / perPage);
+		const data = parseRecipeRows(dataResult.rows, recipeListItemSchema, "recipe");
+
+		return { data, total_count, total_pages, page, per_page: perPage };
+	} catch (error) {
+		console.error("Database error in getAllRecipesPaginated:", error);
+		throw error;
+	}
+};
+
 /**
  * Get all published recipes created by a particular user
  *

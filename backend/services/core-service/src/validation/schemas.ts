@@ -412,6 +412,23 @@ export type FavoriteRecipeListItem = z.infer<
 	typeof favoriteRecipeListItemSchema
 >;
 
+export const PaginatedResponseSchema = <T extends z.ZodTypeAny>(itemSchema: T) =>
+	z.object({
+		data: z.array(itemSchema),
+		total_pages: z.number().int().nonnegative(),
+		total_count: z.number().int().nonnegative(),
+		page: z.number().int().positive(),
+		per_page: z.number().int().positive(),
+	});
+
+export type PaginatedResponse<T> = {
+	data: T[];
+	total_count: number;
+	total_pages: number;
+	page: number;
+	per_page: number;
+};
+
 /**
  * MyRecipeListItem type - minimal recipe info for current user's recipes
  */
