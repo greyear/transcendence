@@ -390,3 +390,25 @@ authRouter.post(
 		}
 	},
 );
+
+/*
+	Logout user by clearing the authentication token cookie.
+		1. Clear the "token" cookie.
+		2. Return a success message.
+*/
+authRouter.post(
+	"/logout",
+	async (_req: Request, res: Response, next: NextFunction) => {
+		try {
+			res.clearCookie("token", {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+			});
+
+			res.status(200).json({ message: "Logout successful" });
+		} catch (error) {
+			next(error);
+		}
+	},
+);

@@ -203,10 +203,34 @@ const getMeHandler: RequestHandler = async (
 	}
 };
 
+const postLogoutHandler: RequestHandler = async (
+	_req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const response = await fetch(`${AUTH_SERVICE_URL}/logout`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+		});
+		const data = await response.json();
+
+		const setCookieHeader = response.headers.get("set-cookie");
+		if (setCookieHeader) {
+			res.set("Set-Cookie", setCookieHeader);
+		}
+
+		res.status(response.status).json(data);
+	} catch (error) {
+		next(error);
+	}
+};
+
 //auth_db_operations.ts handlers
 authRouter.post("/register", postAuthRegisterHandler);
 authRouter.post("/login", postLoginHandler);
 authRouter.post("/google", postGoogleHandler);
+authRouter.post("/logout", postLogoutHandler);
 
 //authGetSet.ts handlers
 authRouter.post("/validate", postValidateHandler);
