@@ -58,6 +58,14 @@
 		"noIngredientsAvailable": "Tälle reseptille ei ole saatavilla aineksia.",
 		"instructions": "Ohjeet",
 		"noInstructionsAvailable": "Tälle reseptille ei ole saatavilla ohjeita.",
+		"reviews": "Arvostelut",
+		"reviewsLoading": "Ladataan arvosteluja...",
+		"reviewsError": "Arvostelujen haku epäonnistui (tila: {{status}}).",
+		"noReviewsAvailable": "Arvosteluja ei vielä ole.",
+		"reviewAnonymous": "Anonyymi",
+		"confirmDeleteFeedback": "Poistetaanko arvostelusi ja arvosanasi?",
+		"deleteReviewError": "Arvostelun poistaminen epäonnistui (tila: {{status}}).",
+		"deleteRatingError": "Arvostelu poistettiin, mutta arvosanan poistaminen epäonnistui (tila: {{status}}).",
 		"step": "Vaihe {{number}}",
 		"share": "Jaa"
 	},
@@ -66,7 +74,10 @@
 		"rateRecipe": "Arvioi tämä resepti",
 		"describeRecipe": "Kuvaile reseptiä (valinnainen)",
 		"ratingOption": "{{value}} tähteä viidestä",
-		"submit": "Lähetä"
+		"submit": "Lähetä",
+		"submitting": "Lähetetään...",
+		"genericError": "Arvion lähettäminen epäonnistui. Yritä uudelleen.",
+		"networkError": "Pyyntö ei tavoittanut palvelinta."
 	},
 	"usersPage": {
 		"title": "Käyttäjät",
@@ -145,10 +156,10 @@
 		"allRecipes": "Kaikki reseptit",
 		"allUsers": "Kaikki käyttäjät",
 		"sortBy": "Järjestä",
-		"shareRecipe": "Jaa resepti",
 		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet",
 		"closeAuthDialog": "Sulje tunnistautumisikkuna",
 		"toProfilePage": "Siirry profiilisivulle",
-		"closeRatingDialog": "Sulje arviointi-ikkuna"
+		"closeRatingDialog": "Sulje arviointi-ikkuna",
+		"deleteReview": "Poista arvostelu ja arvosana"
 	}
 }

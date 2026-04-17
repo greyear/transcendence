@@ -58,6 +58,14 @@
 		"noIngredientsAvailable": "No ingredients available for this recipe.",
 		"instructions": "Instructions",
 		"noInstructionsAvailable": "No instructions available for this recipe.",
+		"reviews": "Reviews",
+		"reviewsLoading": "Loading reviews...",
+		"reviewsError": "Failed to fetch reviews (status: {{status}}).",
+		"noReviewsAvailable": "No reviews yet.",
+		"reviewAnonymous": "Anonymous",
+		"confirmDeleteFeedback": "Delete your review and rating?",
+		"deleteReviewError": "Failed to delete review (status: {{status}}).",
+		"deleteRatingError": "Review was deleted, but rating deletion failed (status: {{status}}).",
 		"step": "Step {{number}}",
 		"share": "Share"
 	},
@@ -66,7 +74,10 @@
 		"rateRecipe": "Rate this recipe",
 		"describeRecipe": "Describe the recipe (optional)",
 		"ratingOption": "{{value}} out of 5 stars",
-		"submit": "Submit"
+		"submit": "Submit",
+		"submitting": "Submitting...",
+		"genericError": "Could not submit your rating. Please try again.",
+		"networkError": "The request could not reach the server."
 	},
 	"usersPage": {
 		"title": "Users",
@@ -145,10 +156,10 @@
 		"allRecipes": "All recipes",
 		"allUsers": "All users",
 		"sortBy": "Sort by",
-		"shareRecipe": "Share recipe",
 		"ingredientsAndInstructions": "Recipe ingredients and instructions",
 		"closeAuthDialog": "Close authentication dialog",
 		"toProfilePage": "Go to profile page",
-		"closeRatingDialog": "Close rating dialog"
+		"closeRatingDialog": "Close rating dialog",
+		"deleteReview": "Delete review and rating"
 	}
 }

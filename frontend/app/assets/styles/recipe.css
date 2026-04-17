@@ -124,6 +124,69 @@
 	color: var(--text-secondary);
 }
 
+.recipe-page-reviews-list {
+	gap: var(--space-m);
+}
+
+.recipe-page-review-card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-s);
+	padding: var(--space-m);
+	border: 1px solid var(--borders-input);
+	border-radius: var(--radius-m);
+	background-color: var(--surface-card);
+}
+
+.recipe-page-review-meta {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-m);
+	flex-wrap: wrap;
+	min-width: 0;
+}
+
+.recipe-page-review-body {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-m);
+}
+
+.recipe-page-review-body p {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.recipe-page-review-author {
+	color: var(--text-primary);
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.recipe-page-review-date {
+	color: var(--text-secondary);
+}
+
+.icon-button.recipe-page-review-delete {
+	background-color: transparent;
+	border: none;
+	flex-shrink: 0;
+}
+
+.icon-button.recipe-page-review-delete svg {
+	color: var(--surface-error);
+}
+
+.recipe-page-review-error {
+	color: var(--surface-error);
+	margin: 0;
+}
+
 @media (min-width: 768px) {
 	.recipe-page-hero {
 		--recipe-image-size: 352px;

@@ -58,6 +58,14 @@
 		"noIngredientsAvailable": "Для этого рецепта нет доступных ингредиентов.",
 		"instructions": "Шаги",
 		"noInstructionsAvailable": "Для этого рецепта шаги не добавлены.",
+		"reviews": "Отзывы",
+		"reviewsLoading": "Загрузка отзывов...",
+		"reviewsError": "Не удалось загрузить отзывы (статус: {{status}}).",
+		"noReviewsAvailable": "Отзывов пока нет.",
+		"reviewAnonymous": "Аноним",
+		"confirmDeleteFeedback": "Удалить ваш отзыв и оценку?",
+		"deleteReviewError": "Не удалось удалить отзыв (статус: {{status}}).",
+		"deleteRatingError": "Отзыв удален, но оценку удалить не удалось (статус: {{status}}).",
 		"step": "Шаг {{number}}",
 		"share": "Поделиться"
 	},
@@ -66,7 +74,10 @@
 		"rateRecipe": "Оцените этот рецепт",
 		"describeRecipe": "Опишите рецепт (необязательно)",
 		"ratingOption": "{{value}} из 5 звезд",
-		"submit": "Отправить"
+		"submit": "Отправить",
+		"submitting": "Отправка...",
+		"genericError": "Не удалось отправить оценку. Попробуйте еще раз.",
+		"networkError": "Запрос не смог дойти до сервера."
 	},
 	"usersPage": {
 		"title": "Авторы рецептов",
@@ -145,10 +156,10 @@
 		"allRecipes": "Все рецепты",
 		"allUsers": "Все авторы",
 		"sortBy": "Сортировать по",
-		"shareRecipe": "Поделиться рецептом",
 		"ingredientsAndInstructions": "Ингредиенты и инструкции рецепта",
 		"closeAuthDialog": "Закрыть окно аутентификации",
 		"toProfilePage": "Перейти на страницу профиля",
-		"closeRatingDialog": "Закрыть окно оценки"
+		"closeRatingDialog": "Закрыть окно оценки",
+		"deleteReview": "Удалить отзыв и оценку"
 	}
 }

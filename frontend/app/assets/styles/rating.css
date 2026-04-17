@@ -104,6 +104,14 @@
 	resize: vertical;
 }
 
+.rating-status {
+	min-height: 24px;
+}
+
+.rating-error {
+	color: var(--surface-error);
+}
+
 .required-asterisk {
 	color: var(--surface-error);
 }
