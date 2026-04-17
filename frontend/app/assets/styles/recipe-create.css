@@ -288,7 +288,7 @@
 @media (min-width: 768px) {
 	.recipe-ingredient-row {
 		display: flex;
-		align-items: center;
+		align-items: start;
 		gap: var(--space-s);
 	}
 

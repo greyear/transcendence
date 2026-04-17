@@ -59,6 +59,16 @@ export const RecipeIngredientRow = ({
 					<Menu aria-hidden="true" />
 				</span>
 				<InputField
+					id={`${ingredient.id}-name`}
+					type="text"
+					className="recipe-ingredient-name"
+					placeholder="Ingredient name"
+					required
+					value={ingredient.name}
+					onChange={(e) => onChange({ name: e.target.value })}
+					aria-label={`${label} name`}
+				/>
+				<InputField
 					id={`${ingredient.id}-amount`}
 					type="number"
 					className="recipe-ingredient-amount"
@@ -79,16 +89,6 @@ export const RecipeIngredientRow = ({
 					onChange={(value) => onChange({ unit: value })}
 					className="recipe-ingredient-unit"
 					ariaLabel={`${label} unit`}
-				/>
-				<InputField
-					id={`${ingredient.id}-name`}
-					type="text"
-					className="recipe-ingredient-name"
-					placeholder="Ingredient name"
-					required
-					value={ingredient.name}
-					onChange={(e) => onChange({ name: e.target.value })}
-					aria-label={`${label} name`}
 				/>
 				<IconButton
 					variant="transparent"
