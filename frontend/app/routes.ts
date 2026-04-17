@@ -8,6 +8,7 @@ import {
 export default [
 	layout("layouts/layout.tsx", [
 		index("routes/home.tsx"),
+		route("/recipes/create", "routes/recipe-create.tsx"),
 		route("/recipes/:id", "routes/recipe.tsx"),
 		route("/users", "routes/users.tsx"),
 		route("/recipes", "routes/recipes.tsx"),
