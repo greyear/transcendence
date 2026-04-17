@@ -305,9 +305,9 @@ export const AuthForm = ({
 			tabIndex={-1}
 		>
 			<div className="auth-card-header">
-				<h1 id="auth-modal-title">
-					{mode === "login" ? t("authModal.title") : t("authModal.signupTitle")}
-				</h1>
+				<h2 id="auth-modal-title">
+					{mode === "login" ? t("loginPage.title") : t("loginPage.signupTitle")}
+				</h2>
 
 				{onClose ? (
 					<div className="auth-modal-close-row">
@@ -367,10 +367,14 @@ export const AuthForm = ({
 					/>
 				</div>
 
-				<div className="auth-status" aria-live="polite">
+				<output className="auth-status" aria-live="polite">
 					{message ? <p className="auth-success">{message}</p> : null}
-					{error ? <p className="auth-error">{error}</p> : null}
-				</div>
+					{error ? (
+						<p className="auth-error" role="alert">
+							{error}
+						</p>
+					) : null}
+				</output>
 
 				<div className="auth-actions">
 					<MainButton type="submit" disabled={isSubmitting}>

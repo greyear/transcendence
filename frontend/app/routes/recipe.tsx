@@ -137,11 +137,7 @@ const RecipePage = () => {
 				</div>
 
 				<div className="recipe-page-hero-media">
-					<img
-						className="recipe-page-hero-image"
-						src={recipeImageSrc}
-						alt={recipe.title}
-					/>
+					<img className="recipe-page-hero-image" src={recipeImg} alt="" />
 				</div>
 			</section>
 

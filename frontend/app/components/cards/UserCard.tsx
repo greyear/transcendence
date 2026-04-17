@@ -26,7 +26,7 @@ export const UserCard = ({ id, name, recipeCount, avatar }: UserCardProps) => {
 	return (
 		<Link to={`/user/${id}`} className="user-card-link-wrapper">
 			<article className="user-card">
-				<img className="user-card-photo" src={avatarSrc} alt="User profile" />
+				<img className="user-card-photo" src={userPhoto} alt="" />
 				<div className="user-card-container">
 					<header className="user-card-header">
 						<h3>{name}</h3>

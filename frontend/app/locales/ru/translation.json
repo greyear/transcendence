@@ -197,6 +197,8 @@
 		"ingredientsAndInstructions": "Ингредиенты и инструкции рецепта",
 		"closeAuthDialog": "Закрыть окно аутентификации",
 		"toProfilePage": "Перейти на страницу профиля",
-		"closeRatingDialog": "Закрыть окно оценки"
+		"closeRatingDialog": "Закрыть окно оценки",
+		"skipToMain": "Перейти к основному содержимому",
+		"selectLanguage": "Выбрать язык (текущий: {{current}})"
 	}
 }

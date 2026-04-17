@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router";
 import { AuthModal } from "~/components/auth/AuthModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
+import "../assets/styles/layout.css";
 
 export type LayoutOutletContext = {
 	isAuthenticated: boolean;
@@ -11,6 +13,7 @@ export type LayoutOutletContext = {
 };
 
 const Layout = () => {
+	const { t } = useTranslation();
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const authSuccessActionRef = useRef<(() => void) | null>(null);
@@ -61,11 +64,14 @@ const Layout = () => {
 
 	return (
 		<div className="app-shell">
+			<a href="#main-content" className="skip-link">
+				{t("ariaLabels.skipToMain")}
+			</a>
 			<Header
 				isAuthenticated={isAuthenticated}
 				onOpenAuthModal={() => openAuthModal()}
 			/>
-			<main>
+			<main id="main-content" tabIndex={-1}>
 				<Outlet context={{ isAuthenticated, openAuthModal }} />
 			</main>
 			<Footer

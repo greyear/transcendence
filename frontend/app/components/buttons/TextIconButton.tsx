@@ -32,7 +32,7 @@ export const TextIconButton = ({
 				to={to}
 				className={combinedClasses}
 				onClick={onClick}
-				aria-pressed={selected}
+				aria-current={selected ? "page" : undefined}
 			>
 				{children}
 			</Link>

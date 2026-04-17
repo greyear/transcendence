@@ -197,6 +197,8 @@
 		"ingredientsAndInstructions": "Recipe ingredients and instructions",
 		"closeAuthDialog": "Close authentication dialog",
 		"toProfilePage": "Go to profile page",
-		"closeRatingDialog": "Close rating dialog"
+		"closeRatingDialog": "Close rating dialog",
+		"skipToMain": "Skip to main content",
+		"selectLanguage": "Select language (current: {{current}})"
 	}
 }

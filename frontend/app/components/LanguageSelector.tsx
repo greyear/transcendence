@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "./buttons/IconButton";
 import { LanguageButton } from "./buttons/LanguageButton";
@@ -23,10 +24,11 @@ export const LanguageSelector = ({
 	className = "",
 	...props
 }: LanguageSelectorProps) => {
-	const { i18n } = useTranslation();
+	const { t, i18n } = useTranslation();
 	const classNames = `language-list ${className}`.trim();
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
+	const menuId = useId();
 
 	const handleLanguageButtonClick = (langCode: LangCodes) => {
 		i18n.changeLanguage(langCode);
@@ -54,15 +56,20 @@ export const LanguageSelector = ({
 					variant="language"
 					aria-expanded={isOpen}
 					aria-haspopup="true"
+					aria-controls={menuId}
+					aria-label={t("ariaLabels.selectLanguage", {
+						current: i18n.resolvedLanguage?.toUpperCase(),
+					})}
 					onClick={() => setIsOpen((prev) => !prev)}
 				>
-					{i18n.resolvedLanguage}
+					<span aria-hidden="true">{i18n.resolvedLanguage}</span>
 					<NavArrowDown
+						aria-hidden="true"
 						className={`language-dropdown__chevron${isOpen ? " language-dropdown__chevron--open" : ""}`}
 					/>
 				</IconButton>
 				{isOpen && (
-					<ul className="language-dropdown__menu">
+					<ul id={menuId} className="language-dropdown__menu">
 						{languages.map((langCode) => (
 							<li
 								key={langCode}

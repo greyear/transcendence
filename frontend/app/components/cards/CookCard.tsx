@@ -15,11 +15,7 @@ export const CookCard = ({ id, username, avatar }: CookCardProps) => {
 	return (
 		<Link to={`/user/${id}`} className="cook-card-link">
 			<div className="cook-card-item">
-				<img
-					src={avatarSrc}
-					alt={`${username} profile`}
-					className="cook-card-image"
-				/>
+				<img src={avatar || userPhoto} alt="" className="cook-card-image" />
 				<p className="cook-card-name text-body3">{username}</p>
 			</div>
 		</Link>

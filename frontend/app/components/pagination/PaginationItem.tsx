@@ -36,6 +36,13 @@ export const PaginationItem = ({
 			className={className}
 			aria-label={ariaLabel}
 			aria-current={ariaCurrentPage ? "page" : undefined}
+			aria-disabled={disabled || undefined}
+			tabIndex={disabled ? -1 : undefined}
+			onClick={(event) => {
+				if (disabled) {
+					event.preventDefault();
+				}
+			}}
 		>
 			{children}
 		</Link>
