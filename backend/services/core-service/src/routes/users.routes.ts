@@ -202,8 +202,12 @@ const getFavoritesHandler = async (
 		res.status(200).json({ data: favorites, count: favorites.length });
 	} catch (error) {
 		// Handle service errors with proper status code mapping
-		if (error instanceof Error && (error as any).code) {
-			switch ((error as any).code) {
+		if (
+			error instanceof Error &&
+			"code" in error &&
+			typeof error.code === "string"
+		) {
+			switch (error.code) {
 				case "USER_NOT_FOUND": {
 					const customError: CustomError = new Error(error.message);
 					customError.statusCode = 404;

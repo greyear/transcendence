@@ -152,9 +152,7 @@ const getProfileHandler = async (
 
 		const profile = await getProfile(req.userId);
 		if (!profile) {
-			console.warn(
-				`[core-service] profile:get not-found userId=${req.userId}`,
-			);
+			console.warn(`[core-service] profile:get not-found userId=${req.userId}`);
 			const error: CustomError = new Error("User not found");
 			error.statusCode = 404;
 			throw error;

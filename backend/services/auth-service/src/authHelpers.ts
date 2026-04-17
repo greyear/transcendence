@@ -209,7 +209,7 @@ export const makeID = async (): Promise<number> => {
 	const updatedCounter = await userCounter.findOneAndUpdate(
 		{ name: "CounterDB" },
 		{ $inc: { seq: 1 } },
-		{ returnDocument: 'after', upsert: true, setDefaultsOnInsert: true },
+		{ returnDocument: "after", upsert: true, setDefaultsOnInsert: true },
 	);
 
 	return updatedCounter ? updatedCounter.seq : MIN_AUTH_USER_ID;

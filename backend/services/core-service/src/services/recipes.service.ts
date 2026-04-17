@@ -18,6 +18,7 @@ import path from "node:path";
 import type { PoolClient } from "pg";
 import { z } from "zod";
 import { pool } from "../db/database.js";
+import { areMutualFollowers } from "../utils/service.utils.js";
 import {
 	type CreateRecipeInput,
 	type CreateRecipeReviewInput,
@@ -41,7 +42,6 @@ import {
 	localizeInstructionStepsFromSource,
 	localizeTextFromSource,
 } from "./translation.service.js";
-import { areMutualFollowers } from "../utils/service.utils.js";
 
 type PublishRecipeResult =
 	| { success: true; recipe: Recipe }
@@ -100,6 +100,12 @@ type UpdateReviewResult =
 type DeleteReviewResult =
 	| { success: true; reviewId: number; recipeId: number; updatedAt: string }
 	| { success: false; reason: "not-found" | "forbidden" };
+
+interface ErrorWithCode extends Error {
+	code?: string;
+}
+
+const USER_NOT_FOUND_CODE = "USER_NOT_FOUND";
 
 const recipeIdRowSchema = z.object({
 	id: z.coerce.number().int().positive(),
@@ -889,8 +895,8 @@ export const getFavoriteRecipesByUserId = async (
 		);
 
 		if (userCheckResult.rows.length === 0) {
-			const error: any = new Error("User not found");
-			error.code = "USER_NOT_FOUND";
+			const error: ErrorWithCode = new Error("User not found");
+			error.code = USER_NOT_FOUND_CODE;
 			throw error;
 		}
 
@@ -921,7 +927,12 @@ export const getFavoriteRecipesByUserId = async (
 			"favorite recipe",
 		);
 	} catch (error) {
-		if (!(error instanceof Error && (error as any).code === "USER_NOT_FOUND")) {
+		const isUserNotFoundError =
+			error instanceof Error &&
+			"code" in error &&
+			error.code === USER_NOT_FOUND_CODE;
+
+		if (!isUserNotFoundError) {
 			console.error("Database error in getFavoriteRecipesByUserId:", error);
 		}
 		throw error;
