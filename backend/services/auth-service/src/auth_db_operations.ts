@@ -23,6 +23,7 @@ import * as help from "./authHelpers.js";
 
 export const authRouter = Router();
 
+// zod schemas for checking of type validity
 const loginResponseSchema = z.object({
 	token: z.string(),
 	message: z.string(),
@@ -31,6 +32,43 @@ const mongoErrorSchema = z.object({ code: z.literal(11000) });
 
 const AUTH_SERVICE_URL =
 	process.env.AUTH_SERVICE_URL || "http://auth-service:3001";
+
+// Needed for creating the corresponding core profile after registration.
+const CORE_SERVICE_URL =
+	process.env.CORE_SERVICE_URL || "http://core-service:3002";
+
+// Helper to create the corresponding core profile for a new auth user.
+async function registerCoreProfile(id: number): Promise<void> {
+	try {
+		console.info(`[auth-service] registerCoreProfile:start userId=${id}`);
+		const res = await fetch(`${CORE_SERVICE_URL}/profile/register`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ id }),
+		});
+
+		console.info(
+			`[auth-service] registerCoreProfile:response userId=${id} status=${res.status}`,
+		);
+
+		if (!res.ok) {
+			const responseBody = await res.json().catch(() => null);
+			console.error(
+				`[auth-service] registerCoreProfile:failed userId=${id} payload=${JSON.stringify(responseBody)}`,
+			);
+			const errorMessage =
+				responseBody && typeof responseBody === "object" && "error" in responseBody
+					? String(responseBody.error)
+					: `core-service /profile/register returned ${res.status} for user ${id}`;
+			throw new Error(errorMessage);
+		}
+
+		console.info(`[auth-service] registerCoreProfile:success userId=${id}`);
+	} catch (error) {
+		console.error(`Failed to register core profile for user ${id}:`, error);
+		throw error;
+	}
+}
 
 // Connection part
 // Fetch env or throw.
@@ -67,11 +105,10 @@ authRouter.post(
 	"/register",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const { username, email, password } = req.body;
+			const { email, password } = req.body;
+			console.info(`[auth-service] register:start email=${email}`);
 
-			const userDocument = await userModel.findOne({
-				$or: [{ email }, { username }],
-			});
+			const userDocument = await userModel.findOne({ email });
 
 			if (userDocument) {
 				// Check if it's a Google-only account
@@ -91,11 +128,6 @@ authRouter.post(
 				return;
 			}
 
-			if (!help.validateUsername(username)) {
-				res.status(422).json({ error: "Invalid username" });
-				return;
-			}
-
 			if (!help.validatePassword(req.body.password)) {
 				res.status(422).json({
 					error: "The password doesn't match the password requirements",
@@ -110,14 +142,29 @@ authRouter.post(
 			}
 
 			const currentCount = await help.makeID();
+			console.info(
+				`[auth-service] register:generated-user-id email=${email} userId=${currentCount}`,
+			);
 
 			const newUser = new userModel({
 				id: currentCount,
-				username,
 				email,
 				passwordHash: hashedPassword,
 			});
 			await newUser.save();
+			console.info(
+				`[auth-service] register:mongo-user-created email=${email} userId=${currentCount}`,
+			);
+
+			try {
+				await registerCoreProfile(currentCount);
+			} catch (error) {
+				console.error(
+					`[auth-service] register:core-sync-failed rolling back mongo userId=${currentCount}`,
+				);
+				await userModel.deleteOne({ id: currentCount });
+				throw error;
+			}
 
 			const loginRes = await fetch(`${AUTH_SERVICE_URL}/login`, {
 				method: "POST",
@@ -132,11 +179,13 @@ authRouter.post(
 			if (setCookie) {
 				res.set("Set-Cookie", setCookie);
 			}
-			res.status(201).json({ username, email, id: currentCount, ...loginPayload });
-
+			console.info(
+				`[auth-service] register:completed email=${email} userId=${currentCount} loginStatus=${loginRes.status}`,
+			);
+			res.status(201).json({ email, id: currentCount, ...loginPayload });
 		} catch (error) {
 			if (mongoErrorSchema.safeParse(error).success) {
-				res.status(409).json({ error: "Email or username already exists" });
+				res.status(409).json({ error: "User or counter already exist" });
 			} else {
 				next(error);
 			}
@@ -159,13 +208,20 @@ authRouter.post(
 	"/login",
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const { username, password } = req.body;
+			const email: string | undefined = req.body.email ?? req.body.username;
+			const { password } = req.body;
 
-			const userDocument = await userModel.findOne({
-				$or: [{ email: username }, { username }],
-			});
+			if (!email || typeof password !== "string") {
+				res.status(400).json({ error: "Email and password are required" });
+				return;
+			}
+
+			console.info(`[auth-service] login:start email=${email}`);
+
+			const userDocument = await userModel.findOne({ email });
 
 			if (!userDocument) {
+				console.warn(`[auth-service] login:user-not-found email=${email}`);
 				res.status(404).json({ error: "User not found" });
 				return;
 			}
@@ -183,6 +239,7 @@ authRouter.post(
 			const gotHash = userDocument.get("passwordHash");
 			const passwordMatch = await help.comparePassword(password, gotHash);
 			if (!passwordMatch) {
+				console.warn(`[auth-service] login:password-mismatch email=${email}`);
 				res.status(401).json({ error: "Password mismatch" });
 				return;
 			}
@@ -191,15 +248,15 @@ authRouter.post(
 			//https://howhttpworks.com/guides/cookie-security
 			//https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
 			//secure = lax seems fine for our use case.
-			const usernameResult = z.string().safeParse(userDocument.get("username"));
-			if (!usernameResult.success) {
-				res.status(500).json({ error: "Invalid username in database" });
+			const emailResult = z.string().safeParse(userDocument.get("email"));
+			if (!emailResult.success) {
+				res.status(500).json({ error: "Invalid email in database" });
 				return;
 			}
 			const JWToken = help.generateToken(
 				userDocument.get("_id"),
 				userDocument.get("id"),
-				usernameResult.data,
+				emailResult.data,
 				"mongo",
 			);
 
@@ -209,6 +266,9 @@ authRouter.post(
 				sameSite: "lax",
 				maxAge: 60 * 60 * 1000, //1 hour in ms
 			});
+			console.info(
+				`[auth-service] login:success email=${email} userId=${userDocument.get("id")}`,
+			);
 			res.status(200).json({
 				token: JWToken,
 				message: "Login successful",
@@ -258,6 +318,11 @@ authRouter.post(
 			const googleID = payload.sub;
 			const { email, name } = payload;
 
+			if (!email) {
+				res.status(401).json({ error: "Google account has no email" });
+				return;
+			}
+
 			// Check if email already exists as normal account
 			const existingEmailUser = await userModel.findOne({ email });
 			if (existingEmailUser && !existingEmailUser.get("googleID")) {
@@ -268,7 +333,7 @@ authRouter.post(
 				return;
 			}
 
-			//Repetiton here, which can be sorted out later.
+			//Repetiton here, which can be sorted out later. Or not.
 			//Google accounts will not require a passwordHash, so just using "empty"
 			const userDocument = await userModel.findOne({ googleID });
 			if (!userDocument) {
@@ -281,27 +346,39 @@ authRouter.post(
 					googleID,
 				});
 				await newUser.save();
-				
-				const loginRes = await fetch(`${AUTH_SERVICE_URL}/google`, {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${token}`,
-					},
-				});
-				const loginParsed = loginResponseSchema.safeParse(await loginRes.json());
-				const loginPayload = loginParsed.success ? loginParsed.data : {};
-				const setCookie = loginRes.headers.get("set-cookie");
-				if (setCookie) {
-					res.set("Set-Cookie", setCookie);
+
+				try {
+					await registerCoreProfile(currentCount);
+				} catch (error) {
+					await userModel.deleteOne({ id: currentCount });
+					throw error;
 				}
 
-				res.status(201).json({ googleID, email, name, id: currentCount, ...loginPayload });
+				const JWToken = help.generateToken(
+					newUser.get("_id").toString(),
+					currentCount,
+					email,
+					"google",
+				);
+				res.cookie("token", JWToken, {
+					httpOnly: true,
+					secure: process.env.NODE_ENV === "production",
+					sameSite: "lax",
+					maxAge: 60 * 60 * 1000,
+				});
+				res.status(201).json({
+					googleID,
+					email,
+					name,
+					id: currentCount,
+					token: JWToken,
+					message: "Login successful",
+				});
 			} else {
 				const JWToken = help.generateToken(
 					userDocument.get("_id"),
 					userDocument.get("id"),
-					googleID,
+					email,
 					"google",
 				);
 
@@ -319,7 +396,7 @@ authRouter.post(
 			}
 		} catch (error) {
 			if (mongoErrorSchema.safeParse(error).success) {
-				res.status(409).json({ error: "Email or googleID already exists" });
+				res.status(409).json({ error: "User or counter already exist" });
 			} else {
 				next(error);
 			}
