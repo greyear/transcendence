@@ -73,9 +73,9 @@ db-status:
 
 db-reset:
 	@echo "Resetting only database containers and volumes..."
-	docker-compose stop auth-db core-db notification-db
-	docker-compose rm -f -v auth-db core-db notification-db
-	docker-compose up -d auth-db core-db notification-db
+	docker-compose stop auth-db core-db
+	docker-compose rm -f -v auth-db core-db
+	docker-compose up -d auth-db core-db
 	@$(MAKE) wait-core-seed
 	@echo "✓ Database reset completed (apps untouched)"
 
@@ -106,7 +106,7 @@ dev-all:
 	@echo "  Terminal 2: make dev-core"
 	@echo ""
 	@echo "Optional (in another terminal): make up"
-	@echo "(if you need auth-service and notification-service stubs in Docker)"
+	@echo "(if you need auth-service stub in Docker)"
 	@echo ""
 	@echo "Or use tmux/screen to run them in one window"
 
