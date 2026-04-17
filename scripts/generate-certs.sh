@@ -11,6 +11,7 @@ fi
 echo "Generating self-signed certificates..."
 
 mkdir -p certs
+chmod -R u+w certs
 
 openssl req -x509 -newkey rsa:4096 \
     -keyout certs/key.pem \
