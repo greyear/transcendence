@@ -62,7 +62,6 @@ export const RecipeInstructionSection = ({
 				<RecipeSortableList
 					droppableId="instructions"
 					type="instructions"
-					ordered
 					className="recipe-create-list recipe-instructions-list"
 				>
 					{rows.map((row, index) => (

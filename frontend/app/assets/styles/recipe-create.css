@@ -200,6 +200,22 @@
 	stroke-width: 1.5;
 }
 
+.recipe-ingredient-fields {
+	display: contents;
+	border: none;
+	margin: 0;
+	padding: 0;
+}
+
+.recipe-ingredient-fields legend {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+}
+
 .recipe-ingredient-amount {
 	grid-area: amount;
 }

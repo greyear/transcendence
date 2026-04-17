@@ -51,30 +51,33 @@ export const RecipeIngredientRow = ({
 			<span className="recipe-drag-handle" {...provided.dragHandleProps}>
 				<Menu aria-hidden="true" />
 			</span>
-			<InputField
-				id={`${ingredient.id}-amount`}
-				type="number"
-				className="recipe-ingredient-amount"
-				placeholder="Amount"
-				min={0}
-				value={ingredient.amount}
-				onChange={(e) => onChange("amount", e.target.value)}
-				aria-label={`Ingredient ${index + 1} amount`}
-			/>
-			<SelectField
-				options={UNIT_SELECT_OPTIONS}
-				value={ingredient.unit}
-				onChange={(value) => onChange("unit", value)}
-			/>
-			<InputField
-				id={`${ingredient.id}-name`}
-				type="text"
-				className="recipe-ingredient-name"
-				placeholder="e.g. milk"
-				value={ingredient.name}
-				onChange={(e) => onChange("name", e.target.value)}
-				aria-label={`Ingredient ${index + 1} name`}
-			/>
+			<fieldset className="recipe-ingredient-fields">
+				<legend className="sr-only">{`Ingredient ${index + 1}`}</legend>
+				<InputField
+					id={`${ingredient.id}-amount`}
+					type="number"
+					className="recipe-ingredient-amount"
+					placeholder="Amount"
+					min={0}
+					value={ingredient.amount}
+					onChange={(e) => onChange("amount", e.target.value)}
+					aria-label={`Ingredient ${index + 1} amount`}
+				/>
+				<SelectField
+					options={UNIT_SELECT_OPTIONS}
+					value={ingredient.unit}
+					onChange={(value) => onChange("unit", value)}
+				/>
+				<InputField
+					id={`${ingredient.id}-name`}
+					type="text"
+					className="recipe-ingredient-name"
+					placeholder="e.g. milk"
+					value={ingredient.name}
+					onChange={(e) => onChange("name", e.target.value)}
+					aria-label={`Ingredient ${index + 1} name`}
+				/>
+			</fieldset>
 			<button
 				type="button"
 				className="recipe-remove-button"
