@@ -405,20 +405,20 @@ const getFollowingHandler = async (
 };
 
 const heartbeatHandler = async (
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction,
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
 ): Promise<void> => {
-    try {
-        if (req.userId === undefined) {
-            const error: CustomError = new Error("Authentication required");
-            error.statusCode = 401;
-            throw error;
-        }
-        res.status(200).json({ message: "OK" });
-    } catch (error) {
-        next(error);
-    }
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+		res.status(200).json({ message: "OK" });
+	} catch (error) {
+		next(error);
+	}
 };
 
 // Register more specific routes FIRST, then less specific

@@ -37,12 +37,6 @@ const authSchema = new mongoose.Schema({
 		required: true,
 		unique: true,
 	},
-	username: {
-		type: String,
-		required: false,
-		unique: true,
-		sparse: true,
-	},
 	email: {
 		type: String,
 		required: true,

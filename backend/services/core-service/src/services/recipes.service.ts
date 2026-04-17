@@ -41,6 +41,7 @@ import {
 	localizeInstructionStepsFromSource,
 	localizeTextFromSource,
 } from "./translation.service.js";
+import { areMutualFollowers } from "../utils/service.utils.js";
 
 type PublishRecipeResult =
 	| { success: true; recipe: Recipe }
@@ -111,10 +112,6 @@ const recipeVisibilityRowSchema = z.object({
 
 const requesterRoleRowSchema = z.object({
 	role: z.enum(["guest", "user", "admin"]),
-});
-
-const countRowSchema = z.object({
-	count: z.coerce.number().int().nonnegative(),
 });
 
 // PostgreSQL SQLSTATE for foreign_key_violation.
@@ -897,22 +894,8 @@ export const getFavoriteRecipesByUserId = async (
 			throw error;
 		}
 
-		// Check if current user and target user are mutual followers
-		const mutualFollowResult = await pool.query(
-			`SELECT COUNT(*) FROM followers 
-			 WHERE (user_id = $1 AND followed_id = $2) 
-			 OR (user_id = $2 AND followed_id = $1)`,
-			[currentUserId, userId],
-		);
-
-		const countParsed = countRowSchema.safeParse(
-			mutualFollowResult.rows[0],
-		);
-		if (!countParsed.success) {
-			throw new Error(z.prettifyError(countParsed.error));
-		}
-		const count = countParsed.data.count;
-		if (count !== 2) {
+		const isMutualFollow = await areMutualFollowers(currentUserId, userId);
+		if (!isMutualFollow) {
 			// Not mutual followers - access denied
 			return null;
 		}

@@ -348,7 +348,7 @@ describe("API Gateway - Users Routes", () => {
 			// Verify auth-service check
 			expect(fetchSpy).toHaveBeenNthCalledWith(
 				1,
-				expect.stringContaining("/auth/validate"),
+				expect.stringContaining("/validate"),
 				expect.objectContaining({
 					method: "POST",
 					headers: { Authorization: "Bearer faketoken123" },

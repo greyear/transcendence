@@ -1,7 +1,6 @@
 /**
  * Auth Routes
  *
- *
  */
 
 import {
@@ -34,7 +33,10 @@ const postAuthRegisterHandler: RequestHandler = async (
 		});
 		const data = await response.json();
 
-		if (response.status === 201 && tokenResponseSchema.safeParse(data).success) {
+		if (
+			response.status === 201 &&
+			tokenResponseSchema.safeParse(data).success
+		) {
 			const setCookieHeader = response.headers.get("set-cookie");
 			if (setCookieHeader) {
 				res.set("Set-Cookie", setCookieHeader);
@@ -128,38 +130,12 @@ const postValidateHandler: RequestHandler = async (
 	}
 };
 
-const postValidateGoogleHandler: RequestHandler = async (
-	req: Request,
-	res: Response,
-	next: NextFunction,
-) => {
-	try {
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-		};
-		// Forward Authorization header if present
-		if (req.headers.authorization) {
-			headers.authorization = req.headers.authorization;
-		}
-		const response = await fetch(`${AUTH_SERVICE_URL}/validate/google`, {
-			method: "POST",
-			headers,
-			body: JSON.stringify(req.body),
-		});
-		const data = await response.json();
-		res.status(response.status).json(data);
-	} catch (error) {
-		next(error);
-	}
-};
-
 const deleteUserHandler: RequestHandler = async (
 	req: Request,
 	res: Response,
 	next: NextFunction,
 ) => {
 	try {
-		const { username } = req.params;
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
 		};
@@ -167,9 +143,10 @@ const deleteUserHandler: RequestHandler = async (
 		if (req.headers.authorization) {
 			headers.authorization = req.headers.authorization;
 		}
-		const response = await fetch(`${AUTH_SERVICE_URL}/delete/${username}`, {
+		const response = await fetch(`${AUTH_SERVICE_URL}/delete`, {
 			method: "DELETE",
 			headers,
+			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
 		res.status(response.status).json(data);
@@ -184,7 +161,6 @@ const patchChangePasswordHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		const { username } = req.params;
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
 		};
@@ -192,14 +168,34 @@ const patchChangePasswordHandler: RequestHandler = async (
 		if (req.headers.authorization) {
 			headers.authorization = req.headers.authorization;
 		}
-		const response = await fetch(
-			`${AUTH_SERVICE_URL}/change-password/${username}`,
-			{
-				method: "PATCH",
-				headers,
-				body: JSON.stringify(req.body),
-			},
-		);
+		const response = await fetch(`${AUTH_SERVICE_URL}/change-password`, {
+			method: "PATCH",
+			headers,
+			body: JSON.stringify(req.body),
+		});
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		next(error);
+	}
+};
+
+const getMeHandler: RequestHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
+		if (req.headers.authorization) {
+			headers.authorization = req.headers.authorization;
+		}
+		const response = await fetch(`${AUTH_SERVICE_URL}/me`, {
+			method: "GET",
+			headers,
+		});
 		const data = await response.json();
 		res.status(response.status).json(data);
 	} catch (error) {
@@ -214,6 +210,6 @@ authRouter.post("/google", postGoogleHandler);
 
 //authGetSet.ts handlers
 authRouter.post("/validate", postValidateHandler);
-authRouter.post("/validate/google", postValidateGoogleHandler);
-authRouter.delete("/delete/:username", deleteUserHandler);
-authRouter.patch("/change-password/:username", patchChangePasswordHandler);
+authRouter.get("/me", getMeHandler);
+authRouter.delete("/delete", deleteUserHandler);
+authRouter.patch("/change-password", patchChangePasswordHandler);

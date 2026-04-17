@@ -354,6 +354,31 @@ export const profileDataSchema = z.object({
 export type ProfileData = z.infer<typeof profileDataSchema>;
 
 /**
+ * RegisterProfileInput schema - body for POST /profile/register
+ * Internal endpoint used by auth-service after a successful registration.
+ */
+const registerProfileInputSchema = z.object({
+	id: positiveIntSchema,
+});
+
+export type RegisterProfileInput = z.infer<typeof registerProfileInputSchema>;
+
+export const validateRegisterProfileInput = (
+	input: unknown,
+): ValidationResult<RegisterProfileInput> => {
+	const result = registerProfileInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+/**
  * UpdateProfileInput schema - body for PUT /profile
  *
  * Both fields are optional so the user can update just one at a time.

@@ -51,9 +51,7 @@
 	},
 	"recipePage": {
 		"loading": "Ladataan...",
-		"invalidRecipe": "Virheellinen resepti.",
 		"error": "Reseptin haku epäonnistui (tila: {{status}}).",
-		"errorLoadingRecipe": "Reseptin lataaminen epäonnistui.",
 		"recipeNotFound": "Reseptiä ei löytynyt.",
 		"rate": "Arvioi",
 		"ingredients": "Ainekset",
@@ -62,6 +60,13 @@
 		"noInstructionsAvailable": "Tälle reseptille ei ole saatavilla ohjeita.",
 		"step": "Vaihe {{number}}",
 		"share": "Jaa"
+	},
+	"ratingModal": {
+		"title": "Kerro ajatuksesi tästä reseptistä",
+		"rateRecipe": "Arvioi tämä resepti",
+		"describeRecipe": "Kuvaile reseptiä (valinnainen)",
+		"ratingOption": "{{value}} tähteä viidestä",
+		"submit": "Lähetä"
 	},
 	"usersPage": {
 		"title": "Käyttäjät",
@@ -83,10 +88,7 @@
 	"loginPage": {
 		"title": "Kirjaudu sisään",
 		"signupTitle": "Luo tili",
-		"usernameLabel": "Käyttäjätunnus tai sähköposti",
-		"signupUsernameLabel": "Käyttäjätunnus",
-		"usernameRequirements": "Käytä 3-20 merkkiä ja vain kirjaimia, numeroita sekä alaviivaa.",
-		"emailLabel": "Sähköposti",
+		"emailLabel": "Sähköpostiosoite",
 		"passwordLabel": "Salasana",
 		"passwordRequirements": "Käytä 8-64 merkkiä ja sisällytä iso kirjain, pieni kirjain, numero sekä erikoismerkki.",
 		"genericError": "Kirjautuminen epäonnistui. Yritä uudelleen.",
@@ -98,7 +100,7 @@
 		"googleLoginButton": "Kirjaudu sisään Googlella",
 		"googleSignupButton": "Luo tili Googlella",
 		"signupSubmittingButton": "Luodaan tiliä...",
-		"signupSuccess": "Tili luotu. Voit nyt kirjautua sisään.",
+		"signupSuccess": "Tili luotu. Olet kirjautunut sisään.",
 		"toggleSignupPrompt": "Tarvitsetko tilin? Luo sellainen",
 		"toggleLoginPrompt": "Onko sinulla jo tili? Kirjaudu sisään"
 	},
@@ -111,6 +113,53 @@
 		"recipes": "reseptiä",
 		"follow": "Seuraa",
 		"unfollow": "Lopeta seuraaminen"
+	},
+	"privacyPage": {
+		"title": "Tietosuojaseloste",
+		"lastUpdated": "Päivitetty viimeksi: 17. huhtikuuta 2026",
+		"intro": "Transcendence (\"me\", \"meidän\") ylläpitää tätä reseptien jakamiseen ja löytämiseen tarkoitettua alustaa. Tämä tietosuojaseloste selittää, miten keräämme, käytämme ja suojaamme henkilötietojasi.",
+		"collectTitle": "Keräämämme tiedot",
+		"collectAccount": "Tilitiedot: Rekisteröitymisen yhteydessä keräämme käyttäjätunnuksesi, sähköpostiosoitteesi ja salasanasi.",
+		"collectUsage": "Käyttötiedot: Keräämme tietoja siitä, miten käytät alustaa, kuten tarkastelemasi, luomasi tai tallentamasi reseptit.",
+		"collectCookies": "Evästeet: Käytämme evästeitä istunnon ja kieliasetustesi ylläpitämiseen.",
+		"useTitle": "Tietojen käyttö",
+		"useProvide": "Palveluidemme tarjoamiseen ja parantamiseen.",
+		"useAuth": "Tunnistautumiseesi ja istuntosi ylläpitämiseen.",
+		"usePrefs": "Asetustesi, kuten kielen, muistamiseen.",
+		"shareTitle": "Tietojen jakaminen",
+		"shareText": "Emme myy henkilötietojasi. Voimme jakaa tietoja palveluntarjoajien kanssa, jotka auttavat alustan toiminnassa, tiukan salassapitovelvoitteen alaisena.",
+		"securityTitle": "Tietoturva",
+		"securityText": "Ryhdymme kohtuullisiin teknisiin ja organisatorisiin toimenpiteisiin henkilötietojesi suojaamiseksi luvattomalta käytöltä, katoamiselta tai luovuttamiselta.",
+		"rightsTitle": "Oikeutesi",
+		"rightsText": "Sijaintisi mukaan sinulla voi olla oikeus käyttää, korjata tai poistaa henkilötietojasi. Käyttääksesi näitä oikeuksia ota meihin yhteyttä.",
+		"cookiesTitle": "Evästeet",
+		"cookiesText": "Käytämme istunto- ja asetusevästeitä. Voit poistaa evästeet käytöstä selaimesi asetuksissa, mutta jotkin toiminnot eivät välttämättä toimi oikein.",
+		"contactTitle": "Yhteystiedot",
+		"contactText": "Tietosuojaan liittyvissä kysymyksissä ota meihin yhteyttä osoitteessa msavelie@student.hive.fi."
+	},
+	"termsPage": {
+		"title": "Käyttöehdot",
+		"lastUpdated": "Päivitetty viimeksi: 17. huhtikuuta 2026",
+		"intro": "Lue nämä käyttöehdot huolellisesti ennen Transcendencen käyttöä. Käyttämällä alustaa hyväksyt nämä ehdot.",
+		"acceptanceTitle": "Ehtojen hyväksyminen",
+		"acceptanceText": "Luomalla tilin tai käyttämällä tätä alustaa vahvistat, että olet vähintään 13-vuotias ja hyväksyt nämä käyttöehdot.",
+		"useTitle": "Palvelun käyttö",
+		"useText": "Voit käyttää Transcendence-alustaa reseptien löytämiseen, luomiseen ja jakamiseen henkilökohtaisiin, ei-kaupallisiin tarkoituksiin. Olet vastuussa tilitietojesi turvallisuudesta.",
+		"contentTitle": "Käyttäjien sisältö",
+		"contentText": "Säilytät omistajuuden julkaisemaasi sisältöön. Julkaisemalla sisältöä myönnät meille ei-yksinoikeudellisen lisenssin sen näyttämiseen ja jakamiseen alustalla. Olet vastuussa siitä, että sisältösi ei riko lakeja tai kolmansien osapuolien oikeuksia.",
+		"prohibitedTitle": "Kielletty toiminta",
+		"prohibited1": "Haitallisen, loukkaavan tai laittoman sisällön julkaiseminen.",
+		"prohibited2": "Luvaton pääsy muiden tileille tai järjestelmiin.",
+		"prohibited3": "Automaattisten työkalujen käyttö sisällön kaapimiseen ilman lupaa.",
+		"prohibited4": "Muiden käyttäjien tai tahojen esiintyminen.",
+		"terminationTitle": "Tilin sulkeminen",
+		"terminationText": "Pidätämme oikeuden keskeyttää tai sulkea tilisi, jos rikot näitä ehtoja tai käyttäydyt tavalla, joka vahingoittaa alustaa tai muita käyttäjiä.",
+		"liabilityTitle": "Vastuun rajoitus",
+		"liabilityText": "Alusta tarjotaan \"sellaisena kuin se on\" ilman minkäänlaisia takuita. Emme vastaa mistään epäsuorista, satunnaisista tai seurannaishaitoista, jotka johtuvat alustan käytöstä.",
+		"changesTitle": "Ehtojen muutokset",
+		"changesText": "Voimme päivittää näitä käyttöehtoja ajoittain. Alustan jatkuva käyttö muutosten jälkeen merkitsee päivitettyjen ehtojen hyväksymistä.",
+		"contactTitle": "Yhteystiedot",
+		"contactText": "Jos sinulla on kysyttävää näistä ehdoista, ota meihin yhteyttä osoitteessa msavelie@student.hive.fi."
 	},
 	"ariaLabels": {
 		"addToFavorites": "Lisää suosikkeihin",
@@ -143,6 +192,7 @@
 		"shareRecipe": "Jaa resepti",
 		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet",
 		"closeAuthDialog": "Sulje tunnistautumisikkuna",
-		"toProfilePage": "Siirry profiilisivulle"
+		"toProfilePage": "Siirry profiilisivulle",
+		"closeRatingDialog": "Sulje arviointi-ikkuna"
 	}
 }

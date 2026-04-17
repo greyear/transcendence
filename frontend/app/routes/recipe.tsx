@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams } from "react-router";
+import { useOutletContext, useParams } from "react-router";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.css";
 import { ArrowEmailForward, Reports, StarSolid } from "iconoir-react";
 import { IconButton } from "~/components/buttons/IconButton";
+import { RatingModal } from "~/components/rating/ratingModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import type { LayoutOutletContext } from "~/layouts/layout";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
 
 type RecipeIngredient = {
@@ -27,12 +29,30 @@ type Recipe = {
 const RecipePage = () => {
 	const { id } = useParams();
 	const { t } = useTranslation();
+	const { isAuthenticated, openAuthModal } =
+		useOutletContext<LayoutOutletContext>();
 
 	const [recipe, setRecipe] = useState<Recipe | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
 		null,
 	);
+	const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+
+	const onCloseRatingModal = () => {
+		setIsRatingModalOpen(false);
+	};
+
+	const onOpenRatingModal = () => {
+		if (!isAuthenticated) {
+			openAuthModal(() => {
+				setIsRatingModalOpen(true);
+			});
+			return;
+		}
+
+		setIsRatingModalOpen(true);
+	};
 
 	useEffect(() => {
 		if (!id) {
@@ -129,7 +149,7 @@ const RecipePage = () => {
 						<StarSolid />
 					</div>
 				) : null}
-				<IconButton className="recipe-action">
+				<IconButton className="recipe-action" onClick={onOpenRatingModal}>
 					{t("recipePage.rate")} <Reports />
 				</IconButton>
 				<FavoriteButton />
@@ -197,6 +217,7 @@ const RecipePage = () => {
 					)}
 				</section>
 			</section>
+			<RatingModal isOpen={isRatingModalOpen} onClose={onCloseRatingModal} />
 		</section>
 	);
 };

@@ -8,9 +8,8 @@ import { jest } from "@jest/globals";
 import { pool } from "../db/database.js";
 
 const parsedTimeout = Number(process.env.JEST_TEST_TIMEOUT_MS ?? 20000);
-const testTimeoutMs = Number.isFinite(parsedTimeout) && parsedTimeout > 0
-	? parsedTimeout
-	: 20000;
+const testTimeoutMs =
+	Number.isFinite(parsedTimeout) && parsedTimeout > 0 ? parsedTimeout : 20000;
 
 jest.setTimeout(testTimeoutMs);
 
