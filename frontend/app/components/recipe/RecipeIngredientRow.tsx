@@ -67,15 +67,15 @@ export const RecipeIngredientRow = ({
 					options={UNIT_SELECT_OPTIONS}
 					value={ingredient.unit}
 					onChange={(value) => onChange("unit", value)}
+					className="recipe-ingredient-unit"
 				/>
 				<InputField
 					id={`${ingredient.id}-name`}
 					type="text"
 					className="recipe-ingredient-name"
-					placeholder="e.g. milk"
+					placeholder="Ingredient name"
 					value={ingredient.name}
 					onChange={(e) => onChange("name", e.target.value)}
-					aria-label={`Ingredient ${index + 1} name`}
 				/>
 			</fieldset>
 			<button

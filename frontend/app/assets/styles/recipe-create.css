@@ -180,9 +180,9 @@
 .recipe-ingredient-row {
 	display: grid;
 	grid-template-areas:
-		"name name unit"
-		"drag amount remove";
-	grid-template-columns: auto 1fr auto;
+		"drag name   name   remove"
+		"drag amount unit   remove";
+	grid-template-columns: auto 1fr 1fr auto;
 	gap: var(--space-s);
 }
 
@@ -190,8 +190,12 @@
 	grid-area: drag;
 	display: flex;
 	align-items: center;
+	justify-content: center;
+	align-self: center;
 	color: var(--text-secondary);
 	cursor: grab;
+	width: var(--icon-button-size);
+	height: var(--icon-button-size);
 }
 
 .recipe-drag-handle svg {
@@ -220,6 +224,10 @@
 	grid-area: amount;
 }
 
+.recipe-ingredient-unit {
+	grid-area: unit;
+}
+
 .recipe-ingredient-name {
 	grid-area: name;
 	min-width: 0;
@@ -230,6 +238,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	align-self: center;
 	background-color: transparent;
 	border: none;
 	cursor: pointer;
@@ -346,8 +355,9 @@
 		flex-shrink: 0;
 	}
 
-	.recipe-ingredient-amount {
-		width: 80px;
+	.recipe-ingredient-amount,
+	.recipe-ingredient-unit {
+		width: 130px;
 		flex-shrink: 0;
 		flex-grow: 0;
 	}

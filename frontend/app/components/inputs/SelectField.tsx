@@ -13,6 +13,7 @@ type SelectFieldProps = {
 	onChange?: (value: string) => void;
 	inputId?: string;
 	name?: string;
+	className?: string;
 };
 
 export const SelectField = ({
@@ -22,6 +23,7 @@ export const SelectField = ({
 	onChange,
 	inputId,
 	name,
+	className,
 }: SelectFieldProps) => {
 	const selectedOption =
 		value !== undefined
@@ -29,7 +31,7 @@ export const SelectField = ({
 			: undefined;
 
 	return (
-		<div className="select-wrapper">
+		<div className={`select-wrapper${className ? ` ${className}` : ""}`.trim()}>
 			<Select
 				instanceId={inputId ?? "select"}
 				inputId={inputId}
