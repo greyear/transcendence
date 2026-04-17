@@ -1,7 +1,7 @@
 .text-area-wrapper {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-xs);
+	gap: var(--space-s);
 	width: 100%;
 }
 
