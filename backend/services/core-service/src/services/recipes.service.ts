@@ -44,6 +44,7 @@ import {
 	localizeInstructionStepsFromSource,
 	localizeTextFromSource,
 } from "./translation.service.js";
+import { scheduleRecipeSearchReindex } from "./searchIndex.service.js";
 
 type PublishRecipeResult =
 	| { success: true; recipe: Recipe }
@@ -620,6 +621,8 @@ export const publishRecipe = async (
 		if (!recipe) {
 			throw new Error(`Updated recipe ${recipeId} could not be loaded`);
 		}
+
+		scheduleRecipeSearchReindex(recipeId);
 
 		return { success: true, recipe };
 	} catch (error) {

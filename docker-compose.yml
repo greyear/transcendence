@@ -155,6 +155,8 @@ services:
       DATABASE_URL: postgresql://core_user:core_password@core-db:5432/core_db
       TRANSLATION_API_URL: http://translation-service:8001/translate
       TRANSLATION_TIMEOUT_MS: 4000
+      SEARCH_SERVICE_URL: http://search-service:8000
+      SEARCH_REINDEX_TIMEOUT_MS: 5000
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
 
     depends_on:
