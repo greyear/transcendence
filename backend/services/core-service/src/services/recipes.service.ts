@@ -1329,3 +1329,43 @@ export const updateRecipePicture = async (
 		throw error;
 	}
 };
+
+export const getCategoryList = async (
+	categoryTypeCode: string,
+): Promise<{ [key: string]: string[] }> => {
+	try {
+		const result = await pool.query<{ code: string }>(
+			`
+			SELECT rc.code
+			FROM recipe_categories rc
+			JOIN recipe_category_types rct ON rct.id = rc.category_type_id
+			WHERE rct.code = $1
+			ORDER BY rc.code ASC
+			`,
+			[categoryTypeCode],
+		);
+
+		const codes = result.rows.map((row) => row.code);
+		return { [categoryTypeCode]: codes };
+	} catch (error) {
+		console.error(
+			`Database error in getCategoryList(${categoryTypeCode}):`,
+			error,
+		);
+		throw error;
+	}
+};
+
+export const getIngredientList = async (): Promise<{
+	ingredients: { id: number; name: string }[];
+}> => {
+	try {
+		const result = await pool.query<{ id: number; name: string }>(
+			`SELECT id, name FROM ingredients ORDER BY name ASC`,
+		);
+		return { ingredients: result.rows };
+	} catch (error) {
+		console.error("Database error in getIngredientList:", error);
+		throw error;
+	}
+};
