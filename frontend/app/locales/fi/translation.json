@@ -83,7 +83,11 @@
 		"username": "Käyttäjätunnus",
 		"userId": "Käyttäjätunnus-ID",
 		"avatar": "Kuva",
-		"noAvatar": "Kuvaa ei ole asetettu"
+		"noAvatar": "Kuvaa ei ole asetettu",
+		"favoritesError": "Suosikkien lataus epäonnistui (tila: {{status}}).",
+		"favoritesLoading": "Ladataan suosikkeja...",
+		"favoritesNotFound": "Suosikkeja ei löytynyt.",
+		"favoritesTitle": "Omat suosikit"
 	},
 	"authModal": {
 		"title": "Kirjaudu sisään",

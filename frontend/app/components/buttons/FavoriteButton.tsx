@@ -10,7 +10,11 @@ type FavoriteButtonProps = {
 	onClick: (event: React.MouseEvent<HTMLElement>) => void;
 };
 
-export const FavoriteButton = ({ disabled = false, isFavorited, onClick}: FavoriteButtonProps) => {
+export const FavoriteButton = ({
+	disabled = false,
+	isFavorited,
+	onClick,
+}: FavoriteButtonProps) => {
 	const { t } = useTranslation();
 	//const [isActive, setIsActive] = useState(false);
 	/*const handleClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {

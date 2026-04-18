@@ -8,8 +8,8 @@ import { FavoriteButton } from "../buttons/FavoriteButton";
 type RecipeCardProps = {
 	id: number;
 	title: string;
-	description: string;
-	rating: string;
+	description: string | null;
+	rating: number | null;
 	isFavorited: boolean;
 	isFavoritePending?: boolean;
 	onFavoriteClick: (recipeId: number) => void;
@@ -36,18 +36,26 @@ export const RecipeCard = ({
 					<div className="recipe-card-content-column">
 						<header className="recipe-card-header">
 							<h3 className="text-label">{title}</h3>
-							<p className="text-caption-s">{description}</p>
+							{description ? (
+								<p className="text-caption-s">{description}</p>
+							) : null}
 						</header>
 						<footer className="recipe-card-footer">
-							<div className="rating-row">
-								<span className="text-caption">{rating}</span>
-								<StarSolid />
-							</div>
-							<FavoriteButton isFavorited={isFavorited} disabled={isFavoritePending} onClick={(event) => {
-								event.preventDefault();
-								event.stopPropagation();
-								onFavoriteClick(id);
-							}} />
+							{rating !== null ? (
+								<div className="rating-row">
+									<span className="text-caption">{rating.toFixed(1)}</span>
+									<StarSolid />
+								</div>
+							) : null}
+							<FavoriteButton
+								isFavorited={isFavorited}
+								disabled={isFavoritePending}
+								onClick={(event) => {
+									event.preventDefault();
+									event.stopPropagation();
+									onFavoriteClick(id);
+								}}
+							/>
 						</footer>
 					</div>
 				</div>

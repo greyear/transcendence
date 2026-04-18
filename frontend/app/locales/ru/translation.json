@@ -83,7 +83,11 @@
 		"username": "Имя пользователя",
 		"userId": "ID пользователя",
 		"avatar": "Аватар",
-		"noAvatar": "Аватар не установлен"
+		"noAvatar": "Аватар не установлен",
+		"favoritesError": "Не удалось загрузить избранное (статус: {{status}}).",
+		"favoritesLoading": "Загрузка избранного...",
+		"favoritesNotFound": "Избранные рецепты не найдены.",
+		"favoritesTitle": "Мое избранное"
 	},
 	"authModal": {
 		"title": "Войти",

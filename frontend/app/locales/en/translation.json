@@ -83,7 +83,11 @@
 		"username": "Username",
 		"userId": "User ID",
 		"avatar": "Avatar",
-		"noAvatar": "No avatar set"
+		"noAvatar": "No avatar set",
+		"favoritesError": "Failed to load favorites (status: {{status}}).",
+		"favoritesLoading": "Loading favorites...",
+		"favoritesNotFound": "Favorites not found.",
+		"favoritesTitle": "My favorites"
 	},
 	"authModal": {
 		"title": "Log in",

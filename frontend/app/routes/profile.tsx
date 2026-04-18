@@ -15,7 +15,7 @@ type FavoriteRecipe = {
 	title: string;
 	description: string | null;
 	avatar: string | null;
-}
+};
 
 const ProfileResponseSchema = z.object({
 	data: z.object({
@@ -41,22 +41,21 @@ const ProfilePage = () => {
 	const { t } = useTranslation();
 	const [profile, setProfile] = useState<ProfileData | null>(null);
 	const [favorites, setFavorites] = useState<FavoriteRecipe[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
+	const [isProfileLoading, setIsProfileLoading] = useState(true);
+	const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
 	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
 		null,
 	);
-	const [favoritesErrorStatus, setFavoritesErrorStatus] = useState<number | "unknown" | null>(
-		null,
-	);
+	const [favoritesErrorStatus, setFavoritesErrorStatus] = useState<
+		number | "unknown" | null
+	>(null);
 
 	useEffect(() => {
 		let ignore = false;
 
-		setIsLoading(true);
+		setIsProfileLoading(true);
 		setErrorStatus(null);
 		setProfile(null);
-		setFavoritesErrorStatus(null);
-		setFavorites([]);
 
 		fetch(`${API_BASE_URL}/profile`, {
 			credentials: "include",
@@ -96,7 +95,7 @@ const ProfilePage = () => {
 			})
 			.finally(() => {
 				if (!ignore) {
-					setIsLoading(false);
+					setIsProfileLoading(false);
 				}
 			});
 
@@ -105,42 +104,41 @@ const ProfilePage = () => {
 		};
 	}, []);
 
-
 	useEffect(() => {
 		let ignore = false;
-		
+
+		setIsFavoritesLoading(true);
 		setFavoritesErrorStatus(null);
 		setFavorites([]);
 
 		fetch(`${API_BASE_URL}/users/me/favorites`, {
 			credentials: "include",
 		})
-		.then((res) => {
-			if (!res.ok) {
-				if (!ignore) {
-					setErrorStatus(res.status);
-					setFavoritesErrorStatus(res.status);
+			.then((res) => {
+				if (!res.ok) {
+					if (!ignore) {
+						setFavoritesErrorStatus(res.status);
+					}
+					return null;
 				}
-				return null;
-			}
-			return res.json();
-		})
-		.then((body: unknown | null) => {
-			if (ignore) {
-				return;
-			}
-			if (body === null) {
-				return;
-			}
+				return res.json();
+			})
+			.then((body: unknown | null) => {
+				if (ignore) {
+					return;
+				}
+				if (body === null) {
+					return;
+				}
 
-		const parsed = FavoriteResponseSchema.safeParse(body);
-		if (!parsed.success) {
-				setFavorites([]);
-				return;
-			}
+				const parsed = FavoriteResponseSchema.safeParse(body);
+				if (!parsed.success) {
+					setFavorites([]);
+					return;
+				}
 
-			setFavorites(parsed.data.data);
-		})
+				setFavorites(parsed.data.data);
+			})
 			.catch((error: unknown) => {
 				if (!ignore) {
 					setFavoritesErrorStatus("unknown");
@@ -149,7 +147,7 @@ const ProfilePage = () => {
 			})
 			.finally(() => {
 				if (!ignore) {
-					setIsLoading(false);
+					setIsFavoritesLoading(false);
 				}
 			});
 
@@ -157,7 +155,7 @@ const ProfilePage = () => {
 			ignore = true;
 		};
 	}, []);
-	if (isLoading) {
+	if (isProfileLoading) {
 		return <p className="profile-page-status">{t("profilePage.loading")}</p>;
 	}
 
@@ -194,20 +192,27 @@ const ProfilePage = () => {
 				</p>
 			</div>
 			<section className="profile-page-favorites">
-				<h2>favorites</h2>
-				{favoritesErrorStatus !== null ? (
-					<p className="profile-page-status">status: {favoritesErrorStatus
-						}</p>
-					) : favorites.length === 0 ? (
-						<p className="profile-page-status">No favorties</p>
+				<h2>{t("profilePage.favoritesTitle")}</h2>
+				{isFavoritesLoading ? (
+					<p className="profile-page-status">
+						{t("profilePage.favoritesLoading")}
+					</p>
+				) : favoritesErrorStatus !== null ? (
+					<p className="profile-page-status">
+						{t("profilePage.favoritesError", { status: favoritesErrorStatus })}
+					</p>
+				) : favorites.length === 0 ? (
+					<p className="profile-page-status">
+						{t("profilePage.favoritesNotFound")}
+					</p>
 				) : (
-				<ul>
-					{favorites.map((favorite) => (
-						<li key={favorite.id}>
-							<h3>{favorite.title}</h3>
-						</li>
-					))}
-				</ul>
+					<ul>
+						{favorites.map((favorite) => (
+							<li key={favorite.id}>
+								<h3>{favorite.title}</h3>
+							</li>
+						))}
+					</ul>
 				)}
 			</section>
 		</section>

@@ -4,13 +4,13 @@ import { useOutletContext, useParams } from "react-router";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.css";
 import { ArrowEmailForward, Reports, StarSolid } from "iconoir-react";
+import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
 import { RatingModal } from "~/components/rating/ratingModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
-import { z } from "zod";
 
 type RecipeIngredient = {
 	ingredient_id: number;
@@ -29,13 +29,6 @@ type Recipe = {
 	instructions: string[];
 };
 
-type FavoriteRecipe = {
-	id: number;
-	title: string;
-	description: string | null;
-	avatar: string | null;
-}
-
 const FavoriteRecipeSchema = z.object({
 	id: z.number().int().positive(),
 	title: z.string(),
@@ -47,7 +40,6 @@ const FavoritesResponseSchema = z.object({
 	data: z.array(FavoriteRecipeSchema),
 	count: z.number(),
 });
-
 
 const RecipePage = () => {
 	const { id } = useParams();
@@ -75,23 +67,20 @@ const RecipePage = () => {
 		setIsFavoritePending(true);
 		try {
 			const response = await fetch(`${API_BASE_URL}/recipes/${id}/favorite`, {
-				method: valueAfterToggle ? "DELETE" : "POST",
+				method: valueAfterToggle ? "POST" : "DELETE",
 				credentials: "include",
 			});
 
-			if (!response.ok)
-			{
+			if (!response.ok) {
 				setIsFavorited(valueBeforeToggle);
 			}
-		}
-		catch (error) {
+		} catch (error) {
 			setIsFavorited(valueBeforeToggle);
 			console.error(error);
-		}
-		finally {
+		} finally {
 			setIsFavoritePending(false);
 		}
-	}
+	};
 
 	const onCloseRatingModal = () => {
 		setIsRatingModalOpen(false);
@@ -158,9 +147,8 @@ const RecipePage = () => {
 			});
 	}, [id]);
 
-	useEffect (() => {
-		if (!isAuthenticated || !id)
-		{
+	useEffect(() => {
+		if (!isAuthenticated || !id) {
 			setIsFavorited(false);
 			return;
 		}
@@ -259,7 +247,11 @@ const RecipePage = () => {
 				<IconButton className="recipe-action" onClick={onOpenRatingModal}>
 					{t("recipePage.rate")} <Reports />
 				</IconButton>
-				<FavoriteButton isFavorited={isFavorited} disabled={isFavoritePending} onClick={handleFavoriteClick} />
+				<FavoriteButton
+					isFavorited={isFavorited}
+					disabled={isFavoritePending}
+					onClick={handleFavoriteClick}
+				/>
 				<IconButton
 					className="recipe-action"
 					aria-label={t("ariaLabels.shareRecipe")}
