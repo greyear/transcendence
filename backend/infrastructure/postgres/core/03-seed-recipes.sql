@@ -351,8 +351,6 @@ FROM (VALUES
   ],
   1, 0, 1, 'published', 4.20, 16
 )) AS v(title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count);
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 
 WITH seeded_media(title_en, image_url) AS (
   VALUES
