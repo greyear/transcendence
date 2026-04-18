@@ -204,14 +204,22 @@ const getMeHandler: RequestHandler = async (
 };
 
 const postLogoutHandler: RequestHandler = async (
-	_req: Request,
+	req: Request,
 	res: Response,
 	next: NextFunction,
 ) => {
 	try {
+		const headers: Record<string, string> = {
+			"Content-Type": "application/json",
+		};
+		if (req.headers.authorization) {
+			headers.authorization = req.headers.authorization;
+		}
+
 		const response = await fetch(`${AUTH_SERVICE_URL}/logout`, {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers,
+			body: JSON.stringify(req.body),
 		});
 		const data = await response.json();
 
