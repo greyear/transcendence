@@ -460,8 +460,11 @@ export const validatePaginationQuery = (
 	if (result.success) {
 		return { valid: true, value: result.data };
 	}
-	
-	return { valid: false, error: result.error.issues[0]?.message ?? "Invalid pagination parameters" };
+
+	return {
+		valid: false,
+		error: result.error.issues[0]?.message ?? "Invalid pagination parameters",
+	};
 };
 
 /**
