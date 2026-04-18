@@ -29,17 +29,10 @@ jobs:
 
       - name: Start services with docker compose
         run: docker compose up -d
-      
-      - name: Prepare cert directory
-        run: |
-          rm -rf certs
-          mkdir certs
 
       - name: Wait for API Gateway to be ready
         run: |
-          echo "Creating certificates for API Gateway..."
-          make certs
-          echo "Certificated created, waiting for API Gateway to be ready..."
+          echo "Waiting for API Gateway to be ready..."
           for i in {1..60}; do
             if curl -f -k https://localhost:8443/health >/dev/null 2>&1; then
               echo "✓ API Gateway is ready"
