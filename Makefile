@@ -83,6 +83,17 @@ db-reset:
 db-seed:
 	@echo "Waiting for core-db..."
 	@until docker exec core-postgres pg_isready -U core_user -d core_db >/dev/null 2>&1; do sleep 1; done
+	@echo "Waiting for schema initialization (users/recipes/recipe_media)..."
+	@schema_waited=0; \
+	until [ "`docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT (to_regclass('public.users') IS NOT NULL) AND (to_regclass('public.recipes') IS NOT NULL) AND (to_regclass('public.recipe_media') IS NOT NULL);\" | tr -d '[:space:]'`" = "t" ]; do \
+		if [ $$schema_waited -ge 120 ]; then \
+			echo "✗ Schema init timeout. core-db init scripts likely failed."; \
+			echo "Inspect logs: docker-compose logs --tail=200 core-db"; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+		schema_waited=$$((schema_waited + 1)); \
+	done
 	@echo "Applying users + recipes seeds via docker-compose..."
 	@docker-compose exec -T core-db psql -v ON_ERROR_STOP=1 -U core_user -d core_db -f /docker-entrypoint-initdb.d/03-seed-users.sql
 	@docker-compose exec -T core-db psql -v ON_ERROR_STOP=1 -U core_user -d core_db -f /docker-entrypoint-initdb.d/04-seed-recipes.sql
