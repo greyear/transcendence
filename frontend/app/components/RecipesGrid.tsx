@@ -7,8 +7,6 @@ import { API_BASE_URL } from "~/composables/apiBaseUrl";
 type RecipeCardResponse = {
 	id: number;
 	title: string;
-	description: string;
-	rating_avg: string;
 	picture_url: string | null;
 	description: string | null;
 	rating_avg: number | null;
