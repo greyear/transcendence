@@ -9,6 +9,9 @@ type RecipeCardProps = {
 	title: string;
 	description: string;
 	rating: string;
+	isFavorited: boolean;
+	isFavoritePending?: boolean;
+	onFavoriteClick: (recipeId: number) => void;
 };
 
 export const RecipeCard = ({
@@ -16,6 +19,9 @@ export const RecipeCard = ({
 	title,
 	description,
 	rating,
+	isFavorited,
+	isFavoritePending,
+	onFavoriteClick,
 }: RecipeCardProps) => {
 	return (
 		<Link to={`/recipes/${id}`} className="recipe-card-link-wrapper">
@@ -36,7 +42,11 @@ export const RecipeCard = ({
 								<span className="text-caption">{rating}</span>
 								<StarSolid />
 							</div>
-							<FavoriteButton />
+							<FavoriteButton isFavorited={isFavorited} disabled={isFavoritePending} onClick={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+								onFavoriteClick(id);
+							}} />
 						</footer>
 					</div>
 				</div>

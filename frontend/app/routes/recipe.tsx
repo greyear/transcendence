@@ -9,6 +9,7 @@ import { RatingModal } from "~/components/rating/ratingModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
+import { z } from "zod";
 
 type RecipeIngredient = {
 	ingredient_id: number;
@@ -26,6 +27,26 @@ type Recipe = {
 	instructions: string[];
 };
 
+type FavoriteRecipe = {
+	id: number;
+	title: string;
+	description: string | null;
+	avatar: string | null;
+}
+
+const FavoriteRecipeSchema = z.object({
+	id: z.number().int().positive(),
+	title: z.string(),
+	description: z.string().nullable(),
+	avatar: z.string().nullable(),
+});
+
+const FavoritesResponseSchema = z.object({
+	data: z.array(FavoriteRecipeSchema),
+	count: z.number(),
+});
+
+
 const RecipePage = () => {
 	const { id } = useParams();
 	const { t } = useTranslation();
@@ -38,6 +59,37 @@ const RecipePage = () => {
 		null,
 	);
 	const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+	const [isFavorited, setIsFavorited] = useState(false);
+	const [isFavoritePending, setIsFavoritePending] = useState(false);
+
+	const toggleFavorite = async () => {
+		if (!id || isFavoritePending) {
+			return;
+		}
+		const valueBeforeToggle = isFavorited;
+		const valueAfterToggle = !valueBeforeToggle;
+
+		setIsFavorited(valueAfterToggle);
+		setIsFavoritePending(true);
+		try {
+			const response = await fetch(`${API_BASE_URL}/recipes/${id}/favorite`, {
+				method: valueAfterToggle ? "DELETE" : "POST",
+				credentials: "include",
+			});
+
+			if (!response.ok)
+			{
+				setIsFavorited(valueBeforeToggle);
+			}
+		}
+		catch (error) {
+			setIsFavorited(valueBeforeToggle);
+			console.error(error);
+		}
+		finally {
+			setIsFavoritePending(false);
+		}
+	}
 
 	const onCloseRatingModal = () => {
 		setIsRatingModalOpen(false);
@@ -52,6 +104,16 @@ const RecipePage = () => {
 		}
 
 		setIsRatingModalOpen(true);
+	};
+
+	const handleFavoriteClick = () => {
+		if (!isAuthenticated) {
+			openAuthModal(() => {
+				void toggleFavorite();
+			});
+			return;
+		}
+		void toggleFavorite();
 	};
 
 	useEffect(() => {
@@ -93,6 +155,48 @@ const RecipePage = () => {
 				setIsLoading(false);
 			});
 	}, [id]);
+
+	useEffect (() => {
+		if (!isAuthenticated || !id)
+		{
+			setIsFavorited(false);
+			return;
+		}
+
+		fetch(`${API_BASE_URL}/users/me/favorites`, {
+			credentials: "include",
+		})
+			.then((res) => {
+				if (!res.ok) {
+					return null;
+				}
+				return res.json();
+			})
+			.then((body) => {
+				if (body === null) {
+					setIsFavorited(false);
+					return;
+				}
+
+				const parsed = FavoritesResponseSchema.safeParse(body);
+
+				if (!parsed.success) {
+					setIsFavorited(false);
+					return;
+				}
+
+				const favorites = parsed.data.data;
+				const currentRecipeId = Number(id);
+
+				const recipeIsInFavorites = favorites.some(
+					(favorite) => favorite.id === currentRecipeId,
+				);
+				setIsFavorited(recipeIsInFavorites);
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+	}, [id, isAuthenticated]);
 
 	if (isLoading) {
 		return <p className="recipe-page-status">{t("recipePage.loading")}</p>;
@@ -152,7 +256,7 @@ const RecipePage = () => {
 				<IconButton className="recipe-action" onClick={onOpenRatingModal}>
 					{t("recipePage.rate")} <Reports />
 				</IconButton>
-				<FavoriteButton />
+				<FavoriteButton isFavorited={isFavorited} disabled={isFavoritePending} onClick={handleFavoriteClick} />
 				<IconButton
 					className="recipe-action"
 					aria-label={t("ariaLabels.shareRecipe")}

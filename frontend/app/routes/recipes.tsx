@@ -14,6 +14,8 @@ import { SortMenu } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";
 import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
+import type { LayoutOutletContext } from "~/layouts/layout";
+import { useOutletContext, useParams } from "react-router";
 
 const PER_PAGE = 12;
 
@@ -75,6 +77,8 @@ const RecipesPage = () => {
 				perPage={PER_PAGE}
 				onLoad={setTotalCount}
 				sortValue={sortValue}
+				isAuthenticated={isAuthenticated}
+				openAuthModal={openAuthModal}
 			/>
 
 			<Pagination

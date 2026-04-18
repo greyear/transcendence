@@ -9,6 +9,8 @@ import "../assets/styles/home.css";
 import { NavArrowLeft, NavArrowRight } from "iconoir-react";
 import { useTranslation } from "react-i18next";
 import heroImage from "~/assets/images/hero-image.jpg";
+import type { LayoutOutletContext } from "~/layouts/layout";
+import { useOutletContext, useParams } from "react-router";
 
 const HomePage = () => {
 	const { t } = useTranslation();
@@ -51,7 +53,8 @@ const HomePage = () => {
 						<NavArrowRight aria-hidden="true" />
 					</TextIconButton>
 				</div>
-				<RecipesGrid sort="top" page={1} perPage={recipesPerPage} />
+				<RecipesGrid sort="top" page={1} perPage={recipesPerPage} isAuthenticated={isAuthenticated}
+	openAuthModal={openAuthModal} />
 			</section>
 
 			<section

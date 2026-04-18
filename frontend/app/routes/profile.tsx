@@ -10,6 +10,13 @@ type ProfileData = {
 	avatar: string | null;
 };
 
+type FavoriteRecipe = {
+	id: number;
+	title: string;
+	description: string | null;
+	avatar: string | null;
+}
+
 const ProfileResponseSchema = z.object({
 	data: z.object({
 		id: z.number(),
@@ -18,11 +25,27 @@ const ProfileResponseSchema = z.object({
 	}),
 });
 
+const FavoriteRecipeSchema = z.object({
+	id: z.number().int().positive(),
+	title: z.string(),
+	description: z.string().nullable(),
+	avatar: z.string().nullable(),
+});
+
+const FavoriteResponseSchema = z.object({
+	data: z.array(FavoriteRecipeSchema),
+	count: z.number(),
+});
+
 const ProfilePage = () => {
 	const { t } = useTranslation();
 	const [profile, setProfile] = useState<ProfileData | null>(null);
+	const [favorites, setFavorites] = useState<FavoriteRecipe[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
+		null,
+	);
+	const [favoritesErrorStatus, setFavoritesErrorStatus] = useState<number | "unknown" | null>(
 		null,
 	);
 
@@ -32,6 +55,8 @@ const ProfilePage = () => {
 		setIsLoading(true);
 		setErrorStatus(null);
 		setProfile(null);
+		setFavoritesErrorStatus(null);
+		setFavorites([]);
 
 		fetch(`${API_BASE_URL}/profile`, {
 			credentials: "include",
@@ -80,6 +105,58 @@ const ProfilePage = () => {
 		};
 	}, []);
 
+
+	useEffect(() => {
+		let ignore = false;
+		
+		setFavoritesErrorStatus(null);
+		setFavorites([]);
+
+		fetch(`${API_BASE_URL}/users/me/favorites`, {
+			credentials: "include",
+		})
+		.then((res) => {
+			if (!res.ok) {
+				if (!ignore) {
+					setErrorStatus(res.status);
+					setFavoritesErrorStatus(res.status);
+				}
+				return null;
+			}
+			return res.json();
+		})
+		.then((body: unknown | null) => {
+			if (ignore) {
+				return;
+			}
+			if (body === null) {
+				return;
+			}
+
+		const parsed = FavoriteResponseSchema.safeParse(body);
+		if (!parsed.success) {
+				setFavorites([]);
+				return;
+			}
+
+			setFavorites(parsed.data.data);
+		})
+			.catch((error: unknown) => {
+				if (!ignore) {
+					setFavoritesErrorStatus("unknown");
+				}
+				console.error(error);
+			})
+			.finally(() => {
+				if (!ignore) {
+					setIsLoading(false);
+				}
+			});
+
+		return () => {
+			ignore = true;
+		};
+	}, []);
 	if (isLoading) {
 		return <p className="profile-page-status">{t("profilePage.loading")}</p>;
 	}
@@ -116,6 +193,23 @@ const ProfilePage = () => {
 					{profile.avatar ?? t("profilePage.noAvatar")}
 				</p>
 			</div>
+			<section className="profile-page-favorites">
+				<h2>favorites</h2>
+				{favoritesErrorStatus !== null ? (
+					<p className="profile-page-status">status: {favoritesErrorStatus
+						}</p>
+					) : favorites.length === 0 ? (
+						<p className="profile-page-status">No favorties</p>
+				) : (
+				<ul>
+					{favorites.map((favorite) => (
+						<li key={favorite.id}>
+							<h3>{favorite.title}</h3>
+						</li>
+					))}
+				</ul>
+				)}
+			</section>
 		</section>
 	);
 };
