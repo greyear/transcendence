@@ -352,6 +352,58 @@ const updateRecipePictureHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
+const getCategoryListHandler =
+	(categoryType: string): RequestHandler =>
+	async (req, res, _next) => {
+		try {
+			const url = new URL(`${CORE_SERVICE_URL}/recipes/${categoryType}`);
+			for (const [key, value] of Object.entries(req.query)) {
+				if (typeof value === "string") url.searchParams.set(key, value);
+			}
+
+			const response = await fetch(url.toString(), {
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			});
+			const data = await response.json();
+			res.status(response.status).json(data);
+		} catch (error) {
+			if (isTimeoutError(error)) {
+				res.status(504).json({ error: "Gateway Timeout" });
+				return;
+			}
+			console.error("Error proxying to core-service:", error);
+			res.status(500).json({ error: `Failed to fetch ${categoryType} list` });
+		}
+	};
+
+const getIngredientsHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(`${CORE_SERVICE_URL}/recipes/ingredients`, {
+			headers: getInternalHeaders(req),
+			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+		});
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to fetch ingredients" });
+	}
+};
+
+recipesRouter.get("/meal_time", getCategoryListHandler("meal_time"));
+recipesRouter.get("/dish_type", getCategoryListHandler("dish_type"));
+recipesRouter.get(
+	"/main_ingredient",
+	getCategoryListHandler("main_ingredient"),
+);
+recipesRouter.get("/cuisine", getCategoryListHandler("cuisine"));
+recipesRouter.get("/ingredients", getIngredientsHandler);
+
 recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
 recipesRouter.put("/:id/picture", requireAuth, updateRecipePictureHandler);
 recipesRouter.post("/:id/reviews", requireAuth, leaveRecipeReviewHandler);
