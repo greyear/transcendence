@@ -18,6 +18,7 @@ import path from "node:path";
 import type { PoolClient } from "pg";
 import { z } from "zod";
 import { pool } from "../db/database.js";
+import { areMutualFollowers } from "../utils/service.utils.js";
 import {
 	type CreateRecipeInput,
 	type CreateRecipeReviewInput,
@@ -38,6 +39,7 @@ import {
 	type SupportedLocale,
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
+	PaginatedResponse,
 } from "../validation/schemas.js";
 import {
 	localizeInstructionStepsFromSource,
@@ -101,6 +103,12 @@ type UpdateReviewResult =
 type DeleteReviewResult =
 	| { success: true; reviewId: number; recipeId: number; updatedAt: string }
 	| { success: false; reason: "not-found" | "forbidden" };
+
+interface ErrorWithCode extends Error {
+	code?: string;
+}
+
+const USER_NOT_FOUND_CODE = "USER_NOT_FOUND";
 
 const recipeIdRowSchema = z.object({
 	id: z.coerce.number().int().positive(),
@@ -418,6 +426,49 @@ export const getAllRecipes = async (
 	} catch (error) {
 		// If error - log it and throw it to caller
 		console.error("Database error in getAllRecipes:", error);
+		throw error;
+	}
+};
+
+/**
+ * Get published recipes for exact page
+ */
+export const getAllRecipesPaginated = async (
+	page: number,
+	perPage: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<PaginatedResponse<RecipeListItem>> => {
+	try {
+		const offset = (page - 1) * perPage;
+
+		const [dataResult, countResult] = await Promise.all([
+			pool.query(
+				`
+				SELECT
+					id,
+					COALESCE(title->>$1, title->>'en') AS title,
+					COALESCE(description->>$1, description->>'en') AS description,
+					author_id,
+					rating_avg
+				FROM recipes
+				WHERE status = 'published'
+				ORDER BY created_at DESC
+				LIMIT $2 OFFSET $3
+				`,
+				[locale, perPage, offset],
+			),
+			pool.query(
+				`SELECT COUNT(*)::int AS total FROM recipes WHERE status = 'published'`,
+			),
+		]);
+
+		const total_count = countResult.rows[0].total as number;
+		const total_pages = Math.ceil(total_count / perPage);
+		const data = parseRecipeRows(dataResult.rows, recipeListItemSchema, "recipe");
+
+		return { data, total_count, total_pages, page, per_page: perPage };
+	} catch (error) {
+		console.error("Database error in getAllRecipesPaginated:", error);
 		throw error;
 	}
 };
@@ -873,6 +924,63 @@ export const getMyFavoriteRecipes = async (
 		);
 	} catch (error) {
 		console.error("Database error in getMyFavoriteRecipes:", error);
+		throw error;
+	}
+};
+
+export const getFavoriteRecipesByUserId = async (
+	userId: number,
+	currentUserId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<FavoriteRecipeListItem[] | null> => {
+	try {
+		// Check if target user exists
+		const userCheckResult = await pool.query(
+			"SELECT id FROM users WHERE id = $1",
+			[userId],
+		);
+
+		if (userCheckResult.rows.length === 0) {
+			const error: ErrorWithCode = new Error("User not found");
+			error.code = USER_NOT_FOUND_CODE;
+			throw error;
+		}
+
+		const isMutualFollow = await areMutualFollowers(currentUserId, userId);
+		if (!isMutualFollow) {
+			// Not mutual followers - access denied
+			return null;
+		}
+
+		const query = `
+	SELECT
+		r.id,
+		COALESCE(r.title->>$2, r.title->>'en') AS title,
+		COALESCE(r.description->>$2, r.description->>'en') AS description,
+		u.avatar
+      FROM favorites f
+      JOIN recipes r ON r.id = f.recipe_id
+      LEFT JOIN users u ON u.id = r.author_id
+      WHERE f.user_id = $1 AND r.status = 'published'
+      ORDER BY f.created_at DESC
+    `;
+
+		const result = await pool.query(query, [userId, locale]);
+
+		return parseRecipeRows(
+			result.rows,
+			favoriteRecipeListItemSchema,
+			"favorite recipe",
+		);
+	} catch (error) {
+		const isUserNotFoundError =
+			error instanceof Error &&
+			"code" in error &&
+			error.code === USER_NOT_FOUND_CODE;
+
+		if (!isUserNotFoundError) {
+			console.error("Database error in getFavoriteRecipesByUserId:", error);
+		}
 		throw error;
 	}
 };
@@ -1385,8 +1493,8 @@ export const updateRecipePicture = async (
 		if (oldPictureUrl && oldPictureUrl !== pictureUrl) {
 			const oldFilename = oldPictureUrl.replace("/recipe-pictures/", "");
 			const oldFilePath = path.resolve("uploads/recipes", oldFilename);
-			fs.unlink(oldFilePath, (err) => {
-				if (err && err.code !== "ENOENT") {
+			await fs.promises.unlink(oldFilePath).catch((err) => {
+				if (err.code !== "ENOENT") {
 					console.error("Failed to delete old recipe picture:", err);
 				}
 			});

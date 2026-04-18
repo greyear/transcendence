@@ -4,11 +4,11 @@
  * Fires on every authenticated request and updates last_seen_at.
  * Fire-and-forget: never blocks the request, errors are logged only.
  */
- 
+
 import type { NextFunction, Response } from "express";
 import { pool } from "../db/database.js";
 import type { AuthenticatedRequest } from "./extractUser.js";
- 
+
 export const updateLastSeen = (
 	req: AuthenticatedRequest,
 	_res: Response,

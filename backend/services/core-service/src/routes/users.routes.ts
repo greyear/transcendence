@@ -9,6 +9,7 @@ import {
 	extractUser,
 } from "../middleware/extractUser.js";
 import {
+	getFavoriteRecipesByUserId,
 	getMyFavoriteRecipes,
 	getMyRecipes,
 	getPublishedRecipesByUserId,
@@ -152,6 +153,73 @@ const getMyFavoritesHandler = async (
 		res.status(200).json({ data: favorites, count: favorites.length });
 	} catch (error) {
 		next(error);
+	}
+};
+
+/**
+ * GET /users/:id/favorites - fetch favorite recipes of another user
+ *
+ * Requires: User and target user must be mutual followers
+ *
+ * Errors:
+ * - 400 Bad Request - if user ID is not a valid positive integer
+ * - 401 Unauthorized - if user is not authenticated
+ * - 403 Forbidden - if users are not mutual followers
+ * - 404 Not Found - if user doesn't exist
+ */
+const getFavoritesHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const validation = validateUserId(req.params.id);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const locale = resolveRequestedLocale(req);
+		const favorites = await getFavoriteRecipesByUserId(
+			validation.value,
+			req.userId,
+			locale,
+		);
+
+		if (favorites === null) {
+			const error: CustomError = new Error("Access denied");
+			error.statusCode = 403;
+			throw error;
+		}
+
+		res.status(200).json({ data: favorites, count: favorites.length });
+	} catch (error) {
+		// Handle service errors with proper status code mapping
+		if (
+			error instanceof Error &&
+			"code" in error &&
+			typeof error.code === "string"
+		) {
+			switch (error.code) {
+				case "USER_NOT_FOUND": {
+					const customError: CustomError = new Error(error.message);
+					customError.statusCode = 404;
+					next(customError);
+					break;
+				}
+				default:
+					next(error);
+			}
+		} else {
+			next(error);
+		}
 	}
 };
 
@@ -341,33 +409,35 @@ const getFollowingHandler = async (
 };
 
 const heartbeatHandler = async (
-    req: AuthenticatedRequest,
-    res: Response,
-    next: NextFunction,
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
 ): Promise<void> => {
-    try {
-        if (req.userId === undefined) {
-            const error: CustomError = new Error("Authentication required");
-            error.statusCode = 401;
-            throw error;
-        }
-        res.status(200).json({ message: "OK" });
-    } catch (error) {
-        next(error);
-    }
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+		res.status(200).json({ message: "OK" });
+	} catch (error) {
+		next(error);
+	}
 };
 
 // Register more specific routes FIRST, then less specific
 usersRouter.post("/me/heartbeat", heartbeatHandler);
-// /me/recipes is most specific
+// /me/recipes and /me/favorites are most specific
 usersRouter.get("/me/recipes", getMyRecipesHandler);
 usersRouter.get("/me/favorites", getMyFavoritesHandler);
 usersRouter.post("/:id/follow", followUserHandler);
 usersRouter.delete("/:id/follow", unfollowUserHandler);
-// /:id/followers and /:id/following are more specific than /:id/recipes
+// /:id/followers, /:id/following are more specific than /:id/recipes
 usersRouter.get("/:id/followers", getFollowersHandler);
 usersRouter.get("/:id/following", getFollowingHandler);
-// /:id/recipes is less specific, should be last
+// /:id/favorites requires authentication (extractUser middleware)
+usersRouter.get("/:id/favorites", extractUser, getFavoritesHandler);
+// /:id/recipes is less specific, should be last before /:id
 usersRouter.get("/:id/recipes", getUserRecipesHandler);
 usersRouter.get("/:id", getUserByIdHandler);
 usersRouter.get("/", getAllUsersHandler);

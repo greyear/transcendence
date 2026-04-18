@@ -25,8 +25,15 @@ import {
 	type AuthenticatedRequest,
 	extractUser,
 } from "../middleware/extractUser.js";
-import { getProfile, updateProfile } from "../services/profile.service.js";
-import { validateUpdateProfileInput } from "../validation/schemas.js";
+import {
+	getProfile,
+	registerProfile,
+	updateProfile,
+} from "../services/profile.service.js";
+import {
+	validateRegisterProfileInput,
+	validateUpdateProfileInput,
+} from "../validation/schemas.js";
 
 interface CustomError extends Error {
 	statusCode?: number;
@@ -87,6 +94,39 @@ const handleMulterError = (
 	}
 
 	next(err);
+};
+
+/**
+ * POST /profile/register  – create a core profile for a newly registered auth user
+ */
+const registerProfileHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		console.info(
+			`[core-service] profile/register:start payload=${JSON.stringify(req.body)}`,
+		);
+		const validation = validateRegisterProfileInput(req.body);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const result = await registerProfile(validation.value.id);
+		console.info(
+			`[core-service] profile/register:done userId=${validation.value.id} created=${result.created}`,
+		);
+
+		res.status(result.created ? 201 : 200).json({
+			data: result.profile,
+			message: result.created ? "Profile registered" : "Profile already exists",
+		});
+	} catch (error) {
+		next(error);
+	}
 };
 
 /**
@@ -179,6 +219,7 @@ const updateProfileHandler = async (
 
 // ── Route registration ────────────────────────────────────────────────────────
 
+profileRouter.post("/register", registerProfileHandler);
 profileRouter.get("/", getProfileHandler);
 
 // avatarUpload.single("avatar") processes the multipart field named "avatar"

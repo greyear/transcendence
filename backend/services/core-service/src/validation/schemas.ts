@@ -375,6 +375,31 @@ export const profileDataSchema = z.object({
 export type ProfileData = z.infer<typeof profileDataSchema>;
 
 /**
+ * RegisterProfileInput schema - body for POST /profile/register
+ * Internal endpoint used by auth-service after a successful registration.
+ */
+const registerProfileInputSchema = z.object({
+	id: positiveIntSchema,
+});
+
+export type RegisterProfileInput = z.infer<typeof registerProfileInputSchema>;
+
+export const validateRegisterProfileInput = (
+	input: unknown,
+): ValidationResult<RegisterProfileInput> => {
+	const result = registerProfileInputSchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: z.prettifyError(result.error),
+	};
+};
+
+/**
  * UpdateProfileInput schema - body for PUT /profile
  *
  * Both fields are optional so the user can update just one at a time.
@@ -432,6 +457,33 @@ export type RecipeListItem = z.infer<typeof recipeListItemSchema>;
 export type FavoriteRecipeListItem = z.infer<
 	typeof favoriteRecipeListItemSchema
 >;
+
+export type PaginatedResponse<T> = {
+	data: T[];
+	total_count: number;
+	total_pages: number;
+	page: number;
+	per_page: number;
+};
+
+const paginationQuerySchema = z.object({
+	page: z.coerce.number().int().positive().default(1),
+	per_page: z.coerce.number().int().min(1).max(100).default(12),
+});
+
+export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
+
+export const validatePaginationQuery = (
+	input: unknown,
+): ValidationResult<PaginationQuery> => {
+	const result = paginationQuerySchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+	
+	return { valid: false, error: result.error.issues[0]?.message ?? "Invalid pagination parameters" };
+};
 
 /**
  * MyRecipeListItem type - minimal recipe info for current user's recipes

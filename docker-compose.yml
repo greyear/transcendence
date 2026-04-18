@@ -62,51 +62,6 @@ services:
     networks:
       - transcendence-network
 
-  notification-db:
-    image: postgres:15
-    container_name: notification-postgres
-    restart: unless-stopped
-
-    environment:
-      POSTGRES_DB: notification_db
-      POSTGRES_USER: notification_user
-      POSTGRES_PASSWORD: notification_password
-
-    ports:
-      - "5434:5432"
-
-    volumes:
-      - notification_pg_data:/var/lib/postgresql/data
-
-    networks:
-      - transcendence-network
-
-  search-db:
-    image: pgvector/pgvector:pg15
-    container_name: search-postgres
-    restart: unless-stopped
-
-    environment:
-      POSTGRES_DB: search_db
-      POSTGRES_USER: search_user
-      POSTGRES_PASSWORD: search_password
-
-    ports:
-      - "5435:5432"
-
-    volumes:
-      - search_pg_data:/var/lib/postgresql/data
-      - ./backend/infrastructure/postgres/search/01-init-search.sql:/docker-entrypoint-initdb.d/01-init-search.sql
-
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U search_user -d search_db"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-    networks:
-      - transcendence-network
-
   api-gateway:
     build:
       context: ./backend/services/api-gateway
@@ -122,8 +77,6 @@ services:
       PORT: 3000
       AUTH_SERVICE_URL: http://auth-service:3001
       CORE_SERVICE_URL: http://core-service:3002
-      NOTIFICATION_SERVICE_URL: http://notification-service:3003
-      SEARCH_SERVICE_URL: http://search-service:8000
 
     labels:
       - "traefik.enable=true"
@@ -136,8 +89,6 @@ services:
     depends_on:
       - auth-service
       - core-service
-      - notification-service
-      - search-service
 
     networks:
       - transcendence-network
@@ -154,6 +105,7 @@ services:
       PORT: 3001
       MONGODB_URI: mongodb://root:rootpassword@auth-db:27017/auth_db?authSource=admin
       JWT_SECRET: your-jwt-secret-key
+      CORE_SERVICE_URL: http://core-service:3002
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
 
     depends_on:
@@ -186,85 +138,8 @@ services:
     networks:
       - transcendence-network
 
-  notification-service:
-    build:
-      context: ./backend/services/notification-service
-      dockerfile: Dockerfile
-    container_name: notification-service
-    restart: unless-stopped
-
-    environment:
-      NODE_ENV: development
-      PORT: 3003
-      DATABASE_URL: postgresql://notification_user:notification_password@notification-db:5432/notification_db
-
-    depends_on:
-      - notification-db
-
-    networks:
-      - transcendence-network
-
-  search-service:
-    build:
-      context: ./backend/services/search-service
-      dockerfile: Dockerfile
-    container_name: search-service
-    restart: unless-stopped
-
-    ports:
-      - "8000:8000"
-
-    environment:
-      PORT: 8000
-      SEARCH_DATABASE_URL: postgresql://search_user:search_password@search-db:5432/search_db
-      CORE_SERVICE_URL: http://core-service:3002
-      CORE_SERVICE_TIMEOUT_MS: 10000
-      LLM_PROVIDER: gemini
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_EMBED_MODEL: gemini-embedding-001
-      GEMINI_GEN_MODEL: gemini-2.5-flash
-      OLLAMA_URL: http://host.docker.internal:11434
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
-      SEARCH_PRUNE_INTERVAL_SECONDS: 300
-
-    depends_on:
-      search-db:
-        condition: service_healthy
-      core-service:
-        condition: service_started
-
-    networks:
-      - transcendence-network
-
-  translation-service:
-    build:
-      context: ./backend/services/translation-service
-      dockerfile: Dockerfile
-    container_name: translation-service
-    restart: unless-stopped
-
-    environment:
-      PORT: 8001
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_GEN_MODEL: gemini-2.5-flash
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
-      TRANSLATION_MAX_TEXT_LENGTH: 2000
-      TRANSLATION_MAX_BATCH_ITEMS: 20
-      TRANSLATION_MAX_TOTAL_CHARS: 12000
-
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-    networks:
-      - transcendence-network
-
 volumes:
   core_pg_data:
-  notification_pg_data:
-  search_pg_data:
 
 networks:
   transcendence-network:

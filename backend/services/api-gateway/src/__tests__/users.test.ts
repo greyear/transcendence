@@ -518,4 +518,152 @@ describe("API Gateway - Users Routes", () => {
 			expect(response.body).toEqual({ error: "User not found" });
 		});
 	});
+
+	describe("GET /users/:id/favorites", () => {
+		/**
+		 * Test: GET /users/:id/favorites requires authentication
+		 */
+		it("should reject without authentication", async () => {
+			const response = await request(app).get("/users/1/favorites");
+
+			expect(response.status).toBe(401);
+			expect(response.body).toEqual({ error: "Authentication required" });
+			expect(fetchSpy).not.toHaveBeenCalled();
+		});
+
+		/**
+		 * Test: Proxy GET /users/:id/favorites to core-service with auth
+		 *
+		 * What we're testing:
+		 * - Gateway validates token before proxying
+		 * - Correctly proxies authenticated request
+		 * - Response structure is preserved
+		 */
+		it("should validate token and proxy to core-service", async () => {
+			// Mock 1: auth-service token validation
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			// Mock 2: core-service favorites request
+			fetchSpy.mockResolvedValueOnce({
+				status: 200,
+				json: async () => ({
+					data: [
+						{
+							id: 5,
+							title: "Favorite Recipe",
+							description: "A delicious recipe",
+							avatar: null,
+						},
+					],
+					count: 1,
+				}),
+			} as unknown as Response);
+
+			const response = await request(app)
+				.get("/users/1/favorites")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({
+				data: [
+					{
+						id: 5,
+						title: "Favorite Recipe",
+						description: "A delicious recipe",
+						avatar: null,
+					},
+				],
+				count: 1,
+			});
+			expect(fetchSpy).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining("/users/1/favorites"),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						"Content-Type": "application/json",
+						"x-user-id": "42",
+					}),
+					signal: expect.any(AbortSignal),
+				}),
+			);
+		});
+
+		/**
+		 * Test: GET /users/:id/favorites returns 400 for invalid user ID
+		 */
+		it("should forward 400 from core-service for invalid user id", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			fetchSpy.mockResolvedValueOnce({
+				status: 400,
+				json: async () => ({
+					error: "Must be a positive integer in range 1..2147483647",
+				}),
+			} as unknown as Response);
+
+			const response = await request(app)
+				.get("/users/abc/favorites")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(400);
+			expect(response.body).toEqual({
+				error: "Must be a positive integer in range 1..2147483647",
+			});
+		});
+
+		/**
+		 * Test: GET /users/:id/favorites returns 403 when not mutual followers
+		 */
+		it("should forward 403 from core-service when not mutual followers", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			fetchSpy.mockResolvedValueOnce({
+				status: 403,
+				json: async () => ({ error: "Access denied" }),
+			} as unknown as Response);
+
+			const response = await request(app)
+				.get("/users/999/favorites")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(403);
+			expect(response.body).toEqual({ error: "Access denied" });
+		});
+
+		/**
+		 * Test: GET /users/:id/favorites returns 504 on timeout
+		 */
+		it("should return 504 Gateway Timeout when core-service is slow", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			fetchSpy.mockRejectedValueOnce(
+				Object.assign(new Error("Request timed out"), {
+					name: "TimeoutError",
+				}),
+			);
+
+			const response = await request(app)
+				.get("/users/1/favorites")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(504);
+			expect(response.body).toEqual({ error: "Gateway Timeout" });
+		});
+	});
 });

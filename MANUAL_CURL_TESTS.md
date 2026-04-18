@@ -174,7 +174,33 @@ curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-## 12. User Followers & Following
+## 12. View User Favorites
+
+View favorite recipes of another user (requires mutual follow relationship):
+
+```bash
+# list favorites of another user (requires auth + mutual follow)
+USER_ID=2
+curl -i "http://localhost:3000/users/$USER_ID/favorites" \
+  -H "Authorization: Bearer $TOKEN"
+
+# returns 401 without auth
+curl -i "http://localhost:3000/users/$USER_ID/favorites"
+
+# returns 403 if not mutual followers
+curl -i "http://localhost:3000/users/$USER_ID/favorites" \
+  -H "Authorization: Bearer $TOKEN"
+
+# list my own favorites (requires auth only, no follow needed)
+curl -i "http://localhost:3000/users/me/favorites" \
+  -H "Authorization: Bearer $TOKEN"
+
+# invalid user id
+curl -i "http://localhost:3000/users/abc/favorites" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+## 13. User Followers & Following
 
 ```bash
 # list followers of a user (public)

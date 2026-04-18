@@ -26,7 +26,7 @@ import {
 	archiveRecipe,
 	createRecipe,
 	deleteReview,
-	getAllRecipes,
+	getAllRecipesPaginated,
 	getRecipeById,
 	getRecipeReviews,
 	leaveRecipeReview,
@@ -47,6 +47,7 @@ import {
 	validateReviewId,
 	validateUpdateRecipeInput,
 	validateUpdateRecipeReviewInput,
+	validatePaginationQuery,
 } from "../validation/schemas.js";
 import { ratingsRouter } from "./ratings.routes.js";
 
@@ -476,7 +477,7 @@ const unfavoriteRecipeHandler = async (
 };
 
 /**
- * GET /recipes - fetch all published recipes
+ * GET /recipes - fetch all published recipes with pagination
  *
  * Note: No authentication needed - returns only published recipes
  */
@@ -487,8 +488,14 @@ const getAllRecipesHandler = async (
 ): Promise<void> => {
 	try {
 		const locale = resolveRequestedLocale(req);
-		const recipes = await getAllRecipes(locale);
-		res.status(200).json({ data: recipes, count: recipes.length });
+
+		const pagination = validatePaginationQuery(req.query);
+		if (!pagination.valid) {
+			res.status(400).json({ error: pagination.error });
+			return;
+		}
+		const result = await getAllRecipesPaginated(pagination.value.page, pagination.value.per_page, locale);
+		res.status(200).json(result);
 	} catch (error) {
 		next(error);
 	}
