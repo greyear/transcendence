@@ -1248,8 +1248,8 @@ export const updateRecipePicture = async (
 		if (oldPictureUrl && oldPictureUrl !== pictureUrl) {
 			const oldFilename = oldPictureUrl.replace("/recipe-pictures/", "");
 			const oldFilePath = path.resolve("uploads/recipes", oldFilename);
-			fs.unlink(oldFilePath, (err) => {
-				if (err && err.code !== "ENOENT") {
+			await fs.promises.unlink(oldFilePath).catch((err) => {
+				if (err.code !== "ENOENT") {
 					console.error("Failed to delete old recipe picture:", err);
 				}
 			});
