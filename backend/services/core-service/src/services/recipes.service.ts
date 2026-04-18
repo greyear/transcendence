@@ -1352,3 +1352,17 @@ export const getCategoryList = async (
 		throw error;
 	}
 };
+
+export const getIngredientList = async (): Promise<{
+	ingredients: { id: number; name: string }[];
+}> => {
+	try {
+		const result = await pool.query(
+			`SELECT id, name FROM ingredients ORDER BY name ASC`,
+		);
+		return { ingredients: result.rows as { id: number; name: string }[] };
+	} catch (error) {
+		console.error("Database error in getIngredientList:", error);
+		throw error;
+	}
+};
