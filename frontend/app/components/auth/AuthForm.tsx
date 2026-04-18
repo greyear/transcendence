@@ -387,7 +387,8 @@ export const AuthForm = ({
 						<button
 							type="button"
 							className="main-button inverted auth-social-button"
-							disabled={!canUseGoogleButton}
+							data-google-ready={canUseGoogleButton}
+							disabled
 							tabIndex={canUseGoogleButton ? -1 : undefined}
 							aria-hidden={canUseGoogleButton ? true : undefined}
 						>

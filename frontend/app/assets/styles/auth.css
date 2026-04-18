@@ -28,6 +28,10 @@
 	pointer-events: none;
 }
 
+.main-button.inverted.auth-social-button[data-google-ready="true"]:disabled {
+	opacity: 1;
+}
+
 .auth-social-google {
 	stroke-width: 1;
 }
