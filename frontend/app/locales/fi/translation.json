@@ -186,6 +186,8 @@
 		"descriptionPlaceholder": "Kuvaile reseptiäsi niin, että vesi kielelle nousee.",
 		"servingsLabel": "Annokset",
 		"servingsPlaceholder": "esim. 2",
+		"spicinessLabel": "Tulisuus",
+		"spicinessPlaceholder": "0–3",
 		"prepTimeLegend": "Valmisteluaika",
 		"cookTimeLegend": "Kypsennysaika",
 		"hoursPlaceholder": "tuntia",

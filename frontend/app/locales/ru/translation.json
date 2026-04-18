@@ -186,6 +186,8 @@
 		"descriptionPlaceholder": "Опишите свой рецепт так, чтобы слюнки потекли.",
 		"servingsLabel": "Порции",
 		"servingsPlaceholder": "например, 2",
+		"spicinessLabel": "Острота",
+		"spicinessPlaceholder": "0–3",
 		"prepTimeLegend": "Время подготовки",
 		"cookTimeLegend": "Время приготовления",
 		"hoursPlaceholder": "часы",

@@ -24,5 +24,5 @@ export const getInternalHeaders = (req: Request): Record<string, string> => {
 		headers["Content-Type"] = contentType;
 	}
 
-	return headers;
+    return headers;
 };

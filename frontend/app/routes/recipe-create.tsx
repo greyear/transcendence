@@ -49,6 +49,15 @@ const minutesSchema = (field: string) =>
 			.max(59, "Minutes must be 0–59"),
 	);
 
+const spicinessSchema = z.preprocess(
+	emptyToUndef,
+	z
+		.number({ error: "Spiciness is required" })
+		.int("Spiciness must be a whole number")
+		.min(0, "Spiciness must be 0–3")
+		.max(3, "Spiciness must be 0–3"),
+);
+
 const amountSchema = z.preprocess(
 	emptyToUndef,
 	z
@@ -67,6 +76,7 @@ const RecipeFormSchema = z
 				`Description must be at most ${DESCRIPTION_MAX} characters`,
 			),
 		servings: servingsSchema,
+		spiciness: spicinessSchema,
 		prepHours: hoursSchema("Prep hours"),
 		prepMinutes: minutesSchema("Prep minutes"),
 		cookHours: hoursSchema("Cook hours"),
@@ -97,6 +107,7 @@ type FormState = {
 	title: string;
 	description: string;
 	servings: NumOrEmpty;
+	spiciness: NumOrEmpty;
 	prepHours: NumOrEmpty;
 	prepMinutes: NumOrEmpty;
 	cookHours: NumOrEmpty;
@@ -105,6 +116,7 @@ type FormState = {
 
 type NumericField =
 	| "servings"
+	| "spiciness"
 	| "prepHours"
 	| "prepMinutes"
 	| "cookHours"
@@ -114,6 +126,7 @@ const initialForm: FormState = {
 	title: "",
 	description: "",
 	servings: "",
+	spiciness: "",
 	prepHours: "",
 	prepMinutes: "",
 	cookHours: "",
@@ -150,6 +163,13 @@ const RecipeCreate = () => {
 		};
 	}, [photoPreview]);
 
+	useEffect(() => {
+		if (isAuthenticated) {
+			return;
+		}
+		openAuthModal(() => {});
+	}, [isAuthenticated, openAuthModal]);
+
 	const setText =
 		(field: "title" | "description") =>
 		(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -183,7 +203,7 @@ const RecipeCreate = () => {
 			title: parsed.title,
 			description: parsed.description,
 			servings: parsed.servings,
-			spiciness: 0,
+			spiciness: parsed.spiciness,
 			instructions: parsed.instructions.map((step) => step.text),
 			ingredients: parsed.ingredients.map((ingredient) => ({
 				name: ingredient.name,
@@ -244,13 +264,6 @@ const RecipeCreate = () => {
 			setFormError(
 				parsed.error.issues[0]?.message ?? t("recipeCreatePage.genericError"),
 			);
-			return;
-		}
-
-		if (!isAuthenticated) {
-			openAuthModal(() => {
-				void submitRecipe(parsed.data);
-			});
 			return;
 		}
 
@@ -330,6 +343,24 @@ const RecipeCreate = () => {
 						required
 						value={form.servings}
 						onChange={setNumber("servings")}
+					/>
+				</RecipeFormField>
+
+				<RecipeFormField
+					label={t("recipeCreatePage.spicinessLabel")}
+					htmlFor="recipe-spiciness"
+					required
+				>
+					<InputField
+						id="recipe-spiciness"
+						type="number"
+						placeholder={t("recipeCreatePage.spicinessPlaceholder")}
+						floatingLabel={false}
+						min={0}
+						max={3}
+						required
+						value={form.spiciness}
+						onChange={setNumber("spiciness")}
 					/>
 				</RecipeFormField>
 

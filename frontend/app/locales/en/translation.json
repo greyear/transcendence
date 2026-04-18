@@ -186,6 +186,8 @@
 		"descriptionPlaceholder": "Describe your recipe in a way that makes mouths water.",
 		"servingsLabel": "Servings",
 		"servingsPlaceholder": "e.g. 2",
+		"spicinessLabel": "Spiciness",
+		"spicinessPlaceholder": "0 to 3",
 		"prepTimeLegend": "Prep Time",
 		"cookTimeLegend": "Cook Time",
 		"hoursPlaceholder": "hours",
