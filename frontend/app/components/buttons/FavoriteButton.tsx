@@ -1,5 +1,5 @@
 import { Heart } from "iconoir-react";
-//import { useState } from "react";
+import type { MouseEvent } from "react";
 import { IconButton } from "./IconButton";
 import "../../assets/styles/favoriteButton.css";
 import { useTranslation } from "react-i18next";
@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 type FavoriteButtonProps = {
 	disabled?: boolean;
 	isFavorited: boolean;
-	onClick: (event: React.MouseEvent<HTMLElement>) => void;
+	onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
 export const FavoriteButton = ({
@@ -16,12 +16,7 @@ export const FavoriteButton = ({
 	onClick,
 }: FavoriteButtonProps) => {
 	const { t } = useTranslation();
-	//const [isActive, setIsActive] = useState(false);
-	/*const handleClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-		e.stopPropagation();
-		e.preventDefault();
-		setIsActive((prev) => !prev);
-	};*/
+
 	return (
 		<IconButton
 			type="button"

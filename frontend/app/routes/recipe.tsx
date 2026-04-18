@@ -60,22 +60,30 @@ const RecipePage = () => {
 		if (!id || isFavoritePending) {
 			return;
 		}
-		const valueBeforeToggle = isFavorited;
-		const valueAfterToggle = !valueBeforeToggle;
+		const wasFavoritedBeforeClick = isFavorited;
+		const shouldBeFavorited = !wasFavoritedBeforeClick;
 
-		setIsFavorited(valueAfterToggle);
+		setIsFavorited(shouldBeFavorited);
 		setIsFavoritePending(true);
 		try {
 			const response = await fetch(`${API_BASE_URL}/recipes/${id}/favorite`, {
-				method: valueAfterToggle ? "POST" : "DELETE",
+				method: shouldBeFavorited ? "POST" : "DELETE",
 				credentials: "include",
 			});
 
 			if (!response.ok) {
-				setIsFavorited(valueBeforeToggle);
+				if (response.status === 409) {
+					setIsFavorited(shouldBeFavorited);
+					return;
+				}
+
+				setIsFavorited(wasFavoritedBeforeClick);
+				return;
 			}
+
+			setIsFavorited(shouldBeFavorited);
 		} catch (error) {
-			setIsFavorited(valueBeforeToggle);
+			setIsFavorited(wasFavoritedBeforeClick);
 			console.error(error);
 		} finally {
 			setIsFavoritePending(false);

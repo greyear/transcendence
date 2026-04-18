@@ -57,6 +57,7 @@ const HomePage = () => {
 				</div>
 				<RecipesGrid
 					sort="top"
+					sortValue=""
 					page={1}
 					perPage={recipesPerPage}
 					isAuthenticated={isAuthenticated}
