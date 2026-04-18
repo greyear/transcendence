@@ -1334,7 +1334,7 @@ export const getCategoryList = async (
 	categoryTypeCode: string,
 ): Promise<{ [key: string]: string[] }> => {
 	try {
-		const result = await pool.query(
+		const result = await pool.query<{ code: string }>(
 			`
 			SELECT rc.code
 			FROM recipe_categories rc
@@ -1345,7 +1345,7 @@ export const getCategoryList = async (
 			[categoryTypeCode],
 		);
 
-		const codes = result.rows.map((row) => row.code as string);
+		const codes = result.rows.map((row) => row.code);
 		return { [categoryTypeCode]: codes };
 	} catch (error) {
 		console.error(
@@ -1360,10 +1360,10 @@ export const getIngredientList = async (): Promise<{
 	ingredients: { id: number; name: string }[];
 }> => {
 	try {
-		const result = await pool.query(
+		const result = await pool.query<{ id: number; name: string }>(
 			`SELECT id, name FROM ingredients ORDER BY name ASC`,
 		);
-		return { ingredients: result.rows as { id: number; name: string }[] };
+		return { ingredients: result.rows };
 	} catch (error) {
 		console.error("Database error in getIngredientList:", error);
 		throw error;
