@@ -2,8 +2,8 @@ import { RecipeCard } from "./cards/RecipeCard";
 import "../assets/styles/recipesGrid.css";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { z } from "zod";
+import { API_BASE_URL } from "~/composables/apiBaseUrl";
 
 type RecipeCardResponse = {
 	id: number;
@@ -251,22 +251,24 @@ export const RecipesGrid = ({
 
 	return (
 		<ul className="recipe-card-list">
-			{pageRecipes.map(({ id, title, description, rating_avg, picture_url }) => (
-				<li key={id}>
-					<RecipeCard
-						id={id}
-						title={title}
-						description={description}
-						rating={rating_avg}
-						pictureUrl={picture_url}
-						isFavorited={favoriteIds.has(id)}
-						isFavoritePending={
-							isFavoritesLoading || pendingFavoriteIds.has(id)
-						}
-						onFavoriteClick={handleFavoriteClick}
-					/>
-				</li>
-			))}
+			{pageRecipes.map(
+				({ id, title, description, rating_avg, picture_url }) => (
+					<li key={id}>
+						<RecipeCard
+							id={id}
+							title={title}
+							description={description}
+							rating={rating_avg}
+							pictureUrl={picture_url}
+							isFavorited={favoriteIds.has(id)}
+							isFavoritePending={
+								isFavoritesLoading || pendingFavoriteIds.has(id)
+							}
+							onFavoriteClick={handleFavoriteClick}
+						/>
+					</li>
+				),
+			)}
 		</ul>
 	);
 };
