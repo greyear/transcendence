@@ -55,4 +55,4 @@ const proxyMediaHandler: RequestHandler = async (req, res) => {
 
 export const mediaRouter = Router();
 
-mediaRouter.get("/*", proxyMediaHandler);
+mediaRouter.use(proxyMediaHandler);
