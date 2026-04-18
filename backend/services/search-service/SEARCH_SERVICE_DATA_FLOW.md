@@ -533,7 +533,7 @@ Usually frontend does not need to send `limit`.
 GET /search/recipes?q=beef&limit=3
 ```
 
-If `limit` is missing, search-service asks Gemini to infer how many recipes the user seems to want. If inference fails, it defaults to `5`.
+If `limit` is missing, search-service asks Gemini to infer how many recipes the user seems to want. Inferred and explicit limits are capped at `5`. If inference fails, it defaults to `5`.
 
 ### Step 1: Frontend sends search request to API gateway
 
@@ -601,13 +601,13 @@ Function:
 `infer_result_limit(...)`
 
 What happens next:
-If `limit` was provided, it is used. If not, Gemini tries to infer whether the user asked for one, a couple, several, etc.
+If `limit` was provided, it is used up to a maximum of `5`. If not, Gemini infers the result count from the full natural-language query.
 
 Prompt-injection mitigation:
 `infer_result_limit(...)` JSON-encodes the user query and tells Gemini to treat it as untrusted data, not instructions.
 
 Fallback:
-If Gemini limit inference fails, the limit becomes `5`.
+If Gemini limit inference fails, the limit becomes `5`. If Gemini returns a number higher than `5`, search-service clamps it to `5`.
 
 ### Step 5: Search-service creates query embedding
 
@@ -635,7 +635,7 @@ Database table:
 `recipe_search_docs`
 
 What happens next:
-PostgreSQL ranks recipes using semantic similarity and text search.
+PostgreSQL ranks recipes using semantic similarity.
 
 Semantic ranking:
 
@@ -643,16 +643,10 @@ Semantic ranking:
 1 - (embedding <=> query_embedding)
 ```
 
-Text ranking:
-
-```sql
-ts_rank_cd(to_tsvector('simple', searchable_text), websearch_to_tsquery('simple', query))
-```
-
 Final order:
 
 ```sql
-ORDER BY score DESC, text_rank DESC, source_updated_at DESC, recipe_id DESC
+ORDER BY score DESC, source_updated_at DESC, recipe_id DESC
 ```
 
 ### Step 7: Search-service builds API result data
@@ -664,7 +658,7 @@ Function:
 `search_recipes(...)`
 
 What happens next:
-Search-service strips internal fields like full `searchable_text` from the public result and returns recipe IDs, titles, descriptions, timestamps, score, and text rank.
+Search-service strips internal fields like full `searchable_text` from the public result and returns recipe IDs, titles, descriptions, timestamps, and semantic score.
 
 ### Step 8: Search-service generates summary
 
@@ -903,7 +897,6 @@ It provides:
 - separate `search-db`
 - Gemini embeddings
 - semantic recipe retrieval with pgvector
-- PostgreSQL text search ranking
 - Gemini-generated search summaries with fallback
 - one frontend-facing search endpoint through `api-gateway`
 
