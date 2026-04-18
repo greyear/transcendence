@@ -30,6 +30,10 @@ SET avatar = CASE
   WHEN id % 4 = 1 THEN '/avatars/avatar-1.svg'
   WHEN id % 4 = 2 THEN '/avatars/avatar-2.svg'
   WHEN id % 4 = 3 THEN '/avatars/avatar-3.svg'
-  ELSE '/avatars/avatar-4.svg'
+  WHEN id % 4 = 4 THEN '/avatars/avatar-4.svg'
+  WHEN id % 4 = 5 THEN '/avatars/avatar-5.svg'
+  WHEN id % 4 = 6 THEN '/avatars/avatar-6.svg'
+  WHEN id % 4 = 7 THEN '/avatars/avatar-7.svg'
+  ELSE '/avatars/avatar-8.svg'
 END
 WHERE id BETWEEN 1 AND 20;
