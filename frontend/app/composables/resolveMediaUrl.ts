@@ -5,7 +5,7 @@ export const resolveMediaUrl = (url?: string | null): string | null => {
 		return null;
 	}
 
-	if (/^https?:\/\//i.test(url)) {
+	if (url.startsWith("http://") || url.startsWith("https://")) {
 		return url;
 	}
 
