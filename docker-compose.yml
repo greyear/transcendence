@@ -129,7 +129,7 @@ services:
       DATABASE_URL: postgresql://core_user:core_password@core-db:5432/core_db
       TRANSLATION_API_URL: http://translation-service:8001/translate
       TRANSLATION_TIMEOUT_MS: 4000
-      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
 
     volumes:
       - ./backend/services/core-service/uploads/avatars:/app/uploads/avatars
