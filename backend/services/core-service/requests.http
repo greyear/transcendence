@@ -1,5 +1,5 @@
 ### API Base URL
-@baseUrl = http://localhost:3000
+@baseUrl = https://localhost:8443
 
 ### ========================================
 ### HEALTH CHECKS

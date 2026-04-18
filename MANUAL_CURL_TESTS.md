@@ -11,53 +11,53 @@ TOKEN=""   # put your JWT token here for protected endpoints
 ## 2. Health
 
 ```bash
-curl -i "http://localhost:3000/health"
-curl -i "http://localhost:3000/health/db"
+curl -i "https://localhost:8443/health"
+curl -i "https://localhost:8443/health/db"
 ```
 
 ## 3. Recipes (Public)
 
 ```bash
-curl -i "http://localhost:3000/recipes"
-curl -i "http://localhost:3000/recipes/1"
-curl -i "http://localhost:3000/recipes/999999"
+curl -i "https://localhost:8443/recipes"
+curl -i "https://localhost:8443/recipes/1"
+curl -i "https://localhost:8443/recipes/999999"
 ```
 
 ## 4. Recipes Validation Errors
 
 ```bash
-curl -i "http://localhost:3000/recipes/abc"
-curl -i "http://localhost:3000/recipes/12.4"
-curl -i "http://localhost:3000/recipes/-5"
+curl -i "https://localhost:8443/recipes/abc"
+curl -i "https://localhost:8443/recipes/12.4"
+curl -i "https://localhost:8443/recipes/-5"
 ```
 
 ## 5. Users (Public)
 
 ```bash
-curl -i "http://localhost:3000/users"
-curl -i "http://localhost:3000/users/1"
-curl -i "http://localhost:3000/users/999999"
-curl -i "http://localhost:3000/users/abc"
+curl -i "https://localhost:8443/users"
+curl -i "https://localhost:8443/users/1"
+curl -i "https://localhost:8443/users/999999"
+curl -i "https://localhost:8443/users/abc"
 ```
 
 ## 6. User Recipes (Public + Private)
 
 ```bash
-curl -i "http://localhost:3000/users/1/recipes"
-curl -i "http://localhost:3000/users/999999/recipes"
-curl -i "http://localhost:3000/users/abc/recipes"
+curl -i "https://localhost:8443/users/1/recipes"
+curl -i "https://localhost:8443/users/999999/recipes"
+curl -i "https://localhost:8443/users/abc/recipes"
 
 # should return 401 without token
-curl -i "http://localhost:3000/users/me/recipes"
+curl -i "https://localhost:8443/users/me/recipes"
 
 # authorized request
-curl -i -H "Authorization: Bearer $TOKEN" "http://localhost:3000/users/me/recipes"
+curl -i -H "Authorization: Bearer $TOKEN" "https://localhost:8443/users/me/recipes"
 ```
 
 ## 7. Create Recipe (Protected)
 
 ```bash
-curl -i -X POST "http://localhost:3000/recipes" \
+curl -i -X POST "https://localhost:8443/recipes" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
@@ -79,7 +79,7 @@ Replace RECIPE_ID with a real recipe id (typically a draft owned by your user).
 
 ```bash
 RECIPE_ID=1
-curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/publish" \
+curl -i -X POST "https://localhost:8443/recipes/$RECIPE_ID/publish" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -89,7 +89,7 @@ Replace RECIPE_ID with a real draft recipe id owned by your user.
 
 ```bash
 RECIPE_ID=1
-curl -i -X PUT "http://localhost:3000/recipes/$RECIPE_ID" \
+curl -i -X PUT "https://localhost:8443/recipes/$RECIPE_ID" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
@@ -109,12 +109,12 @@ Validation and auth checks:
 
 ```bash
 # no token -> 401
-curl -i -X PUT "http://localhost:3000/recipes/$RECIPE_ID" \
+curl -i -X PUT "https://localhost:8443/recipes/$RECIPE_ID" \
   -H "Content-Type: application/json" \
   -d '{"title":"x","description":"x","instructions":["x"],"servings":1,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":1,"unit":"g"}],"category_ids":[]}'
 
 # invalid id -> 400
-curl -i -X PUT "http://localhost:3000/recipes/abc" \
+curl -i -X PUT "https://localhost:8443/recipes/abc" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -d '{"title":"x","description":"x","instructions":["x"],"servings":1,"spiciness":0,"ingredients":[{"ingredient_id":1,"amount":1,"unit":"g"}],"category_ids":[]}'
@@ -126,7 +126,7 @@ Replace RECIPE_ID with a real recipe id.
 
 ```bash
 RECIPE_ID=1
-curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID" \
+curl -i -X DELETE "https://localhost:8443/recipes/$RECIPE_ID" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -134,10 +134,10 @@ Validation and auth checks:
 
 ```bash
 # no token -> 401
-curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID"
+curl -i -X DELETE "https://localhost:8443/recipes/$RECIPE_ID"
 
 # invalid id -> 400
-curl -i -X DELETE "http://localhost:3000/recipes/abc" \
+curl -i -X DELETE "https://localhost:8443/recipes/abc" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -149,28 +149,28 @@ Replace RECIPE_ID with an existing published recipe id.
 RECIPE_ID=1
 
 # should return 401 without token
-curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/favorite"
-curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite"
-curl -i "http://localhost:3000/users/me/favorites"
+curl -i -X POST "https://localhost:8443/recipes/$RECIPE_ID/favorite"
+curl -i -X DELETE "https://localhost:8443/recipes/$RECIPE_ID/favorite"
+curl -i "https://localhost:8443/users/me/favorites"
 
 # add to favorites
-curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
+curl -i -X POST "https://localhost:8443/recipes/$RECIPE_ID/favorite" \
   -H "Authorization: Bearer $TOKEN"
 
 # duplicate add should return 409
-curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
+curl -i -X POST "https://localhost:8443/recipes/$RECIPE_ID/favorite" \
   -H "Authorization: Bearer $TOKEN"
 
 # list my favorites
-curl -i "http://localhost:3000/users/me/favorites" \
+curl -i "https://localhost:8443/users/me/favorites" \
   -H "Authorization: Bearer $TOKEN"
 
 # remove from favorites
-curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
+curl -i -X DELETE "https://localhost:8443/recipes/$RECIPE_ID/favorite" \
   -H "Authorization: Bearer $TOKEN"
 
 # second remove should return 409 (not in favorites)
-curl -i -X DELETE "http://localhost:3000/recipes/$RECIPE_ID/favorite" \
+curl -i -X DELETE "https://localhost:8443/recipes/$RECIPE_ID/favorite" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -181,22 +181,22 @@ View favorite recipes of another user (requires mutual follow relationship):
 ```bash
 # list favorites of another user (requires auth + mutual follow)
 USER_ID=2
-curl -i "http://localhost:3000/users/$USER_ID/favorites" \
+curl -i "https://localhost:8443/users/$USER_ID/favorites" \
   -H "Authorization: Bearer $TOKEN"
 
 # returns 401 without auth
-curl -i "http://localhost:3000/users/$USER_ID/favorites"
+curl -i "https://localhost:8443/users/$USER_ID/favorites"
 
 # returns 403 if not mutual followers
-curl -i "http://localhost:3000/users/$USER_ID/favorites" \
+curl -i "https://localhost:8443/users/$USER_ID/favorites" \
   -H "Authorization: Bearer $TOKEN"
 
 # list my own favorites (requires auth only, no follow needed)
-curl -i "http://localhost:3000/users/me/favorites" \
+curl -i "https://localhost:8443/users/me/favorites" \
   -H "Authorization: Bearer $TOKEN"
 
 # invalid user id
-curl -i "http://localhost:3000/users/abc/favorites" \
+curl -i "https://localhost:8443/users/abc/favorites" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -204,18 +204,18 @@ curl -i "http://localhost:3000/users/abc/favorites" \
 
 ```bash
 # list followers of a user (public)
-curl -i "http://localhost:3000/users/1/followers"
+curl -i "https://localhost:8443/users/1/followers"
 
 # list users being followed by a user (public)
-curl -i "http://localhost:3000/users/1/following"
+curl -i "https://localhost:8443/users/1/following"
 
 # non-existent user
-curl -i "http://localhost:3000/users/999999/followers"
-curl -i "http://localhost:3000/users/999999/following"
+curl -i "https://localhost:8443/users/999999/followers"
+curl -i "https://localhost:8443/users/999999/following"
 
 # invalid user id
-curl -i "http://localhost:3000/users/abc/followers"
-curl -i "http://localhost:3000/users/abc/following"
+curl -i "https://localhost:8443/users/abc/followers"
+curl -i "https://localhost:8443/users/abc/following"
 ```
 
 ## 13. Follow/Unfollow User (Protected)
@@ -226,30 +226,30 @@ Replace TARGET_USER_ID with a user id you want to follow.
 TARGET_USER_ID=2
 
 # should return 401 without token
-curl -i -X POST "http://localhost:3000/users/$TARGET_USER_ID/follow"
+curl -i -X POST "https://localhost:8443/users/$TARGET_USER_ID/follow"
 
 # follow user (with token)
-curl -i -X POST "http://localhost:3000/users/$TARGET_USER_ID/follow" \
+curl -i -X POST "https://localhost:8443/users/$TARGET_USER_ID/follow" \
   -H "Authorization: Bearer $TOKEN"
 
 # duplicate follow should return 409 (already followed)
-curl -i -X POST "http://localhost:3000/users/$TARGET_USER_ID/follow" \
+curl -i -X POST "https://localhost:8443/users/$TARGET_USER_ID/follow" \
   -H "Authorization: Bearer $TOKEN"
 
 # unfollow user (with token)
-curl -i -X DELETE "http://localhost:3000/users/$TARGET_USER_ID/follow" \
+curl -i -X DELETE "https://localhost:8443/users/$TARGET_USER_ID/follow" \
   -H "Authorization: Bearer $TOKEN"
 
 # second unfollow should return 404 (not followed anymore)
-curl -i -X DELETE "http://localhost:3000/users/$TARGET_USER_ID/follow" \
+curl -i -X DELETE "https://localhost:8443/users/$TARGET_USER_ID/follow" \
   -H "Authorization: Bearer $TOKEN"
 
 # try to follow non-existent user
-curl -i -X POST "http://localhost:3000/users/999999/follow" \
+curl -i -X POST "https://localhost:8443/users/999999/follow" \
   -H "Authorization: Bearer $TOKEN"
 
 # try to follow yourself (invalid)
-curl -i -X POST "http://localhost:3000/users/YOUR_USER_ID/follow" \
+curl -i -X POST "https://localhost:8443/users/YOUR_USER_ID/follow" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -261,21 +261,21 @@ Replace RECIPE_ID with an existing recipe id.
 RECIPE_ID=1
 
 # should return 401 without token
-curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/reviews" \
+curl -i -X POST "https://localhost:8443/recipes/$RECIPE_ID/reviews" \
   -H "Content-Type: application/json" \
   -d '{"body":"Looks great"}'
 
 # authorized request (publishes review)
-curl -i -X POST "http://localhost:3000/recipes/$RECIPE_ID/reviews" \
+curl -i -X POST "https://localhost:8443/recipes/$RECIPE_ID/reviews" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"body":"Looks great"}'
 
 # list of reviews under recipe (public)
-curl -i "http://localhost:3000/recipes/$RECIPE_ID/reviews"
+curl -i "https://localhost:8443/recipes/$RECIPE_ID/reviews"
 
 # non-existent recipe
-curl -i "http://localhost:3000/recipes/999999/reviews"
+curl -i "https://localhost:8443/recipes/999999/reviews"
 ```
 
 

@@ -40,7 +40,7 @@ Before running the tests, ensure:
    docker-compose up -d
    ```
 
-2. **Auth service is accessible** at `http://localhost:3000/auth`
+2. **Auth service is accessible** at `https://localhost:8443/auth`
 
 3. **MongoDB is running** and accessible
 	```
