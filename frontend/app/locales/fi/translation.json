@@ -85,7 +85,7 @@
 		"avatar": "Kuva",
 		"noAvatar": "Kuvaa ei ole asetettu"
 	},
-	"loginPage": {
+	"authModal": {
 		"title": "Kirjaudu sisään",
 		"signupTitle": "Luo tili",
 		"emailLabel": "Sähköpostiosoite",
@@ -99,6 +99,10 @@
 		"logInButton": "Kirjaudu sisään",
 		"googleLoginButton": "Kirjaudu sisään Googlella",
 		"googleSignupButton": "Luo tili Googlella",
+		"googleSubmittingButton": "Kirjaudutaan Googlella...",
+		"googleTokenError": "Google ei palauttanut kirjautumistunnusta.",
+		"googleMissingClientId": "Googlen asiakastunnusta ei ole määritetty.",
+		"googleUnavailable": "Google-kirjautuminen ei ole saatavilla.",
 		"signupSubmittingButton": "Luodaan tiliä...",
 		"signupSuccess": "Tili luotu. Olet kirjautunut sisään.",
 		"toggleSignupPrompt": "Tarvitsetko tilin? Luo sellainen",

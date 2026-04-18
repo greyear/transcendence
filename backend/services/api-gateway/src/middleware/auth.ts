@@ -87,6 +87,8 @@ export interface AuthenticatedRequest extends Request {
 const AUTH_SERVICE_URL =
 	process.env.AUTH_SERVICE_URL || "http://auth-service:3001";
 
+const shouldLogOptionalAuth = process.env.NODE_ENV !== "test";
+
 /**
  * Marks request as unauthenticated.
  * Deletes X-User-Id to prevent clients from spoofing this header directly.
@@ -222,13 +224,17 @@ export const optionalAuth = async (
 			typeof req.cookies.token === "string" && req.cookies.token.length > 0
 				? "cookie"
 				: "authorization";
-		console.info(`[api-gateway] requireAuth:start source=${tokenSource}`);
+		if (shouldLogOptionalAuth) {
+			console.info(`[api-gateway] optionalAuth:start source=${tokenSource}`);
+		}
 
 		const token = extractToken(req);
 		if (!token) {
 			// No token provided, proceed as guest
 			setGuestUser(req);
-			console.warn("[api-gateway] requireAuth:missing-token");
+			if (shouldLogOptionalAuth) {
+				console.info("[api-gateway] optionalAuth:missing-token (guest)");
+			}
 			next();
 			return;
 		}
@@ -237,18 +243,22 @@ export const optionalAuth = async (
 		if (!authResult.ok) {
 			// Token validation failed, proceed as guest
 			setGuestUser(req);
-			console.warn(
-				`[api-gateway] requireAuth:failed reason=${authResult.reason}`,
-			);
+			if (shouldLogOptionalAuth) {
+				console.warn(
+					`[api-gateway] optionalAuth:failed reason=${authResult.reason}`,
+				);
+			}
 			next();
 			return;
 		}
 
 		// Token is valid, proceed as authenticated user
 		setAuthenticatedUser(req, authResult.userId);
-		console.info(
-			`[api-gateway] requireAuth:success userId=${authResult.userId}`,
-		);
+		if (shouldLogOptionalAuth) {
+			console.info(
+				`[api-gateway] optionalAuth:success userId=${authResult.userId}`,
+			);
+		}
 		next();
 	} catch (error) {
 		// Unexpected error, proceed as guest to avoid crashing the endpoint
