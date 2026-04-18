@@ -52,6 +52,14 @@ services:
       - core_pg_data:/var/lib/postgresql/data
       - ./backend/infrastructure/postgres/core/01-init-core.sql:/docker-entrypoint-initdb.d/01-init-core.sql
       - ./backend/infrastructure/postgres/core/02-seed-core.sql:/docker-entrypoint-initdb.d/02-seed-core.sql
+      - ./backend/infrastructure/postgres/core/04-seed-users.sql:/docker-entrypoint-initdb.d/03-seed-users.sql
+      - ./backend/infrastructure/postgres/core/03-seed-recipes.sql:/docker-entrypoint-initdb.d/04-seed-recipes.sql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U core_user -d core_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
     networks:
       - transcendence-network
@@ -119,9 +127,53 @@ services:
       NODE_ENV: development
       PORT: 3002
       DATABASE_URL: postgresql://core_user:core_password@core-db:5432/core_db
+      TRANSLATION_API_URL: http://translation-service:8001/translate
+      TRANSLATION_TIMEOUT_MS: 4000
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
+
+    volumes:
+      - ./backend/services/core-service/uploads/avatars:/app/uploads/avatars
+      - ./backend/services/core-service/uploads/recipes:/app/uploads/recipes
 
     depends_on:
-      - core-db
+      core-db:
+        condition: service_healthy
+      translation-service:
+        condition: service_healthy
+
+    networks:
+      - transcendence-network
+
+  translation-service:
+    build:
+      context: ./backend/services/translation-service
+      dockerfile: Dockerfile
+    container_name: translation-service
+    restart: unless-stopped
+
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_GEN_MODEL: ${GEMINI_GEN_MODEL:-gemini-2.5-flash}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
+      TRANSLATION_MAX_TEXT_LENGTH: ${TRANSLATION_MAX_TEXT_LENGTH:-2000}
+      TRANSLATION_MAX_BATCH_ITEMS: ${TRANSLATION_MAX_BATCH_ITEMS:-20}
+      TRANSLATION_MAX_TOTAL_CHARS: ${TRANSLATION_MAX_TOTAL_CHARS:-12000}
+
+    expose:
+      - "8001"
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=2)"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
     networks:
       - transcendence-network

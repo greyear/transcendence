@@ -35,7 +35,9 @@ import {
 	recipeReviewListItemSchema,
 	recipeSchema,
 	recipeStatusSchema,
+	type SearchRecipeDocument,
 	type SupportedLocale,
+	searchRecipeDocumentSchema,
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
 } from "../validation/schemas.js";
@@ -139,6 +141,12 @@ const getRecipeWithIngredientsQuery = `
 		r.spiciness,
 		r.author_id,
 		r.rating_avg,
+		(
+			SELECT rm.url
+			FROM recipe_media rm
+			WHERE rm.recipe_id = r.id AND rm.position = 0
+			LIMIT 1
+		) AS picture_url,
 		r.status,
 		COALESCE(
 			(
@@ -410,7 +418,13 @@ export const getAllRecipes = async (
 				COALESCE(title->>$1, title->>'en') AS title,
 				COALESCE(description->>$1, description->>'en') AS description,
 				author_id,
-				rating_avg
+				rating_avg,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = recipes.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url
       FROM recipes
       WHERE status = 'published'
       ORDER BY created_at DESC
@@ -447,7 +461,13 @@ export const getAllRecipesPaginated = async (
 					COALESCE(title->>$1, title->>'en') AS title,
 					COALESCE(description->>$1, description->>'en') AS description,
 					author_id,
-					rating_avg
+					rating_avg,
+					(
+						SELECT rm.url
+						FROM recipe_media rm
+						WHERE rm.recipe_id = recipes.id AND rm.position = 0
+						LIMIT 1
+					) AS picture_url
 				FROM recipes
 				WHERE status = 'published'
 				ORDER BY created_at DESC
@@ -498,7 +518,13 @@ export const getPublishedRecipesByUserId = async (
 				COALESCE(title->>$2, title->>'en') AS title,
 				COALESCE(description->>$2, description->>'en') AS description,
 				author_id,
-				rating_avg
+				rating_avg,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = recipes.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url
       FROM recipes
       WHERE author_id = $1 AND status = 'published'
       ORDER BY created_at DESC
@@ -1254,6 +1280,185 @@ export const getRecipeById = async (
 		return getRecipeWithIngredientsById(id, locale);
 	} catch (error) {
 		console.error("Database error in getRecipeById:", error);
+		throw error;
+	}
+};
+
+/**
+ * Get all published recipes for search indexing.
+ *
+ * This is an internal-only read model used by search-service.
+ * It exposes just enough data to build embeddings and track freshness.
+ */
+export const getSearchRecipes = async (): Promise<SearchRecipeDocument[]> => {
+	try {
+		const query = `
+			SELECT
+				r.id,
+				COALESCE(
+					r.title->>'en',
+					r.title->>'fi',
+					r.title->>'ru'
+				) AS title,
+				COALESCE(
+					r.description->>'en',
+					r.description->>'fi',
+					r.description->>'ru'
+				) AS description,
+				COALESCE(
+					r.instructions->'en',
+					r.instructions->'fi',
+					r.instructions->'ru',
+					'[]'::jsonb
+				) AS instructions,
+				r.author_id,
+				r.servings,
+				r.spiciness,
+				r.rating_avg,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'ingredient_id', ri.ingredient_id,
+								'name', i.name,
+								'amount', ri.amount,
+								'unit', ri.unit
+							)
+							ORDER BY ri.ingredient_id
+						)
+						FROM recipe_ingredients ri
+						JOIN ingredients i ON i.id = ri.ingredient_id
+						WHERE ri.recipe_id = r.id
+					),
+					'[]'::json
+				) AS ingredients,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'id', rc.id,
+								'code', rc.code,
+								'category_type_id', rct.id,
+								'category_type_code', rct.code,
+								'category_type_name', rct.name
+							)
+							ORDER BY rct.id, rc.id
+						)
+						FROM recipe_category_map rcm
+						JOIN recipe_categories rc ON rc.id = rcm.category_id
+						JOIN recipe_category_types rct ON rct.id = rc.category_type_id
+						WHERE rcm.recipe_id = r.id
+					),
+					'[]'::json
+				) AS categories,
+				r.updated_at
+			FROM recipes r
+			WHERE r.status = 'published'
+			ORDER BY r.updated_at DESC, r.id DESC
+		`;
+
+		const result = await pool.query(query);
+
+		return parseRecipeRows(
+			result.rows,
+			searchRecipeDocumentSchema,
+			"search recipe document",
+		);
+	} catch (error) {
+		console.error("Database error in getSearchRecipes:", error);
+		throw error;
+	}
+};
+
+/**
+ * Get one published recipe for targeted search reindex.
+ */
+export const getSearchRecipeById = async (
+	id: number,
+): Promise<SearchRecipeDocument | null> => {
+	try {
+		const query = `
+			SELECT
+				r.id,
+				COALESCE(
+					r.title->>'en',
+					r.title->>'fi',
+					r.title->>'ru'
+				) AS title,
+				COALESCE(
+					r.description->>'en',
+					r.description->>'fi',
+					r.description->>'ru'
+				) AS description,
+				COALESCE(
+					r.instructions->'en',
+					r.instructions->'fi',
+					r.instructions->'ru',
+					'[]'::jsonb
+				) AS instructions,
+				r.author_id,
+				r.servings,
+				r.spiciness,
+				r.rating_avg,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'ingredient_id', ri.ingredient_id,
+								'name', i.name,
+								'amount', ri.amount,
+								'unit', ri.unit
+							)
+							ORDER BY ri.ingredient_id
+						)
+						FROM recipe_ingredients ri
+						JOIN ingredients i ON i.id = ri.ingredient_id
+						WHERE ri.recipe_id = r.id
+					),
+					'[]'::json
+				) AS ingredients,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'id', rc.id,
+								'code', rc.code,
+								'category_type_id', rct.id,
+								'category_type_code', rct.code,
+								'category_type_name', rct.name
+							)
+							ORDER BY rct.id, rc.id
+						)
+						FROM recipe_category_map rcm
+						JOIN recipe_categories rc ON rc.id = rcm.category_id
+						JOIN recipe_category_types rct ON rct.id = rc.category_type_id
+						WHERE rcm.recipe_id = r.id
+					),
+					'[]'::json
+				) AS categories,
+				r.updated_at
+			FROM recipes r
+			WHERE r.id = $1 AND r.status = 'published'
+		`;
+
+		const result = await pool.query(query, [id]);
+
+		if (result.rows.length === 0) {
+			return null;
+		}
+
+		const validation = searchRecipeDocumentSchema.safeParse(result.rows[0]);
+		if (!validation.success) {
+			console.error(
+				`Invalid search recipe document for ID ${id}:`,
+				z.prettifyError(validation.error),
+			);
+			return null;
+		}
+
+		return validation.data;
+	} catch (error) {
+		console.error("Database error in getSearchRecipeById:", error);
 		throw error;
 	}
 };

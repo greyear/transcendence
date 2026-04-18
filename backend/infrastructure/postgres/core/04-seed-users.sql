@@ -24,3 +24,7 @@ INSERT INTO users (id, username, role, status) VALUES
   (19, 'joel_brunch', 'user', 'offline'),
   (20, 'aino_homecook', 'user', 'online')
 ON CONFLICT (id) DO NOTHING;
+
+UPDATE users
+SET avatar = '/avatars/avatar-' || (((id - 1) % 8) + 1)::text || '.svg'
+WHERE id BETWEEN 1 AND 20;

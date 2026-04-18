@@ -263,6 +263,7 @@ export const recipeSchema = z.object({
 	servings: z.number().int().positive(), // Servings is required (NOT NULL, default 1)
 	spiciness: z.number().int().min(0).max(3), // 0 to 3, NOT NULL DEFAULT 0
 	rating_avg: z.coerce.number().min(1).max(5).nullable(), // numeric(3,2) or null
+	picture_url: z.string().nullable(),
 	ingredients: z.array(recipeIngredientSchema),
 	categories: z.array(recipeCategorySchema),
 });
@@ -277,6 +278,7 @@ export const recipeListItemSchema = z.object({
 	author_id: userIdSchema.nullable(),
 	description: z.string().nullable(),
 	rating_avg: z.coerce.number().min(1).max(5).nullable(),
+	picture_url: z.string().nullable(),
 });
 
 /**
@@ -312,6 +314,27 @@ export const recipeReviewListItemSchema = z.object({
 	body: z.string(),
 	created_at: z.coerce.date().transform((value) => value.toISOString()),
 	updated_at: z.coerce.date().transform((value) => value.toISOString()),
+});
+
+/**
+ * SearchRecipeDocument - minimal published recipe payload for search indexing
+ *
+ * This is intentionally narrower than Recipe:
+ * - only fields needed by search-service
+ * - includes updated_at so search-service can track staleness
+ */
+export const searchRecipeDocumentSchema = z.object({
+	id: z.number().int().positive(),
+	title: z.string(),
+	description: z.string().nullable(),
+	instructions: z.array(z.string()),
+	author_id: userIdSchema.nullable(),
+	servings: z.number().int().positive(),
+	spiciness: z.number().int().min(0).max(3),
+	rating_avg: z.coerce.number().min(1).max(5).nullable(),
+	ingredients: z.array(recipeIngredientSchema),
+	categories: z.array(recipeCategorySchema),
+	updated_at: z.coerce.date(),
 });
 
 /**
@@ -471,6 +494,11 @@ export const validatePaginationQuery = (
  * MyRecipeListItem type - minimal recipe info for current user's recipes
  */
 export type MyRecipeListItem = z.infer<typeof myRecipeListItemSchema>;
+
+/**
+ * SearchRecipeDocument type - recipe payload exposed to search-service
+ */
+export type SearchRecipeDocument = z.infer<typeof searchRecipeDocumentSchema>;
 export type RecipeReviewListItem = z.infer<typeof recipeReviewListItemSchema>;
 export type UserListItem = z.infer<typeof userListItemSchema>;
 export type UserProfile = z.infer<typeof userProfileSchema>;
