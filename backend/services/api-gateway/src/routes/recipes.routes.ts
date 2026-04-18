@@ -20,6 +20,18 @@ import { ratingsRouter } from "./ratings.routes.js";
 const CORE_SERVICE_URL =
 	process.env.CORE_SERVICE_URL || "http://core-service:3002";
 
+const withForwardedQuery = (
+	req: Parameters<RequestHandler>[0],
+	path: string,
+) => {
+	const queryIndex = req.originalUrl.indexOf("?");
+	if (queryIndex === -1) {
+		return `${CORE_SERVICE_URL}${path}`;
+	}
+
+	return `${CORE_SERVICE_URL}${path}${req.originalUrl.slice(queryIndex)}`;
+};
+
 // Create router for recipes
 export const recipesRouter = Router();
 
@@ -31,7 +43,7 @@ const getRecipesHandler: RequestHandler = async (req, res, _next) => {
 	try {
 		// Forward request to core-service
 		// X-User-Id header already set by optionalAuth middleware
-		const response = await fetch(`${CORE_SERVICE_URL}/recipes`, {
+		const response = await fetch(withForwardedQuery(req, "/recipes"), {
 			headers: getInternalHeaders(req),
 			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 		});
@@ -66,7 +78,7 @@ const getRecipeByIdHandler: RequestHandler = async (req, res, _next) => {
 		// X-User-Id header already set by optionalAuth middleware
 		// req.params.id - parameter from URL (/recipes/:id)
 		const response = await fetch(
-			`${CORE_SERVICE_URL}/recipes/${req.params.id}`,
+			withForwardedQuery(req, `/recipes/${req.params.id}`),
 			{
 				headers: getInternalHeaders(req),
 				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
@@ -339,6 +351,58 @@ const updateRecipePictureHandler: RequestHandler = async (req, res, _next) => {
 		res.status(500).json({ error: "Failed to update recipe picture" });
 	}
 };
+
+const getCategoryListHandler =
+	(categoryType: string): RequestHandler =>
+	async (req, res, _next) => {
+		try {
+			const url = new URL(`${CORE_SERVICE_URL}/recipes/${categoryType}`);
+			for (const [key, value] of Object.entries(req.query)) {
+				if (typeof value === "string") url.searchParams.set(key, value);
+			}
+
+			const response = await fetch(url.toString(), {
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			});
+			const data = await response.json();
+			res.status(response.status).json(data);
+		} catch (error) {
+			if (isTimeoutError(error)) {
+				res.status(504).json({ error: "Gateway Timeout" });
+				return;
+			}
+			console.error("Error proxying to core-service:", error);
+			res.status(500).json({ error: `Failed to fetch ${categoryType} list` });
+		}
+	};
+
+const getIngredientsHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(`${CORE_SERVICE_URL}/recipes/ingredients`, {
+			headers: getInternalHeaders(req),
+			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+		});
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to fetch ingredients" });
+	}
+};
+
+recipesRouter.get("/meal_time", getCategoryListHandler("meal_time"));
+recipesRouter.get("/dish_type", getCategoryListHandler("dish_type"));
+recipesRouter.get(
+	"/main_ingredient",
+	getCategoryListHandler("main_ingredient"),
+);
+recipesRouter.get("/cuisine", getCategoryListHandler("cuisine"));
+recipesRouter.get("/ingredients", getIngredientsHandler);
 
 recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
 recipesRouter.put("/:id/picture", requireAuth, updateRecipePictureHandler);

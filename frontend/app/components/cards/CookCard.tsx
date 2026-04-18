@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import "../../assets/styles/cookCard.css";
+import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import userPhoto from "../../assets/images/user-photo.jpg";
 
 type CookCardProps = {
@@ -9,11 +10,13 @@ type CookCardProps = {
 };
 
 export const CookCard = ({ id, username, avatar }: CookCardProps) => {
+	const avatarSrc = resolveMediaUrl(avatar) ?? userPhoto;
+
 	return (
 		<Link to={`/user/${id}`} className="cook-card-link">
 			<div className="cook-card-item">
 				<img
-					src={avatar || userPhoto}
+					src={avatarSrc}
 					alt={`${username} profile`}
 					className="cook-card-image"
 				/>

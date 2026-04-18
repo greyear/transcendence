@@ -6,6 +6,7 @@
  * - Update username and/or avatar
  */
 
+import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { pool } from "../db/database.js";
 import {
@@ -49,7 +50,8 @@ const parseProfileRow = (row: unknown): ProfileData | null => {
 	return result.data;
 };
 
-const buildDefaultUsername = (userId: number): string => `username_${userId}`;
+const buildDefaultUsername = (): string =>
+	`User_${randomBytes(4).toString("hex")}`;
 
 // ── Exported service functions ────────────────────────────────────────────────
 
@@ -89,7 +91,7 @@ export const registerProfile = async (
 	userId: number,
 ): Promise<RegisterProfileResult> => {
 	try {
-		const resolvedUsername = buildDefaultUsername(userId);
+		const resolvedUsername = buildDefaultUsername();
 		console.info(
 			`[core-service] registerProfile:attempt userId=${userId} username=${resolvedUsername}`,
 		);
