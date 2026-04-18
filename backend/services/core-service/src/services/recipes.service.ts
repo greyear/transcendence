@@ -37,6 +37,7 @@ import {
 	type SupportedLocale,
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
+	PaginatedResponse,
 } from "../validation/schemas.js";
 import {
 	localizeInstructionStepsFromSource,
@@ -423,6 +424,49 @@ export const getAllRecipes = async (
 	} catch (error) {
 		// If error - log it and throw it to caller
 		console.error("Database error in getAllRecipes:", error);
+		throw error;
+	}
+};
+
+/**
+ * Get published recipes for exact page
+ */
+export const getAllRecipesPaginated = async (
+	page: number,
+	perPage: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<PaginatedResponse<RecipeListItem>> => {
+	try {
+		const offset = (page - 1) * perPage;
+
+		const [dataResult, countResult] = await Promise.all([
+			pool.query(
+				`
+				SELECT
+					id,
+					COALESCE(title->>$1, title->>'en') AS title,
+					COALESCE(description->>$1, description->>'en') AS description,
+					author_id,
+					rating_avg
+				FROM recipes
+				WHERE status = 'published'
+				ORDER BY created_at DESC
+				LIMIT $2 OFFSET $3
+				`,
+				[locale, perPage, offset],
+			),
+			pool.query(
+				`SELECT COUNT(*)::int AS total FROM recipes WHERE status = 'published'`,
+			),
+		]);
+
+		const total_count = countResult.rows[0].total as number;
+		const total_pages = Math.ceil(total_count / perPage);
+		const data = parseRecipeRows(dataResult.rows, recipeListItemSchema, "recipe");
+
+		return { data, total_count, total_pages, page, per_page: perPage };
+	} catch (error) {
+		console.error("Database error in getAllRecipesPaginated:", error);
 		throw error;
 	}
 };
@@ -1268,8 +1312,8 @@ export const updateRecipePicture = async (
 		if (oldPictureUrl && oldPictureUrl !== pictureUrl) {
 			const oldFilename = oldPictureUrl.replace("/recipe-pictures/", "");
 			const oldFilePath = path.resolve("uploads/recipes", oldFilename);
-			fs.unlink(oldFilePath, (err) => {
-				if (err && err.code !== "ENOENT") {
+			await fs.promises.unlink(oldFilePath).catch((err) => {
+				if (err.code !== "ENOENT") {
 					console.error("Failed to delete old recipe picture:", err);
 				}
 			});

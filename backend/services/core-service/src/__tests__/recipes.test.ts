@@ -27,8 +27,11 @@ describe("Recipes Routes", () => {
 
 		expect(response.status).toBe(200);
 		expect(response.body).toHaveProperty("data");
-		expect(response.body).toHaveProperty("count");
-		expect(Array.isArray(response.body.data)).toBe(true); // data must be an array
+		expect(response.body).toHaveProperty("total_count");
+		expect(response.body).toHaveProperty("total_pages");
+		expect(response.body).toHaveProperty("page");
+		expect(response.body).toHaveProperty("per_page");
+		expect(Array.isArray(response.body.data)).toBe(true);
 	});
 
 	/**
