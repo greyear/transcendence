@@ -44,41 +44,197 @@ ON CONFLICT (code) DO NOTHING;
 INSERT INTO recipe_categories (category_type_id, code)
 SELECT id, 'breakfast' FROM recipe_category_types WHERE code = 'meal_time'
 UNION ALL
+SELECT id, 'brunch' FROM recipe_category_types WHERE code = 'meal_time'
+UNION ALL
 SELECT id, 'lunch' FROM recipe_category_types WHERE code = 'meal_time'
 UNION ALL
 SELECT id, 'dinner' FROM recipe_category_types WHERE code = 'meal_time'
 UNION ALL
+SELECT id, 'supper' FROM recipe_category_types WHERE code = 'meal_time'
+UNION ALL
 SELECT id, 'snack' FROM recipe_category_types WHERE code = 'meal_time'
+UNION ALL
+SELECT id, 'late_night' FROM recipe_category_types WHERE code = 'meal_time'
+UNION ALL
+SELECT id, 'tea_time' FROM recipe_category_types WHERE code = 'meal_time'
+UNION ALL
+SELECT id, 'pre_workout' FROM recipe_category_types WHERE code = 'meal_time'
+UNION ALL
+SELECT id, 'post_workout' FROM recipe_category_types WHERE code = 'meal_time'
+UNION ALL
+SELECT id, 'kids_meal' FROM recipe_category_types WHERE code = 'meal_time'
+UNION ALL
+SELECT id, 'holiday' FROM recipe_category_types WHERE code = 'meal_time'
+UNION ALL
+SELECT id, 'picnic' FROM recipe_category_types WHERE code = 'meal_time'
+UNION ALL
+SELECT id, 'party' FROM recipe_category_types WHERE code = 'meal_time'
+UNION ALL
+SELECT id, 'buffet' FROM recipe_category_types WHERE code = 'meal_time'
 ON CONFLICT (category_type_id, code) DO NOTHING;
 
 -- Dish Type
 INSERT INTO recipe_categories (category_type_id, code)
 SELECT id, 'soup' FROM recipe_category_types WHERE code = 'dish_type'
 UNION ALL
+SELECT id, 'stew' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
 SELECT id, 'salad' FROM recipe_category_types WHERE code = 'dish_type'
 UNION ALL
 SELECT id, 'main_course' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'side_dish' FROM recipe_category_types WHERE code = 'dish_type'
 UNION ALL
 SELECT id, 'dessert' FROM recipe_category_types WHERE code = 'dish_type'
 UNION ALL
 SELECT id, 'beverage' FROM recipe_category_types WHERE code = 'dish_type'
 UNION ALL
+SELECT id, 'cocktail' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'smoothie' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
 SELECT id, 'appetizer' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'sandwich' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'wrap' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'burger' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'pizza' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'pasta' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'noodles' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'rice_dish' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'casserole' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'curry' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'stir_fry' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'bowl' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'porridge' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'omelette' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'quiche' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'pancake' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'waffle' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'crepe' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'dumpling' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'roll' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'skewer' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'grill' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'barbecue' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'roast' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'hot_pot' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'pie' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'tart' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'cake' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'cookie' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'pastry' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'bread' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'ice_cream' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'dip' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'sauce' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'pickle' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'preserve' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'risotto' FROM recipe_category_types WHERE code = 'dish_type'
+UNION ALL
+SELECT id, 'taco' FROM recipe_category_types WHERE code = 'dish_type'
 ON CONFLICT (category_type_id, code) DO NOTHING;
 
--- Main Ingredient
+-- Main Ingredient (each code corresponds to an entry in the ingredients table — subset relationship)
 INSERT INTO recipe_categories (category_type_id, code)
-SELECT id, 'poultry' FROM recipe_category_types WHERE code = 'main_ingredient'
+SELECT id, 'chicken' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'turkey' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'duck' FROM recipe_category_types WHERE code = 'main_ingredient'
 UNION ALL
 SELECT id, 'beef' FROM recipe_category_types WHERE code = 'main_ingredient'
 UNION ALL
 SELECT id, 'pork' FROM recipe_category_types WHERE code = 'main_ingredient'
 UNION ALL
-SELECT id, 'fish' FROM recipe_category_types WHERE code = 'main_ingredient'
+SELECT id, 'lamb' FROM recipe_category_types WHERE code = 'main_ingredient'
 UNION ALL
-SELECT id, 'seafood' FROM recipe_category_types WHERE code = 'main_ingredient'
+SELECT id, 'salmon' FROM recipe_category_types WHERE code = 'main_ingredient'
 UNION ALL
-SELECT id, 'vegetables' FROM recipe_category_types WHERE code = 'main_ingredient'
+SELECT id, 'tuna' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'cod' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'trout' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'shrimp' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'crab' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'lobster' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'eggs' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'tofu' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'tempeh' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'beans' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'lentils' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'chickpeas' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'rice' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'pasta' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'quinoa' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'potato' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'mushroom' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'cheese' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'avocado' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'broccoli' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'spinach' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'tomato' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'eggplant' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'cauliflower' FROM recipe_category_types WHERE code = 'main_ingredient'
+UNION ALL
+SELECT id, 'pumpkin' FROM recipe_category_types WHERE code = 'main_ingredient'
 ON CONFLICT (category_type_id, code) DO NOTHING;
 
 -- Cuisine
@@ -87,21 +243,105 @@ SELECT id, 'italian' FROM recipe_category_types WHERE code = 'cuisine'
 UNION ALL
 SELECT id, 'asian' FROM recipe_category_types WHERE code = 'cuisine'
 UNION ALL
+SELECT id, 'chinese' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'japanese' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'korean' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'thai' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'vietnamese' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'indian' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'indonesian' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'filipino' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
 SELECT id, 'mexican' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'tex_mex' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'cajun' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'creole' FROM recipe_category_types WHERE code = 'cuisine'
 UNION ALL
 SELECT id, 'french' FROM recipe_category_types WHERE code = 'cuisine'
 UNION ALL
 SELECT id, 'american' FROM recipe_category_types WHERE code = 'cuisine'
 UNION ALL
+SELECT id, 'southern_us' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
 SELECT id, 'mediterranean' FROM recipe_category_types WHERE code = 'cuisine'
 UNION ALL
+SELECT id, 'spanish' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'portuguese' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'greek' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'turkish' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'moroccan' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'ethiopian' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'middle_eastern' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'lebanese' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'persian' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'israeli' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
 SELECT id, 'finnish' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'swedish' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'norwegian' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'danish' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'nordic' FROM recipe_category_types WHERE code = 'cuisine'
 UNION ALL
 SELECT id, 'russian' FROM recipe_category_types WHERE code = 'cuisine'
 UNION ALL
 SELECT id, 'ukrainian' FROM recipe_category_types WHERE code = 'cuisine'
 UNION ALL
+SELECT id, 'georgian' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'polish' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'hungarian' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'czech' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
 SELECT id, 'german' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'austrian' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'swiss' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'british' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'irish' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'scottish' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'brazilian' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'peruvian' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'argentinian' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'caribbean' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'cuban' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'jamaican' FROM recipe_category_types WHERE code = 'cuisine'
+UNION ALL
+SELECT id, 'fusion' FROM recipe_category_types WHERE code = 'cuisine'
 ON CONFLICT (category_type_id, code) DO NOTHING;
 
 -- ============================================
@@ -242,77 +482,996 @@ ON CONFLICT (diet_id, category_id) DO NOTHING;
 -- ============================================
 -- Proteins & Meats
 INSERT INTO ingredients (name) VALUES
+  ('Chicken'),
   ('Chicken Breast'),
-  ('Salmon'),
-  ('Beef'),
-  ('Pork'),
+  ('Chicken Thigh'),
+  ('Chicken Wings'),
+  ('Chicken Liver'),
   ('Turkey'),
+  ('Turkey Breast'),
+  ('Duck'),
+  ('Duck Breast'),
+  ('Goose'),
+  ('Quail'),
+  ('Beef'),
+  ('Ground Beef'),
+  ('Beef Steak'),
+  ('Beef Ribs'),
+  ('Beef Tenderloin'),
+  ('Veal'),
+  ('Pork'),
+  ('Pork Chop'),
+  ('Pork Belly'),
+  ('Pork Loin'),
+  ('Pork Ribs'),
+  ('Ground Pork'),
+  ('Bacon'),
+  ('Ham'),
+  ('Prosciutto'),
+  ('Pancetta'),
+  ('Sausage'),
+  ('Chorizo'),
+  ('Salami'),
+  ('Pepperoni'),
+  ('Lamb'),
+  ('Lamb Chop'),
+  ('Ground Lamb'),
+  ('Rabbit'),
+  ('Venison'),
+
+  -- Fish & Seafood
+  ('Salmon'),
+  ('Smoked Salmon'),
+  ('Tuna'),
+  ('Canned Tuna'),
+  ('Cod'),
+  ('Haddock'),
+  ('Halibut'),
+  ('Trout'),
+  ('Mackerel'),
+  ('Sardines'),
+  ('Anchovies'),
+  ('Tilapia'),
+  ('Sea Bass'),
+  ('Herring'),
+  ('Perch'),
+  ('Pike'),
+  ('Carp'),
+  ('Shrimp'),
+  ('Prawns'),
+  ('Crab'),
+  ('Lobster'),
+  ('Scallops'),
+  ('Mussels'),
+  ('Clams'),
+  ('Oysters'),
+  ('Squid'),
+  ('Octopus'),
+  ('Caviar'),
+  ('Roe'),
+
+  -- Eggs & Plant Protein
   ('Eggs'),
+  ('Egg Whites'),
+  ('Quail Eggs'),
   ('Tofu'),
+  ('Firm Tofu'),
+  ('Silken Tofu'),
+  ('Tempeh'),
+  ('Seitan'),
+
+  -- Legumes
   ('Beans'),
+  ('Black Beans'),
+  ('Kidney Beans'),
+  ('Pinto Beans'),
+  ('Navy Beans'),
+  ('White Beans'),
+  ('Lima Beans'),
+  ('Green Beans'),
   ('Lentils'),
-  ('Cottage Cheese'),
-  
+  ('Red Lentils'),
+  ('Green Lentils'),
+  ('Chickpeas'),
+  ('Split Peas'),
+  ('Edamame'),
+
   -- Grains & Carbs
   ('Rice'),
+  ('White Rice'),
+  ('Brown Rice'),
+  ('Basmati Rice'),
+  ('Jasmine Rice'),
+  ('Arborio Rice'),
+  ('Wild Rice'),
   ('Pasta'),
+  ('Spaghetti'),
+  ('Penne'),
+  ('Fusilli'),
+  ('Macaroni'),
+  ('Lasagna Sheets'),
+  ('Ravioli'),
+  ('Gnocchi'),
+  ('Egg Noodles'),
+  ('Rice Noodles'),
+  ('Udon Noodles'),
+  ('Soba Noodles'),
+  ('Ramen Noodles'),
   ('Bread'),
+  ('White Bread'),
+  ('Whole Wheat Bread'),
+  ('Sourdough Bread'),
+  ('Rye Bread'),
+  ('Pita Bread'),
+  ('Naan Bread'),
+  ('Tortilla'),
+  ('Corn Tortilla'),
+  ('Flour Tortilla'),
+  ('Bagel'),
+  ('Croissant'),
+  ('Baguette'),
+  ('English Muffin'),
+  ('Breadcrumbs'),
+  ('Panko'),
   ('Oats'),
+  ('Rolled Oats'),
+  ('Steel Cut Oats'),
   ('Quinoa'),
+  ('Couscous'),
+  ('Bulgur'),
+  ('Barley'),
+  ('Buckwheat'),
+  ('Millet'),
+  ('Semolina'),
+  ('Cornmeal'),
+  ('Polenta'),
+  ('Flour'),
+  ('All Purpose Flour'),
+  ('Whole Wheat Flour'),
+  ('Almond Flour'),
+  ('Coconut Flour'),
+  ('Rice Flour'),
+  ('Cornstarch'),
   ('Potato'),
   ('Sweet Potato'),
+  ('Yam'),
   ('Wheat'),
-  
+  ('Cassava'),
+
   -- Vegetables
   ('Broccoli'),
+  ('Cauliflower'),
+  ('Brussels Sprouts'),
+  ('Cabbage'),
+  ('Red Cabbage'),
+  ('Napa Cabbage'),
+  ('Bok Choy'),
+  ('Chard'),
   ('Spinach'),
-  ('Carrots'),
-  ('Tomato'),
-  ('Lettuce'),
-  ('Bell Pepper'),
-  ('Cucumber'),
-  ('Zucchini'),
-  ('Mushroom'),
-  ('Onion'),
-  ('Garlic'),
   ('Kale'),
-  
+  ('Arugula'),
+  ('Lettuce'),
+  ('Romaine Lettuce'),
+  ('Iceberg Lettuce'),
+  ('Watercress'),
+  ('Endive'),
+  ('Radicchio'),
+  ('Carrots'),
+  ('Parsnip'),
+  ('Turnip'),
+  ('Beetroot'),
+  ('Radish'),
+  ('Daikon'),
+  ('Celery'),
+  ('Celeriac'),
+  ('Fennel'),
+  ('Leek'),
+  ('Shallot'),
+  ('Scallion'),
+  ('Chives'),
+  ('Onion'),
+  ('Red Onion'),
+  ('White Onion'),
+  ('Yellow Onion'),
+  ('Spring Onion'),
+  ('Garlic'),
+  ('Ginger'),
+  ('Galangal'),
+  ('Turmeric Root'),
+  ('Tomato'),
+  ('Cherry Tomatoes'),
+  ('Sun Dried Tomatoes'),
+  ('Bell Pepper'),
+  ('Red Bell Pepper'),
+  ('Green Bell Pepper'),
+  ('Yellow Bell Pepper'),
+  ('Chili Pepper'),
+  ('Jalapeno'),
+  ('Habanero'),
+  ('Serrano'),
+  ('Poblano'),
+  ('Cucumber'),
+  ('Pickle'),
+  ('Zucchini'),
+  ('Eggplant'),
+  ('Squash'),
+  ('Butternut Squash'),
+  ('Acorn Squash'),
+  ('Pumpkin'),
+  ('Mushroom'),
+  ('Button Mushroom'),
+  ('Portobello'),
+  ('Shiitake'),
+  ('Oyster Mushroom'),
+  ('Porcini'),
+  ('Chanterelle'),
+  ('Truffle'),
+  ('Asparagus'),
+  ('Artichoke'),
+  ('Okra'),
+  ('Corn'),
+  ('Sweet Corn'),
+  ('Peas'),
+  ('Snow Peas'),
+  ('Sugar Snap Peas'),
+  ('Bamboo Shoots'),
+  ('Water Chestnuts'),
+  ('Seaweed'),
+  ('Nori'),
+  ('Wakame'),
+  ('Kelp'),
+  ('Olives'),
+  ('Green Olives'),
+  ('Black Olives'),
+  ('Capers'),
+
   -- Fruits
   ('Apple'),
+  ('Green Apple'),
+  ('Pear'),
   ('Banana'),
+  ('Plantain'),
   ('Avocado'),
+  ('Orange'),
+  ('Mandarin'),
+  ('Tangerine'),
+  ('Clementine'),
+  ('Lemon'),
+  ('Lime'),
+  ('Grapefruit'),
   ('Blueberries'),
   ('Strawberries'),
-  ('Orange'),
+  ('Raspberries'),
+  ('Blackberries'),
+  ('Cranberries'),
+  ('Currants'),
+  ('Gooseberries'),
+  ('Lingonberries'),
+  ('Cloudberries'),
   ('Grapes'),
+  ('Red Grapes'),
   ('Watermelon'),
+  ('Cantaloupe'),
+  ('Honeydew'),
   ('Mango'),
-  
-  -- Dairy & Fats
+  ('Pineapple'),
+  ('Papaya'),
+  ('Kiwi'),
+  ('Peach'),
+  ('Nectarine'),
+  ('Plum'),
+  ('Apricot'),
+  ('Cherries'),
+  ('Pomegranate'),
+  ('Passion Fruit'),
+  ('Dragon Fruit'),
+  ('Lychee'),
+  ('Guava'),
+  ('Persimmon'),
+  ('Fig'),
+  ('Dates'),
+  ('Raisins'),
+  ('Prunes'),
+  ('Dried Apricots'),
+  ('Coconut'),
+  ('Coconut Flakes'),
+  ('Coconut Milk'),
+  ('Coconut Cream'),
+
+  -- Dairy
   ('Milk'),
+  ('Whole Milk'),
+  ('Skim Milk'),
+  ('Almond Milk'),
+  ('Oat Milk'),
+  ('Soy Milk'),
+  ('Buttermilk'),
+  ('Condensed Milk'),
+  ('Evaporated Milk'),
+  ('Cream'),
+  ('Heavy Cream'),
+  ('Whipping Cream'),
+  ('Sour Cream'),
+  ('Creme Fraiche'),
   ('Yogurt'),
+  ('Greek Yogurt'),
+  ('Kefir'),
+  ('Cheese'),
   ('Cheddar Cheese'),
   ('Mozzarella'),
+  ('Parmesan'),
+  ('Feta'),
+  ('Ricotta'),
+  ('Cream Cheese'),
+  ('Mascarpone'),
+  ('Goat Cheese'),
+  ('Blue Cheese'),
+  ('Gouda'),
+  ('Brie'),
+  ('Camembert'),
+  ('Swiss Cheese'),
+  ('Provolone'),
+  ('Cottage Cheese'),
+  ('Halloumi'),
+  ('Paneer'),
   ('Butter'),
+  ('Unsalted Butter'),
+  ('Ghee'),
+  ('Margarine'),
+
+  -- Fats & Oils
   ('Olive Oil'),
+  ('Extra Virgin Olive Oil'),
   ('Coconut Oil'),
-  
+  ('Sesame Oil'),
+  ('Sunflower Oil'),
+  ('Vegetable Oil'),
+  ('Canola Oil'),
+  ('Avocado Oil'),
+  ('Peanut Oil'),
+  ('Truffle Oil'),
+  ('Lard'),
+
   -- Nuts & Seeds
   ('Almonds'),
   ('Walnuts'),
+  ('Cashews'),
+  ('Pistachios'),
+  ('Pecans'),
+  ('Hazelnuts'),
+  ('Macadamia Nuts'),
+  ('Brazil Nuts'),
+  ('Pine Nuts'),
+  ('Peanuts'),
   ('Peanut Butter'),
+  ('Almond Butter'),
+  ('Cashew Butter'),
+  ('Tahini'),
   ('Chia Seeds'),
   ('Flax Seeds'),
-  
-  -- Condiments & Spices
+  ('Sunflower Seeds'),
+  ('Pumpkin Seeds'),
+  ('Sesame Seeds'),
+  ('Hemp Seeds'),
+  ('Poppy Seeds'),
+
+  -- Herbs (fresh & dried)
+  ('Basil'),
+  ('Dried Basil'),
+  ('Oregano'),
+  ('Dried Oregano'),
+  ('Thyme'),
+  ('Rosemary'),
+  ('Sage'),
+  ('Mint'),
+  ('Parsley'),
+  ('Cilantro'),
+  ('Dill'),
+  ('Tarragon'),
+  ('Chervil'),
+  ('Marjoram'),
+  ('Bay Leaves'),
+  ('Lemongrass'),
+  ('Kaffir Lime Leaves'),
+  ('Curry Leaves'),
+
+  -- Spices
   ('Salt'),
+  ('Sea Salt'),
+  ('Kosher Salt'),
   ('Black Pepper'),
+  ('White Pepper'),
+  ('Peppercorns'),
+  ('Pink Peppercorns'),
   ('Garlic Powder'),
+  ('Onion Powder'),
   ('Paprika'),
+  ('Smoked Paprika'),
+  ('Cayenne Pepper'),
+  ('Chili Powder'),
+  ('Chili Flakes'),
+  ('Cumin'),
+  ('Ground Cumin'),
+  ('Coriander'),
+  ('Ground Coriander'),
+  ('Turmeric'),
   ('Cinnamon'),
+  ('Ground Cinnamon'),
+  ('Cinnamon Stick'),
+  ('Cardamom'),
+  ('Cloves'),
+  ('Nutmeg'),
+  ('Mace'),
+  ('Allspice'),
+  ('Star Anise'),
+  ('Anise Seeds'),
+  ('Fennel Seeds'),
+  ('Mustard Seeds'),
+  ('Saffron'),
+  ('Sumac'),
+  ('Zaatar'),
+  ('Garam Masala'),
+  ('Curry Powder'),
+  ('Italian Seasoning'),
+  ('Herbs de Provence'),
+  ('Five Spice Powder'),
+  ('Old Bay Seasoning'),
+  ('Cajun Seasoning'),
+  ('Taco Seasoning'),
+  ('Ginger Powder'),
+  ('Vanilla Extract'),
+  ('Vanilla Bean'),
+  ('Vanilla Pod'),
+
+  -- Sauces & Condiments
   ('Honey'),
+  ('Maple Syrup'),
+  ('Agave'),
+  ('Sugar'),
+  ('Brown Sugar'),
+  ('White Sugar'),
+  ('Powdered Sugar'),
+  ('Stevia'),
+  ('Molasses'),
   ('Soy Sauce'),
-  ('Vinegar')
+  ('Dark Soy Sauce'),
+  ('Tamari'),
+  ('Fish Sauce'),
+  ('Oyster Sauce'),
+  ('Hoisin Sauce'),
+  ('Teriyaki Sauce'),
+  ('Sriracha'),
+  ('Hot Sauce'),
+  ('Tabasco'),
+  ('Worcestershire Sauce'),
+  ('Ketchup'),
+  ('Mustard'),
+  ('Dijon Mustard'),
+  ('Wholegrain Mustard'),
+  ('Yellow Mustard'),
+  ('Mayonnaise'),
+  ('BBQ Sauce'),
+  ('Tomato Sauce'),
+  ('Tomato Paste'),
+  ('Pesto'),
+  ('Tahini Sauce'),
+  ('Hummus'),
+  ('Salsa'),
+  ('Guacamole'),
+  ('Vinegar'),
+  ('Apple Cider Vinegar'),
+  ('White Vinegar'),
+  ('Rice Vinegar'),
+  ('Balsamic Vinegar'),
+  ('Red Wine Vinegar'),
+  ('Malt Vinegar'),
+  ('Mirin'),
+  ('Sake'),
+  ('Cooking Wine'),
+  ('Red Wine'),
+  ('White Wine'),
+  ('Beer'),
+  ('Rum'),
+  ('Brandy'),
+  ('Vodka'),
+
+  -- Baking & Misc
+  ('Baking Powder'),
+  ('Baking Soda'),
+  ('Yeast'),
+  ('Active Dry Yeast'),
+  ('Instant Yeast'),
+  ('Gelatin'),
+  ('Agar Agar'),
+  ('Cocoa Powder'),
+  ('Chocolate'),
+  ('Dark Chocolate'),
+  ('Milk Chocolate'),
+  ('White Chocolate'),
+  ('Chocolate Chips'),
+  ('Marshmallows'),
+  ('Sprinkles'),
+  ('Food Coloring'),
+
+  -- Beverages (as ingredients)
+  ('Coffee'),
+  ('Espresso'),
+  ('Tea'),
+  ('Black Tea'),
+  ('Green Tea'),
+  ('Matcha'),
+  ('Chai'),
+  ('Water'),
+  ('Sparkling Water'),
+  ('Broth'),
+  ('Chicken Broth'),
+  ('Beef Broth'),
+  ('Vegetable Broth'),
+  ('Fish Stock'),
+  ('Stock')
+ON CONFLICT (name) DO NOTHING;
+
+-- Additional ingredients (further enrichment)
+INSERT INTO ingredients (name) VALUES
+  -- Additional fish
+  ('Sea Bream'),
+  ('Snapper'),
+  ('Red Snapper'),
+  ('Grouper'),
+  ('Mahi Mahi'),
+  ('Monkfish'),
+  ('Swordfish'),
+  ('Pollock'),
+  ('Flounder'),
+  ('Sole'),
+  ('Skate'),
+  ('Eel'),
+  ('Catfish'),
+  ('Whitefish'),
+  ('Salted Cod'),
+
+  -- Additional shellfish/seafood
+  ('Crayfish'),
+  ('Abalone'),
+  ('Sea Urchin'),
+  ('Cockles'),
+  ('Whelks'),
+  ('Cuttlefish'),
+  ('Calamari'),
+  ('Barnacles'),
+
+  -- Offal & specialty cuts
+  ('Beef Liver'),
+  ('Pork Liver'),
+  ('Kidney'),
+  ('Heart'),
+  ('Tongue'),
+  ('Oxtail'),
+  ('Tripe'),
+  ('Sweetbreads'),
+  ('Bone Marrow'),
+  ('Trotters'),
+  ('Brisket'),
+  ('Short Ribs'),
+  ('Flank Steak'),
+  ('Skirt Steak'),
+  ('Ribeye'),
+  ('Sirloin'),
+  ('T-Bone Steak'),
+  ('Porterhouse'),
+  ('Chuck Roast'),
+
+  -- Cured meats & charcuterie
+  ('Mortadella'),
+  ('Bresaola'),
+  ('Jamon Serrano'),
+  ('Jamon Iberico'),
+  ('Coppa'),
+  ('Guanciale'),
+  ('Speck'),
+  ('Andouille'),
+  ('Bratwurst'),
+  ('Kielbasa'),
+  ('Frankfurter'),
+  ('Liverwurst'),
+  ('Black Pudding'),
+  ('Blood Sausage'),
+  ('Turkey Bacon'),
+  ('Canadian Bacon'),
+
+  -- Game
+  ('Wild Boar'),
+  ('Bison'),
+  ('Elk'),
+  ('Moose'),
+  ('Reindeer'),
+  ('Pheasant'),
+  ('Partridge'),
+
+  -- Extra legumes
+  ('Black Eyed Peas'),
+  ('Mung Beans'),
+  ('Adzuki Beans'),
+  ('Cannellini Beans'),
+  ('Great Northern Beans'),
+  ('Fava Beans'),
+  ('Butter Beans'),
+  ('Yellow Lentils'),
+  ('Black Lentils'),
+  ('Beluga Lentils'),
+  ('French Lentils'),
+
+  -- Extra grains & flours
+  ('Spelt'),
+  ('Farro'),
+  ('Amaranth'),
+  ('Teff'),
+  ('Freekeh'),
+  ('Kamut'),
+  ('Wheat Germ'),
+  ('Wheat Bran'),
+  ('Puffed Rice'),
+  ('Puffed Quinoa'),
+  ('Rye Flour'),
+  ('Chickpea Flour'),
+  ('Buckwheat Flour'),
+  ('Tapioca Flour'),
+  ('Tapioca Starch'),
+  ('Arrowroot'),
+  ('Masa Harina'),
+  ('Self-Rising Flour'),
+  ('Bread Flour'),
+  ('Cake Flour'),
+
+  -- Extra pasta shapes
+  ('Orecchiette'),
+  ('Rigatoni'),
+  ('Farfalle'),
+  ('Linguine'),
+  ('Fettuccine'),
+  ('Pappardelle'),
+  ('Orzo'),
+  ('Cannelloni'),
+  ('Tortellini'),
+  ('Angel Hair Pasta'),
+  ('Conchiglie'),
+  ('Cavatappi'),
+  ('Ziti'),
+  ('Bucatini'),
+  ('Tagliatelle'),
+
+  -- Extra noodles
+  ('Glass Noodles'),
+  ('Cellophane Noodles'),
+  ('Shirataki Noodles'),
+  ('Chow Mein Noodles'),
+  ('Lo Mein Noodles'),
+  ('Vermicelli'),
+  ('Pho Noodles'),
+
+  -- Extra breads & doughs
+  ('Focaccia'),
+  ('Ciabatta'),
+  ('Brioche'),
+  ('Challah'),
+  ('Pumpernickel'),
+  ('Lavash'),
+  ('Flatbread'),
+  ('Matzo'),
+  ('Pretzel'),
+  ('Cornbread'),
+  ('Hamburger Bun'),
+  ('Hot Dog Bun'),
+  ('Dinner Roll'),
+  ('Crackers'),
+  ('Rice Cakes'),
+  ('Phyllo Dough'),
+  ('Puff Pastry'),
+  ('Pie Crust'),
+  ('Pizza Dough'),
+  ('Wonton Wrappers'),
+  ('Dumpling Wrappers'),
+  ('Spring Roll Wrappers'),
+  ('Rice Paper'),
+
+  -- Extra vegetables
+  ('Sunchoke'),
+  ('Jerusalem Artichoke'),
+  ('Jicama'),
+  ('Kohlrabi'),
+  ('Salsify'),
+  ('Taro'),
+  ('Lotus Root'),
+  ('Burdock'),
+  ('Rutabaga'),
+  ('Rhubarb'),
+  ('Swiss Chard'),
+  ('Mustard Greens'),
+  ('Collard Greens'),
+  ('Dandelion Greens'),
+  ('Microgreens'),
+  ('Alfalfa Sprouts'),
+  ('Bean Sprouts'),
+  ('Broccoli Sprouts'),
+  ('Mizuna'),
+  ('Purslane'),
+  ('Samphire'),
+  ('Nettles'),
+  ('Sorrel'),
+  ('Horseradish Root'),
+  ('Wasabi Root'),
+  ('Lotus Seeds'),
+
+  -- Extra mushrooms
+  ('Enoki'),
+  ('Morel'),
+  ('Lion''s Mane'),
+  ('Maitake'),
+  ('Cremini'),
+  ('King Oyster'),
+  ('Wood Ear Mushroom'),
+  ('Dried Mushrooms'),
+
+  -- Extra fruits (tropical, stone, exotic)
+  ('Quince'),
+  ('Loquat'),
+  ('Jackfruit'),
+  ('Durian'),
+  ('Rambutan'),
+  ('Longan'),
+  ('Mangosteen'),
+  ('Starfruit'),
+  ('Soursop'),
+  ('Tamarind'),
+  ('Mulberries'),
+  ('Elderberries'),
+  ('Boysenberries'),
+  ('Acai Berries'),
+  ('Goji Berries'),
+  ('Sea Buckthorn'),
+  ('Rosehip'),
+  ('Kumquat'),
+  ('Yuzu'),
+  ('Meyer Lemon'),
+  ('Blood Orange'),
+  ('Bergamot'),
+  ('Key Lime'),
+
+  -- Extra dried fruit
+  ('Dried Cranberries'),
+  ('Dried Cherries'),
+  ('Dried Mango'),
+  ('Dried Blueberries'),
+  ('Dried Figs'),
+  ('Candied Peel'),
+
+  -- Extra dairy & alternatives
+  ('Quark'),
+  ('Fromage Blanc'),
+  ('Clotted Cream'),
+  ('Labneh'),
+  ('Smetana'),
+  ('Ayran'),
+  ('Skyr'),
+  ('Rice Milk'),
+  ('Cashew Milk'),
+  ('Hemp Milk'),
+  ('Vegan Butter'),
+  ('Vegan Cheese'),
+  ('Nutritional Yeast'),
+
+  -- Extra cheeses
+  ('Manchego'),
+  ('Gruyere'),
+  ('Emmental'),
+  ('Roquefort'),
+  ('Gorgonzola'),
+  ('Asiago'),
+  ('Pecorino'),
+  ('Pecorino Romano'),
+  ('Stilton'),
+  ('Havarti'),
+  ('Monterey Jack'),
+  ('Pepper Jack'),
+  ('Colby'),
+  ('Fontina'),
+  ('Taleggio'),
+  ('Munster'),
+  ('Burrata'),
+  ('Queso Fresco'),
+  ('Queso Blanco'),
+  ('Cotija'),
+  ('Mascarpone'),
+
+  -- Extra nuts & seeds
+  ('Chestnuts'),
+  ('Ginkgo Nuts'),
+  ('Pepitas'),
+  ('Pine Kernels'),
+  ('Nigella Seeds'),
+  ('Fenugreek Seeds'),
+  ('Black Sesame Seeds'),
+  ('Cacao Nibs'),
+  ('Marzipan'),
+  ('Nougat'),
+
+  -- Extra herbs
+  ('Lavender'),
+  ('Lemon Balm'),
+  ('Savory'),
+  ('Shiso'),
+  ('Perilla'),
+  ('Epazote'),
+  ('Borage'),
+  ('Hyssop'),
+  ('Chervil Leaves'),
+
+  -- Extra spices
+  ('Fenugreek'),
+  ('Asafoetida'),
+  ('Sichuan Pepper'),
+  ('Urfa Biber'),
+  ('Aleppo Pepper'),
+  ('Dried Lime'),
+  ('Juniper Berries'),
+  ('Black Cardamom'),
+  ('Long Pepper'),
+  ('Annatto'),
+  ('Mahlab'),
+  ('Grains of Paradise'),
+  ('Ras El Hanout'),
+  ('Berbere'),
+  ('Dukkah'),
+  ('Chinese Five Spice'),
+  ('Baharat'),
+  ('Pumpkin Pie Spice'),
+  ('Apple Pie Spice'),
+  ('Everything Bagel Seasoning'),
+  ('Lemon Pepper'),
+  ('Celery Salt'),
+  ('Onion Salt'),
+  ('MSG'),
+  ('Bouillon Cube'),
+  ('Chicken Bouillon'),
+  ('Beef Bouillon'),
+  ('Vegetable Bouillon'),
+
+  -- Extra sweeteners
+  ('Corn Syrup'),
+  ('Golden Syrup'),
+  ('Treacle'),
+  ('Date Syrup'),
+  ('Birch Syrup'),
+  ('Xylitol'),
+  ('Monk Fruit'),
+  ('Erythritol'),
+  ('Palm Sugar'),
+  ('Coconut Sugar'),
+  ('Jaggery'),
+  ('Muscovado'),
+  ('Demerara Sugar'),
+  ('Turbinado Sugar'),
+  ('Caster Sugar'),
+  ('Confectioners Sugar'),
+
+  -- Extra sauces, pastes & condiments
+  ('Aioli'),
+  ('Tzatziki'),
+  ('Chimichurri'),
+  ('Gochujang'),
+  ('Doenjang'),
+  ('Miso Paste'),
+  ('White Miso'),
+  ('Red Miso'),
+  ('Sambal Oelek'),
+  ('Harissa'),
+  ('Black Bean Sauce'),
+  ('Plum Sauce'),
+  ('Sweet Chili Sauce'),
+  ('Ponzu'),
+  ('Unagi Sauce'),
+  ('Tartar Sauce'),
+  ('Cocktail Sauce'),
+  ('Ranch Dressing'),
+  ('Vinaigrette'),
+  ('Italian Dressing'),
+  ('Caesar Dressing'),
+  ('Russian Dressing'),
+  ('Thousand Island Dressing'),
+  ('Blue Cheese Dressing'),
+  ('Honey Mustard'),
+  ('Horseradish Sauce'),
+  ('Tartare'),
+  ('Romesco'),
+  ('Mole'),
+  ('Enchilada Sauce'),
+  ('Adobo Sauce'),
+  ('Curry Paste'),
+  ('Red Curry Paste'),
+  ('Green Curry Paste'),
+  ('Yellow Curry Paste'),
+  ('Massaman Curry Paste'),
+  ('Anchovy Paste'),
+  ('Tamarind Paste'),
+  ('Tomato Puree'),
+  ('Passata'),
+  ('Crushed Tomatoes'),
+  ('Diced Tomatoes'),
+
+  -- Pickles & ferments
+  ('Sauerkraut'),
+  ('Kimchi'),
+  ('Pickled Ginger'),
+  ('Umeboshi'),
+  ('Cornichons'),
+  ('Gherkins'),
+  ('Pickled Onions'),
+  ('Pickled Jalapenos'),
+  ('Kombucha'),
+
+  -- Preserves & spreads
+  ('Jam'),
+  ('Strawberry Jam'),
+  ('Raspberry Jam'),
+  ('Apricot Jam'),
+  ('Jelly'),
+  ('Marmalade'),
+  ('Chutney'),
+  ('Mango Chutney'),
+  ('Relish'),
+  ('Compote'),
+  ('Apple Sauce'),
+  ('Cranberry Sauce'),
+  ('Nutella'),
+  ('Hazelnut Spread'),
+  ('Lemon Curd'),
+  ('Dulce de Leche'),
+
+  -- Extracts & flavorings
+  ('Almond Extract'),
+  ('Lemon Extract'),
+  ('Orange Extract'),
+  ('Peppermint Extract'),
+  ('Rose Water'),
+  ('Orange Blossom Water'),
+
+  -- Cooking wines & spirits
+  ('Sherry'),
+  ('Dry Sherry'),
+  ('Port'),
+  ('Marsala'),
+  ('Vermouth'),
+  ('Gin'),
+  ('Tequila'),
+  ('Whiskey'),
+  ('Bourbon'),
+  ('Champagne'),
+  ('Prosecco'),
+  ('Cider'),
+  ('Cognac'),
+  ('Amaretto'),
+  ('Grand Marnier'),
+  ('Kirsch'),
+  ('Kahlua'),
+
+  -- Baking extras
+  ('Cream of Tartar'),
+  ('Cocoa Butter'),
+  ('White Chocolate Chips'),
+  ('Dark Chocolate Chips'),
+  ('Chocolate Shavings'),
+  ('Candy Melts'),
+  ('Pearl Sugar'),
+  ('Sanding Sugar'),
+
+  -- Condiment/specialty
+  ('Wasabi'),
+  ('Horseradish'),
+  ('Liquid Smoke'),
+  ('Liquid Aminos'),
+  ('Coconut Aminos'),
+  ('Pomegranate Molasses'),
+  ('Verjuice')
 ON CONFLICT (name) DO NOTHING;
 
 -- Nutrition Facts (per 100g/100ml)
