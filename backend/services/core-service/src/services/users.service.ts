@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { pool } from "../db/database.js";
+import { areMutualFollowers } from "../utils/service.utils.js";
 import {
 	type UserListItem,
 	type UserProfile,
@@ -247,3 +248,5 @@ export const unfollowUser = async (
 
 	return { success: true };
 };
+
+export { areMutualFollowers };

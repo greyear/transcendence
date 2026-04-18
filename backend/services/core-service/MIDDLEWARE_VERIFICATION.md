@@ -39,7 +39,9 @@ Current routes in core-service include read and write endpoints.
 - `GET /users/:id` -> uses `extractUser` before handler (user profile with visibility rules)
 - `GET /users/:id/followers` -> no `extractUser` (public followers list)
 - `GET /users/:id/following` -> no `extractUser` (public following list)
+- `GET /users/:id/favorites` -> uses `extractUser` before handler (requires mutual follow relationship)
 - `GET /users/me/recipes` -> uses `extractUser` before handler
+- `GET /users/me/favorites` -> uses `extractUser` before handler (requires auth)
 - `POST /users/:id/follow` -> uses `extractUser`, requires `req.userId`
 - `DELETE /users/:id/follow` -> uses `extractUser`, requires `req.userId`
 
@@ -268,6 +270,24 @@ Flow:
 
 Notes:
 - Requires API gateway to forward `X-User-Id`.
+
+### GET /users/:id/favorites
+
+Flow:
+1. CORS
+2. JSON parser
+3. `extractUser` middleware (required for authentication)
+4. If `req.userId` is missing -> `401`
+5. Validate `:id` (`validateUserId`)
+6. Check if users are mutual followers
+7. If not mutual followers -> `403`
+8. Service call `getFavoriteRecipesByUserId(id, currentUserId)`
+9. Return `200`, `400`, `401`, `403`, or `404`
+
+Notes:
+- Requires authentication (X-User-Id from API Gateway).
+- Access denied if users are not mutual followers (returns 403).
+- Returns list of published recipes favorited by the specified user only if mutual follow relationship exists.
 
 ## 4) Error Handling Coverage
 

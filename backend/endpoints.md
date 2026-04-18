@@ -11,7 +11,9 @@
 | `/recipes` | POST | **required** | body: `title`, `description`, `instructions[]`, `servings`, `spiciness`, `ingredients[]`, `category_ids[]` |
 | `/recipes/:id/publish` | POST | **required** | `id` (path, positive int) |
 | `/users/:id/recipes` | GET | — | `id` (path, positive int) |
+| `/users/:id/favorites` | GET | **required** | `id` (path, positive int) |
 | `/users/me/recipes` | GET | **required** | — |
+| `/users/me/favorites` | GET | **required** | — |
 
 ### POST `/recipes` body schema
 

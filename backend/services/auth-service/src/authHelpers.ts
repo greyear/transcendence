@@ -8,7 +8,7 @@ import { userCounter } from "./auth_schema.js";
 export const jwtPayloadSchema = z.object({
 	sub: z.string(),
 	userId: z.number(),
-	username: z.string(),
+	email: z.string(),
 	type: z.string(),
 });
 export type AppJwtPayload = z.infer<typeof jwtPayloadSchema>;
@@ -49,25 +49,6 @@ export const comparePassword = async (password: string, hash: string) => {
 		console.error(error);
 	}
 	return false;
-};
-
-/*
-	Validate username using Zod library
-	https://zod.dev/basics
-	Username rules: 3-20 chars, alphanumeric and underscores only
-*/
-export const validateUsername = (username: string) => {
-	const usernamePattern = z
-		.string()
-		.min(3, "Username must be at least 3 characters")
-		.max(20, "Username must be at most 20 characters")
-		.regex(
-			/^[a-zA-Z0-9_]+$/,
-			"Username can only contain alphanumeric characters and underscores",
-		);
-
-	const result = usernamePattern.safeParse(username);
-	return result.success;
 };
 
 //Validate email using Zod library
@@ -115,7 +96,7 @@ export const validatePassword = (password: string) => {
 export const generateToken = (
 	id: string,
 	userId: number,
-	username: string,
+	email: string,
 	type: string,
 ) => {
 	const JWTSecret = process.env.JWT_SECRET;
@@ -126,7 +107,7 @@ export const generateToken = (
 	const payload = {
 		sub: id,
 		userId,
-		username,
+		email,
 		type,
 	};
 
@@ -178,7 +159,7 @@ export const fetchDecodeToken = (req: Request): AppJwtPayload | null => {
 		}
 		const decoded = decodeToken(tokenHeader);
 		if (!decoded) {
-				throw Error("Whatever was given was not a token");
+			throw Error("Whatever was given was not a token");
 		}
 		const parsed = jwtPayloadSchema.safeParse(decoded);
 		if (!parsed.success) {
@@ -191,14 +172,14 @@ export const fetchDecodeToken = (req: Request): AppJwtPayload | null => {
 	}
 };
 
-// Simple helper to validate JWT and check username
+// Simple helper to validate JWT and check email
 export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 	const decodedJWT = fetchDecodeToken(req);
 	if (!decodedJWT) {
 		res.status(401).json({ error: "Invalid token" });
 		return;
 	}
-	if (decodedJWT.username !== req.params.username) {
+	if (decodedJWT.userId !== parseInt(req.body.userId, 10)) {
 		res.status(401).json({ error: "Incorrect token" });
 		return;
 	}
@@ -207,15 +188,31 @@ export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 	next();
 };
 
-//Create a sequential and unique userID
+// Create a sequential and unique userID.
+// We keep auth user IDs above seeded core IDs to avoid collisions with demo data.
+const MIN_AUTH_USER_ID = 100000;
+
 export const makeID = async (): Promise<number> => {
-	const counter = await userCounter.findOneAndUpdate(
+	const counter = await userCounter.findOne({ name: "CounterDB" });
+
+	if (!counter) {
+		await userCounter.create({ name: "CounterDB", seq: MIN_AUTH_USER_ID });
+		return MIN_AUTH_USER_ID;
+	}
+
+	if (counter.seq < MIN_AUTH_USER_ID) {
+		counter.seq = MIN_AUTH_USER_ID;
+		await counter.save();
+		return MIN_AUTH_USER_ID;
+	}
+
+	const updatedCounter = await userCounter.findOneAndUpdate(
 		{ name: "CounterDB" },
 		{ $inc: { seq: 1 } },
-		{ new: false, upsert: true, setDefaultsOnInsert: true },
+		{ returnDocument: "after", upsert: true, setDefaultsOnInsert: true },
 	);
 
-	return counter ? counter.seq : 1;
+	return updatedCounter ? updatedCounter.seq : MIN_AUTH_USER_ID;
 };
 
 // Error handling middleware

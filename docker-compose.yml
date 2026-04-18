@@ -62,25 +62,6 @@ services:
     networks:
       - transcendence-network
 
-  notification-db:
-    image: postgres:15
-    container_name: notification-postgres
-    restart: unless-stopped
-
-    environment:
-      POSTGRES_DB: notification_db
-      POSTGRES_USER: notification_user
-      POSTGRES_PASSWORD: notification_password
-
-    ports:
-      - "5434:5432"
-
-    volumes:
-      - notification_pg_data:/var/lib/postgresql/data
-
-    networks:
-      - transcendence-network
-
   search-db:
     image: pgvector/pgvector:pg15
     container_name: search-postgres
@@ -122,7 +103,6 @@ services:
       PORT: 3000
       AUTH_SERVICE_URL: http://auth-service:3001
       CORE_SERVICE_URL: http://core-service:3002
-      NOTIFICATION_SERVICE_URL: http://notification-service:3003
       SEARCH_SERVICE_URL: http://search-service:8000
 
     labels:
@@ -136,7 +116,6 @@ services:
     depends_on:
       - auth-service
       - core-service
-      - notification-service
       - search-service
 
     networks:
@@ -154,6 +133,7 @@ services:
       PORT: 3001
       MONGODB_URI: mongodb://root:rootpassword@auth-db:27017/auth_db?authSource=admin
       JWT_SECRET: your-jwt-secret-key
+      CORE_SERVICE_URL: http://core-service:3002
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
 
     depends_on:
@@ -182,24 +162,6 @@ services:
         condition: service_healthy
       translation-service:
         condition: service_healthy
-
-    networks:
-      - transcendence-network
-
-  notification-service:
-    build:
-      context: ./backend/services/notification-service
-      dockerfile: Dockerfile
-    container_name: notification-service
-    restart: unless-stopped
-
-    environment:
-      NODE_ENV: development
-      PORT: 3003
-      DATABASE_URL: postgresql://notification_user:notification_password@notification-db:5432/notification_db
-
-    depends_on:
-      - notification-db
 
     networks:
       - transcendence-network
@@ -263,7 +225,6 @@ services:
 
 volumes:
   core_pg_data:
-  notification_pg_data:
   search_pg_data:
 
 networks:

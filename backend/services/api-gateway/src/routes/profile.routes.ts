@@ -8,8 +8,8 @@
  * PUT /profile  – update authenticated user's profile (avatar, username)
  */
 
-import { type RequestHandler, Router } from "express";
-import { requireAuth } from "../middleware/auth.js";
+import { type NextFunction, type Response, Router } from "express";
+import { type AuthenticatedRequest, requireAuth } from "../middleware/auth.js";
 import { getInternalHeaders } from "../utils/internalHeaders.js";
 import {
 	CORE_SERVICE_TIMEOUT_MS,
@@ -22,13 +22,23 @@ const CORE_SERVICE_URL =
 
 export const profileRouter = Router();
 
-const getProfileHandler: RequestHandler = async (req, res, _next) => {
+const getProfileHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	_next: NextFunction,
+) => {
 	try {
+		console.info(
+			`[api-gateway] profile:get start userId=${String(req.userId)} x-user-id=${String(req.headers["x-user-id"] ?? "")}`,
+		);
 		const response = await fetch(`${CORE_SERVICE_URL}/profile`, {
 			headers: getInternalHeaders(req),
 			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 		});
 		const data = await response.json();
+		console.info(
+			`[api-gateway] profile:get done status=${response.status} userId=${String(req.userId)}`,
+		);
 		res.status(response.status).json(data);
 	} catch (error) {
 		if (isTimeoutError(error)) {
@@ -41,7 +51,11 @@ const getProfileHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
-const updateProfileHandler: RequestHandler = async (req, res, _next) => {
+const updateProfileHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	_next: NextFunction,
+) => {
 	try {
 		const response = await fetch(`${CORE_SERVICE_URL}/profile`, {
 			method: "PUT",
