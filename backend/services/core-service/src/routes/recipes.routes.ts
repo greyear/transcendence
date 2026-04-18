@@ -116,12 +116,9 @@ const handleRecipePictureMulterError = (
 	next(err);
 };
 
-const getCategoryListHandler = (categoryType: string) =>
-	async (
-		_req: Request,
-		res: Response,
-		next: NextFunction,
-	): Promise<void> => {
+const getCategoryListHandler =
+	(categoryType: string) =>
+	async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
 		try {
 			const result = await getCategoryList(categoryType);
 			res.status(200).json(result);
@@ -889,7 +886,10 @@ const deleteReviewHandler = async (
 
 recipesRouter.get("/meal_time", getCategoryListHandler("meal_time"));
 recipesRouter.get("/dish_type", getCategoryListHandler("dish_type"));
-recipesRouter.get("/main_ingredient", getCategoryListHandler("main_ingredient"));
+recipesRouter.get(
+	"/main_ingredient",
+	getCategoryListHandler("main_ingredient"),
+);
 recipesRouter.get("/cuisine", getCategoryListHandler("cuisine"));
 recipesRouter.get("/ingredients", getIngredientListHandler);
 

@@ -1359,4 +1359,136 @@ describe("API Gateway - Recipes Routes", () => {
 		expect(response.status).toBe(500);
 		expect(response.body).toEqual({ error: "Failed to delete review" });
 	});
+
+	it("should proxy GET /recipes/meal_time to core-service", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 200,
+			json: async () => ({
+				meal_time: ["breakfast", "dinner", "lunch", "snack"],
+			}),
+		} as unknown as Response);
+
+		const response = await request(app).get("/recipes/meal_time");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			meal_time: ["breakfast", "dinner", "lunch", "snack"],
+		});
+		expect(fetchSpy).toHaveBeenCalledWith(
+			expect.stringContaining("/recipes/meal_time"),
+			expect.objectContaining({ signal: expect.any(AbortSignal) }),
+		);
+	});
+
+	it("should proxy GET /recipes/dish_type to core-service", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 200,
+			json: async () => ({
+				dish_type: [
+					"appetizer",
+					"beverage",
+					"dessert",
+					"main_course",
+					"salad",
+					"soup",
+				],
+			}),
+		} as unknown as Response);
+
+		const response = await request(app).get("/recipes/dish_type");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("dish_type");
+		expect(Array.isArray(response.body.dish_type)).toBe(true);
+	});
+
+	it("should proxy GET /recipes/main_ingredient to core-service", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 200,
+			json: async () => ({
+				main_ingredient: [
+					"beef",
+					"fish",
+					"poultry",
+					"pork",
+					"seafood",
+					"vegetables",
+				],
+			}),
+		} as unknown as Response);
+
+		const response = await request(app).get("/recipes/main_ingredient");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("main_ingredient");
+		expect(Array.isArray(response.body.main_ingredient)).toBe(true);
+	});
+
+	it("should proxy GET /recipes/cuisine to core-service", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 200,
+			json: async () => ({
+				cuisine: [
+					"american",
+					"asian",
+					"finnish",
+					"french",
+					"german",
+					"italian",
+					"mediterranean",
+					"mexican",
+					"russian",
+					"ukrainian",
+				],
+			}),
+		} as unknown as Response);
+
+		const response = await request(app).get("/recipes/cuisine");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("cuisine");
+		expect(Array.isArray(response.body.cuisine)).toBe(true);
+	});
+
+	it("should proxy GET /recipes/ingredients to core-service", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 200,
+			json: async () => ({
+				ingredients: [
+					{ id: 1, name: "Almonds" },
+					{ id: 2, name: "Avocado" },
+				],
+			}),
+		} as unknown as Response);
+
+		const response = await request(app).get("/recipes/ingredients");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("ingredients");
+		expect(Array.isArray(response.body.ingredients)).toBe(true);
+		expect(fetchSpy).toHaveBeenCalledWith(
+			expect.stringContaining("/recipes/ingredients"),
+			expect.objectContaining({ signal: expect.any(AbortSignal) }),
+		);
+	});
+
+	it("should return 504 when GET /recipes/meal_time times out", async () => {
+		const timeoutError = new Error("Request timed out");
+		timeoutError.name = "TimeoutError";
+		fetchSpy.mockRejectedValue(timeoutError);
+
+		const response = await request(app).get("/recipes/meal_time");
+
+		expect(response.status).toBe(504);
+		expect(response.body).toEqual({ error: "Gateway Timeout" });
+	});
+
+	it("should return 500 on unexpected error for GET /recipes/ingredients", async () => {
+		fetchSpy.mockRejectedValue(new Error("boom"));
+
+		const response = await request(app).get("/recipes/ingredients");
+
+		expect(response.status).toBe(500);
+		expect(response.body).toEqual({ error: "Failed to fetch ingredients" });
+	});
 });

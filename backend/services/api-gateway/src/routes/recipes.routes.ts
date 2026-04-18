@@ -340,7 +340,8 @@ const updateRecipePictureHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
-const getCategoryListHandler = (categoryType: string): RequestHandler =>
+const getCategoryListHandler =
+	(categoryType: string): RequestHandler =>
 	async (req, res, _next) => {
 		try {
 			const url = new URL(`${CORE_SERVICE_URL}/recipes/${categoryType}`);
@@ -366,13 +367,10 @@ const getCategoryListHandler = (categoryType: string): RequestHandler =>
 
 const getIngredientsHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		const response = await fetch(
-			`${CORE_SERVICE_URL}/recipes/ingredients`,
-			{
-				headers: getInternalHeaders(req),
-				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
-			},
-		);
+		const response = await fetch(`${CORE_SERVICE_URL}/recipes/ingredients`, {
+			headers: getInternalHeaders(req),
+			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+		});
 		const data = await response.json();
 		res.status(response.status).json(data);
 	} catch (error) {
@@ -387,7 +385,10 @@ const getIngredientsHandler: RequestHandler = async (req, res, _next) => {
 
 recipesRouter.get("/meal_time", getCategoryListHandler("meal_time"));
 recipesRouter.get("/dish_type", getCategoryListHandler("dish_type"));
-recipesRouter.get("/main_ingredient", getCategoryListHandler("main_ingredient"));
+recipesRouter.get(
+	"/main_ingredient",
+	getCategoryListHandler("main_ingredient"),
+);
 recipesRouter.get("/cuisine", getCategoryListHandler("cuisine"));
 recipesRouter.get("/ingredients", getIngredientsHandler);
 

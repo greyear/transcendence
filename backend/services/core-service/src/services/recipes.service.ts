@@ -1348,7 +1348,10 @@ export const getCategoryList = async (
 		const codes = result.rows.map((row) => row.code as string);
 		return { [categoryTypeCode]: codes };
 	} catch (error) {
-		console.error(`Database error in getCategoryList(${categoryTypeCode}):`, error);
+		console.error(
+			`Database error in getCategoryList(${categoryTypeCode}):`,
+			error,
+		);
 		throw error;
 	}
 };
