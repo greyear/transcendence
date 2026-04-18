@@ -25,7 +25,6 @@ export const AuthForm = ({
 }: AuthFormProps) => {
 	const { t } = useTranslation();
 	const [mode, setMode] = useState<AuthMode>(initialMode);
-	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
@@ -43,16 +42,13 @@ export const AuthForm = ({
 				mode === "login"
 					? `${API_BASE_URL}/auth/login`
 					: `${API_BASE_URL}/auth/register`;
-			const payload =
-				mode === "login"
-					? { username, password }
-					: { username, email, password };
+			const payload = { email, password };
 			const response = await fetch(endpoint, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				credentials: mode === "login" ? "include" : "same-origin",
+				credentials: "include",
 				body: JSON.stringify(payload),
 			});
 
@@ -64,10 +60,9 @@ export const AuthForm = ({
 			}
 
 			if (mode === "signup") {
-				setMode("login");
-				setEmail("");
 				setPassword("");
 				setMessage(t("loginPage.signupSuccess"));
+				onSuccess?.();
 				return;
 			}
 
@@ -90,7 +85,6 @@ export const AuthForm = ({
 		setMode((currentMode) => (currentMode === "login" ? "signup" : "login"));
 		setError("");
 		setMessage("");
-		setUsername("");
 		setEmail("");
 		setPassword("");
 	};
@@ -131,44 +125,15 @@ export const AuthForm = ({
 			<form className="auth-form" onSubmit={handleSubmit}>
 				<div className="auth-fields">
 					<InputField
-						id="username"
-						placeholder={
-							mode === "login"
-								? t("loginPage.usernameLabel")
-								: t("loginPage.signupUsernameLabel")
-						}
-						name="username"
-						hint={
-							mode === "signup"
-								? t("loginPage.usernameRequirements")
-								: undefined
-						}
-						autoComplete="username"
-						minLength={mode === "signup" ? 3 : undefined}
-						maxLength={mode === "signup" ? 20 : undefined}
-						pattern={mode === "signup" ? "[A-Za-z0-9_]+" : undefined}
-						title={
-							mode === "signup"
-								? t("loginPage.usernameRequirements")
-								: undefined
-						}
+						id="email"
+						type="email"
+						placeholder={t("loginPage.emailLabel")}
+						name="email"
+						autoComplete="email"
 						required
-						value={username}
-						onChange={(event) => setUsername(event.target.value)}
+						value={email}
+						onChange={(event) => setEmail(event.target.value)}
 					/>
-
-					{mode === "signup" ? (
-						<InputField
-							id="email"
-							type="email"
-							placeholder={t("loginPage.emailLabel")}
-							name="email"
-							autoComplete="email"
-							required
-							value={email}
-							onChange={(event) => setEmail(event.target.value)}
-						/>
-					) : null}
 
 					<InputField
 						id="password"

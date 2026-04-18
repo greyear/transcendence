@@ -57,7 +57,9 @@ async function registerCoreProfile(id: number): Promise<void> {
 				`[auth-service] registerCoreProfile:failed userId=${id} payload=${JSON.stringify(responseBody)}`,
 			);
 			const errorMessage =
-				responseBody && typeof responseBody === "object" && "error" in responseBody
+				responseBody &&
+				typeof responseBody === "object" &&
+				"error" in responseBody
 					? String(responseBody.error)
 					: `core-service /profile/register returned ${res.status} for user ${id}`;
 			throw new Error(errorMessage);
