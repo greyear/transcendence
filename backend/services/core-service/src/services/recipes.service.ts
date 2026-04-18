@@ -1329,3 +1329,26 @@ export const updateRecipePicture = async (
 		throw error;
 	}
 };
+
+export const getCategoryList = async (
+	categoryTypeCode: string,
+): Promise<{ [key: string]: string[] }> => {
+	try {
+		const result = await pool.query(
+			`
+			SELECT rc.code
+			FROM recipe_categories rc
+			JOIN recipe_category_types rct ON rct.id = rc.category_type_id
+			WHERE rct.code = $1
+			ORDER BY rc.code ASC
+			`,
+			[categoryTypeCode],
+		);
+
+		const codes = result.rows.map((row) => row.code as string);
+		return { [categoryTypeCode]: codes };
+	} catch (error) {
+		console.error(`Database error in getCategoryList(${categoryTypeCode}):`, error);
+		throw error;
+	}
+};

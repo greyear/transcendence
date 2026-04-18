@@ -27,6 +27,7 @@ import {
 	createRecipe,
 	deleteReview,
 	getAllRecipesPaginated,
+	getCategoryList,
 	getRecipeById,
 	getRecipeReviews,
 	leaveRecipeReview,
@@ -113,6 +114,20 @@ const handleRecipePictureMulterError = (
 	}
 	next(err);
 };
+
+const getCategoryListHandler = (categoryType: string) =>
+	async (
+		_req: Request,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> => {
+		try {
+			const result = await getCategoryList(categoryType);
+			res.status(200).json(result);
+		} catch (error) {
+			next(error);
+		}
+	};
 
 // middleware for picture upload to protect from malicious actions
 const preCheckRecipePictureOwnership = async (
@@ -857,6 +872,11 @@ const deleteReviewHandler = async (
 };
 
 // extractUser middleware extracts userId from X-User-Id header
+
+recipesRouter.get("/meal_time", getCategoryListHandler("meal_time"));
+recipesRouter.get("/dish_type", getCategoryListHandler("dish_type"));
+recipesRouter.get("/main_ingredient", getCategoryListHandler("main_ingredient"));
+recipesRouter.get("/cuisine", getCategoryListHandler("cuisine"));
 
 recipesRouter.post("/:id/publish", publishRecipeHandler);
 
