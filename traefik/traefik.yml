@@ -11,8 +11,6 @@ entrypoints:
     address: ":443"
 
 providers:
-  docker:
-    exposedByDefault: false
   file:
     filename: /traefik/dynamic.yml
     watch: true
