@@ -29,6 +29,8 @@ jobs:
 
       - name: Start services with docker compose
         run: docker compose up -d
+        env:
+          INTERNAL_SERVICE_TOKEN: ${{ secrets.INTERNAL_SERVICE_TOKEN }}
 
       - name: Wait for API Gateway to be ready
         run: |
