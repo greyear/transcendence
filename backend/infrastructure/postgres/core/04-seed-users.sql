@@ -24,3 +24,12 @@ INSERT INTO users (id, username, role, status) VALUES
   (19, 'joel_brunch', 'user', 'offline'),
   (20, 'aino_homecook', 'user', 'online')
 ON CONFLICT (id) DO NOTHING;
+
+UPDATE users
+SET avatar = CASE
+  WHEN id % 4 = 1 THEN '/avatars/avatar-1.svg'
+  WHEN id % 4 = 2 THEN '/avatars/avatar-2.svg'
+  WHEN id % 4 = 3 THEN '/avatars/avatar-3.svg'
+  ELSE '/avatars/avatar-4.svg'
+END
+WHERE id BETWEEN 1 AND 20;

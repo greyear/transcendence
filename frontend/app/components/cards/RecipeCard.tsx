@@ -3,12 +3,14 @@ import { StarSolid } from "iconoir-react";
 import { Link } from "react-router";
 import recipeImg from "../../assets/images/vegetable-side-dishes.jpg";
 import { FavoriteButton } from "../buttons/FavoriteButton";
+import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 
 type RecipeCardProps = {
 	id: number;
 	title: string;
 	description: string;
 	rating: string;
+	pictureUrl?: string | null;
 };
 
 export const RecipeCard = ({
@@ -16,14 +18,17 @@ export const RecipeCard = ({
 	title,
 	description,
 	rating,
+	pictureUrl,
 }: RecipeCardProps) => {
+	const imageSrc = resolveMediaUrl(pictureUrl) ?? recipeImg;
+
 	return (
 		<Link to={`/recipes/${id}`} className="recipe-card-link-wrapper">
 			<article className="recipe-card">
 				<img
 					className="recipe-card-image"
-					src={recipeImg}
-					alt="Vegetable side dishes"
+					src={imageSrc}
+					alt={title}
 				></img>
 				<div className="recipe-card-container">
 					<div className="recipe-card-content-column">

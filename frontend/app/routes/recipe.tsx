@@ -9,6 +9,7 @@ import { RatingModal } from "~/components/rating/ratingModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
+import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 
 type RecipeIngredient = {
 	ingredient_id: number;
@@ -22,6 +23,7 @@ type Recipe = {
 	title: string;
 	description: string | null;
 	rating_avg: number | null;
+	picture_url: string | null;
 	ingredients: RecipeIngredient[];
 	instructions: string[];
 };
@@ -113,6 +115,7 @@ const RecipePage = () => {
 	}
 
 	const instructionOccurrences = new Map<string, number>();
+	const recipeImageSrc = resolveMediaUrl(recipe.picture_url) ?? recipeImg;
 	const instructionsWithKeys = recipe.instructions.map((instruction) => {
 		const occurrenceCount = (instructionOccurrences.get(instruction) ?? 0) + 1;
 		instructionOccurrences.set(instruction, occurrenceCount);
@@ -136,8 +139,8 @@ const RecipePage = () => {
 				<div className="recipe-page-hero-media">
 					<img
 						className="recipe-page-hero-image"
-						src={recipeImg}
-						alt="Vegetable side dishes"
+						src={recipeImageSrc}
+						alt={recipe.title}
 					/>
 				</div>
 			</section>

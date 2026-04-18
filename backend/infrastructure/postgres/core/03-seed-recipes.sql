@@ -350,4 +350,40 @@ FROM (VALUES
     'Enjoy cold or gently warm in the microwave'
   ],
   1, 0, 1, 'published', 4.20, 16
-) AS v(title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count);
+)) AS v(title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count);
+
+WITH seeded_media(title_en, image_url) AS (
+  VALUES
+    ('Spaghetti Carbonara', '/recipe-pictures/recipe-01.svg'),
+    ('Chicken Tikka Masala', '/recipe-pictures/recipe-02.svg'),
+    ('Avocado Toast with Poached Egg', '/recipe-pictures/recipe-03.svg'),
+    ('Classic Caesar Salad', '/recipe-pictures/recipe-04.svg'),
+    ('Beef Tacos', '/recipe-pictures/recipe-05.svg'),
+    ('Mushroom Risotto', '/recipe-pictures/recipe-06.svg'),
+    ('Greek Salad', '/recipe-pictures/recipe-07.svg'),
+    ('Banana Oat Pancakes', '/recipe-pictures/recipe-08.svg'),
+    ('Tom Yum Soup', '/recipe-pictures/recipe-09.svg'),
+    ('Margherita Pizza', '/recipe-pictures/recipe-10.svg'),
+    ('Shakshuka', '/recipe-pictures/recipe-11.svg'),
+    ('Grilled Salmon with Lemon Butter', '/recipe-pictures/recipe-12.svg'),
+    ('Vegetable Stir-fry with Tofu', '/recipe-pictures/recipe-13.svg'),
+    ('French Onion Soup', '/recipe-pictures/recipe-14.svg'),
+    ('Mango Smoothie Bowl', '/recipe-pictures/recipe-15.svg'),
+    ('Borscht', '/recipe-pictures/recipe-16.svg'),
+    ('Butter Chicken', '/recipe-pictures/recipe-17.svg'),
+    ('Lentil Soup', '/recipe-pictures/recipe-18.svg'),
+    ('Chocolate Lava Cakes', '/recipe-pictures/recipe-19.svg'),
+    ('Overnight Oats', '/recipe-pictures/recipe-20.svg')
+)
+INSERT INTO recipe_media (recipe_id, type, url, position)
+SELECT
+  r.id,
+  'image',
+  sm.image_url,
+  0
+FROM recipes r
+JOIN seeded_media sm ON COALESCE(r.title->>'en', '') = sm.title_en
+ON CONFLICT (recipe_id, position) DO UPDATE
+SET
+  type = EXCLUDED.type,
+  url = EXCLUDED.url;

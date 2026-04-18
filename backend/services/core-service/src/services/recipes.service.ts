@@ -141,6 +141,12 @@ const getRecipeWithIngredientsQuery = `
 		r.spiciness,
 		r.author_id,
 		r.rating_avg,
+		(
+			SELECT rm.url
+			FROM recipe_media rm
+			WHERE rm.recipe_id = r.id AND rm.position = 0
+			LIMIT 1
+		) AS picture_url,
 		r.status,
 		COALESCE(
 			(
@@ -412,7 +418,13 @@ export const getAllRecipes = async (
 				COALESCE(title->>$1, title->>'en') AS title,
 				COALESCE(description->>$1, description->>'en') AS description,
 				author_id,
-				rating_avg
+				rating_avg,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = recipes.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url
       FROM recipes
       WHERE status = 'published'
       ORDER BY created_at DESC
@@ -449,7 +461,13 @@ export const getAllRecipesPaginated = async (
 					COALESCE(title->>$1, title->>'en') AS title,
 					COALESCE(description->>$1, description->>'en') AS description,
 					author_id,
-					rating_avg
+					rating_avg,
+					(
+						SELECT rm.url
+						FROM recipe_media rm
+						WHERE rm.recipe_id = recipes.id AND rm.position = 0
+						LIMIT 1
+					) AS picture_url
 				FROM recipes
 				WHERE status = 'published'
 				ORDER BY created_at DESC
@@ -496,7 +514,13 @@ export const getPublishedRecipesByUserId = async (
 				COALESCE(title->>$2, title->>'en') AS title,
 				COALESCE(description->>$2, description->>'en') AS description,
 				author_id,
-				rating_avg
+				rating_avg,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = recipes.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url
       FROM recipes
       WHERE author_id = $1 AND status = 'published'
       ORDER BY created_at DESC
