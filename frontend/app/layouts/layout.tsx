@@ -65,7 +65,7 @@ const Layout = () => {
 				isAuthenticated={isAuthenticated}
 				onOpenAuthModal={() => openAuthModal()}
 			/>
-			<main>
+			<main className="app-main">
 				<Outlet context={{ isAuthenticated, openAuthModal }} />
 			</main>
 			<Footer
