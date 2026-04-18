@@ -104,6 +104,9 @@
 		"favoritesTitle": "My favorites"
 	},
 	"userProfilePage": {
+		"loading": "Loading user...",
+		"error": "Failed to load user (status: {{status}}).",
+		"notFound": "User not found.",
 		"online": "Online",
 		"offline": "Offline",
 		"follow": "Follow",

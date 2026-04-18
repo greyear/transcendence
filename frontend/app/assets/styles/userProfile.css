@@ -4,6 +4,12 @@
 	gap: var(--space-xl);
 }
 
+.user-profile-status-text {
+	color: var(--text-secondary);
+	margin: 0;
+	padding: var(--space-m) 0;
+}
+
 .user-profile-header {
 	display: flex;
 	flex-direction: column;
@@ -41,11 +47,6 @@
 
 .user-profile-follow-button {
 	min-width: 160px;
-}
-
-.user-profile-follow-button.unfollow {
-	color: var(--text-primary);
-	background-color: var(--surface-card);
 }
 
 .user-profile-recipes-section {

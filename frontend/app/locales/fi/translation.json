@@ -104,6 +104,9 @@
 		"favoritesTitle": "Omat suosikit"
 	},
 	"userProfilePage": {
+		"loading": "Ladataan käyttäjää...",
+		"error": "Käyttäjän lataus epäonnistui (tila: {{status}}).",
+		"notFound": "Käyttäjää ei löytynyt.",
 		"online": "Paikalla",
 		"offline": "Poissa",
 		"follow": "Seuraa",

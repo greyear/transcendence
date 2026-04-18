@@ -96,21 +96,16 @@ export const getUserById = async (
 				u.username,
 				u.avatar,
 				CASE
-					WHEN $2::int IS NOT NULL
-						AND EXISTS (
-							SELECT 1 FROM followers f1
-							WHERE f1.user_id = $2 AND f1.followed_id = u.id
-						)
-						AND EXISTS (
-							SELECT 1 FROM followers f2
-							WHERE f2.user_id = u.id AND f2.followed_id = $2
-						)
-					THEN CASE
-						WHEN ${IS_ONLINE_SQL} THEN 'online'
-						ELSE 'offline'
-					END
-					ELSE NULL
+					WHEN ${IS_ONLINE_SQL} THEN 'online'
+					ELSE 'offline'
 				END AS status,
+				CASE
+					WHEN $2::int IS NOT NULL AND EXISTS (
+						SELECT 1 FROM followers f
+						WHERE f.user_id = $2 AND f.followed_id = u.id
+					) THEN true
+					ELSE false
+				END AS is_following,
 				(
 					SELECT COUNT(*)::int
 					FROM recipes r2
