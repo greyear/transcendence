@@ -1,6 +1,6 @@
 # Auth Service - Manual curl reference
 # Matches current codebase: no username field, email-based auth, parameterless endpoints
-# BASE_URL: http://localhost:3000/auth
+# BASE_URL: https://localhost:8443/auth
 # Replace <TOKEN_FROM_TEST_N> with the token value printed by that test
 # Replace <GOOGLE_ID_TOKEN> with a fresh token from https://developers.google.com/oauthplayground
 # Replace <USER_ID_FROM_TEST_22> with the id value returned by test 22
@@ -9,7 +9,7 @@
 # ========== 1. NORMAL REGISTRATION TESTS ==========
 
 # 1. Register new user - valid
-curl -X POST 'http://localhost:3000/auth/register' \
+curl -X POST 'https://localhost:8443/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{"email":"normal1@test.local","password":"TestPass123!"}'
 
@@ -17,7 +17,7 @@ curl -X POST 'http://localhost:3000/auth/register' \
 
 
 # 2. Register - duplicate email
-curl -X POST 'http://localhost:3000/auth/register' \
+curl -X POST 'https://localhost:8443/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{"email":"normal1@test.local","password":"TestPass456@"}'
 
@@ -25,7 +25,7 @@ curl -X POST 'http://localhost:3000/auth/register' \
 
 
 # 3. Register - invalid email format
-curl -X POST 'http://localhost:3000/auth/register' \
+curl -X POST 'https://localhost:8443/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{"email":"notanemail","password":"TestPass123!"}'
 
@@ -33,7 +33,7 @@ curl -X POST 'http://localhost:3000/auth/register' \
 
 
 # 4. Register - password too short
-curl -X POST 'http://localhost:3000/auth/register' \
+curl -X POST 'https://localhost:8443/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{"email":"user4@test.local","password":"Short1!"}'
 
@@ -41,7 +41,7 @@ curl -X POST 'http://localhost:3000/auth/register' \
 
 
 # 5. Register - password no uppercase
-curl -X POST 'http://localhost:3000/auth/register' \
+curl -X POST 'https://localhost:8443/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{"email":"user5@test.local","password":"testpass123!"}'
 
@@ -49,7 +49,7 @@ curl -X POST 'http://localhost:3000/auth/register' \
 
 
 # 6. Register - missing email
-curl -X POST 'http://localhost:3000/auth/register' \
+curl -X POST 'https://localhost:8443/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{"password":"TestPass123!"}'
 
@@ -59,7 +59,7 @@ curl -X POST 'http://localhost:3000/auth/register' \
 # ========== 2. NORMAL LOGIN TESTS ==========
 
 # 7. Login - valid by email
-curl -X POST 'http://localhost:3000/auth/login' \
+curl -X POST 'https://localhost:8443/auth/login' \
   -H 'Content-Type: application/json' \
   -d '{"email":"normal1@test.local","password":"TestPass123!"}'
 
@@ -67,7 +67,7 @@ curl -X POST 'http://localhost:3000/auth/login' \
 
 
 # 8. Login - wrong password
-curl -X POST 'http://localhost:3000/auth/login' \
+curl -X POST 'https://localhost:8443/auth/login' \
   -H 'Content-Type: application/json' \
   -d '{"email":"normal1@test.local","password":"WrongPass123!"}'
 
@@ -75,7 +75,7 @@ curl -X POST 'http://localhost:3000/auth/login' \
 
 
 # 9. Login - non-existent email
-curl -X POST 'http://localhost:3000/auth/login' \
+curl -X POST 'https://localhost:8443/auth/login' \
   -H 'Content-Type: application/json' \
   -d '{"email":"doesnotexist@test.local","password":"TestPass123!"}'
 
@@ -83,7 +83,7 @@ curl -X POST 'http://localhost:3000/auth/login' \
 
 
 # 10. Login - missing email field
-curl -X POST 'http://localhost:3000/auth/login' \
+curl -X POST 'https://localhost:8443/auth/login' \
   -H 'Content-Type: application/json' \
   -d '{"password":"TestPass123!"}'
 
@@ -91,7 +91,7 @@ curl -X POST 'http://localhost:3000/auth/login' \
 
 
 # 11. Login - extract token for later tests (same as test 7, copy the token value)
-curl -X POST 'http://localhost:3000/auth/login' \
+curl -X POST 'https://localhost:8443/auth/login' \
   -H 'Content-Type: application/json' \
   -d '{"email":"normal1@test.local","password":"TestPass123!"}'
 
@@ -101,7 +101,7 @@ curl -X POST 'http://localhost:3000/auth/login' \
 # ========== 3. GOOGLE LOGIN TESTS ==========
 
 # 12. Google - create new user (first time this Google account is seen)
-curl -X POST 'http://localhost:3000/auth/google' \
+curl -X POST 'https://localhost:8443/auth/google' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <GOOGLE_ID_TOKEN>'
 
@@ -109,7 +109,7 @@ curl -X POST 'http://localhost:3000/auth/google' \
 
 
 # 13. Google - existing user login (same token as test 12)
-curl -X POST 'http://localhost:3000/auth/google' \
+curl -X POST 'https://localhost:8443/auth/google' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <GOOGLE_ID_TOKEN>'
 
@@ -117,14 +117,14 @@ curl -X POST 'http://localhost:3000/auth/google' \
 
 
 # 14. Google - missing token
-curl -X POST 'http://localhost:3000/auth/google' \
+curl -X POST 'https://localhost:8443/auth/google' \
   -H 'Content-Type: application/json'
 
   401: {"error":"Token not found"}
 
 
 # 15. Google - invalid token
-curl -X POST 'http://localhost:3000/auth/google' \
+curl -X POST 'https://localhost:8443/auth/google' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer invalid_token_xyz'
 
@@ -134,7 +134,7 @@ curl -X POST 'http://localhost:3000/auth/google' \
 # ========== 4. CROSS-AUTH CONFLICT TESTS ==========
 
 # 16. Conflict - Google user tries normal login with their email
-curl -X POST 'http://localhost:3000/auth/login' \
+curl -X POST 'https://localhost:8443/auth/login' \
   -H 'Content-Type: application/json' \
   -d '{"email":"durgledoggy@gmail.com","password":"anypassword"}'
 
@@ -142,7 +142,7 @@ curl -X POST 'http://localhost:3000/auth/login' \
 
 
 # 17. Conflict - Register normal user with Google user's existing email
-curl -X POST 'http://localhost:3000/auth/register' \
+curl -X POST 'https://localhost:8443/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{"email":"durgledoggy@gmail.com","password":"TestPass123!"}'
 
@@ -150,7 +150,7 @@ curl -X POST 'http://localhost:3000/auth/register' \
 
 
 # 18. Conflict - Try to register with Google user's existing email (second attempt)
-curl -X POST 'http://localhost:3000/auth/register' \
+curl -X POST 'https://localhost:8443/auth/register' \
   -H 'Content-Type: application/json' \
   -d '{"email":"durgledoggy@gmail.com","password":"TestPass456@"}'
 
@@ -158,7 +158,7 @@ curl -X POST 'http://localhost:3000/auth/register' \
 
 
 # 19. Conflict - Normal user token sent to Google auth endpoint
-curl -X POST 'http://localhost:3000/auth/google' \
+curl -X POST 'https://localhost:8443/auth/google' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <TOKEN_FROM_TEST_11>'
 
@@ -170,7 +170,7 @@ curl -X POST 'http://localhost:3000/auth/google' \
 
 
 # 21. Conflict - Try to change password on Google user (should fail - no email in body)
-curl -X PATCH 'http://localhost:3000/auth/change-password' \
+curl -X PATCH 'https://localhost:8443/auth/change-password' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <TOKEN_FROM_TEST_13>' \
   -d '{"password":"oldpass","newPassword":"NewPass456@"}'
@@ -181,7 +181,7 @@ curl -X PATCH 'http://localhost:3000/auth/change-password' \
 # ========== 5. TOKEN VALIDATION TESTS ==========
 
 # 22. Validate - normal user with valid token (copy the id value for use in tests 30-33)
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'https://localhost:8443/auth/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <TOKEN_FROM_TEST_11>'
 
@@ -189,7 +189,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 23. Validate - Google user with valid token
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'https://localhost:8443/auth/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <TOKEN_FROM_TEST_13>'
 
@@ -197,14 +197,14 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 24. Validate - missing token
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'https://localhost:8443/auth/validate' \
   -H 'Content-Type: application/json'
 
   401: {"error":"Invalid token"}
 
 
 # 25. Validate - invalid token
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'https://localhost:8443/auth/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer invalid_token_xyz'
 
@@ -214,7 +214,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 # ========== 6. EXTENDED TOKEN VALIDATION - EDGE CASES ==========
 
 # 26. Validate - malformed auth header (missing Bearer prefix)
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'https://localhost:8443/auth/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: <TOKEN_FROM_TEST_11>'
 
@@ -222,7 +222,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 27. Validate - empty bearer token
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'https://localhost:8443/auth/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer '
 
@@ -230,7 +230,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 28. Validate - completely invalid JWT structure
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'https://localhost:8443/auth/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer totally.not.a.jwt'
 
@@ -238,7 +238,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 
 
 # 29. Validate - random string as token
-curl -X POST 'http://localhost:3000/auth/validate' \
+curl -X POST 'https://localhost:8443/auth/validate' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer randomstringnotavalidtoken'
 
@@ -249,7 +249,7 @@ curl -X POST 'http://localhost:3000/auth/validate' \
 # Requires USER_ID_FROM_TEST_22 and TOKEN_FROM_TEST_11
 
 # 30. Change password - valid
-curl -X PATCH 'http://localhost:3000/auth/change-password' \
+curl -X PATCH 'https://localhost:8443/auth/change-password' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <TOKEN_FROM_TEST_11>' \
   -d '{"email":"normal1@test.local","userId":<USER_ID_FROM_TEST_22>,"password":"TestPass123!","newPassword":"NewPass456@"}'
@@ -258,7 +258,7 @@ curl -X PATCH 'http://localhost:3000/auth/change-password' \
 
 
 # 31. Login - verify new password works
-curl -X POST 'http://localhost:3000/auth/login' \
+curl -X POST 'https://localhost:8443/auth/login' \
   -H 'Content-Type: application/json' \
   -d '{"email":"normal1@test.local","password":"NewPass456@"}'
 
@@ -266,7 +266,7 @@ curl -X POST 'http://localhost:3000/auth/login' \
 
 
 # 32. Change password - no auth header
-curl -X PATCH 'http://localhost:3000/auth/change-password' \
+curl -X PATCH 'https://localhost:8443/auth/change-password' \
   -H 'Content-Type: application/json' \
   -d '{"email":"normal1@test.local","userId":<USER_ID_FROM_TEST_22>,"password":"NewPass456@","newPassword":"AnotherPass789#"}'
 
@@ -274,7 +274,7 @@ curl -X PATCH 'http://localhost:3000/auth/change-password' \
 
 
 # 33. Change password - wrong current password
-curl -X PATCH 'http://localhost:3000/auth/change-password' \
+curl -X PATCH 'https://localhost:8443/auth/change-password' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <TOKEN_FROM_TEST_11>' \
   -d '{"email":"normal1@test.local","userId":<USER_ID_FROM_TEST_22>,"password":"WrongCurrentPass","newPassword":"AnotherPass789#"}'
