@@ -13,7 +13,7 @@ type RecipeCardResponse = {
 };
 
 type RecipesGridProps = {
-	sortValue?: string;
+	sortValue: string;
 	page?: number;
 	perPage?: number;
 	onLoad?: (totalCount: number) => void;
@@ -44,7 +44,7 @@ export const RecipesGrid = ({
 	perPage = 12,
 	onLoad,
 	sort,
-	sortValue = "",
+	sortValue,
 }: RecipesGridProps) => {
 	const { t } = useTranslation();
 	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
