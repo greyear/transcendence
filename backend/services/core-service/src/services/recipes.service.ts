@@ -27,19 +27,19 @@ import {
 	favoriteRecipeListItemSchema,
 	type MyRecipeListItem,
 	myRecipeListItemSchema,
+	type PaginatedResponse,
 	type Recipe,
 	type RecipeListItem,
 	type RecipeReviewListItem,
 	recipeListItemSchema,
 	recipeReviewListItemSchema,
 	recipeSchema,
-	type SearchRecipeDocument,
-	searchRecipeDocumentSchema,
 	recipeStatusSchema,
+	type SearchRecipeDocument,
 	type SupportedLocale,
+	searchRecipeDocumentSchema,
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
-	PaginatedResponse,
 } from "../validation/schemas.js";
 import {
 	localizeInstructionStepsFromSource,
@@ -482,7 +482,11 @@ export const getAllRecipesPaginated = async (
 
 		const total_count = countResult.rows[0].total as number;
 		const total_pages = Math.ceil(total_count / perPage);
-		const data = parseRecipeRows(dataResult.rows, recipeListItemSchema, "recipe");
+		const data = parseRecipeRows(
+			dataResult.rows,
+			recipeListItemSchema,
+			"recipe",
+		);
 
 		return { data, total_count, total_pages, page, per_page: perPage };
 	} catch (error) {

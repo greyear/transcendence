@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next";
 import userPhoto from "../../assets/images/user-photo.jpg";
 import "../../assets/styles/userCard.css";
 import { Link } from "react-router";
-import { MainButton } from "../buttons/MainButton";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
+import { MainButton } from "../buttons/MainButton";
 
 type UserCardProps = {
 	id: number;

@@ -10,7 +10,10 @@ import {
 const CORE_SERVICE_URL =
 	process.env.CORE_SERVICE_URL || "http://core-service:3002";
 
-const withForwardedQuery = (req: Parameters<RequestHandler>[0], path: string) => {
+const withForwardedQuery = (
+	req: Parameters<RequestHandler>[0],
+	path: string,
+) => {
 	const queryIndex = req.originalUrl.indexOf("?");
 	if (queryIndex === -1) {
 		return `${CORE_SERVICE_URL}${path}`;
@@ -43,10 +46,13 @@ const getUsersHandler: RequestHandler = async (req, res, _next) => {
 
 const getUserByIdHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		const response = await fetch(withForwardedQuery(req, `/users/${req.params.id}`), {
-			headers: getInternalHeaders(req),
-			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
-		});
+		const response = await fetch(
+			withForwardedQuery(req, `/users/${req.params.id}`),
+			{
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
 
 		const data = await response.json();
 		res.status(response.status).json(data);
@@ -110,10 +116,13 @@ const getMyRecipesHandler: RequestHandler = async (req, res, _next) => {
 
 const getMyFavoritesHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		const response = await fetch(withForwardedQuery(req, "/users/me/favorites"), {
-			headers: getInternalHeaders(req),
-			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
-		});
+		const response = await fetch(
+			withForwardedQuery(req, "/users/me/favorites"),
+			{
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
 
 		const data = await response.json();
 		res.status(response.status).json(data);

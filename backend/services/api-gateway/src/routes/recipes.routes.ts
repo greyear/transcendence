@@ -20,7 +20,10 @@ import { ratingsRouter } from "./ratings.routes.js";
 const CORE_SERVICE_URL =
 	process.env.CORE_SERVICE_URL || "http://core-service:3002";
 
-const withForwardedQuery = (req: Parameters<RequestHandler>[0], path: string) => {
+const withForwardedQuery = (
+	req: Parameters<RequestHandler>[0],
+	path: string,
+) => {
 	const queryIndex = req.originalUrl.indexOf("?");
 	if (queryIndex === -1) {
 		return `${CORE_SERVICE_URL}${path}`;

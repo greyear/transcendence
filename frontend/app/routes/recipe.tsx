@@ -7,9 +7,9 @@ import { ArrowEmailForward, Reports, StarSolid } from "iconoir-react";
 import { IconButton } from "~/components/buttons/IconButton";
 import { RatingModal } from "~/components/rating/ratingModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
-import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 
 type RecipeIngredient = {
 	ingredient_id: number;

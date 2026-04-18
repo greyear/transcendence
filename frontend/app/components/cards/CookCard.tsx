@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import "../../assets/styles/cookCard.css";
-import userPhoto from "../../assets/images/user-photo.jpg";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
+import userPhoto from "../../assets/images/user-photo.jpg";
 
 type CookCardProps = {
 	id: number;

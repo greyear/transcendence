@@ -43,11 +43,11 @@ import {
 import {
 	validateCreateRecipeInput,
 	validateCreateRecipeReviewInput,
+	validatePaginationQuery,
 	validateRecipeId,
 	validateReviewId,
 	validateUpdateRecipeInput,
 	validateUpdateRecipeReviewInput,
-	validatePaginationQuery,
 } from "../validation/schemas.js";
 import { ratingsRouter } from "./ratings.routes.js";
 
@@ -494,7 +494,11 @@ const getAllRecipesHandler = async (
 			res.status(400).json({ error: pagination.error });
 			return;
 		}
-		const result = await getAllRecipesPaginated(pagination.value.page, pagination.value.per_page, locale);
+		const result = await getAllRecipesPaginated(
+			pagination.value.page,
+			pagination.value.per_page,
+			locale,
+		);
 		res.status(200).json(result);
 	} catch (error) {
 		next(error);

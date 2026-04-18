@@ -111,17 +111,19 @@ export const RecipesGrid = ({
 
 	return (
 		<ul className="recipe-card-list">
-			{pageRecipes.map(({ id, title, description, rating_avg, picture_url }) => (
-				<li key={id}>
-					<RecipeCard
-						id={id}
-						title={title}
-						description={description}
-						rating={rating_avg}
-						pictureUrl={picture_url}
-					/>
-				</li>
-			))}
+			{pageRecipes.map(
+				({ id, title, description, rating_avg, picture_url }) => (
+					<li key={id}>
+						<RecipeCard
+							id={id}
+							title={title}
+							description={description}
+							rating={rating_avg}
+							pictureUrl={picture_url}
+						/>
+					</li>
+				),
+			)}
 		</ul>
 	);
 };
