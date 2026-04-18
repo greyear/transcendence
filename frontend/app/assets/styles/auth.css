@@ -21,6 +21,9 @@
 	background-color: var(--surface-card);
 	border: 1px solid var(--borders-action);
 	color: var(--text-primary);
+	height: auto;
+	min-height: 44px;
+	white-space: normal;
 	width: 100%;
 	pointer-events: none;
 }

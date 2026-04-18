@@ -73,6 +73,15 @@ const loadGoogleIdentityScript = () =>
 			`script[src="${GOOGLE_IDENTITY_SCRIPT_SRC}"]`,
 		);
 		if (existingScript) {
+			const status = existingScript.dataset.gsiStatus;
+			if (status === "loaded") {
+				resolve();
+				return;
+			}
+			if (status === "error") {
+				reject(new Error("Google Identity Services failed to load"));
+				return;
+			}
 			existingScript.addEventListener("load", () => resolve(), { once: true });
 			existingScript.addEventListener(
 				"error",
@@ -86,9 +95,15 @@ const loadGoogleIdentityScript = () =>
 		script.src = GOOGLE_IDENTITY_SCRIPT_SRC;
 		script.async = true;
 		script.defer = true;
-		script.onload = () => resolve();
-		script.onerror = () =>
+		script.dataset.gsiStatus = "loading";
+		script.onload = () => {
+			script.dataset.gsiStatus = "loaded";
+			resolve();
+		};
+		script.onerror = () => {
+			script.dataset.gsiStatus = "error";
 			reject(new Error("Google Identity Services failed to load"));
+		};
 		document.head.appendChild(script);
 	});
 
