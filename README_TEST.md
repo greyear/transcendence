@@ -30,23 +30,13 @@ Our ft_transcendence project, **Recipe Creating Platform (RCP)**, is a full-stac
 
 Before starting the project, ensure the following tools are installed on your system:
 
-| Tool | Minimum version |
-|------|---------|
-| Docker | 20.10 |
-| Docker Compose | 1.29 |
-| GNU Make | Any modern version |
-| Node.js | 20 |
-| npm | 10 |
-
-Verify these conditions:
-
-```bash
-docker --version
-docker-compose --version
-make --version
-node --version
-npm --version
-```
+| Tool | Minimum version | Version check (bash) |
+|------|---------|-----------|
+| Docker | 20.10 | `docker --version` |
+| Docker Compose | 1.29 | `docker-compose --version` |
+| GNU Make | Any modern version | `make --version` |
+| Node.js | 20 | `node --version` |
+| npm | 10 | `npm --version` |
 
 ## Environment Configuration
 
@@ -118,9 +108,9 @@ Our team consists of 5 members:
 
 ## Mandatory Roles
 
-- **Product Owner (PO)**: Owns product vision, priorities, backlog, and validation of completed work.
+- **Product Owner (PO)**: Overall vision for the project, work priority, backlog, and validation of completed work.
 	- Anya and Nick shared this role at various stages during the project.
-- **Project Manager (PM) / Scrum Master**: Coordinates planning, communication, deadlines, risks, and blockers.
+- **Project Manager (PM) / Scrum Master**: Project planning, communication, deadlines, risks, and blockers.
 	- Anya was our project manager.
 - **Technical Lead / Architect**: Leads architecture and stack decisions, code quality, and critical reviews.
 	- This role fell to our member Nick.
@@ -146,16 +136,13 @@ Our team consists of 5 members:
 
 AI tools (such as GitHub Copilot and Claude Code) were used for the following reasons:
 
-- Researching new concepts or tools quickly
+- Researching new concepts or tools efficiently
 - Writing documentation drafts and templates
-- **Code Generation**: Assistance with boilerplate code generation for Express middleware, route handlers, and React components
-- **Database Schema Design**: Suggestions for optimal PostgreSQL schema design and indexing strategies
-- **API Design**: Guidance on RESTful API endpoint design and request/response structures
-- **Testing**: Support in writing unit and integration tests for backend services
-- **Error Handling**: Suggestions for robust error handling patterns and middleware chains
-- **Type Safety**: Assistance with TypeScript type definitions and validation schemas using Zod
+- Assistance with boilerplate code generation
+- Initial code review and sanity checking
+- Test evaluation and test testing, to make sure testy tests test testily
 
-All AI-generated code has been reviewed, tested, and integrated thoughtfully into the codebase. The team takes full responsibility for all implementation decisions and code quality.
+All AI-generated code is ultimately reviewed, tested, and integrated thoughtfully into the codebase by human eyes.
 
 # Tech stack
 
