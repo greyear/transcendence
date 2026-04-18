@@ -103,6 +103,15 @@
 		"favoritesNotFound": "Suosikkeja ei löytynyt.",
 		"favoritesTitle": "Omat suosikit"
 	},
+	"userProfilePage": {
+		"online": "Paikalla",
+		"offline": "Poissa",
+		"follow": "Seuraa",
+		"unfollow": "Lopeta seuraaminen",
+		"authoredRecipes": "Tekijän reseptit",
+		"favoriteRecipes": "Suosikkireseptit",
+		"all": "kaikki"
+	},
 	"authModal": {
 		"title": "Kirjaudu sisään",
 		"signupTitle": "Luo tili",
@@ -278,6 +287,9 @@
 		"toggleMenu": "Vaihda valikon tila",
 		"allRecipes": "Kaikki reseptit",
 		"allUsers": "Kaikki käyttäjät",
+		"allAuthoredRecipes": "Kaikki tekijän reseptit",
+		"allFavoriteRecipes": "Kaikki suosikkireseptit",
+		"messageUser": "Lähetä viesti käyttäjälle",
 		"sortBy": "Järjestä",
 		"shareRecipe": "Jaa resepti",
 		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet",

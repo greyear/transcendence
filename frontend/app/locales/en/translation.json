@@ -103,6 +103,15 @@
 		"favoritesNotFound": "Favorites not found.",
 		"favoritesTitle": "My favorites"
 	},
+	"userProfilePage": {
+		"online": "Online",
+		"offline": "Offline",
+		"follow": "Follow",
+		"unfollow": "Unfollow",
+		"authoredRecipes": "Authored recipes",
+		"favoriteRecipes": "Favorite recipes",
+		"all": "all"
+	},
 	"authModal": {
 		"title": "Log in",
 		"signupTitle": "Create an account",
@@ -278,6 +287,9 @@
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
 		"allUsers": "All users",
+		"allAuthoredRecipes": "All authored recipes",
+		"allFavoriteRecipes": "All favorite recipes",
+		"messageUser": "Message user",
 		"sortBy": "Sort by",
 		"shareRecipe": "Share recipe",
 		"ingredientsAndInstructions": "Recipe ingredients and instructions",

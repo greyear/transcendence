@@ -103,6 +103,15 @@
 		"favoritesNotFound": "Избранные рецепты не найдены.",
 		"favoritesTitle": "Мое избранное"
 	},
+	"userProfilePage": {
+		"online": "В сети",
+		"offline": "Не в сети",
+		"follow": "Подписаться",
+		"unfollow": "Отписаться",
+		"authoredRecipes": "Авторские рецепты",
+		"favoriteRecipes": "Избранные рецепты",
+		"all": "все"
+	},
 	"authModal": {
 		"title": "Войти",
 		"signupTitle": "Создать аккаунт",
@@ -278,6 +287,9 @@
 		"toggleMenu": "Переключить меню",
 		"allRecipes": "Все рецепты",
 		"allUsers": "Все авторы",
+		"allAuthoredRecipes": "Все авторские рецепты",
+		"allFavoriteRecipes": "Все избранные рецепты",
+		"messageUser": "Написать пользователю",
 		"sortBy": "Сортировать по",
 		"shareRecipe": "Поделиться рецептом",
 		"ingredientsAndInstructions": "Ингредиенты и инструкции рецепта",
