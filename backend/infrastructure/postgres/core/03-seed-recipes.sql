@@ -8,25 +8,8 @@ INSERT INTO users (id, username, role, status)
 VALUES (1, 'demo_chef', 'user', 'offline')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count)
-SELECT
-  jsonb_build_object('en', v.title, 'fi', v.title, 'ru', v.title),
-  CASE
-    WHEN v.description IS NULL THEN NULL
-    ELSE jsonb_build_object('en', v.description, 'fi', v.description, 'ru', v.description)
-  END,
-  jsonb_build_object(
-    'en', to_jsonb(v.instructions),
-    'fi', to_jsonb(v.instructions),
-    'ru', to_jsonb(v.instructions)
-  ),
-  v.servings,
-  v.spiciness,
-  v.author_id,
-  v.status,
-  v.rating_avg,
-  v.rating_count
-FROM (VALUES
+WITH seeded_recipes(title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count) AS (
+VALUES
 
 -- 1
 (
@@ -350,7 +333,73 @@ FROM (VALUES
     'Enjoy cold or gently warm in the microwave'
   ],
   1, 0, 1, 'published', 4.20, 16
-)) AS v(title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count);
+)
+),
+available_authors AS (
+  SELECT id
+  FROM users
+  ORDER BY id
+  LIMIT 20
+),
+seeded_recipes_ranked AS (
+  SELECT
+    sr.title,
+    sr.description,
+    sr.instructions,
+    sr.servings,
+    sr.spiciness,
+    sr.status,
+    sr.rating_avg,
+    sr.rating_count,
+    row_number() OVER (ORDER BY sr.title) AS rn
+  FROM seeded_recipes sr
+),
+recipes_with_authors AS (
+  SELECT
+    srr.title,
+    srr.description,
+    srr.instructions,
+    srr.servings,
+    srr.spiciness,
+    aa.id AS author_id,
+    srr.status,
+    srr.rating_avg,
+    srr.rating_count
+  FROM seeded_recipes_ranked srr
+  CROSS JOIN LATERAL (
+    SELECT (floor(random() * 1000000000))::text AS seed
+  ) rs
+  JOIN LATERAL (
+    SELECT a.id
+    FROM available_authors a
+    ORDER BY md5(rs.seed || ':' || srr.title || ':' || a.id::text)
+    LIMIT 1
+  ) aa ON true
+)
+INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count)
+SELECT
+  jsonb_build_object('en', v.title, 'fi', v.title, 'ru', v.title),
+  CASE
+    WHEN v.description IS NULL THEN NULL
+    ELSE jsonb_build_object('en', v.description, 'fi', v.description, 'ru', v.description)
+  END,
+  jsonb_build_object(
+    'en', to_jsonb(v.instructions),
+    'fi', to_jsonb(v.instructions),
+    'ru', to_jsonb(v.instructions)
+  ),
+  v.servings,
+  v.spiciness,
+  v.author_id,
+  v.status,
+  v.rating_avg,
+  v.rating_count
+FROM recipes_with_authors v
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM recipes r
+  WHERE COALESCE(r.title->>'en', '') = v.title
+);
 
 WITH seeded_media(title_en, image_url) AS (
   VALUES
@@ -389,3 +438,212 @@ WHEN MATCHED THEN
 WHEN NOT MATCHED THEN
   INSERT (recipe_id, type, url, position)
   VALUES (src.recipe_id, 'image', src.image_url, 0);
+
+WITH seeded_recipe_ingredients(title_en, ingredient_name, amount, unit) AS (
+  VALUES
+    ('Spaghetti Carbonara', 'Pasta', 120, 'g'),
+    ('Spaghetti Carbonara', 'Eggs', 2, 'pcs'),
+    ('Spaghetti Carbonara', 'Cheddar Cheese', 60, 'g'),
+    ('Spaghetti Carbonara', 'Butter', 15, 'g'),
+    ('Spaghetti Carbonara', 'Garlic', 1, 'clove'),
+    ('Spaghetti Carbonara', 'Black Pepper', 1, 'tsp'),
+    ('Spaghetti Carbonara', 'Salt', 1, 'tsp'),
+
+    ('Chicken Tikka Masala', 'Chicken Breast', 500, 'g'),
+    ('Chicken Tikka Masala', 'Yogurt', 200, 'ml'),
+    ('Chicken Tikka Masala', 'Tomato', 400, 'g'),
+    ('Chicken Tikka Masala', 'Onion', 150, 'g'),
+    ('Chicken Tikka Masala', 'Garlic', 4, 'clove'),
+    ('Chicken Tikka Masala', 'Butter', 30, 'g'),
+    ('Chicken Tikka Masala', 'Black Pepper', 1, 'tsp'),
+    ('Chicken Tikka Masala', 'Salt', 1, 'tsp'),
+
+    ('Avocado Toast with Poached Egg', 'Bread', 2, 'slice'),
+    ('Avocado Toast with Poached Egg', 'Avocado', 1, 'pcs'),
+    ('Avocado Toast with Poached Egg', 'Eggs', 2, 'pcs'),
+    ('Avocado Toast with Poached Egg', 'Tomato', 100, 'g'),
+    ('Avocado Toast with Poached Egg', 'Olive Oil', 1, 'tsp'),
+    ('Avocado Toast with Poached Egg', 'Black Pepper', 1, 'tsp'),
+    ('Avocado Toast with Poached Egg', 'Salt', 1, 'tsp'),
+
+    ('Classic Caesar Salad', 'Lettuce', 200, 'g'),
+    ('Classic Caesar Salad', 'Bread', 3, 'slice'),
+    ('Classic Caesar Salad', 'Cheddar Cheese', 60, 'g'),
+    ('Classic Caesar Salad', 'Tomato', 120, 'g'),
+    ('Classic Caesar Salad', 'Olive Oil', 2, 'tbsp'),
+    ('Classic Caesar Salad', 'Garlic', 1, 'clove'),
+    ('Classic Caesar Salad', 'Black Pepper', 1, 'tsp'),
+    ('Classic Caesar Salad', 'Salt', 1, 'tsp'),
+
+    ('Beef Tacos', 'Beef', 450, 'g'),
+    ('Beef Tacos', 'Tomato', 250, 'g'),
+    ('Beef Tacos', 'Lettuce', 150, 'g'),
+    ('Beef Tacos', 'Onion', 120, 'g'),
+    ('Beef Tacos', 'Garlic', 2, 'clove'),
+    ('Beef Tacos', 'Cheddar Cheese', 80, 'g'),
+    ('Beef Tacos', 'Olive Oil', 1, 'tbsp'),
+
+    ('Mushroom Risotto', 'Rice', 320, 'g'),
+    ('Mushroom Risotto', 'Mushroom', 300, 'g'),
+    ('Mushroom Risotto', 'Butter', 40, 'g'),
+    ('Mushroom Risotto', 'Onion', 120, 'g'),
+    ('Mushroom Risotto', 'Garlic', 2, 'clove'),
+    ('Mushroom Risotto', 'Cheddar Cheese', 70, 'g'),
+    ('Mushroom Risotto', 'Black Pepper', 1, 'tsp'),
+    ('Mushroom Risotto', 'Salt', 1, 'tsp'),
+
+    ('Greek Salad', 'Cucumber', 300, 'g'),
+    ('Greek Salad', 'Tomato', 350, 'g'),
+    ('Greek Salad', 'Cheddar Cheese', 150, 'g'),
+    ('Greek Salad', 'Onion', 100, 'g'),
+    ('Greek Salad', 'Olive Oil', 2, 'tbsp'),
+    ('Greek Salad', 'Black Pepper', 1, 'tsp'),
+    ('Greek Salad', 'Salt', 1, 'tsp'),
+
+    ('Banana Oat Pancakes', 'Banana', 2, 'pcs'),
+    ('Banana Oat Pancakes', 'Oats', 140, 'g'),
+    ('Banana Oat Pancakes', 'Eggs', 2, 'pcs'),
+    ('Banana Oat Pancakes', 'Milk', 120, 'ml'),
+    ('Banana Oat Pancakes', 'Butter', 15, 'g'),
+    ('Banana Oat Pancakes', 'Honey', 20, 'g'),
+    ('Banana Oat Pancakes', 'Cinnamon', 1, 'tsp'),
+
+    ('Tom Yum Soup', 'Mushroom', 180, 'g'),
+    ('Tom Yum Soup', 'Tomato', 250, 'g'),
+    ('Tom Yum Soup', 'Garlic', 4, 'clove'),
+    ('Tom Yum Soup', 'Onion', 100, 'g'),
+    ('Tom Yum Soup', 'Salmon', 250, 'g'),
+    ('Tom Yum Soup', 'Black Pepper', 1, 'tsp'),
+    ('Tom Yum Soup', 'Salt', 1, 'tsp'),
+
+    ('Margherita Pizza', 'Bread', 300, 'g'),
+    ('Margherita Pizza', 'Tomato', 300, 'g'),
+    ('Margherita Pizza', 'Mozzarella', 200, 'g'),
+    ('Margherita Pizza', 'Olive Oil', 2, 'tbsp'),
+    ('Margherita Pizza', 'Garlic', 2, 'clove'),
+    ('Margherita Pizza', 'Black Pepper', 1, 'tsp'),
+    ('Margherita Pizza', 'Salt', 1, 'tsp'),
+
+    ('Shakshuka', 'Eggs', 4, 'pcs'),
+    ('Shakshuka', 'Tomato', 500, 'g'),
+    ('Shakshuka', 'Bell Pepper', 200, 'g'),
+    ('Shakshuka', 'Onion', 120, 'g'),
+    ('Shakshuka', 'Garlic', 3, 'clove'),
+    ('Shakshuka', 'Olive Oil', 2, 'tbsp'),
+    ('Shakshuka', 'Black Pepper', 1, 'tsp'),
+    ('Shakshuka', 'Salt', 1, 'tsp'),
+
+    ('Grilled Salmon with Lemon Butter', 'Salmon', 500, 'g'),
+    ('Grilled Salmon with Lemon Butter', 'Butter', 35, 'g'),
+    ('Grilled Salmon with Lemon Butter', 'Garlic', 3, 'clove'),
+    ('Grilled Salmon with Lemon Butter', 'Olive Oil', 1, 'tbsp'),
+    ('Grilled Salmon with Lemon Butter', 'Potato', 350, 'g'),
+    ('Grilled Salmon with Lemon Butter', 'Broccoli', 200, 'g'),
+    ('Grilled Salmon with Lemon Butter', 'Black Pepper', 1, 'tsp'),
+    ('Grilled Salmon with Lemon Butter', 'Salt', 1, 'tsp'),
+
+    ('Vegetable Stir-fry with Tofu', 'Tofu', 400, 'g'),
+    ('Vegetable Stir-fry with Tofu', 'Broccoli', 220, 'g'),
+    ('Vegetable Stir-fry with Tofu', 'Bell Pepper', 180, 'g'),
+    ('Vegetable Stir-fry with Tofu', 'Carrots', 150, 'g'),
+    ('Vegetable Stir-fry with Tofu', 'Garlic', 3, 'clove'),
+    ('Vegetable Stir-fry with Tofu', 'Soy Sauce', 40, 'ml'),
+    ('Vegetable Stir-fry with Tofu', 'Olive Oil', 1, 'tbsp'),
+    ('Vegetable Stir-fry with Tofu', 'Rice', 220, 'g'),
+
+    ('French Onion Soup', 'Onion', 700, 'g'),
+    ('French Onion Soup', 'Butter', 50, 'g'),
+    ('French Onion Soup', 'Bread', 3, 'slice'),
+    ('French Onion Soup', 'Cheddar Cheese', 120, 'g'),
+    ('French Onion Soup', 'Garlic', 2, 'clove'),
+    ('French Onion Soup', 'Black Pepper', 1, 'tsp'),
+    ('French Onion Soup', 'Salt', 1, 'tsp'),
+
+    ('Mango Smoothie Bowl', 'Mango', 300, 'g'),
+    ('Mango Smoothie Bowl', 'Banana', 1, 'pcs'),
+    ('Mango Smoothie Bowl', 'Oats', 60, 'g'),
+    ('Mango Smoothie Bowl', 'Milk', 180, 'ml'),
+    ('Mango Smoothie Bowl', 'Honey', 25, 'g'),
+    ('Mango Smoothie Bowl', 'Blueberries', 80, 'g'),
+    ('Mango Smoothie Bowl', 'Chia Seeds', 15, 'g'),
+
+    ('Borscht', 'Potato', 350, 'g'),
+    ('Borscht', 'Carrots', 180, 'g'),
+    ('Borscht', 'Tomato', 300, 'g'),
+    ('Borscht', 'Onion', 150, 'g'),
+    ('Borscht', 'Garlic', 3, 'clove'),
+    ('Borscht', 'Olive Oil', 1, 'tbsp'),
+    ('Borscht', 'Beef', 300, 'g'),
+    ('Borscht', 'Black Pepper', 1, 'tsp'),
+    ('Borscht', 'Salt', 1, 'tsp'),
+
+    ('Butter Chicken', 'Chicken Breast', 700, 'g'),
+    ('Butter Chicken', 'Tomato', 450, 'g'),
+    ('Butter Chicken', 'Butter', 50, 'g'),
+    ('Butter Chicken', 'Yogurt', 180, 'ml'),
+    ('Butter Chicken', 'Onion', 180, 'g'),
+    ('Butter Chicken', 'Garlic', 4, 'clove'),
+    ('Butter Chicken', 'Black Pepper', 1, 'tsp'),
+    ('Butter Chicken', 'Salt', 1, 'tsp'),
+
+    ('Lentil Soup', 'Lentils', 300, 'g'),
+    ('Lentil Soup', 'Onion', 160, 'g'),
+    ('Lentil Soup', 'Carrots', 140, 'g'),
+    ('Lentil Soup', 'Tomato', 250, 'g'),
+    ('Lentil Soup', 'Garlic', 3, 'clove'),
+    ('Lentil Soup', 'Olive Oil', 1, 'tbsp'),
+    ('Lentil Soup', 'Black Pepper', 1, 'tsp'),
+    ('Lentil Soup', 'Salt', 1, 'tsp'),
+
+    ('Chocolate Lava Cakes', 'Eggs', 3, 'pcs'),
+    ('Chocolate Lava Cakes', 'Butter', 120, 'g'),
+    ('Chocolate Lava Cakes', 'Milk', 120, 'ml'),
+    ('Chocolate Lava Cakes', 'Dark Chocolate Chips', 180, 'g'),
+    ('Chocolate Lava Cakes', 'Honey', 30, 'g'),
+    ('Chocolate Lava Cakes', 'Oats', 30, 'g'),
+
+    ('Overnight Oats', 'Oats', 120, 'g'),
+    ('Overnight Oats', 'Milk', 250, 'ml'),
+    ('Overnight Oats', 'Yogurt', 120, 'ml'),
+    ('Overnight Oats', 'Honey', 25, 'g'),
+    ('Overnight Oats', 'Banana', 1, 'pcs'),
+    ('Overnight Oats', 'Blueberries', 80, 'g'),
+    ('Overnight Oats', 'Chia Seeds', 15, 'g')
+),
+seeded_media(title_en, image_url) AS (
+  VALUES
+    ('Spaghetti Carbonara', '/recipe-pictures/recipe-01.jpeg'),
+    ('Chicken Tikka Masala', '/recipe-pictures/recipe-02.jpeg'),
+    ('Avocado Toast with Poached Egg', '/recipe-pictures/recipe-03.jpeg'),
+    ('Classic Caesar Salad', '/recipe-pictures/recipe-04.jpeg'),
+    ('Beef Tacos', '/recipe-pictures/recipe-05.jpeg'),
+    ('Mushroom Risotto', '/recipe-pictures/recipe-06.jpeg'),
+    ('Greek Salad', '/recipe-pictures/recipe-07.jpeg'),
+    ('Banana Oat Pancakes', '/recipe-pictures/recipe-08.jpeg'),
+    ('Tom Yum Soup', '/recipe-pictures/recipe-09.jpeg'),
+    ('Margherita Pizza', '/recipe-pictures/recipe-10.jpeg'),
+    ('Shakshuka', '/recipe-pictures/recipe-11.jpeg'),
+    ('Grilled Salmon with Lemon Butter', '/recipe-pictures/recipe-12.jpeg'),
+    ('Vegetable Stir-fry with Tofu', '/recipe-pictures/recipe-13.jpeg'),
+    ('French Onion Soup', '/recipe-pictures/recipe-14.jpeg'),
+    ('Mango Smoothie Bowl', '/recipe-pictures/recipe-15.jpeg'),
+    ('Borscht', '/recipe-pictures/recipe-16.jpeg'),
+    ('Butter Chicken', '/recipe-pictures/recipe-17.jpeg'),
+    ('Lentil Soup', '/recipe-pictures/recipe-18.jpeg'),
+    ('Chocolate Lava Cakes', '/recipe-pictures/recipe-19.jpeg'),
+    ('Overnight Oats', '/recipe-pictures/recipe-20.jpeg')
+)
+INSERT INTO recipe_ingredients (recipe_id, ingredient_id, amount, unit)
+SELECT
+  r.id,
+  i.id,
+  sri.amount,
+  sri.unit
+FROM seeded_recipe_ingredients sri
+JOIN seeded_media sm ON sm.title_en = sri.title_en
+JOIN recipes r ON COALESCE(r.title->>'en', '') = sm.title_en
+JOIN recipe_media rm ON rm.recipe_id = r.id AND rm.position = 0 AND rm.url = sm.image_url
+JOIN ingredients i ON i.name = sri.ingredient_name
+ON CONFLICT (recipe_id, ingredient_id) DO UPDATE
+SET amount = EXCLUDED.amount,
+    unit = EXCLUDED.unit;
