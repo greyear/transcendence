@@ -1,0 +1,27 @@
+nohup: ignoring input
+time="2026-04-16T23:28:01+03:00" level=warning msg="The \"GOOGLE_CLIENT_ID\" variable is not set. Defaulting to a blank string."
+auth-service  | Server is running on http://localhost:3001
+auth-service  | Connected to MongoDB
+core-service  | 
+core-service  | > core-service@0.1.0 start
+core-service  | > node dist/index.js
+core-service  | 
+core-service  | Core service running on port 3002
+core-service  | ✓ Connected to PostgreSQL database
+core-service  | ✓ Connected to PostgreSQL database
+auth-service  | [auth-service] register:start email=create@create.com
+auth-service  | [auth-service] register:generated-user-id email=create@create.com userId=100000
+auth-service  | [auth-service] register:mongo-user-created email=create@create.com userId=100000
+auth-service  | [auth-service] registerCoreProfile:start userId=100000
+core-service  | [core-service] profile/register:start payload={"id":100000}
+core-service  | [core-service] registerProfile:attempt userId=100000 username=username_100000
+core-service  | ✓ Connected to PostgreSQL database
+core-service  | [core-service] registerProfile:created userId=100000
+core-service  | [core-service] profile/register:done userId=100000 created=true
+auth-service  | [auth-service] registerCoreProfile:response userId=100000 status=201
+auth-service  | [auth-service] registerCoreProfile:success userId=100000
+auth-service  | [auth-service] login:start email=create@create.com
+auth-service  | [auth-service] login:success email=create@create.com userId=100000
+auth-service  | [auth-service] register:completed email=create@create.com userId=100000 loginStatus=200
+auth-service  | [auth-service] login:start email=create
+auth-service  | [auth-service] login:user-not-found email=create

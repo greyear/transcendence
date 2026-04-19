@@ -421,6 +421,76 @@ describe("Users Routes", () => {
 		});
 	});
 
+	describe("GET /users/:id/favorites", () => {
+		/**
+		 * Test: GET /users/:id/favorites without authentication returns 401
+		 */
+		it("should return 401 without authentication", async () => {
+			const response = await request(app).get("/users/1/favorites");
+
+			expect(response.status).toBe(401);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		/**
+		 * Test: GET /users/:id/favorites returns 400 for invalid user ID
+		 */
+		it("should return 400 for invalid user id", async () => {
+			const invalidIds = ["-1", "0", "abc", "1.5"];
+
+			for (const id of invalidIds) {
+				const response = await request(app)
+					.get(`/users/${id}/favorites`)
+					.set("X-User-Id", "1");
+
+				expect(response.status).toBe(400);
+				expect(response.body).toHaveProperty("error");
+			}
+		});
+
+		/**
+		 * Test: GET /users/:id/favorites returns 404 if user doesn't exist
+		 */
+		it("should return 404 if user does not exist", async () => {
+			const response = await request(app)
+				.get("/users/999999/favorites")
+				.set("X-User-Id", "1");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		/**
+		 * Test: GET /users/:id/favorites returns 403 if not mutual followers
+		 */
+		it("should return 403 if users are not mutual followers", async () => {
+			// User 1 and User 3 are NOT mutual followers (from beforeAll setup)
+			const response = await request(app)
+				.get("/users/3/favorites")
+				.set("X-User-Id", "1");
+
+			expect(response.status).toBe(403);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		/**
+		 * Test: GET /users/:id/favorites returns list for mutual followers
+		 *
+		 * Note: In test setup, User 1 and User 2 ARE mutual followers
+		 * (User 1 follows User 2, User 2 follows User 1 from beforeAll)
+		 */
+		it("should return list of favorite recipes for mutual followers", async () => {
+			const response = await request(app)
+				.get("/users/2/favorites")
+				.set("X-User-Id", "1");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body).toHaveProperty("count");
+			expect(Array.isArray(response.body.data)).toBe(true);
+		});
+	});
+
 	afterAll(async () => {
 		// Clean up test data created in beforeAll
 		try {

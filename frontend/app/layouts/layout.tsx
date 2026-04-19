@@ -60,7 +60,7 @@ const Layout = () => {
 	}, [isAuthenticated]);
 
 	return (
-		<>
+		<div className="app-shell">
 			<Header
 				isAuthenticated={isAuthenticated}
 				onOpenAuthModal={() => openAuthModal()}
@@ -85,7 +85,7 @@ const Layout = () => {
 					authSuccessActionRef.current = null;
 				}}
 			/>
-		</>
+		</div>
 	);
 };
 

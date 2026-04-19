@@ -15,6 +15,7 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { extractUser } from "./middleware/extractUser.js";
 import { updateLastSeen } from "./middleware/updateLastSeen.js";
 import { healthRouter } from "./routes/health.routes.js";
+import { internalSearchRouter } from "./routes/internalSearch.routes.js";
 import { profileRouter } from "./routes/profile.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
@@ -38,7 +39,7 @@ const app: Express = express();
 // CORS: allow frontend origin, override via CORS_ORIGIN env in production
 app.use(
 	cors({
-		origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+		origin: process.env.CORS_ORIGIN || "https://localhost:5173",
 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
 	}),
 );
@@ -58,6 +59,8 @@ app.use(updateLastSeen);
 app.use("/health", healthRouter);
 // /recipes/* → recipesRouter
 app.use("/recipes", recipesRouter);
+// /internal/search/* → internalSearchRouter
+app.use("/internal/search", internalSearchRouter);
 // /users/* → usersRouter
 app.use("/users", usersRouter);
 // /profile → profileRouter

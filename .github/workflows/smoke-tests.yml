@@ -9,6 +9,9 @@ on:
       - '.github/workflows/smoke-tests.yml'
   workflow_dispatch:
 
+env:
+  INTERNAL_SERVICE_TOKEN: ${{ secrets.INTERNAL_SERVICE_TOKEN }}
+
 jobs:
   smoke-tests:
     name: Smoke Tests with Docker
@@ -21,6 +24,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Generate certificates
+        run: |
+          rm -rf certs
+          mkdir certs
+          make certs
+
       - name: Start services with docker compose
         run: docker compose up -d
 
@@ -28,7 +37,7 @@ jobs:
         run: |
           echo "Waiting for API Gateway to be ready..."
           for i in {1..60}; do
-            if curl -f http://localhost:3000/health >/dev/null 2>&1; then
+            if curl -f -k https://localhost:8443/health >/dev/null 2>&1; then
               echo "✓ API Gateway is ready"
               exit 0
             fi

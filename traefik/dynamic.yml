@@ -1,3 +1,18 @@
+http:
+  routers:
+    gateway-https:
+      rule: "Host(`localhost`) || Host(`127.0.0.1`)"
+      entryPoints:
+        - websecure
+      tls: {}
+      service: gateway
+
+  services:
+    gateway:
+      loadBalancer:
+        servers:
+          - url: "http://api-gateway:3000"
+
 tls:
   certificates:
     - certFile: /certs/cert.pem

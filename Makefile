@@ -1,4 +1,4 @@
-.PHONY: help up down restart clean re logs logs-db db-status db-reset wait-core-seed dev-api dev-core dev-all test-core test-biome test-jest-core test-jest-api test-jest-all test-all check-node certs
+.PHONY: help up down restart clean re logs logs-db db-status db-reset db-seed dev-api dev-core dev-all test-core test-biome test-jest-core test-jest-api test-jest-all test-all check-node certs
 
 help:
 	@echo "Transcendence Development Commands:"
@@ -13,6 +13,7 @@ help:
 	@echo "  make logs-db    - View database logs (core-db and auth-db)"
 	@echo "  make db-status  - Check running containers and their health status"
 	@echo "  make db-reset   - Reset only databases (keep app containers)"
+	@echo "  make db-seed    - Re-run users/recipes seeds in running core-db"
 	@echo ""
 	@echo "Local development (without Docker):"
 	@echo "  make dev-api         - Start api-gateway locally (auto-installs deps if needed)"
@@ -55,7 +56,7 @@ re: certs
 	@echo "Rebuilding and restarting all services..."
 	docker-compose down -v --remove-orphans
 	docker-compose up -d --build
-	@$(MAKE) wait-core-seed
+	@$(MAKE) db-seed
 	@echo "✓ Rebuild completed, services are up"
 
 logs:
@@ -73,18 +74,33 @@ db-status:
 
 db-reset:
 	@echo "Resetting only database containers and volumes..."
-	docker-compose stop auth-db core-db notification-db
-	docker-compose rm -f -v auth-db core-db notification-db
-	docker-compose up -d auth-db core-db notification-db
-	@$(MAKE) wait-core-seed
+	docker-compose stop auth-db core-db
+	docker-compose rm -f -v auth-db core-db
+	docker-compose up -d auth-db core-db
+	@$(MAKE) db-seed
 	@echo "✓ Database reset completed (apps untouched)"
 
-wait-core-seed:
-	@echo "Waiting for core-db to become ready..."
+db-seed:
+	@echo "Waiting for core-db..."
 	@until docker exec core-postgres pg_isready -U core_user -d core_db >/dev/null 2>&1; do sleep 1; done
-	@echo "Waiting for core seed data (users.id=1)..."
-	@until [ "`docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM users WHERE id = 1;\" | tr -d '[:space:]'`" = "1" ]; do sleep 1; done
-	@echo "✓ Core DB seed data is ready"
+	@echo "Waiting for schema initialization (users/recipes/recipe_media)..."
+	@schema_waited=0; \
+	until [ "`docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT (to_regclass('public.users') IS NOT NULL) AND (to_regclass('public.recipes') IS NOT NULL) AND (to_regclass('public.recipe_media') IS NOT NULL);\" | tr -d '[:space:]'`" = "t" ]; do \
+		if [ $$schema_waited -ge 120 ]; then \
+			echo "✗ Schema init timeout. core-db init scripts likely failed."; \
+			echo "Inspect logs: docker-compose logs --tail=200 core-db"; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+		schema_waited=$$((schema_waited + 1)); \
+	done
+	@echo "Applying users + recipes seeds via docker-compose..."
+	@docker-compose exec -T core-db psql -v ON_ERROR_STOP=1 -U core_user -d core_db -f /docker-entrypoint-initdb.d/03-seed-users.sql
+	@docker-compose exec -T core-db psql -v ON_ERROR_STOP=1 -U core_user -d core_db -f /docker-entrypoint-initdb.d/04-seed-recipes.sql
+	@echo "Seed counts:"
+	@echo "  users:   `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM users;\" | tr -d '[:space:]'`"
+	@echo "  recipes: `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM recipes;\" | tr -d '[:space:]'`"
+	@echo "✓ Seeds applied"
 
 check-node:
 	@node -e 'const major=Number(process.versions.node.split(".")[0]); if (major < 18) { console.error("Node.js >= 18 is required for local dev (current: " + process.versions.node + ")"); console.error("Install Node.js 20 LTS, then retry make dev-api/dev-core."); process.exit(1); }'
@@ -106,7 +122,7 @@ dev-all:
 	@echo "  Terminal 2: make dev-core"
 	@echo ""
 	@echo "Optional (in another terminal): make up"
-	@echo "(if you need auth-service and notification-service stubs in Docker)"
+	@echo "(if you need auth-service stub in Docker)"
 	@echo ""
 	@echo "Or use tmux/screen to run them in one window"
 

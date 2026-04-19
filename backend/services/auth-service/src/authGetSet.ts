@@ -12,26 +12,22 @@ import * as help from "./authHelpers.js";
 export const authGetSet = Router();
 
 /*
-	Delete user. /users/:username endpoint
+	Delete user endpoint
 		1. Attempt to validate JWT from header
-		1. findOneAndDelete() to remove matching record
-		2. Return relevant code
+		2. Decode which account identity belongs to
+		3. findOneAndDelete() to remove matching record
+		4. Return relevant code
 	As of now does not require the current password.
 	https://developers.google.com/identity/openid-connect/reference
 */
 authGetSet.delete(
-	"/delete/:username",
+	"/delete",
 	help.compareJWT,
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const username = req.params.username;
+			const { userId } = req.body;
 
-			let userDocument = null;
-			if (req.decodedJWT?.type === "mongo") {
-				userDocument = await userModel.findOneAndDelete({ username });
-			} else if (req.decodedJWT?.type === "google") {
-				userDocument = await userModel.findOneAndDelete({ googleID: username });
-			}
+			const userDocument = await userModel.findOneAndDelete({ id: userId });
 
 			if (!userDocument) {
 				res.status(404).json({ error: "User not found" });
@@ -46,7 +42,7 @@ authGetSet.delete(
 );
 
 /*
-	Change user password. /users/:username endpoint
+	Change user password endpoint
 		1. Attempt to validate JWT from header
 		2. Attempt to validate new password format
 		3. Attempt to validate old password
@@ -56,12 +52,12 @@ authGetSet.delete(
 		6. Return relevant code
 */
 authGetSet.patch(
-	"/change-password/:username",
+	"/change-password",
 	help.compareJWT,
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const { newPassword, password } = req.body;
-			const username = req.params.username;
+			const userId = parseInt(req.body.userId, 10);
 
 			if (!help.validatePassword(newPassword)) {
 				res.status(422).json({
@@ -70,7 +66,7 @@ authGetSet.patch(
 				return;
 			}
 
-			const userDocument = await userModel.findOne({ username });
+			const userDocument = await userModel.findOne({ id: userId });
 			if (!userDocument) {
 				res.status(404).json({ error: "User not found" });
 				return;
@@ -90,9 +86,9 @@ authGetSet.patch(
 			}
 
 			const updatedUser = await userModel.findOneAndUpdate(
-				{ username },
+				{ id: userId },
 				{ passwordHash: hashedPassword },
-				{ new: true },
+				{ returnDocument: "after" },
 			);
 
 			if (updatedUser) {
@@ -109,6 +105,7 @@ authGetSet.patch(
 
 // /validate endpoint to specifically validate a JWT within the header.
 // Checks against username or email. Content with this as both are unique.
+// References to username here are remnants of a prior version
 authGetSet.post(
 	"/validate",
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -119,16 +116,14 @@ authGetSet.post(
 				return;
 			}
 
-			const searchId = decodedToken.username;
+			const searchId = decodedToken.email;
 			const type = decodedToken.type;
 
 			let userDocument = null;
 			if (type === "mongo") {
-				userDocument = await userModel.findOne({
-					$or: [{ username: searchId }, { email: searchId }],
-				});
+				userDocument = await userModel.findOne({ email: searchId });
 			} else if (type === "google") {
-				userDocument = await userModel.findOne({ googleID: searchId });
+				userDocument = await userModel.findOne({ email: searchId });
 			}
 
 			if (!userDocument) {
@@ -143,6 +138,38 @@ authGetSet.post(
 			}
 
 			res.status(200).json({ id: userID });
+		} catch (error) {
+			next(error);
+		}
+	},
+);
+
+/*
+	Fetch user details endpoint
+		1. Validate JWT from header
+		2. Look up user in DB by userId
+		3. Return id and email
+	Probably better to combine the /validate result into here.
+*/
+authGetSet.get(
+	"/me",
+	async (req: Request, res: Response, next: NextFunction) => {
+		try {
+			const decodedToken = help.fetchDecodeToken(req);
+			if (!decodedToken) {
+				res.status(401).json({ error: "Invalid token" });
+				return;
+			}
+
+			const { userId } = decodedToken;
+			const userDocument = await userModel.findOne({ id: userId });
+			if (!userDocument) {
+				res.status(404).json({ error: "User not found" });
+				return;
+			}
+			const email = userDocument.get("email");
+
+			res.status(200).json({ id: userId, email });
 		} catch (error) {
 			next(error);
 		}
