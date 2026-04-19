@@ -77,6 +77,7 @@
 	},
 	"profilePage": {
 		"loading": "Ladataan profiilia...",
+		"signInRequired": "Kirjaudu sisään nähdäksesi profiilisi.",
 		"error": "Profiilin lataus epäonnistui (tila: {{status}}).",
 		"notFound": "Profiilia ei löytynyt.",
 		"title": "Oma profiili",

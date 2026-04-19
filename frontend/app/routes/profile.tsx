@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useOutletContext } from "react-router";
 import { z } from "zod";
 import "~/assets/styles/profile.css";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import type { LayoutOutletContext } from "~/layouts/layout";
+import {
+	type FavoriteRecipe,
+	FavoriteRecipesResponseSchema,
+} from "~/schemas/favorites";
 
 type ProfileData = {
 	id: number;
 	username: string;
-	avatar: string | null;
-};
-
-type FavoriteRecipe = {
-	id: number;
-	title: string;
-	description: string | null;
 	avatar: string | null;
 };
 
@@ -25,20 +24,9 @@ const ProfileResponseSchema = z.object({
 	}),
 });
 
-const FavoriteRecipeSchema = z.object({
-	id: z.number().int().positive(),
-	title: z.string(),
-	description: z.string().nullable(),
-	avatar: z.string().nullable(),
-});
-
-const FavoriteResponseSchema = z.object({
-	data: z.array(FavoriteRecipeSchema),
-	count: z.number(),
-});
-
 const ProfilePage = () => {
 	const { t } = useTranslation();
+	const { isAuthenticated } = useOutletContext<LayoutOutletContext>();
 	const [profile, setProfile] = useState<ProfileData | null>(null);
 	const [favorites, setFavorites] = useState<FavoriteRecipe[]>([]);
 	const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -51,6 +39,13 @@ const ProfilePage = () => {
 	>(null);
 
 	useEffect(() => {
+		if (!isAuthenticated) {
+			setProfile(null);
+			setIsProfileLoading(false);
+			setErrorStatus(null);
+			return;
+		}
+
 		let ignore = false;
 
 		setIsProfileLoading(true);
@@ -102,9 +97,16 @@ const ProfilePage = () => {
 		return () => {
 			ignore = true;
 		};
-	}, []);
+	}, [isAuthenticated]);
 
 	useEffect(() => {
+		if (!isAuthenticated) {
+			setFavorites([]);
+			setIsFavoritesLoading(false);
+			setFavoritesErrorStatus(null);
+			return;
+		}
+
 		let ignore = false;
 
 		setIsFavoritesLoading(true);
@@ -131,7 +133,7 @@ const ProfilePage = () => {
 					return;
 				}
 
-				const parsed = FavoriteResponseSchema.safeParse(body);
+				const parsed = FavoriteRecipesResponseSchema.safeParse(body);
 				if (!parsed.success) {
 					setFavorites([]);
 					return;
@@ -154,9 +156,16 @@ const ProfilePage = () => {
 		return () => {
 			ignore = true;
 		};
-	}, []);
+	}, [isAuthenticated]);
+	
 	if (isProfileLoading) {
 		return <p className="profile-page-status">{t("profilePage.loading")}</p>;
+	}
+
+	if (!isAuthenticated) {
+		return (
+			<p className="profile-page-status">{t("profilePage.signInRequired")}</p>
+		);
 	}
 
 	if (errorStatus !== null) {

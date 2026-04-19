@@ -77,6 +77,7 @@
 	},
 	"profilePage": {
 		"loading": "Loading profile...",
+		"signInRequired": "Sign in to view your profile.",
 		"error": "Failed to load profile (status: {{status}}).",
 		"notFound": "Profile not found.",
 		"title": "My profile",

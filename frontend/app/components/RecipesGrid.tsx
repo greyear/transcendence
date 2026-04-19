@@ -2,8 +2,8 @@ import { RecipeCard } from "./cards/RecipeCard";
 import "../assets/styles/recipesGrid.css";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { z } from "zod";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 
 type RecipeCardResponse = {
 	id: number;
@@ -15,7 +15,7 @@ type RecipeCardResponse = {
 };
 
 type RecipesGridProps = {
-	sortValue: string;
+	sortValue?: string;
 	page?: number;
 	perPage?: number;
 	onLoad?: (totalCount: number) => void;
@@ -23,14 +23,6 @@ type RecipesGridProps = {
 	isAuthenticated: boolean;
 	openAuthModal: (onSuccessAction?: () => void) => void;
 };
-
-const FavoriteRecipeSchema = z.object({
-	id: z.number().int().positive(),
-});
-
-const FavoritesResponseSchema = z.object({
-	data: z.array(FavoriteRecipeSchema),
-});
 
 const sortRecipes = (
 	recipes: RecipeCardResponse[],
@@ -52,7 +44,7 @@ const sortRecipes = (
 };
 
 const getFavoriteIds = (body: unknown): Set<number> => {
-	const parsed = FavoritesResponseSchema.safeParse(body);
+	const parsed = FavoriteRecipesResponseSchema.safeParse(body);
 
 	if (!parsed.success) {
 		return new Set();
@@ -82,7 +74,7 @@ export const RecipesGrid = ({
 	perPage = 12,
 	onLoad,
 	sort,
-	sortValue,
+	sortValue = "",
 	isAuthenticated,
 	openAuthModal,
 }: RecipesGridProps) => {
@@ -183,23 +175,11 @@ export const RecipesGrid = ({
 				},
 			);
 
-			if (!response.ok) {
-				if (response.status === 409) {
-					setFavoriteIds((prev) =>
-						updateFavoriteIds(prev, recipeId, shouldBeFavorited),
-					);
-					return;
-				}
-
+			if (!response.ok && response.status !== 409) {
 				setFavoriteIds((prev) =>
 					updateFavoriteIds(prev, recipeId, wasFavoritedBeforeClick),
 				);
-				return;
 			}
-
-			setFavoriteIds((prev) =>
-				updateFavoriteIds(prev, recipeId, shouldBeFavorited),
-			);
 		} catch (error) {
 			console.error(error);
 			setFavoriteIds((prev) =>

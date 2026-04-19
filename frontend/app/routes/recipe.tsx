@@ -4,12 +4,12 @@ import { useOutletContext, useParams } from "react-router";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.css";
 import { ArrowEmailForward, Reports, StarSolid } from "iconoir-react";
-import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
 import { RatingModal } from "~/components/rating/ratingModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import type { LayoutOutletContext } from "~/layouts/layout";
+import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
 
 type RecipeIngredient = {
@@ -28,18 +28,6 @@ type Recipe = {
 	ingredients: RecipeIngredient[];
 	instructions: string[];
 };
-
-const FavoriteRecipeSchema = z.object({
-	id: z.number().int().positive(),
-	title: z.string(),
-	description: z.string().nullable(),
-	avatar: z.string().nullable(),
-});
-
-const FavoritesResponseSchema = z.object({
-	data: z.array(FavoriteRecipeSchema),
-	count: z.number(),
-});
 
 const RecipePage = () => {
 	const { id } = useParams();
@@ -176,7 +164,7 @@ const RecipePage = () => {
 					return;
 				}
 
-				const parsed = FavoritesResponseSchema.safeParse(body);
+				const parsed = FavoriteRecipesResponseSchema.safeParse(body);
 
 				if (!parsed.success) {
 					setIsFavorited(false);
