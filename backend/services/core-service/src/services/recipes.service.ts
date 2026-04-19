@@ -34,18 +34,18 @@ import {
 	recipeListItemSchema,
 	recipeReviewListItemSchema,
 	recipeSchema,
-	type SearchRecipeDocument,
-	searchRecipeDocumentSchema,
 	recipeStatusSchema,
+	type SearchRecipeDocument,
 	type SupportedLocale,
+	searchRecipeDocumentSchema,
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
 } from "../validation/schemas.js";
+import { scheduleRecipeSearchReindex } from "./searchIndex.service.js";
 import {
 	localizeInstructionStepsFromSource,
 	localizeTextFromSource,
 } from "./translation.service.js";
-import { scheduleRecipeSearchReindex } from "./searchIndex.service.js";
 
 type PublishRecipeResult =
 	| { success: true; recipe: Recipe }
