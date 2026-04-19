@@ -19,6 +19,7 @@ import {
 	getAllUsers,
 	getFollowers,
 	getFollowing,
+	getMyFriends,
 	getUserById,
 	unfollowUser,
 } from "../services/users.service.js";
@@ -408,6 +409,105 @@ const getFollowingHandler = async (
 	}
 };
 
+/**
+ * GET /users/me/followers - fetch all followers of current user
+ *
+ * Errors:
+ * - 401 Unauthorized - if user is not authenticated
+ */
+const getMyFollowersHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const followers = await getFollowers(req.userId);
+		res.status(200).json({ data: followers, count: followers.length });
+	} catch (error) {
+		if (error instanceof Error && error.message === "User not found") {
+			const customError: CustomError = new Error(error.message);
+			customError.statusCode = 404;
+			next(customError);
+		} else {
+			next(error);
+		}
+	}
+};
+
+/**
+ * GET /users/me/following - fetch all users that current user is following
+ *
+ * Errors:
+ * - 401 Unauthorized - if user is not authenticated
+ */
+const getMyFollowingHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const following = await getFollowing(req.userId);
+		res.status(200).json({ data: following, count: following.length });
+	} catch (error) {
+		if (error instanceof Error && error.message === "User not found") {
+			const customError: CustomError = new Error(error.message);
+			customError.statusCode = 404;
+			next(customError);
+		} else {
+			next(error);
+		}
+	}
+};
+
+/**
+ * GET /users/me/friends - fetch all mutual followers of current user
+ *
+ * Errors:
+ * - 401 Unauthorized - if user is not authenticated
+ */
+const getMyFriendsHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		if (req.userId === undefined) {
+			const error: CustomError = new Error("Authentication required");
+			error.statusCode = 401;
+			throw error;
+		}
+
+		const friends = await getMyFriends(req.userId);
+		res.status(200).json({ data: friends, count: friends.length });
+	} catch (error) {
+		if (error instanceof Error && error.message === "User not found") {
+			const customError: CustomError = new Error(error.message);
+			customError.statusCode = 404;
+			next(customError);
+		} else {
+			next(error);
+		}
+	}
+};
+
+/**
+ * GET /users/me/heartbeat - check if current user is online
+ *
+ * Errors:
+ * - 401 Unauthorized - if user is not authenticated
+ */
 const heartbeatHandler = async (
 	req: AuthenticatedRequest,
 	res: Response,
@@ -430,6 +530,9 @@ usersRouter.post("/me/heartbeat", heartbeatHandler);
 // /me/recipes and /me/favorites are most specific
 usersRouter.get("/me/recipes", getMyRecipesHandler);
 usersRouter.get("/me/favorites", getMyFavoritesHandler);
+usersRouter.get("/me/followers", getMyFollowersHandler);
+usersRouter.get("/me/following", getMyFollowingHandler);
+usersRouter.get("/me/friends", getMyFriendsHandler);
 usersRouter.post("/:id/follow", followUserHandler);
 usersRouter.delete("/:id/follow", unfollowUserHandler);
 // /:id/followers, /:id/following are more specific than /:id/recipes

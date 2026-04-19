@@ -189,6 +189,23 @@ export const getFollowing = async (userId: number) => {
 	return userListItemSchema.array().parse(result.rows);
 };
 
+export const getMyFriends = async (userId: number) => {
+	const result = await pool.query(
+		`SELECT
+			u.id,
+			u.username,
+			u.avatar,
+			(SELECT COUNT(*) FROM recipes r WHERE r.author_id = u.id AND r.status = 'published') AS recipes_count
+		FROM users u
+		JOIN followers f1 ON f1.followed_id = u.id AND f1.user_id = $1
+		JOIN followers f2 ON f2.user_id = u.id AND f2.followed_id = $1
+		ORDER BY u.username ASC`,
+		[userId],
+	);
+
+	return userListItemSchema.array().parse(result.rows);
+};
+
 // ── Follow / Unfollow ─────────────────────────────────────────────────────────
 
 export const followUser = async (
