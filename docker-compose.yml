@@ -1,7 +1,7 @@
 services:
 
   traefik:
-    image: traefik:v3.0
+    image: traefik:v3.4
     container_name: traefik
     restart: unless-stopped
     command:
@@ -52,6 +52,14 @@ services:
       - core_pg_data:/var/lib/postgresql/data
       - ./backend/infrastructure/postgres/core/01-init-core.sql:/docker-entrypoint-initdb.d/01-init-core.sql
       - ./backend/infrastructure/postgres/core/02-seed-core.sql:/docker-entrypoint-initdb.d/02-seed-core.sql
+      - ./backend/infrastructure/postgres/core/04-seed-users.sql:/docker-entrypoint-initdb.d/03-seed-users.sql
+      - ./backend/infrastructure/postgres/core/03-seed-recipes.sql:/docker-entrypoint-initdb.d/04-seed-recipes.sql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U core_user -d core_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U core_user -d core_db"]
@@ -159,6 +167,10 @@ services:
       SEARCH_REINDEX_TIMEOUT_MS: 5000
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
 
+    volumes:
+      - ./backend/services/core-service/uploads/avatars:/app/uploads/avatars
+      - ./backend/services/core-service/uploads/recipes:/app/uploads/recipes
+
     depends_on:
       core-db:
         condition: service_healthy
@@ -217,7 +229,13 @@ services:
       TRANSLATION_MAX_TOTAL_CHARS: 12000
 
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=2)"
+        ]
       interval: 5s
       timeout: 5s
       retries: 10

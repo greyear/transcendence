@@ -27,8 +27,11 @@ describe("Recipes Routes", () => {
 
 		expect(response.status).toBe(200);
 		expect(response.body).toHaveProperty("data");
-		expect(response.body).toHaveProperty("count");
-		expect(Array.isArray(response.body.data)).toBe(true); // data must be an array
+		expect(response.body).toHaveProperty("total_count");
+		expect(response.body).toHaveProperty("total_pages");
+		expect(response.body).toHaveProperty("page");
+		expect(response.body).toHaveProperty("per_page");
+		expect(Array.isArray(response.body.data)).toBe(true);
 	});
 
 	/**
@@ -1835,5 +1838,68 @@ describe("Recipes Routes", () => {
 				authorId,
 			]);
 		}
+	});
+
+	it("should return meal_time categories for GET /recipes/meal_time", async () => {
+		const response = await request(app).get("/recipes/meal_time");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("meal_time");
+		expect(Array.isArray(response.body.meal_time)).toBe(true);
+		expect(response.body.meal_time).toEqual(
+			expect.arrayContaining(["breakfast", "lunch", "dinner", "snack"]),
+		);
+	});
+
+	it("should return dish_type categories for GET /recipes/dish_type", async () => {
+		const response = await request(app).get("/recipes/dish_type");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("dish_type");
+		expect(Array.isArray(response.body.dish_type)).toBe(true);
+		expect(response.body.dish_type.length).toBeGreaterThan(0);
+	});
+
+	it("should return main_ingredient categories for GET /recipes/main_ingredient", async () => {
+		const response = await request(app).get("/recipes/main_ingredient");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("main_ingredient");
+		expect(Array.isArray(response.body.main_ingredient)).toBe(true);
+		expect(response.body.main_ingredient.length).toBeGreaterThan(0);
+	});
+
+	it("should return cuisine categories for GET /recipes/cuisine", async () => {
+		const response = await request(app).get("/recipes/cuisine");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("cuisine");
+		expect(Array.isArray(response.body.cuisine)).toBe(true);
+		expect(response.body.cuisine).toEqual(
+			expect.arrayContaining(["italian", "asian", "finnish"]),
+		);
+	});
+
+	it("should return empty array for unknown category type", async () => {
+		const response = await request(app).get("/recipes/unknown_category");
+
+		// unknown_category matches /:id route and fails ID validation
+		expect(response.status).toBe(400);
+	});
+
+	it("should return ingredients list for GET /recipes/ingredients", async () => {
+		const response = await request(app).get("/recipes/ingredients");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("ingredients");
+		expect(Array.isArray(response.body.ingredients)).toBe(true);
+		expect(response.body.ingredients.length).toBeGreaterThan(0);
+		expect(response.body.ingredients[0]).toHaveProperty("id");
+		expect(response.body.ingredients[0]).toHaveProperty("name");
+		// Should be sorted alphabetically
+		const names = response.body.ingredients.map(
+			(i: { name: string }) => i.name,
+		);
+		expect(names).toEqual([...names].sort());
 	});
 });

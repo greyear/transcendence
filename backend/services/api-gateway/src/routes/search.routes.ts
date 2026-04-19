@@ -1,8 +1,8 @@
 import { type RequestHandler, Router } from "express";
 import { getInternalHeaders } from "../utils/internalHeaders.js";
 import {
-	createTimeoutSignal,
 	CORE_SERVICE_TIMEOUT_MS,
+	createTimeoutSignal,
 	isTimeoutError,
 } from "../utils/timeouts.js";
 

@@ -85,10 +85,7 @@ describe("POST /profile/register", () => {
 			expect(response.status).toBe(201);
 			expect(response.body).toHaveProperty("message", "Profile registered");
 			expect(response.body.data).toHaveProperty("id", userId);
-			expect(response.body.data).toHaveProperty(
-				"username",
-				`username_${userId}`,
-			);
+			expect(response.body.data.username).toMatch(/^User_[a-f0-9]{8}$/);
 			expect(response.body.data).toHaveProperty("avatar", null);
 
 			const dbResult = await pool.query(
@@ -96,8 +93,8 @@ describe("POST /profile/register", () => {
 				[userId],
 			);
 
+			expect(dbResult.rows[0].username).toMatch(/^User_[a-f0-9]{8}$/);
 			expect(dbResult.rows[0]).toMatchObject({
-				username: `username_${userId}`,
 				role: "user",
 				status: "offline",
 				avatar: null,

@@ -7,6 +7,7 @@ import { API_BASE_URL } from "~/composables/apiBaseUrl";
 type UserCardResponse = {
 	id: number;
 	username: string;
+	avatar: string | null;
 	recipes_count: number;
 };
 
@@ -101,9 +102,14 @@ export const UsersGrid = ({
 
 	return (
 		<ul className="user-card-list">
-			{pageUsers.map(({ id, username, recipes_count }) => (
+			{pageUsers.map(({ id, username, avatar, recipes_count }) => (
 				<li key={id}>
-					<UserCard id={id} name={username} recipeCount={recipes_count} />
+					<UserCard
+						id={id}
+						name={username}
+						avatar={avatar}
+						recipeCount={recipes_count}
+					/>
 				</li>
 			))}
 		</ul>

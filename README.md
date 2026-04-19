@@ -100,7 +100,7 @@ npm install
 
 ### 2.3) Main service endpoints
 
-- API Gateway: `http://localhost:3000`
+- API Gateway: `https://localhost:8443`
 - Auth Service: `http://localhost:3001`
 - Core Service: `http://localhost:3002`
 - Notification Service: `http://localhost:3003`

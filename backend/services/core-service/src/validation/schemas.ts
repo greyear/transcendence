@@ -263,6 +263,7 @@ export const recipeSchema = z.object({
 	servings: z.number().int().positive(), // Servings is required (NOT NULL, default 1)
 	spiciness: z.number().int().min(0).max(3), // 0 to 3, NOT NULL DEFAULT 0
 	rating_avg: z.coerce.number().min(1).max(5).nullable(), // numeric(3,2) or null
+	picture_url: z.string().nullable(),
 	ingredients: z.array(recipeIngredientSchema),
 	categories: z.array(recipeCategorySchema),
 });
@@ -277,6 +278,7 @@ export const recipeListItemSchema = z.object({
 	author_id: userIdSchema.nullable(),
 	description: z.string().nullable(),
 	rating_avg: z.coerce.number().min(1).max(5).nullable(),
+	picture_url: z.string().nullable(),
 });
 
 /**
@@ -457,6 +459,36 @@ export type RecipeListItem = z.infer<typeof recipeListItemSchema>;
 export type FavoriteRecipeListItem = z.infer<
 	typeof favoriteRecipeListItemSchema
 >;
+
+export type PaginatedResponse<T> = {
+	data: T[];
+	total_count: number;
+	total_pages: number;
+	page: number;
+	per_page: number;
+};
+
+const paginationQuerySchema = z.object({
+	page: z.coerce.number().int().positive().default(1),
+	per_page: z.coerce.number().int().min(1).max(100).default(12),
+});
+
+export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
+
+export const validatePaginationQuery = (
+	input: unknown,
+): ValidationResult<PaginationQuery> => {
+	const result = paginationQuerySchema.safeParse(input);
+
+	if (result.success) {
+		return { valid: true, value: result.data };
+	}
+
+	return {
+		valid: false,
+		error: result.error.issues[0]?.message ?? "Invalid pagination parameters",
+	};
+};
 
 /**
  * MyRecipeListItem type - minimal recipe info for current user's recipes

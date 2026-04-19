@@ -27,6 +27,7 @@ import {
 	favoriteRecipeListItemSchema,
 	type MyRecipeListItem,
 	myRecipeListItemSchema,
+	type PaginatedResponse,
 	type Recipe,
 	type RecipeListItem,
 	type RecipeReviewListItem,
@@ -36,7 +37,9 @@ import {
 	type SearchRecipeDocument,
 	searchRecipeDocumentSchema,
 	recipeStatusSchema,
+	type SearchRecipeDocument,
 	type SupportedLocale,
+	searchRecipeDocumentSchema,
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
 } from "../validation/schemas.js";
@@ -141,6 +144,12 @@ const getRecipeWithIngredientsQuery = `
 		r.spiciness,
 		r.author_id,
 		r.rating_avg,
+		(
+			SELECT rm.url
+			FROM recipe_media rm
+			WHERE rm.recipe_id = r.id AND rm.position = 0
+			LIMIT 1
+		) AS picture_url,
 		r.status,
 		COALESCE(
 			(
@@ -412,7 +421,13 @@ export const getAllRecipes = async (
 				COALESCE(title->>$1, title->>'en') AS title,
 				COALESCE(description->>$1, description->>'en') AS description,
 				author_id,
-				rating_avg
+				rating_avg,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = recipes.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url
       FROM recipes
       WHERE status = 'published'
       ORDER BY created_at DESC
@@ -426,6 +441,59 @@ export const getAllRecipes = async (
 	} catch (error) {
 		// If error - log it and throw it to caller
 		console.error("Database error in getAllRecipes:", error);
+		throw error;
+	}
+};
+
+/**
+ * Get published recipes for exact page
+ */
+export const getAllRecipesPaginated = async (
+	page: number,
+	perPage: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<PaginatedResponse<RecipeListItem>> => {
+	try {
+		const offset = (page - 1) * perPage;
+
+		const [dataResult, countResult] = await Promise.all([
+			pool.query(
+				`
+				SELECT
+					id,
+					COALESCE(title->>$1, title->>'en') AS title,
+					COALESCE(description->>$1, description->>'en') AS description,
+					author_id,
+					rating_avg,
+					(
+						SELECT rm.url
+						FROM recipe_media rm
+						WHERE rm.recipe_id = recipes.id AND rm.position = 0
+						LIMIT 1
+					) AS picture_url
+				FROM recipes
+				WHERE status = 'published'
+				ORDER BY created_at DESC
+				LIMIT $2 OFFSET $3
+				`,
+				[locale, perPage, offset],
+			),
+			pool.query(
+				`SELECT COUNT(*)::int AS total FROM recipes WHERE status = 'published'`,
+			),
+		]);
+
+		const total_count = countResult.rows[0].total as number;
+		const total_pages = Math.ceil(total_count / perPage);
+		const data = parseRecipeRows(
+			dataResult.rows,
+			recipeListItemSchema,
+			"recipe",
+		);
+
+		return { data, total_count, total_pages, page, per_page: perPage };
+	} catch (error) {
+		console.error("Database error in getAllRecipesPaginated:", error);
 		throw error;
 	}
 };
@@ -453,7 +521,13 @@ export const getPublishedRecipesByUserId = async (
 				COALESCE(title->>$2, title->>'en') AS title,
 				COALESCE(description->>$2, description->>'en') AS description,
 				author_id,
-				rating_avg
+				rating_avg,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = recipes.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url
       FROM recipes
       WHERE author_id = $1 AND status = 'published'
       ORDER BY created_at DESC
@@ -1452,8 +1526,8 @@ export const updateRecipePicture = async (
 		if (oldPictureUrl && oldPictureUrl !== pictureUrl) {
 			const oldFilename = oldPictureUrl.replace("/recipe-pictures/", "");
 			const oldFilePath = path.resolve("uploads/recipes", oldFilename);
-			fs.unlink(oldFilePath, (err) => {
-				if (err && err.code !== "ENOENT") {
+			await fs.promises.unlink(oldFilePath).catch((err) => {
+				if (err.code !== "ENOENT") {
 					console.error("Failed to delete old recipe picture:", err);
 				}
 			});
@@ -1462,6 +1536,46 @@ export const updateRecipePicture = async (
 		return { success: true };
 	} catch (error) {
 		console.error("Database error in updateRecipePicture:", error);
+		throw error;
+	}
+};
+
+export const getCategoryList = async (
+	categoryTypeCode: string,
+): Promise<{ [key: string]: string[] }> => {
+	try {
+		const result = await pool.query<{ code: string }>(
+			`
+			SELECT rc.code
+			FROM recipe_categories rc
+			JOIN recipe_category_types rct ON rct.id = rc.category_type_id
+			WHERE rct.code = $1
+			ORDER BY rc.code ASC
+			`,
+			[categoryTypeCode],
+		);
+
+		const codes = result.rows.map((row) => row.code);
+		return { [categoryTypeCode]: codes };
+	} catch (error) {
+		console.error(
+			`Database error in getCategoryList(${categoryTypeCode}):`,
+			error,
+		);
+		throw error;
+	}
+};
+
+export const getIngredientList = async (): Promise<{
+	ingredients: { id: number; name: string }[];
+}> => {
+	try {
+		const result = await pool.query<{ id: number; name: string }>(
+			`SELECT id, name FROM ingredients ORDER BY name ASC`,
+		);
+		return { ingredients: result.rows };
+	} catch (error) {
+		console.error("Database error in getIngredientList:", error);
 		throw error;
 	}
 };
