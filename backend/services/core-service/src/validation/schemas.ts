@@ -311,6 +311,7 @@ export const recipeReviewListItemSchema = z.object({
 	author_id: userIdSchema.nullable(),
 	username: z.string().trim().min(1).max(32).nullable(),
 	avatar: z.string().nullable(),
+	rating: z.coerce.number().int().min(1).max(5).nullable(),
 	body: z.string(),
 	created_at: z.coerce.date().transform((value) => value.toISOString()),
 	updated_at: z.coerce.date().transform((value) => value.toISOString()),

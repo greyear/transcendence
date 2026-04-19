@@ -1395,6 +1395,11 @@ describe("Recipes Routes", () => {
 			expect(createResponse.body.data).toHaveProperty("recipe_id", recipeId);
 			expect(createResponse.body).toHaveProperty("message", "Review published");
 
+			await pool.query(
+				`INSERT INTO recipe_ratings (recipe_id, user_id, rating) VALUES ($1, $2, $3)`,
+				[recipeId, reviewerId, 4],
+			);
+
 			const listResponse = await request(app).get(
 				`/recipes/${recipeId}/reviews`,
 			);
@@ -1403,18 +1408,136 @@ describe("Recipes Routes", () => {
 			expect(listResponse.body).toHaveProperty("data");
 			expect(listResponse.body).toHaveProperty("count");
 			expect(listResponse.body.count).toBeGreaterThanOrEqual(1);
-			expect(
-				listResponse.body.data.some(
-					(review: { body: string }) => review.body === "Looks tasty!",
-				),
-			).toBe(true);
+
+			const createdReview = listResponse.body.data.find(
+				(review: { body?: string }) => review.body === "Looks tasty!",
+			);
+
+			expect(createdReview).toBeTruthy();
+			expect(createdReview).toHaveProperty("rating", 4);
 		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipe_ratings WHERE recipe_id = $1`, [
+					recipeId,
+				]);
+			}
 			if (recipeId) {
 				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
 			}
 			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
 				authorId,
 				reviewerId,
+			]);
+		}
+	});
+
+	it("should return all reviews with ratings list for GET /recipes/:id/reviews", async () => {
+		const authorId = 2311;
+		const reviewerOneId = 2312;
+		const reviewerTwoId = 2313;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[authorId, "all_reviews_author"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[reviewerOneId, "all_reviews_reviewer_one"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[reviewerTwoId, "all_reviews_reviewer_two"],
+			);
+
+			const titleColumnTypeResult = await pool.query(
+				`SELECT data_type
+				 FROM information_schema.columns
+				 WHERE table_name = 'recipes' AND column_name = 'title'`,
+			);
+			const usesJsonbTitle =
+				titleColumnTypeResult.rows[0]?.data_type === "jsonb";
+
+			const recipeResult = usesJsonbTitle
+				? await pool.query(
+						`INSERT INTO recipes (title, instructions, status, author_id)
+						 VALUES (
+							jsonb_build_object('en', 'All Reviews Target', 'fi', 'All Reviews Target', 'ru', 'All Reviews Target'),
+							jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+							'published',
+							$1
+						 )
+						 RETURNING id`,
+						[authorId],
+					)
+				: await pool.query(
+						`INSERT INTO recipes (title, instructions, status, author_id)
+						 VALUES ('All Reviews Target', ARRAY['step'], 'published', $1)
+						 RETURNING id`,
+						[authorId],
+					);
+			recipeId = recipeResult.rows[0].id;
+
+			const firstReviewBody = "First review body";
+			const secondReviewBody = "Second review body";
+
+			const firstCreateResponse = await request(app)
+				.post(`/recipes/${recipeId}/reviews`)
+				.set("X-User-Id", String(reviewerOneId))
+				.send({ body: firstReviewBody });
+
+			const secondCreateResponse = await request(app)
+				.post(`/recipes/${recipeId}/reviews`)
+				.set("X-User-Id", String(reviewerTwoId))
+				.send({ body: secondReviewBody });
+
+			expect(firstCreateResponse.status).toBe(201);
+			expect(secondCreateResponse.status).toBe(201);
+
+			await pool.query(
+				`INSERT INTO recipe_ratings (recipe_id, user_id, rating) VALUES ($1, $2, $3), ($1, $4, $5)`,
+				[recipeId, reviewerOneId, 5, reviewerTwoId, 3],
+			);
+
+			const listResponse = await request(app).get(
+				`/recipes/${recipeId}/reviews`,
+			);
+
+			expect(listResponse.status).toBe(200);
+			expect(listResponse.body).toHaveProperty("data");
+			expect(Array.isArray(listResponse.body.data)).toBe(true);
+			expect(listResponse.body).toHaveProperty("count", 2);
+
+			const firstReview = listResponse.body.data.find(
+				(review: { body?: string }) => review.body === firstReviewBody,
+			);
+			const secondReview = listResponse.body.data.find(
+				(review: { body?: string }) => review.body === secondReviewBody,
+			);
+
+			expect(firstReview).toBeTruthy();
+			expect(secondReview).toBeTruthy();
+			expect(firstReview).toHaveProperty("rating", 5);
+			expect(secondReview).toHaveProperty("rating", 3);
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipe_ratings WHERE recipe_id = $1`, [
+					recipeId,
+				]);
+			}
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipe_reviews WHERE recipe_id = $1`, [
+					recipeId,
+				]);
+			}
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2, $3)`, [
+				authorId,
+				reviewerOneId,
+				reviewerTwoId,
 			]);
 		}
 	});
