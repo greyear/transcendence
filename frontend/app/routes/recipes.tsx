@@ -9,16 +9,20 @@ import { RecipesGrid } from "~/components/RecipesGrid";
 import "~/assets/styles/recipes.css";
 import { Filter } from "iconoir-react";
 import { useTranslation } from "react-i18next";
+import { useOutletContext } from "react-router";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SortMenu } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";
 import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
+import type { LayoutOutletContext } from "~/layouts/layout";
 
 const PER_PAGE = 12;
 
 const RecipesPage = () => {
 	const { t } = useTranslation();
+	const { isAuthenticated, openAuthModal } =
+		useOutletContext<LayoutOutletContext>();
 	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams] = useSearchParams();
@@ -75,6 +79,8 @@ const RecipesPage = () => {
 				perPage={PER_PAGE}
 				onLoad={setTotalCount}
 				sortValue={sortValue}
+				isAuthenticated={isAuthenticated}
+				openAuthModal={openAuthModal}
 			/>
 
 			<Pagination

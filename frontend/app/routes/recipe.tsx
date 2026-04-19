@@ -9,6 +9,7 @@ import { RatingModal } from "~/components/rating/ratingModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import type { LayoutOutletContext } from "~/layouts/layout";
+import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
 
 type RecipeIngredient = {
@@ -40,6 +41,42 @@ const RecipePage = () => {
 		null,
 	);
 	const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+	const [isFavorited, setIsFavorited] = useState(false);
+	const [isFavoritePending, setIsFavoritePending] = useState(false);
+
+	const toggleFavorite = async () => {
+		if (!id || isFavoritePending) {
+			return;
+		}
+		const wasFavoritedBeforeClick = isFavorited;
+		const shouldBeFavorited = !wasFavoritedBeforeClick;
+
+		setIsFavorited(shouldBeFavorited);
+		setIsFavoritePending(true);
+		try {
+			const response = await fetch(`${API_BASE_URL}/recipes/${id}/favorite`, {
+				method: shouldBeFavorited ? "POST" : "DELETE",
+				credentials: "include",
+			});
+
+			if (!response.ok) {
+				if (response.status === 409) {
+					setIsFavorited(shouldBeFavorited);
+					return;
+				}
+
+				setIsFavorited(wasFavoritedBeforeClick);
+				return;
+			}
+
+			setIsFavorited(shouldBeFavorited);
+		} catch (error) {
+			setIsFavorited(wasFavoritedBeforeClick);
+			console.error(error);
+		} finally {
+			setIsFavoritePending(false);
+		}
+	};
 
 	const onCloseRatingModal = () => {
 		setIsRatingModalOpen(false);
@@ -54,6 +91,16 @@ const RecipePage = () => {
 		}
 
 		setIsRatingModalOpen(true);
+	};
+
+	const handleFavoriteClick = () => {
+		if (!isAuthenticated) {
+			openAuthModal(() => {
+				void toggleFavorite();
+			});
+			return;
+		}
+		void toggleFavorite();
 	};
 
 	useEffect(() => {
@@ -95,6 +142,47 @@ const RecipePage = () => {
 				setIsLoading(false);
 			});
 	}, [id]);
+
+	useEffect(() => {
+		if (!isAuthenticated || !id) {
+			setIsFavorited(false);
+			return;
+		}
+
+		fetch(`${API_BASE_URL}/users/me/favorites`, {
+			credentials: "include",
+		})
+			.then((res) => {
+				if (!res.ok) {
+					return null;
+				}
+				return res.json();
+			})
+			.then((body) => {
+				if (body === null) {
+					setIsFavorited(false);
+					return;
+				}
+
+				const parsed = FavoriteRecipesResponseSchema.safeParse(body);
+
+				if (!parsed.success) {
+					setIsFavorited(false);
+					return;
+				}
+
+				const favorites = parsed.data.data;
+				const currentRecipeId = Number(id);
+
+				const recipeIsInFavorites = favorites.some(
+					(favorite) => favorite.id === currentRecipeId,
+				);
+				setIsFavorited(recipeIsInFavorites);
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+	}, [id, isAuthenticated]);
 
 	if (isLoading) {
 		return <p className="recipe-page-status">{t("recipePage.loading")}</p>;
@@ -155,7 +243,11 @@ const RecipePage = () => {
 				<IconButton className="recipe-action" onClick={onOpenRatingModal}>
 					{t("recipePage.rate")} <Reports />
 				</IconButton>
-				<FavoriteButton />
+				<FavoriteButton
+					isFavorited={isFavorited}
+					disabled={isFavoritePending}
+					onClick={handleFavoriteClick}
+				/>
 				<IconButton
 					className="recipe-action"
 					aria-label={t("ariaLabels.shareRecipe")}
