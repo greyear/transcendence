@@ -722,6 +722,26 @@ describe("API Gateway - Users Routes", () => {
 			expect(response.body).toEqual({ error: "Gateway Timeout" });
 		});
 
+		it("should forward 404 from core-service", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			fetchSpy.mockResolvedValueOnce({
+				status: 404,
+				json: async () => ({ error: "User not found" }),
+			} as unknown as Response);
+
+			const response = await request(app)
+				.get("/users/me/friends")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toEqual({ error: "User not found" });
+		});
+
 		it("should return 500 on unexpected error", async () => {
 			fetchSpy.mockResolvedValueOnce({
 				ok: true,

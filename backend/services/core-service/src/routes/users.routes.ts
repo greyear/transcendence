@@ -414,6 +414,7 @@ const getFollowingHandler = async (
  *
  * Errors:
  * - 401 Unauthorized - if user is not authenticated
+ * - 404 Not Found - if user doesn't exist
  */
 const getMyFollowersHandler = async (
 	req: AuthenticatedRequest,
@@ -445,6 +446,7 @@ const getMyFollowersHandler = async (
  *
  * Errors:
  * - 401 Unauthorized - if user is not authenticated
+ * - 404 Not Found - if user doesn't exist
  */
 const getMyFollowingHandler = async (
 	req: AuthenticatedRequest,
@@ -476,6 +478,7 @@ const getMyFollowingHandler = async (
  *
  * Errors:
  * - 401 Unauthorized - if user is not authenticated
+ * - 404 Not Found - if user doesn't exist
  */
 const getMyFriendsHandler = async (
 	req: AuthenticatedRequest,
