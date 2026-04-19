@@ -55,6 +55,7 @@ CREATE TABLE "recipes" (
 
 CREATE TABLE "ingredients" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  "code" varchar(64) UNIQUE NOT NULL,
   "name" varchar(128) UNIQUE NOT NULL,
   "created_at" timestamptz DEFAULT now()
 );
