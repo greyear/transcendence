@@ -37,9 +37,7 @@ import {
 	type SearchRecipeDocument,
 	searchRecipeDocumentSchema,
 	recipeStatusSchema,
-	type SearchRecipeDocument,
 	type SupportedLocale,
-	searchRecipeDocumentSchema,
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
 } from "../validation/schemas.js";
