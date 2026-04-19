@@ -72,7 +72,9 @@
 		"title": "Haku",
 		"totalCount": "Tuloksia:",
 		"recipesTab": "Reseptit",
-		"usersTab": "Käyttäjät"
+		"usersTab": "Käyttäjät",
+		"perPage": "Per sivu",
+		"noResults": "Reseptejä ei löytynyt."
 	},
 	"usersPage": {
 		"title": "Käyttäjät",

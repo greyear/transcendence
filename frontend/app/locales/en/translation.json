@@ -72,7 +72,9 @@
 		"title": "Search",
 		"totalCount": "Results:",
 		"recipesTab": "Recipes",
-		"usersTab": "Users"
+		"usersTab": "Users",
+		"perPage": "Per page",
+		"noResults": "No matching recipes found."
 	},
 	"usersPage": {
 		"title": "Users",

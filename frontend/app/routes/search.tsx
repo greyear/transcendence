@@ -15,9 +15,32 @@ import "~/assets/styles/recipesGrid.css";
 import "~/assets/styles/usersGrid.css";
 import "~/assets/styles/search.css";
 import { useSortOptions } from "~/composables/useSortOptions";
+import { API_BASE_URL } from "~/composables/apiBaseUrl";
 
-const API_BASE = "http://localhost:3000";
-const PER_PAGE = 12;
+const SEARCH_MAX_LIMIT = 5;
+const DEFAULT_LIMIT = 5;
+const LIMIT_OPTIONS = [5, 12, 24, 36, 48];
+
+const parseLimit = (raw: string | null): number => {
+	const parsed = Number(raw);
+	if (!Number.isFinite(parsed) || parsed < 1) {
+		return DEFAULT_LIMIT;
+	}
+	return Math.min(Math.trunc(parsed), SEARCH_MAX_LIMIT);
+};
+
+type SearchRecipesApiItem = {
+	recipe_id: number;
+	title: string;
+	description: string | null;
+};
+
+type SearchRecipesApiResponse = {
+	count: number;
+	data: SearchRecipesApiItem[];
+	summary?: string;
+	summary_status?: string;
+};
 
 type SearchRecipeItem = {
 	id: number;
@@ -33,7 +56,12 @@ type SearchUserItem = {
 };
 
 type SearchResponse =
-	| { type: "recipes"; data: SearchRecipeItem[]; total: number }
+	| {
+			type: "recipes";
+			data: SearchRecipeItem[];
+			total: number;
+			summary?: string;
+	  }
 	| { type: "users"; data: SearchUserItem[]; total: number };
 
 const SearchPage = () => {
@@ -45,6 +73,7 @@ const SearchPage = () => {
 	const rawType = searchParams.get("type") ?? "recipes";
 	const typeParam = rawType === "users" ? "users" : "recipes";
 	const sort = searchParams.get("sort") ?? "";
+	const limit = parseLimit(searchParams.get("limit"));
 
 	const sortOptions = useSortOptions(typeParam);
 
@@ -56,7 +85,7 @@ const SearchPage = () => {
 	const [results, setResults] = useState<SearchResponse | null>(null);
 
 	const total = results?.total ?? 0;
-	const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+	const totalPages = Math.max(1, Math.ceil(total / limit));
 	const page = getCurrentPage(searchParams, totalPages);
 
 	useEffect(() => {
@@ -65,21 +94,38 @@ const SearchPage = () => {
 			return;
 		}
 
+		if (typeParam === "users") {
+			setResults({ type: "users", data: [], total: 0 });
+			return;
+		}
+
 		const params = new URLSearchParams({
 			q: query,
-			type: typeParam,
-			page: String(page),
-			perPage: String(PER_PAGE),
-			...(sort && { sort }),
+			limit: String(limit),
 		});
 
-		fetch(`${API_BASE}/search?${params}`)
-			.then((res) =>
-				res.ok ? res.json() : { type: typeParam, data: [], total: 0 },
-			)
-			.then((body: SearchResponse) => setResults(body))
+		fetch(`${API_BASE_URL}/search/recipes?${params}`)
+			.then(async (res) => {
+				if (!res.ok) {
+					return { count: 0, data: [] } as SearchRecipesApiResponse;
+				}
+				return (await res.json()) as SearchRecipesApiResponse;
+			})
+			.then((body) => {
+				setResults({
+					type: "recipes",
+					total: body.count,
+					summary: body.summary,
+					data: body.data.map((item) => ({
+						id: item.recipe_id,
+						title: item.title,
+						description: item.description ?? "",
+						rating_avg: "",
+					})),
+				});
+			})
 			.catch(console.error);
-	}, [query, typeParam, page, sort]);
+	}, [query, typeParam, limit]);
 
 	const handleSearch = (newQuery: string) => {
 		const params = new URLSearchParams(searchParams);
@@ -102,6 +148,18 @@ const SearchPage = () => {
 		params.delete("page");
 		navigate(`/search?${params.toString()}`);
 	};
+
+	const handleLimitChange = (value: string) => {
+		const params = new URLSearchParams(searchParams);
+		params.set("limit", value);
+		params.delete("page");
+		navigate(`/search?${params.toString()}`);
+	};
+
+	const limitOptions = LIMIT_OPTIONS.map((n) => ({
+		label: String(n),
+		value: String(n),
+	}));
 
 	const totalLabel = query ? `${t("searchPage.totalCount")} ${total}` : "";
 
@@ -129,6 +187,13 @@ const SearchPage = () => {
 					onChange={handleSortChange}
 				/>
 
+				<SortMenu
+					options={limitOptions}
+					value={String(limit)}
+					onChange={handleLimitChange}
+					label={`${t("searchPage.perPage")}: ${limit}`}
+				/>
+
 				<TextIconButton>
 					{t("common.filterButton")}
 					<Filter />
@@ -137,7 +202,13 @@ const SearchPage = () => {
 
 			{query && results && (
 				<>
-					{results.type === "recipes" ? (
+					{results.data.length === 0 ? (
+						<p className="search-page__empty">
+							{results.type === "recipes" && results.summary
+								? results.summary
+								: t("searchPage.noResults")}
+						</p>
+					) : results.type === "recipes" ? (
 						<ul className="recipe-card-list">
 							{results.data.map(({ id, title, description, rating_avg }) => (
 								<li key={id}>
@@ -160,11 +231,13 @@ const SearchPage = () => {
 						</ul>
 					)}
 
-					<Pagination
-						totalElementsCount={total}
-						elementsPerPage={PER_PAGE}
-						totalPagesCount={totalPages}
-					/>
+					{results.data.length > 0 && (
+						<Pagination
+							totalElementsCount={total}
+							elementsPerPage={limit}
+							totalPagesCount={totalPages}
+						/>
+					)}
 				</>
 			)}
 		</section>

@@ -1,5 +1,5 @@
 import { Sort } from "iconoir-react";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import "~/assets/styles/sortMenu.css";
 import { useTranslation } from "react-i18next";
@@ -13,9 +13,19 @@ type SortMenuProps = {
 	options: SortOption[];
 	value: string;
 	onChange: (value: string) => void;
+	label?: string;
+	icon?: ReactNode;
+	ariaLabel?: string;
 };
 
-export const SortMenu = ({ options, value, onChange }: SortMenuProps) => {
+export const SortMenu = ({
+	options,
+	value,
+	onChange,
+	label,
+	icon,
+	ariaLabel,
+}: SortMenuProps) => {
 	const [open, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
 	const { t } = useTranslation();
@@ -52,12 +62,15 @@ export const SortMenu = ({ options, value, onChange }: SortMenuProps) => {
 	return (
 		<div className="sort-menu" ref={ref}>
 			<TextIconButton onClick={() => setOpen((prev) => !prev)}>
-				{t("common.sortButton")}
-				<Sort aria-hidden />
+				{label ?? t("common.sortButton")}
+				{icon ?? <Sort aria-hidden />}
 			</TextIconButton>
 
 			{open && (
-				<ul className="sort-menu__dropdown" aria-label={t("ariaLabels.sortBy")}>
+				<ul
+					className="sort-menu__dropdown"
+					aria-label={ariaLabel ?? t("ariaLabels.sortBy")}
+				>
 					{options.map((option) => (
 						<li key={option.value}>
 							<button
