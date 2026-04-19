@@ -108,14 +108,14 @@ Our team consists of 5 members:
 
 ## Mandatory Roles
 
-- **Product Owner (PO)**: Overall vision for the project, work priority, backlog, and validation of completed work.
-	- Anya and Nick shared this role at various stages during the project.
-- **Project Manager (PM) / Scrum Master**: Project planning, communication, deadlines, risks, and blockers.
-	- Anya was our project manager.
-- **Technical Lead / Architect**: Leads architecture and stack decisions, code quality, and critical reviews.
-	- This role fell to our member Nick.
-- **Developers (all members)**: Implement features, review code, test, and document contributions.
-	- All 5 of us were developers to various degrees.
+- **Product Owner**: Overall project vision, work priority and validation of completed work.
+	- Anya and Nick shared this role at various stages during the project
+- **Project Manager**: Project planning, communication and deadlines.
+	- Anya
+- **Technical Lead**: Leads architecture and stack decisions, code quality, and critical reviews.
+	- Nick
+- **Developers**: Implement features, review code, test, and document contributions.
+	- All 5 of us were developers to various degrees
 
 ---
 
@@ -134,15 +134,17 @@ Our team consists of 5 members:
 
 ## AI Usage in This Project
 
-AI tools (such as GitHub Copilot and Claude Code) were used for the following reasons:
+AI tools (such as GitHub Copilot and Claude Code) were used int he following ways:
 
 - Researching new concepts or tools efficiently
 - Writing documentation drafts and templates
-- Assistance with boilerplate code generation
+- Assistance with mundane code generation
 - Initial code review and sanity checking
 - Test evaluation and test testing, to make sure testy tests test testily
 
-All AI-generated code is ultimately reviewed, tested, and integrated thoughtfully into the codebase by human eyes.
+A practical example of AI usage is this here README. Initial work was done by passing the README requirements section of the subject PDF to the AI and asking it to generate a readme for our project. We worked that into the end result you see here.
+
+All AI-generated code passes before human eyes prior to any use in the project.
 
 # Tech stack
 
@@ -199,103 +201,249 @@ All AI-generated code is ultimately reviewed, tested, and integrated thoughtfull
 
 # Database Schema
 
-## Core Database (PostgreSQL)
+## Recipe Database Model Diagram
 
-### Users Table
-
-```sql
-CREATE TABLE users (
-  id INTEGER PRIMARY KEY,
-  username VARCHAR(32) UNIQUE NOT NULL,
-  avatar VARCHAR(2048),
-  status VARCHAR(16) DEFAULT 'offline',
-  role VARCHAR(16) NOT NULL DEFAULT 'user',
-  last_seen_at TIMESTAMPTZ DEFAULT NOW(),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+```mermaid
+erDiagram
+    USERS {
+        integer **id**
+        varchar username
+        varchar avatar
+        varchar status
+        varchar role
+        timestamptz last_seen_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    FOLLOWERS {
+        integer **user_id**
+        integer **followed_id**
+        timestamptz created_at
+    }
+    
+    RECIPES {
+        integer **id**
+        jsonb title
+        jsonb description
+        jsonb instructions
+        integer servings
+        smallint spiciness
+        integer *author_id*
+        varchar status
+        numeric rating_avg
+        integer rating_count
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    INGREDIENTS {
+        integer **id**
+        varchar name
+        timestamptz created_at
+    }
+    
+    UNITS {
+        varchar **code**
+        varchar kind
+    }
+    
+    RECIPE_INGREDIENTS {
+        integer **recipe_id**
+        integer **ingredient_id**
+        numeric amount
+        varchar unit
+    }
+    
+    RECIPE_CATEGORY_TYPES {
+        integer **id**
+        varchar code
+        varchar name
+        timestamptz created_at
+    }
+    
+    RECIPE_CATEGORIES {
+        integer **id**
+        integer *category_type_id*
+        varchar code
+        timestamptz created_at
+    }
+    
+    RECIPE_CATEGORY_MAP {
+        integer **recipe_id**
+        integer **category_id**
+    }
+    
+    INGREDIENT_CATEGORIES {
+        integer **id**
+        varchar code
+        timestamptz created_at
+    }
+    
+    INGREDIENT_CATEGORY_CORRESPONDENCE {
+        integer **ingredient_id**
+        integer **category_id**
+    }
+    
+    ALLERGENS {
+        integer **id**
+        varchar code
+        timestamptz created_at
+    }
+    
+    ALLERGEN_CATEGORIES {
+        integer **allergen_id**
+        integer **category_id**
+    }
+    
+    USER_ALLERGENS {
+        integer **user_id**
+        integer **allergen_id**
+        timestamptz created_at
+    }
+    
+    DIETS {
+        integer **id**
+        varchar code
+        varchar name
+        timestamptz created_at
+    }
+    
+    DIET_RESTRICTED_CATEGORIES {
+        integer **diet_id**
+        integer **category_id**
+    }
+    
+    USER_DIETS {
+        integer **user_id**
+        integer **diet_id**
+        timestamptz created_at
+    }
+    
+    INGREDIENT_UNIT_CONVERSIONS {
+        integer **ingredient_id**
+        varchar **unit**
+        numeric grams
+        timestamptz created_at
+    }
+    
+    NUTRITION_FACTS {
+        integer **ingredient_id**
+        numeric calories
+        numeric protein
+        numeric fat
+        numeric carbs
+        varchar base_unit
+        timestamptz created_at
+    }
+    
+    INGREDIENT_PORTIONS {
+        integer **id**
+        integer *ingredient_id*
+        varchar name
+        numeric weight_in_grams
+        timestamptz created_at
+    }
+    
+    FAVORITES {
+        integer **user_id**
+        integer **recipe_id**
+        timestamptz created_at
+    }
+    
+    RECIPE_SHARES {
+        integer **user_id**
+        integer **recipe_id**
+        timestamptz created_at
+    }
+    
+    RECIPE_MEDIA {
+        integer **id**
+        integer *recipe_id*
+        varchar type
+        varchar url
+        integer position
+        timestamptz created_at
+    }
+    
+    RECIPE_REVIEWS {
+        integer **id**
+        integer *recipe_id*
+        integer *author_id*
+        text body
+        boolean is_deleted
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    RECIPE_RATINGS {
+        integer **user_id**
+        integer **recipe_id**
+        smallint rating
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    USERS ||--o{ FOLLOWERS : "follows"
+    USERS ||--o{ RECIPES : "authors"
+    USERS ||--o{ RECIPE_RATINGS : "rates"
+    USERS ||--o{ RECIPE_REVIEWS : "writes"
+    USERS ||--o{ FAVORITES : "saves"
+    USERS ||--o{ RECIPE_SHARES : "shares"
+    USERS ||--o{ USER_ALLERGENS : "has"
+    USERS ||--o{ USER_DIETS : "follows"
+    
+    RECIPES ||--o{ RECIPE_INGREDIENTS : "contains"
+    RECIPES ||--o{ RECIPE_CATEGORY_MAP : "belongs_to"
+    RECIPES ||--o{ RECIPE_MEDIA : "has"
+    RECIPES ||--o{ RECIPE_REVIEWS : "receives"
+    RECIPES ||--o{ RECIPE_RATINGS : "receives"
+    
+    INGREDIENTS ||--o{ RECIPE_INGREDIENTS : "used_in"
+    INGREDIENTS ||--o{ INGREDIENT_CATEGORY_CORRESPONDENCE : "maps_to"
+    INGREDIENTS ||--o{ NUTRITION_FACTS : "has"
+    INGREDIENTS ||--o{ INGREDIENT_UNIT_CONVERSIONS : "converts"
+    INGREDIENTS ||--o{ INGREDIENT_PORTIONS : "has"
+    
+    RECIPE_INGREDIENTS ||--o{ UNITS : "uses"
+    
+    RECIPE_CATEGORIES ||--o{ RECIPE_CATEGORY_MAP : "categorizes"
+    RECIPE_CATEGORIES ||--o{ RECIPE_CATEGORY_TYPES : "types"
+    
+    INGREDIENT_CATEGORIES ||--o{ INGREDIENT_CATEGORY_CORRESPONDENCE : "categorizes"
+    INGREDIENT_CATEGORIES ||--o{ ALLERGEN_CATEGORIES : "maps"
+    INGREDIENT_CATEGORIES ||--o{ DIET_RESTRICTED_CATEGORIES : "restricts"
+    
+    ALLERGENS ||--o{ ALLERGEN_CATEGORIES : "restricts"
+    ALLERGENS ||--o{ USER_ALLERGENS : "restricted_by"
+    
+    DIETS ||--o{ DIET_RESTRICTED_CATEGORIES : "restricts"
+    DIETS ||--o{ USER_DIETS : "followed_by"
+    
+    UNITS ||--o{ INGREDIENT_UNIT_CONVERSIONS : "converts"
+    UNITS ||--o{ NUTRITION_FACTS : "base_unit"
 ```
 
-**Purpose**: Stores user profile data and visibility status
-**Key Fields**: User ID (from auth service), username, avatar URL, online status, role
+## Auth Database Collections
 
-### Followers Table
+### userModel
 
-```sql
-CREATE TABLE followers (
-  user_id INTEGER NOT NULL,
-  followed_id INTEGER NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  PRIMARY KEY (user_id, followed_id)
-);
-```
+| Field | Type | Required | Unique |
+|-------|------|----------|--------|
+| _id | ObjectId | ✓ | ✓ |
+| id | Number | ✓ | ✓ |
+| email | String | ✓ | ✓ |
+| passwordHash | String | ✓ | |
+| googleID | String | | ✓ |
 
-**Purpose**: Manages user-to-user follow relationships
-**Key Fields**: Unidirectional follower relationships with composite key
+### userCounter
 
-### Recipes Table
+| Field | Type | Required | Unique | Default |
+|-------|------|----------|--------|---------|
+| _id | ObjectId | ✓ | ✓ | |
+| name | String | ✓ | ✓ | "CounterDB" |
+| seq | Number | ✓ | | 1 |
 
-```sql
-CREATE TABLE recipes (
-  id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  title JSONB NOT NULL,
-  description JSONB,
-  instructions JSONB NOT NULL,
-  servings INTEGER DEFAULT 1,
-  spiciness SMALLINT CHECK (spiciness >= 0 AND spiciness <= 3),
-  author_id INTEGER,
-  status VARCHAR(16) DEFAULT 'published',
-  rating_avg NUMERIC(3,2) CHECK (rating_avg >= 1.0 AND rating_avg <= 5.0),
-  rating_count INTEGER DEFAULT 0,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-**Purpose**: Stores recipe data with multilingual support
-**Key Fields**: Localised title/instructions (JSON for en/fi/ru), author reference, publication status, rating metrics
-
-### Ingredients Table
-
-```sql
-CREATE TABLE ingredients (
-  id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR UNIQUE NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-**Purpose**: Master list of ingredient names
-**Key Fields**: Ingredient name (unique), creation timestamp
-
-### Recipe Ingredients Join Table
-
-```sql
-CREATE TABLE recipe_ingredients (
-  recipe_id INTEGER NOT NULL,
-  ingredient_id INTEGER NOT NULL,
-  amount NUMERIC,
-  unit VARCHAR(16),
-  PRIMARY KEY (recipe_id, ingredient_id)
-);
-```
-
-**Purpose**: Many-to-many relationship between recipes and ingredients
-**Key Fields**: Amount and unit for each ingredient in a recipe
-
-## Auth Database (MongoDB)
-
-**Collection**: users
-- Stores authentication credentials, password hashes, session tokens
-- <unknown or lacking>: Exact schema for credentials storage
-
-**Collection**: sessions
-- <unknown or lacking>: Session token format and storage strategy
-
-## Notification Database (PostgreSQL)
-
-**Tables**: <unknown or lacking>
-- Notification storage schema not fully documented
 
 # Features List
 

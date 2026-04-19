@@ -90,3 +90,8 @@
 	4. Nick: Working on recipe creation
 	5. Seela: Recipe reviews and fixing a 401/token issue
 23. 17/4/2026 
+	1. Anya: GET recipe review
+	2. Jimi: Fixing his complex PR
+	3. Seela: Google login FE part. PR reviewing.
+	4. Eric: Documentation. Fix issue with error 11000. Fix Logout PR.
+24. 
