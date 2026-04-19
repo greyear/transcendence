@@ -162,6 +162,37 @@ describe("API Gateway - Users Routes", () => {
 			);
 		});
 
+		it("should forward username search query to core-service", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				status: 200,
+				json: async () => ({
+					data: [
+						{ id: 1, username: "test_user", avatar: null, recipes_count: 2 },
+					],
+					count: 1,
+				}),
+			} as unknown as Response);
+
+			const response = await request(app).get("/users?q=test_user");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({
+				data: [
+					{ id: 1, username: "test_user", avatar: null, recipes_count: 2 },
+				],
+				count: 1,
+			});
+			expect(fetchSpy).toHaveBeenCalledWith(
+				expect.stringContaining("/users?q=test_user"),
+				expect.objectContaining({
+					headers: expect.objectContaining({
+						"Content-Type": "application/json",
+					}),
+					signal: expect.any(AbortSignal),
+				}),
+			);
+		});
+
 		it("should return 504 when downstream users list request times out", async () => {
 			const timeoutError = new Error("Request timed out");
 			timeoutError.name = "TimeoutError";

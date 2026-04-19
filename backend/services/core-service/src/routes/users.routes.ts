@@ -30,15 +30,33 @@ interface CustomError extends Error {
 	statusCode?: number;
 }
 
+const USER_SEARCH_MAX_LENGTH = 32;
+
 export const usersRouter: Router = Router();
 
 const getAllUsersHandler = async (
-	_req: Request,
+	req: Request,
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		const users = await getAllUsers();
+		const rawSearch = req.query.q;
+		if (rawSearch !== undefined && typeof rawSearch !== "string") {
+			const error: CustomError = new Error("Search query must be a string");
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const search = rawSearch?.trim();
+		if (search && search.length > USER_SEARCH_MAX_LENGTH) {
+			const error: CustomError = new Error(
+				`Search query must be ${USER_SEARCH_MAX_LENGTH} characters or less`,
+			);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const users = await getAllUsers(search || undefined);
 		res.status(200).json({ data: users, count: users.length });
 	} catch (error) {
 		next(error);
