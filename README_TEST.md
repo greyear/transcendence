@@ -24,6 +24,32 @@ Our ft_transcendence project, **Recipe Creating Platform (RCP)**, is a full-stac
 
 ---
 
+# Team members and roles
+
+Teams are required to consist of at least 4 and at most 5 members. Ours consisted of 5 members at kick-off.
+
+## Team members
+
+Our team consists of 5 members:
+- Anya Zinchenko (azinchen)
+- Nick Saveliev (msavelie)
+- Seela Salorinta (ssalorin)
+- Jimi Karhu (jkarhu)
+- Eric Lehtonen (elehtone)
+
+## Mandatory Roles
+
+- **Product Owner**: Overall project vision, work priority and validation of completed work.
+	- Anya and Nick shared this role at various stages during the project
+- **Project Manager**: Project planning, communication and deadlines.
+	- Anya
+- **Technical Lead**: Leads architecture and stack decisions, code quality, and critical reviews.
+	- Nick
+- **Developers**: Implement features, review code, test, and document contributions.
+	- All 5 of us were developers to various degrees
+
+---
+
 # Instructions
 
 ## Prerequisites
@@ -56,13 +82,13 @@ Replace placeholder values (e.g., `JWT_SECRET="your-super-secret-jwt-key-min-32-
 
 ## Running the Project
 
-Start all services via Docker Compose:
+### Start all services via Docker Compose:
 
 ```bash
-sudo make up
+make up
 ```
 
-`sudo` may not be required depending on your system.
+Bear in mind `sudo` is not available on Hive systems.
 
 This command:
 - Generates certificates if needed
@@ -75,47 +101,46 @@ Useful management commands:
 
 | Command | Description |
 |---------|-------------|
-| `sudo make down` | Stop all services |
-| `sudo make restart` | Restart the entire stack |
-| `sudo make logs` | Watch logs for all services |
-| `sudo make db-status` | View container health status |
-| `sudo make db-reset` | Reset database containers and volumes |
-| `sudo make clean` | Full cleanup including all volumes |
-| `sudo make re` | Full cleanup and restart |
+| `make down` | Stop all services |
+| `make restart` | Restart the entire stack |
+| `make logs` | Watch logs for all services |
+| `make db-status` | View container health status |
+| `make db-reset` | Reset database containers and volumes |
+| `make clean` | Full cleanup including all volumes |
+| `make re` | Full cleanup and restart |
 
-## Accessing the Application
+### Accessing the Application
 
-- **Frontend**: `https://localhost:8443` (or `https://localhost` if port forwarding is configured)
+- **Frontend**: `https://localhost:8443` (or `https://localhost`)
 - **API Gateway**: `http://localhost:3000` (internal/development)
 - **Auth Service**: `http://auth-service:3001` (internal Docker network)
 - **Core Service**: `http://core-service:3002` (internal Docker network)
 - **Traefik Dashboard**: `http://localhost:8080` (traffic and routing visualisation)
 
----
+## Testing
 
-# Team members and roles
+The project uses **Jest** and **Supertest** for integration testing.
 
-Teams are required to consist of at least 4 and at most 5 members. Ours consisted of 5 members at kick-off.
+### How to Run Tests
 
-## Team members
+From the project root:
 
-Our team consists of 5 members:
-- Anya Zinchenko (azinchen)
-- Nick Saveliev (msavelie)
-- Seela Salorinta (ssalorin)
-- Jimi Karhu (jkarhu)
-- Eric Lehtonen (elehtone)
+```bash
+# Run all tests for all services
+make test-jest-all
 
-## Mandatory Roles
+# Run tests for a specific service using the root Makefile
+make test-jest-core
+make test-jest-api
 
-- **Product Owner**: Overall project vision, work priority and validation of completed work.
-	- Anya and Nick shared this role at various stages during the project
-- **Project Manager**: Project planning, communication and deadlines.
-	- Anya
-- **Technical Lead**: Leads architecture and stack decisions, code quality, and critical reviews.
-	- Nick
-- **Developers**: Implement features, review code, test, and document contributions.
-	- All 5 of us were developers to various degrees
+# Alternative: run directly in the service directory via npm
+cd backend/services/core-service && npm test
+cd backend/services/api-gateway && npm test
+
+# Run tests in "watch" mode (re-runs on file changes)
+cd backend/services/core-service && npm run test:watch
+cd backend/services/api-gateway && npm run test:watch
+```
 
 ---
 
@@ -145,6 +170,8 @@ AI tools (such as GitHub Copilot and Claude Code) were used int he following way
 A practical example of AI usage is this here README. Initial work was done by passing the README requirements section of the subject PDF to the AI and asking it to generate a readme for our project. We worked that into the end result you see here.
 
 All AI-generated code passes before human eyes prior to any use in the project.
+
+---
 
 # Tech stack
 
@@ -184,10 +211,6 @@ All AI-generated code passes before human eyes prior to any use in the project.
   - **Port**: 5433
   - **Name**: `core_db`
   
-- **Notification Database**: PostgreSQL 15 (stores notifications and events)
-  - **Port**: 5434
-  - **Name**: `notification_db`
-
 **Rationale**: PostgreSQL selected for relational data (recipes, users, followers) with ACID compliance. MongoDB selected for flexible authentication session storage. Separate databases enable independent scaling and failure isolation.
 
 ## Infrastructure & DevOps
@@ -199,9 +222,78 @@ All AI-generated code passes before human eyes prior to any use in the project.
 
 **Rationale**: Docker ensures consistency across development and production environments. Traefik provides automatic HTTPS routing and service discovery within the containerised environment.
 
+---
+
+# Features List
+
+## Core Features (Implemented)
+
+| Feature | Description | Owner(s) | Status |
+|---------|-------------|----------|--------|
+| User Registration & Authentication | Secure user account creation and login | Eric | <unknown or lacking> |
+| User Profiles | Customisable user profiles with avatar support | <unknown or lacking> | <unknown or lacking> |
+| Recipe Creation | Users can create and publish recipes | <unknown or lacking> | <unknown or lacking> |
+| Recipe Discovery | Browse and search recipes with filtering | <unknown or lacking> | <unknown or lacking> |
+| Favourites | Save recipes to favourites list | <unknown or lacking> | <unknown or lacking> |
+| Follow System | Follow other cooks, view follower lists | <unknown or lacking> | <unknown or lacking> |
+| Comments | Leave comments on recipes | <unknown or lacking> | <unknown or lacking> |
+| Recipe Ratings | Rate recipes (1–5 stars) | <unknown or lacking> | <unknown or lacking> |
+| Multilingual Support | Interface in English, Finnish, Russian | <unknown or lacking> | <unknown or lacking> |
+| Responsive Design | Mobile and desktop compatibility | <unknown or lacking> | <unknown or lacking> |
+
+# Modules
+
+## Module Strategy
+
+Due to the time pressure we had for this project we agreed on a module selection that gave us some leeway for change but should easily allow us to meet the required minimum. Our plan consisted of modules totalling 20 points. This gives us ample flexibility should problems or unseen issues arrive. This also gives us some flexibility should an evaluator encounter a critical failure.
+
+## Planned Modules
+
+### WEB - 5 points
+
+| Module Name | Type | Points | Notes |
+|-------------|------|--------|-------|
+| Framework for Frontend and Backend | Major | 2 | React 19 (frontend) and Express.js (backend) implemented |
+| Server-Side Rendering (SSR) | Minor | 1 | React Router v7 with server-side rendering capabilities |
+| Custom Design System | Minor | 1 | Reusable components with consistent color palette, typography, and Iconoir icons |
+| Advanced Search Functionality | Minor | 1 | Filtering, sorting, and pagination implemented across recipes and users |
+
+### Accessibility and Internationalization - 4 points
+
+| Module Name | Type | Points | Notes |
+|-------------|------|--------|-------|
+| WCAG 2.1 AA Accessibility Compliance | Major | 2 | Screen reader support, keyboard navigation, and assistive technology support |
+| Multiple Language Support | Minor | 1 | Support for English, Finnish, and Russian using react-i18next |
+| Additional Browser Support | Minor | 1 | Responsive design and cross-browser compatibility |
+
+### User Management - 5 points
+
+| Module Name | Type | Points | Notes |
+|-------------|------|--------|-------|
+| Standard User Management and Authentication | Major | 2 | Secure registration, login, and JWT-based authentication |
+| OAuth 2.0 Remote Authentication | Minor | 1 | Google OAuth integration for single sign-on |
+| Advanced Permissions System | Major | 2 | Role-based access control (admin, user, guest) |
+
+### Artificial Intelligence - 4 points
+
+| Module Name | Type | Points | Notes |
+|-------------|------|--------|-------|
+| RAG (Retrieval-Augmented Generation) System | Major | 2 | Complete RAG implementation for intelligent content retrieval |
+| Machine Learning Recommendation System | Major | 2 | ML-based recommendation engine for recipe suggestions |
+
+### Devops - 2 points
+
+| Module Name | Type | Points | Notes |
+|-------------|------|--------|-------|
+| Microservices Architecture | Major | 2 | Backend implemented as microservices (Auth, Core, Search, Translation services) |
+
+**Total Points: 20**
+
+---
+
 # Database Schema
 
-## Recipe Database Model Diagram
+## Recipe erDiagram
 
 ```mermaid
 erDiagram
@@ -428,6 +520,8 @@ erDiagram
 
 ### userModel
 
+Stores registered users' data.
+
 | Field | Type | Required | Unique |
 |-------|------|----------|--------|
 | _id | ObjectId | ✓ | ✓ |
@@ -438,94 +532,120 @@ erDiagram
 
 ### userCounter
 
+Used in the function to generate the next userId.
+
 | Field | Type | Required | Unique | Default |
 |-------|------|----------|--------|---------|
 | _id | ObjectId | ✓ | ✓ | |
 | name | String | ✓ | ✓ | "CounterDB" |
 | seq | Number | ✓ | | 1 |
 
+# Rationale for tech choices
 
-# Features List
+## Database choice:
+This project uses multiple databases, each chosen to suit the way the relevant service stores and queries data.
 
-## Core Features (Implemented)
+Each microservice owns its database and is the single source of truth for its data.
 
-| Feature | Description | Owner(s) | Status |
-|---------|-------------|----------|--------|
-| User Registration & Authentication | Secure user account creation and login | <unknown or lacking> | <unknown or lacking> |
-| User Profiles | Customisable user profiles with avatar support | <unknown or lacking> | <unknown or lacking> |
-| Recipe Creation | Users can create and publish recipes | <unknown or lacking> | <unknown or lacking> |
-| Recipe Discovery | Browse and search recipes with filtering | <unknown or lacking> | <unknown or lacking> |
-| Favourites | Save recipes to favourites list | <unknown or lacking> | <unknown or lacking> |
-| Follow System | Follow other cooks, view follower lists | <unknown or lacking> | <unknown or lacking> |
-| Comments | Leave comments on recipes | <unknown or lacking> | <unknown or lacking> |
-| Recipe Ratings | Rate recipes (1–5 stars) | <unknown or lacking> | <unknown or lacking> |
-| Multilingual Support | Interface in English, Finnish, Russian | <unknown or lacking> | <unknown or lacking> |
-| Real-time Notifications | Push notifications for follows, comments, ratings | <unknown or lacking> | <unknown or lacking> |
-| Responsive Design | Mobile and desktop compatibility | <unknown or lacking> | <unknown or lacking> |
+* The authentication service stores identity and credential data in MongoDB.
+* The core service stores business data in PostgreSQL.
 
-# Modules
+This separation:
+* keeps the services loosely coupled by isolating their data and responsibilities
+* simplifies scaling and maintenance
+* aligns with microservice best practices
+* avoids cross-service database access
 
-## Module Strategy
+**PostgreSQL**
+PostgreSQL is used for the core service, where the system relies heavily on:
+* strong relationships between entities
+* referential integrity across related records
+* transactional consistency
+* complex queries and filtering
+* many-to-many relationships
 
-The project aims to implement a comprehensive set of modules from the ft_transcendence specification to reach the required 14-point minimum for evaluation.
+Core domain features such as public profiles, recipes, ingredients, categories, followers, favourites, and comments require reliable consistency and explicit relationships between entities, which relational databases provide naturally.
 
-## Planned Modules
+PostgreSQL was selected due to:
+* ACID-compliant transactions
+* rich support for relational modelling
+* advanced indexing capabilities
+* support for complex joins and constraints
+* suitability for scalable microservice architectures with strict data ownership
 
-**Major Modules (2 points each)**
+These characteristics are important for maintaining data correctness under concurrent operations and higher read/write load.
 
-- <unknown or lacking>
+PostgreSQL is also widely used in modern development, making it a practical and familiar choice.
 
-**Minor Modules (1 point each)**
+**MongoDB**
+MongoDB is used exclusively by the authentication service.
 
-- <unknown or lacking>
+Authentication data has different characteristics from the core domain:
+* flexible and evolving schema (allows schema changes without costly migrations)
+* no complex joins
+* high read/write frequency
+* isolated data ownership
 
-**Total Points**: <unknown or lacking>
+MongoDB is a good fit for this use case because it:
+* allows flexible document-based modelling
+* simplifies storage of authentication-related data
+* avoids unnecessary relational overhead
+* remains isolated from core domain data
 
-## Module Justification
+Using MongoDB for authentication keeps sensitive credential data decoupled from the core relational database, which improves security and scalability.
 
-<unknown or lacking>
+## Microservices:
+The system is divided into microservices based on clearly defined responsibilities: authentication, core domain logic, and request routing.
+Each service owns its data and encapsulates a single responsibility, while the API Gateway acts as the unified entry point for client requests.
 
-# Individual Contributions
+Business logic lives within the individual services, while cross-cutting concerns are handled at the gateway level.
 
-## Contribution Breakdown by Team Member
+### API Gateway
 
-| Team Member | Primary Responsibilities | Key Contributions | Modules Implemented |
-|-------------|------------------------|-------------------|-------------------|
-| <unknown or lacking> | <unknown or lacking> | <unknown or lacking> | <unknown or lacking> |
-| <unknown or lacking> | <unknown or lacking> | <unknown or lacking> | <unknown or lacking> |
-| <unknown or lacking> | <unknown or lacking> | <unknown or lacking> | <unknown or lacking> |
-| <unknown or lacking> | <unknown or lacking> | <unknown or lacking> | <unknown or lacking> |
-| <unknown or lacking> | <unknown or lacking> | <unknown or lacking> | <unknown or lacking> |
+Responsibility:
+* Acts as the single entry point for all client requests.
 
-## Challenges & Solutions
+Contains:
+* Request routing to internal services
+* JWT validation and authentication middleware
+* Rate limiting and API key validation
+* Request/response logging
+* Basic request validation
+* Response aggregation (if needed)
 
-**Challenge**: <unknown or lacking>
-**Solution**: <unknown or lacking>
+Does NOT contain:
+* Business logic
+* Database access
 
-**Challenge**: <unknown or lacking>
-**Solution**: <unknown or lacking>
+### Auth Service
 
-# Additional Information
+Responsibility:
+* Manages authentication and user identity.
 
-## Known Limitations
+Contains:
+* User registration and login
+* Password hashing and verification
+* JWT and refresh token generation
+* OAuth 2.0 integration (Google)
+* Two-factor authentication logic (auth app)
+* Token revocation and session management
 
-- <unknown or lacking>
-- <unknown or lacking>
+Database: auth_db (MongoDB)
 
-## Future Enhancements
+### Core Service
 
-- Advanced search with full-text indexing
-- Recommendation algorithm based on user preferences
-- Social features: direct messaging between users
-- Recipe rating algorithms considering cook reputation
-- Data export functionality for GDPR compliance
+Responsibility:
+Manages the core business domain of the application, including user profiles, recipes, and social interactions.
 
-## License
+Contains:
+* User profile management (public profile data)
+* Avatar metadata management
+* Recipes CRUD operations
+* Ingredients, categories, and dietary data management
+* Favourites and user–recipe interactions
+* Followers system (mutual follows treated as friends)
+* Comments on recipes
+* Advanced filtering and search across recipes
+* Domain-specific business rules and validations
 
-ISC License
-
-## Credits & Acknowledgements
-
-- 42 School curriculum and evaluation framework
-- Open-source community libraries and documentation
-- Contributing team members and peer reviewers
+Database: core_db (PostgreSQL)

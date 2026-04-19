@@ -1,0 +1,41 @@
+WEB:
+=====
+Major: Use a framework for both the frontend and backend.
+
+Minor: Server-Side Rendering (SSR) for improved performance and SEO.
+
+Minor: Custom-made design system with reusable components, including a proper color palette, typography, and icons (minimum: 10 reusable components).
+
+Minor: Implement advanced search functionality with filters, sorting, and pagination.
+
+
+Accessibility and Internationalization:
+=====
+Major: Complete accessibility compliance (WCAG 2.1 AA) with screen reader support, keyboard navigation, and assistive technologies.
+
+Minor: Support for multiple languages (at least 3 languages).
+
+Minor: Support for additional browsers.
+
+
+User Management:
+=====
+Major: Standard user management and authentication.
+
+Minor: Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.).
+
+Major: Advanced permissions system
+
+
+Artificial Intelligence:
+=====
+Major: Implement a complete RAG (Retrieval-Augmented Generation) system.
+
+Major: Recommendation system using machine learning.
+
+
+Devops:
+=====
+Major: Backend as microservices.
+
+
