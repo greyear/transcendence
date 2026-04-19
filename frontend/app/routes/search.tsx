@@ -192,13 +192,6 @@ const SearchPage = () => {
 					onChange={handleSortChange}
 				/>
 
-				<SortMenu
-					options={limitOptions}
-					value={String(limit)}
-					onChange={handleLimitChange}
-					label={`${t("searchPage.perPage")}: ${limit}`}
-				/>
-
 				<TextIconButton>
 					{t("common.filterButton")}
 					<Filter />
@@ -243,11 +236,19 @@ const SearchPage = () => {
 					)}
 
 					{results.data.length > 0 && (
-						<Pagination
-							totalElementsCount={total}
-							elementsPerPage={limit}
-							totalPagesCount={totalPages}
-						/>
+						<div className="search-page__pagination-row">
+							<SortMenu
+								options={limitOptions}
+								value={String(limit)}
+								onChange={handleLimitChange}
+								label={`${t("searchPage.perPage")}: ${limit}`}
+							/>
+							<Pagination
+								totalElementsCount={total}
+								elementsPerPage={limit}
+								totalPagesCount={totalPages}
+							/>
+						</div>
 					)}
 				</>
 			)}
