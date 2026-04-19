@@ -114,7 +114,7 @@ describe("Users Routes", () => {
 			expect(response.body.data).not.toHaveProperty("role");
 		});
 
-		it("should report is_following=false when requester is not followed back", async () => {
+		it("should report is_following=false when target is not followed", async () => {
 			const response = await request(app)
 				.get("/users/10004")
 				.set("X-User-Id", "10003");
