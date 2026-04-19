@@ -398,7 +398,7 @@ authRouter.post(
 */
 authRouter.post(
 	"/logout",
-	help.compareJWT,
+	help.validateJWT,
 	async (_req: Request, res: Response, next: NextFunction) => {
 		try {
 			res.clearCookie("token", {

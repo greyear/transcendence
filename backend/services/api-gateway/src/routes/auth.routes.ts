@@ -20,6 +20,29 @@ const tokenResponseSchema = z.object({ token: z.string() });
 const AUTH_SERVICE_URL =
 	process.env.AUTH_SERVICE_URL || "http://auth-service:3001";
 
+// Helper to extract token from either cookie or Authorization header
+// and return appropriate headers for forwarding to auth-service
+const getAuthHeaders = (req: Request): Record<string, string> => {
+	const headers: Record<string, string> = {
+		"Content-Type": "application/json",
+	};
+
+	// First try Authorization header
+	if (req.headers.authorization) {
+		headers.authorization = req.headers.authorization;
+		return headers;
+	}
+
+	// Then try cookie
+	const cookieToken = typeof req.cookies?.token === "string" ? req.cookies.token : null;
+	if (cookieToken) {
+		headers.authorization = `Bearer ${cookieToken}`;
+		return headers;
+	}
+
+	return headers;
+};
+
 const postAuthRegisterHandler: RequestHandler = async (
 	req: Request,
 	res: Response,
@@ -80,13 +103,7 @@ const postGoogleHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-		};
-		// Forward Authorization header if present
-		if (req.headers.authorization) {
-			headers.authorization = req.headers.authorization;
-		}
+		const headers = getAuthHeaders(req);
 		const response = await fetch(`${AUTH_SERVICE_URL}/google`, {
 			method: "POST",
 			headers,
@@ -112,13 +129,7 @@ const postValidateHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-		};
-		// Forward Authorization header if present
-		if (req.headers.authorization) {
-			headers.authorization = req.headers.authorization;
-		}
+		const headers = getAuthHeaders(req);
 		const response = await fetch(`${AUTH_SERVICE_URL}/validate`, {
 			method: "POST",
 			headers,
@@ -136,13 +147,7 @@ const deleteUserHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-		};
-		// Forward Authorization header if present
-		if (req.headers.authorization) {
-			headers.authorization = req.headers.authorization;
-		}
+		const headers = getAuthHeaders(req);
 		const response = await fetch(`${AUTH_SERVICE_URL}/delete`, {
 			method: "DELETE",
 			headers,
@@ -161,13 +166,7 @@ const patchChangePasswordHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-		};
-		// Forward Authorization header if present
-		if (req.headers.authorization) {
-			headers.authorization = req.headers.authorization;
-		}
+		const headers = getAuthHeaders(req);
 		const response = await fetch(`${AUTH_SERVICE_URL}/change-password`, {
 			method: "PATCH",
 			headers,
@@ -186,12 +185,7 @@ const getMeHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-		};
-		if (req.headers.authorization) {
-			headers.authorization = req.headers.authorization;
-		}
+		const headers = getAuthHeaders(req);
 		const response = await fetch(`${AUTH_SERVICE_URL}/me`, {
 			method: "GET",
 			headers,
@@ -209,13 +203,7 @@ const postLogoutHandler: RequestHandler = async (
 	next: NextFunction,
 ) => {
 	try {
-		const headers: Record<string, string> = {
-			"Content-Type": "application/json",
-		};
-		if (req.headers.authorization) {
-			headers.authorization = req.headers.authorization;
-		}
-
+		const headers = getAuthHeaders(req);
 		const response = await fetch(`${AUTH_SERVICE_URL}/logout`, {
 			method: "POST",
 			headers,

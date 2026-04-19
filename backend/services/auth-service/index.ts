@@ -1,10 +1,12 @@
 import express from "express";
+import cookieParser from 'cookie-parser'
 import "dotenv/config";
 import { authRouter } from "./src/auth_db_operations.js";
 import { authGetSet } from "./src/authGetSet.js";
 import * as help from "./src/authHelpers.js";
 
 const app = express();
+app.use(cookieParser());
 
 // Parse incoming JSON requests automatically
 //https://www.geeksforgeeks.org/node-js/getting-started-with-express-js/

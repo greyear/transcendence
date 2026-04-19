@@ -1,282 +1,543 @@
-# Auth Service - Manual curl reference
-# Matches current codebase: no username field, email-based auth, parameterless endpoints
-# BASE_URL: https://localhost:8443/auth
-# Replace <TOKEN_FROM_TEST_N> with the token value printed by that test
+# Auth Service - Manual curl reference (Comprehensive Test Suite)
+# Matches test-auth-comprehensive.sh - single set of non-duplicate curls (42 total tests)
+# BASE_URL: http://localhost:3000/auth (http for local testing, https for production)
+#
 # Replace <GOOGLE_ID_TOKEN> with a fresh token from https://developers.google.com/oauthplayground
-# Replace <USER_ID_FROM_TEST_22> with the id value returned by test 22
+# Replace <TOKEN_FROM_TEST_N> with actual token values from responses
+# Replace <USER_ID> with actual id values from responses
+#
+# Cookie jar locations:
+#   /tmp/normal-cookie.txt - for normal auth flows
+#   /tmp/google-cookie.txt - for Google auth flows
+#   /tmp/delete-2.txt - for delete flow cookie jar tests
 
+# ========== 1. NORMAL REGISTRATION & LOGIN ==========
 
-# ========== 1. NORMAL REGISTRATION TESTS ==========
-
-# 1. Register new user - valid
-curl -X POST 'https://localhost:8443/auth/register' \
+# Test 1: Register normal user (for header token tests)
+curl -X POST 'http://localhost:3000/auth/register' \
   -H 'Content-Type: application/json' \
-  -d '{"email":"normal1@test.local","password":"TestPass123!"}'
+  -d '{"email":"normaluser@test.local","password":"TestPass123!"}'
 
-  201: {"email":"normal1@test.local","id":<id>,"token":"<token>","message":"Login successful"}
+Expected: 201 {"email":"normaluser@test.local","id":100000,"token":"<JWT>","message":"Login successful"}
+Save token as TOKEN_1
 
 
-# 2. Register - duplicate email
-curl -X POST 'https://localhost:8443/auth/register' \
+# Test 1b: Register second normal user (for cookie jar tests)
+curl -X POST 'http://localhost:3000/auth/register' \
   -H 'Content-Type: application/json' \
-  -d '{"email":"normal1@test.local","password":"TestPass456@"}'
+  -d '{"email":"normaluser2@test.local","password":"TestPass123!"}' \
+  -c /tmp/normal-cookie.txt
 
-  409: {"error":"Resource exists"}
+Expected: 201 with Set-Cookie header, saves cookie to jar
+Cookie jar verification: grep "token" /tmp/normal-cookie.txt (should find token)
 
 
-# 3. Register - invalid email format
-curl -X POST 'https://localhost:8443/auth/register' \
+# ========== 2. NORMAL VALIDATION - HEADER & COOKIE ==========
+
+# Test 2: Validate with Authorization header
+curl -X POST 'http://localhost:3000/auth/validate' \
   -H 'Content-Type: application/json' \
-  -d '{"email":"notanemail","password":"TestPass123!"}'
+  -H 'Authorization: Bearer <TOKEN_1>'
 
-  422: {"error":"Invalid email address"}
+Expected: 200 {"id":100000}
 
 
-# 4. Register - password too short
-curl -X POST 'https://localhost:8443/auth/register' \
+# Test 3: Validate with cookie jar
+curl -X POST 'http://localhost:3000/auth/validate' \
   -H 'Content-Type: application/json' \
-  -d '{"email":"user4@test.local","password":"Short1!"}'
+  -b /tmp/normal-cookie.txt
 
-  422: {"error":"The password doesn't match the password requirements"}
+Expected: 200 {"id":100001}
+Cookie jar check: grep "token" /tmp/normal-cookie.txt (verify cookie present)
 
 
-# 5. Register - password no uppercase
-curl -X POST 'https://localhost:8443/auth/register' \
+# ========== 3. NORMAL LOGOUT - HEADER & COOKIE ==========
+
+# Test 4: Logout with Authorization header
+curl -X POST 'http://localhost:3000/auth/logout' \
   -H 'Content-Type: application/json' \
-  -d '{"email":"user5@test.local","password":"testpass123!"}'
+  -H 'Authorization: Bearer <TOKEN_1>'
 
-  422: {"error":"The password doesn't match the password requirements"}
+Expected: 200 {"message":"Logout successful"}
 
 
-# 6. Register - missing email
-curl -X POST 'https://localhost:8443/auth/register' \
+# Test 5: Login for logout with cookie jar
+curl -X POST 'http://localhost:3000/auth/login' \
   -H 'Content-Type: application/json' \
-  -d '{"password":"TestPass123!"}'
+  -d '{"email":"normaluser@test.local","password":"TestPass123!"}' \
+  -c /tmp/normal-cookie.txt
 
-  422: {"error":"Invalid email address"}
+Expected: 200 {"token":"<JWT>","message":"Login successful"}
+Cookie jar check: grep "token" /tmp/normal-cookie.txt (verify cookie present)
 
 
-# ========== 2. NORMAL LOGIN TESTS ==========
-
-# 7. Login - valid by email
-curl -X POST 'https://localhost:8443/auth/login' \
+# Test 6: Logout with cookie jar
+curl -X POST 'http://localhost:3000/auth/logout' \
   -H 'Content-Type: application/json' \
-  -d '{"email":"normal1@test.local","password":"TestPass123!"}'
+  -b /tmp/normal-cookie.txt \
+  -c /tmp/normal-cookie.txt
 
-  200: {"token":"<token>","message":"Login successful"}
+Expected: 200 {"message":"Logout successful"}
 
 
-# 8. Login - wrong password
-curl -X POST 'https://localhost:8443/auth/login' \
+# Test 7: Validate after logout (should fail - cookie cleared)
+curl -X POST 'http://localhost:3000/auth/validate' \
   -H 'Content-Type: application/json' \
-  -d '{"email":"normal1@test.local","password":"WrongPass123!"}'
+  -b /tmp/normal-cookie.txt
 
-  401: {"error":"Password mismatch"}
+Expected: 401 {"error":"Invalid token"}
+Cookie jar check: ! grep "token" /tmp/normal-cookie.txt (verify cookie jar empty)
 
 
-# 9. Login - non-existent email
-curl -X POST 'https://localhost:8443/auth/login' \
+# ========== 4. NORMAL PASSWORD CHANGE - HEADER & COOKIE ==========
+
+# Test 8: Login to get token for password change
+curl -X POST 'http://localhost:3000/auth/login' \
   -H 'Content-Type: application/json' \
-  -d '{"email":"doesnotexist@test.local","password":"TestPass123!"}'
+  -d '{"email":"normaluser@test.local","password":"TestPass123!"}'
 
-  404: {"error":"User not found"}
+Expected: 200 {"token":"<JWT>","message":"Login successful"}
+Extract USER_ID from JWT payload: echo "payload" | base64 -d | jq '.userId'
 
 
-# 10. Login - missing email field
-curl -X POST 'https://localhost:8443/auth/login' \
+# Test 9: Change password with Authorization header
+curl -X PATCH 'http://localhost:3000/auth/change-password' \
   -H 'Content-Type: application/json' \
-  -d '{"password":"TestPass123!"}'
+  -H 'Authorization: Bearer <TOKEN_FROM_TEST_8>' \
+  -d '{"userId":<USER_ID>,"password":"TestPass123!","newPassword":"NewPass456@"}'
 
-  404: {"error":"User not found"}
+Expected: 200 {"message":"Password updated successfully"}
 
 
-# 11. Login - extract token for later tests (same as test 7, copy the token value)
-curl -X POST 'https://localhost:8443/auth/login' \
+# Test 10: Login for password change with cookie jar
+curl -X POST 'http://localhost:3000/auth/login' \
   -H 'Content-Type: application/json' \
-  -d '{"email":"normal1@test.local","password":"TestPass123!"}'
+  -d '{"email":"normaluser2@test.local","password":"TestPass123!"}' \
+  -c /tmp/normal-cookie.txt
 
-  200: {"token":"<TOKEN_FROM_TEST_11>","message":"Login successful"}
+Expected: 200 {"token":"<JWT>","message":"Login successful"}
+Extract USER_ID from JWT for test 11
 
 
-# ========== 3. GOOGLE LOGIN TESTS ==========
+# Test 11: Change password with cookie jar
+curl -X PATCH 'http://localhost:3000/auth/change-password' \
+  -H 'Content-Type: application/json' \
+  -b /tmp/normal-cookie.txt \
+  -c /tmp/normal-cookie.txt \
+  -d '{"userId":<USER_ID_FROM_TEST_10>,"password":"TestPass123!","newPassword":"NewPass456@"}'
 
-# 12. Google - create new user (first time this Google account is seen)
-curl -X POST 'https://localhost:8443/auth/google' \
+Expected: 200 {"message":"Password updated successfully"}
+
+
+# Test 12: Login with new password (header)
+curl -X POST 'http://localhost:3000/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"normaluser@test.local","password":"NewPass456@"}'
+
+Expected: 200 {"token":"<JWT>","message":"Login successful"}
+
+
+# Test 13: Login with new password (cookie jar)
+curl -X POST 'http://localhost:3000/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"normaluser2@test.local","password":"NewPass456@"}' \
+  -c /tmp/normal-cookie.txt
+
+Expected: 200 {"token":"<JWT>","message":"Login successful"}
+
+
+# ========== 5. NORMAL /ME ENDPOINT - HEADER & COOKIE ==========
+
+# Test 14: /me with Authorization header
+curl -X GET 'http://localhost:3000/auth/me' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <TOKEN_FROM_TEST_12>'
+
+Expected: 200 {"id":100000,"email":"normaluser@test.local"}
+
+
+# Test 15: /me with cookie jar
+curl -X GET 'http://localhost:3000/auth/me' \
+  -H 'Content-Type: application/json' \
+  -b /tmp/normal-cookie.txt
+
+Expected: 200 {"id":100001,"email":"normaluser2@test.local"}
+
+
+# ========== 6. NORMAL DELETE - HEADER & COOKIE ==========
+
+# Test 16: Register user for deletion (header flow)
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"deletetest1@test.local","password":"TestPass123!"}'
+
+Expected: 201 {"email":"deletetest1@test.local","id":100002,"token":"<JWT>","message":"Login successful"}
+Save USER_ID: 100002, TOKEN for test 17
+
+
+# Test 17: Delete user with Authorization header
+curl -X DELETE 'http://localhost:3000/auth/delete' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <TOKEN_FROM_TEST_16>' \
+  -d '{"userId":100002}'
+
+Expected: 200 {"message":"User deleted"}
+
+
+# Test 18: Validate deletion (should fail)
+curl -X POST 'http://localhost:3000/auth/validate' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <TOKEN_FROM_TEST_16>'
+
+Expected: 401 {"error":"Invalid token"}
+
+
+# Test 18b: Login attempt with deleted user (header)
+curl -X POST 'http://localhost:3000/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"deletetest1@test.local","password":"TestPass123!"}'
+
+Expected: 401 {"error":"User not found"}
+
+
+# Test 19: Register user for deletion (cookie jar flow)
+curl -X POST 'http://localhost:3000/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"deletetest2@test.local","password":"TestPass123!"}' \
+  -c /tmp/delete-2.txt
+
+Expected: 201 with Set-Cookie, saves USER_ID: 100003
+
+
+# Test 20: Delete user with cookie jar
+curl -X DELETE 'http://localhost:3000/auth/delete' \
+  -H 'Content-Type: application/json' \
+  -b /tmp/delete-2.txt \
+  -c /tmp/delete-2.txt \
+  -d '{"userId":100003}'
+
+Expected: 200 {"message":"User deleted"}
+
+
+# Test 21: Validate deletion with cookie jar (should fail)
+curl -X POST 'http://localhost:3000/auth/validate' \
+  -H 'Content-Type: application/json' \
+  -b /tmp/delete-2.txt
+
+Expected: 401 {"error":"Invalid token"}
+
+
+# Test 21b: Login attempt with deleted user (cookie jar)
+curl -X POST 'http://localhost:3000/auth/login' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"deletetest2@test.local","password":"TestPass123!"}'
+
+Expected: 401 {"error":"User not found"}
+
+
+# ========== 7. GOOGLE LOGIN ==========
+
+# Test 21: Google login (header flow)
+curl -X POST 'http://localhost:3000/auth/google' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <GOOGLE_ID_TOKEN>'
 
-  201: {"googleID":"118020156076506959118","email":"durgledoggy@gmail.com","name":"Durgle Doggy","id":<id>,"token":"<token>","message":"Login successful"}
+Expected: 201 (first login) {"googleID":"118020156076506959118","email":"durgledoggy@gmail.com","id":100004,"token":"<JWT>","message":"Login successful"}
+OR
+Expected: 200 (subsequent logins) {"token":"<JWT>","message":"Login successful"}
 
 
-# 13. Google - existing user login (same token as test 12)
-curl -X POST 'https://localhost:8443/auth/google' \
+# Test 21b: Google login (cookie jar flow - save to jar)
+curl -X POST 'http://localhost:3000/auth/google' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <GOOGLE_ID_TOKEN>' \
+  -c /tmp/google-cookie.txt
+
+Expected: 200 {"token":"<JWT>","message":"Login successful"}
+
+
+# ========== 8. GOOGLE VALIDATION - HEADER & COOKIE ==========
+
+# Test 22: Validate Google header token
+curl -X POST 'http://localhost:3000/auth/validate' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <TOKEN_FROM_TEST_21>'
+
+Expected: 200 {"id":100004}
+
+
+# Test 23: Validate Google cookie jar
+curl -X POST 'http://localhost:3000/auth/validate' \
+  -H 'Content-Type: application/json' \
+  -b /tmp/google-cookie.txt
+
+Expected: 200 {"id":100004}
+
+
+# ========== 9. GOOGLE LOGOUT - HEADER & COOKIE ==========
+
+# Test 24: Logout Google header token
+curl -X POST 'http://localhost:3000/auth/logout' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <TOKEN_FROM_TEST_21>'
+
+Expected: 200 {"message":"Logout successful"}
+
+
+# Test 25: Google login for cookie logout (refresh jar)
+curl -X POST 'http://localhost:3000/auth/google' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <GOOGLE_ID_TOKEN>' \
+  -c /tmp/google-cookie.jar
+
+Expected: 200 {"token":"<JWT>","message":"Login successful"}
+Cookie jar check: grep "token" /tmp/google-cookie.txt (verify cookie present)
+
+
+# Test 26: Logout Google cookie jar
+curl -X POST 'http://localhost:3000/auth/logout' \
+  -H 'Content-Type: application/json' \
+  -b /tmp/google-cookie.txt \
+  -c /tmp/google-cookie.txt
+
+Expected: 200 {"message":"Logout successful"}
+
+
+# Test 27: Validate after Google logout (should fail)
+curl -X POST 'http://localhost:3000/auth/validate' \
+  -H 'Content-Type: application/json' \
+  -b /tmp/google-cookie.txt
+
+Expected: 401 {"error":"Invalid token"}
+Cookie jar check: ! grep "token" /tmp/google-cookie.txt (verify cookie jar empty)
+
+
+# ========== 10. GOOGLE /ME ENDPOINT - HEADER & COOKIE ==========
+
+# Test 28: Google login for /me (header and cookie jar)
+curl -X POST 'http://localhost:3000/auth/google' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <GOOGLE_ID_TOKEN>' \
+  -c /tmp/google-cookie.txt
+
+Expected: 200 {"token":"<JWT>","message":"Login successful"}
+Save token for test 29
+
+
+# Test 29: /me with Google header token
+curl -X GET 'http://localhost:3000/auth/me' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <TOKEN_FROM_TEST_28>'
+
+Expected: 200 {"id":100004,"email":"durgledoggy@gmail.com"}
+
+
+# Test 30: /me with Google cookie jar
+curl -X GET 'http://localhost:3000/auth/me' \
+  -H 'Content-Type: application/json' \
+  -b /tmp/google-cookie.txt
+
+Expected: 200 {"id":100004,"email":"durgledoggy@gmail.com"}
+
+
+# ========== 11. GOOGLE DELETE - HEADER & COOKIE ==========
+
+# Test 31: Google login for delete (header flow)
+curl -X POST 'http://localhost:3000/auth/google' \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <GOOGLE_ID_TOKEN>'
 
-  200: {"token":"<TOKEN_FROM_TEST_13>","message":"Login successful"}
+Expected: 200 {"token":"<JWT>","message":"Login successful"}
+Extract USER_ID from JWT payload
 
 
-# 14. Google - missing token
-curl -X POST 'https://localhost:8443/auth/google' \
+# Test 32: Delete Google user with Authorization header
+curl -X DELETE 'http://localhost:3000/auth/delete' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <TOKEN_FROM_TEST_31>' \
+  -d '{"userId":<USER_ID_FROM_TEST_31>}'
+
+Expected: 200 {"message":"User deleted"}
+
+
+# Test 33: Validate Google deletion (should fail)
+curl -X POST 'http://localhost:3000/auth/validate' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <TOKEN_FROM_TEST_31>'
+
+Expected: 401 {"error":"Invalid token"}
+
+
+# Test 33b: Google login attempt with deleted user (header)
+curl -X POST 'http://localhost:3000/auth/google' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <GOOGLE_ID_TOKEN>'
+
+Expected: 201 {"googleID":"118020156076506959118","email":"durgledoggy@gmail.com","id":100005,"token":"<JWT>","message":"Login successful"}
+Note: Google OAuth allows account recreation, so this creates new user 100005
+
+
+# Test 34: Google login for delete (cookie jar flow)
+curl -X POST 'http://localhost:3000/auth/google' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <GOOGLE_ID_TOKEN>' \
+  -c /tmp/google-cookie.txt
+
+Expected: 200 {"token":"<JWT>","message":"Login successful"}
+Extract USER_ID from JWT payload
+
+
+# Test 35: Delete Google user with cookie jar
+curl -X DELETE 'http://localhost:3000/auth/delete' \
+  -H 'Content-Type: application/json' \
+  -b /tmp/google-cookie.txt \
+  -c /tmp/google-cookie.txt \
+  -d '{"userId":<USER_ID_FROM_TEST_34>}'
+
+Expected: 200 {"message":"User deleted"}
+
+
+# Test 36: Validate Google deletion with cookies (should fail)
+curl -X POST 'http://localhost:3000/auth/validate' \
+  -H 'Content-Type: application/json' \
+  -b /tmp/google-cookie.txt
+
+Expected: 401 {"error":"Invalid token"}
+
+
+# Test 36b: Google login attempt with deleted user (cookie jar)
+curl -X POST 'http://localhost:3000/auth/google' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <GOOGLE_ID_TOKEN>' \
+  -b /tmp/google-cookie.txt
+
+Expected: 201 {"googleID":"118020156076506959118","email":"durgledoggy@gmail.com","id":100006,"token":"<JWT>","message":"Login successful"}
+Note: Creates new user 100006
+
+
+# ========== 12. EDGE CASES & ERROR HANDLING ==========
+
+# Test 36: Validate without token
+curl -X POST 'http://localhost:3000/auth/validate' \
   -H 'Content-Type: application/json'
 
-  401: {"error":"Token not found"}
+Expected: 401 {"error":"Invalid token"}
 
 
-# 15. Google - invalid token
-curl -X POST 'https://localhost:8443/auth/google' \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer invalid_token_xyz'
-
-  500: {"error":"Wrong number of segments in token: invalid_token_xyz"}
-
-
-# ========== 4. CROSS-AUTH CONFLICT TESTS ==========
-
-# 16. Conflict - Google user tries normal login with their email
-curl -X POST 'https://localhost:8443/auth/login' \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"durgledoggy@gmail.com","password":"anypassword"}'
-
-  401: {"error":"This account uses Google Sign-In only. Please use the Google login option."}
-
-
-# 17. Conflict - Register normal user with Google user's existing email
-curl -X POST 'https://localhost:8443/auth/register' \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"durgledoggy@gmail.com","password":"TestPass123!"}'
-
-  409: {"error":"Email already registered with Google Sign-In. Please use Google login."}
-
-
-# 18. Conflict - Try to register with Google user's existing email (second attempt)
-curl -X POST 'https://localhost:8443/auth/register' \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"durgledoggy@gmail.com","password":"TestPass456@"}'
-
-  409: {"error":"Email already registered with Google Sign-In. Please use Google login."}
-
-
-# 19. Conflict - Normal user token sent to Google auth endpoint
-curl -X POST 'https://localhost:8443/auth/google' \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <TOKEN_FROM_TEST_11>'
-
-  500: {"error":"Wrong number of segments in token: <TOKEN_FROM_TEST_11>"}
-
-
-# 20. Conflict - Register normal user's email via Google
-# SKIPPED: Would require a Google account with normal1@test.local email
-
-
-# 21. Conflict - Try to change password on Google user (should fail - no email in body)
-curl -X PATCH 'https://localhost:8443/auth/change-password' \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <TOKEN_FROM_TEST_13>' \
-  -d '{"password":"oldpass","newPassword":"NewPass456@"}'
-
-  401: {"error":"Incorrect token"}
-
-
-# ========== 5. TOKEN VALIDATION TESTS ==========
-
-# 22. Validate - normal user with valid token (copy the id value for use in tests 30-33)
-curl -X POST 'https://localhost:8443/auth/validate' \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <TOKEN_FROM_TEST_11>'
-
-  200: {"id":<USER_ID_FROM_TEST_22>}
-
-
-# 23. Validate - Google user with valid token
-curl -X POST 'https://localhost:8443/auth/validate' \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <TOKEN_FROM_TEST_13>'
-
-  200: {"id":<id>}
-
-
-# 24. Validate - missing token
-curl -X POST 'https://localhost:8443/auth/validate' \
+# Test 37: Logout without token
+curl -X POST 'http://localhost:3000/auth/logout' \
   -H 'Content-Type: application/json'
 
-  401: {"error":"Invalid token"}
+Expected: 401 {"error":"Invalid token"}
 
 
-# 25. Validate - invalid token
-curl -X POST 'https://localhost:8443/auth/validate' \
+# Test 38: /me without token
+curl -X GET 'http://localhost:3000/auth/me' \
+  -H 'Content-Type: application/json'
+
+Expected: 401 {"error":"Invalid token"}
+
+
+# Test 39: Delete without token
+curl -X DELETE 'http://localhost:3000/auth/delete' \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer invalid_token_xyz'
+  -d '{"userId":999999}'
 
-  401: {"error":"Invalid token"}
+Expected: 401 {"error":"Invalid token"}
 
 
-# ========== 6. EXTENDED TOKEN VALIDATION - EDGE CASES ==========
-
-# 26. Validate - malformed auth header (missing Bearer prefix)
-curl -X POST 'https://localhost:8443/auth/validate' \
+# Test 40: Change password without token
+curl -X PATCH 'http://localhost:3000/auth/change-password' \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: <TOKEN_FROM_TEST_11>'
+  -d '{"userId":999999,"password":"old","newPassword":"NewPass123!"}'
 
-  401: {"error":"Invalid token"}
+Expected: 401 {"error":"Invalid token"}
 
 
-# 27. Validate - empty bearer token
-curl -X POST 'https://localhost:8443/auth/validate' \
+# Test 41: Validate with invalid token
+curl -X POST 'http://localhost:3000/auth/validate' \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer '
+  -H 'Authorization: Bearer invalid.token.here'
 
-  401: {"error":"Invalid token"}
+Expected: 401 {"error":"Invalid token"}
 
 
-# 28. Validate - completely invalid JWT structure
-curl -X POST 'https://localhost:8443/auth/validate' \
+# Test 42: Logout with invalid token
+curl -X POST 'http://localhost:3000/auth/logout' \
   -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer totally.not.a.jwt'
+  -H 'Authorization: Bearer invalid.token.here'
 
-  401: {"error":"Invalid token"}
-
-
-# 29. Validate - random string as token
-curl -X POST 'https://localhost:8443/auth/validate' \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer randomstringnotavalidtoken'
-
-  401: {"error":"Invalid token"}
+Expected: 401 {"error":"Invalid token"}
 
 
-# ========== 7. PASSWORD CHANGE TESTS ==========
-# Requires USER_ID_FROM_TEST_22 and TOKEN_FROM_TEST_11
-
-# 30. Change password - valid
-curl -X PATCH 'https://localhost:8443/auth/change-password' \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <TOKEN_FROM_TEST_11>' \
-  -d '{"email":"normal1@test.local","userId":<USER_ID_FROM_TEST_22>,"password":"TestPass123!","newPassword":"NewPass456@"}'
-
-  200: {"message":"Password updated successfully"}
-
-
-# 31. Login - verify new password works
-curl -X POST 'https://localhost:8443/auth/login' \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"normal1@test.local","password":"NewPass456@"}'
-
-  200: {"token":"<token>","message":"Login successful"}
+# ========== SUMMARY ==========
+# Total: 42 unique tests covering all auth endpoints
+# - Normal auth: registration, login, validation, logout, password change, /me, delete (7 flows × 2 methods = 14 + 2 verification tests)
+# - Google auth: login, validation, logout, /me, delete (5 flows × 2 methods = 10 + 2 verification tests)
+# - Deleted user login verification: 4 tests (2 normal + 2 Google)
+# - Edge cases: 7 tests (no token, invalid token scenarios)
+#
+# All tests use either:
+# - Authorization: Bearer <TOKEN> header method
+# - -b /tmp/*.txt -c /tmp/*.txt cookie jar method
+# Both methods should return identical successful responses for equivalent operations
 
 
-# 32. Change password - no auth header
-curl -X PATCH 'https://localhost:8443/auth/change-password' \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"normal1@test.local","userId":<USER_ID_FROM_TEST_22>,"password":"NewPass456@","newPassword":"AnotherPass789#"}'
+# ========== TOKEN PASSING REFERENCE ==========
 
-  401: {"error":"Invalid token"}
+# Token Passing Methods:
+# 1. HEADER: -H 'Authorization: Bearer <TOKEN>'
+#    Use for: Direct token passing, microservice communication
+#    Example: curl -H 'Authorization: Bearer <TOKEN>' http://localhost:3000/auth/validate
+
+# 2. COOKIE JAR: -c <jar_file> to save, -b <jar_file> to load
+#    Use for: Browser-like behavior, cookie lifecycle testing
+#    Example save: curl -c /tmp/cookie.txt http://localhost:3000/auth/register
+#    Example load: curl -b /tmp/cookie.txt http://localhost:3000/auth/validate
+#    Example both: curl -c /tmp/cookie.txt -b /tmp/cookie.txt http://localhost:3000/auth/logout
+
+# Cookie jar behavior:
+#    - Server sends Set-Cookie header with httpOnly, secure, sameSite flags
+#    - Curl with -c flag saves cookies to jar file
+#    - Curl with -b flag sends cookies from jar file
+#    - Cookie jar file format: Netscape HTTP Cookie File (standard curl format)
+#    - Cookies include expiration time, path, domain restrictions
+
+# JWT Token Decoding (to extract userId):
+# TOKEN="<TOKEN_VALUE>"
+# PAYLOAD=$(echo "$TOKEN" | cut -d'.' -f2)
+# PADDING=$((4 - ${#PAYLOAD} % 4))
+# if [ $PADDING -ne 4 ]; then PAYLOAD="${PAYLOAD}$(printf '%0.s=' $(seq 1 $PADDING))"; fi
+# echo "$PAYLOAD" | base64 -d | jq .
 
 
-# 33. Change password - wrong current password
-curl -X PATCH 'https://localhost:8443/auth/change-password' \
-  -H 'Content-Type: application/json' \
-  -H 'Authorization: Bearer <TOKEN_FROM_TEST_11>' \
-  -d '{"email":"normal1@test.local","userId":<USER_ID_FROM_TEST_22>,"password":"WrongCurrentPass","newPassword":"AnotherPass789#"}'
+# ========== GOOGLE OAuth NOTES ==========
 
-  401: {"error":"Password mismatch"}
+# Google ID Token Source:
+# - Obtain from: https://developers.google.com/oauthplayground
+# - Expires: ~1 hour from generation
+# - Needs refresh periodically in tests
+# - Contains: iss, aud, email, email_verified, iat, exp claims
+
+# Google User Behavior:
+# - First login with new Google account: Returns 201 with full user details
+# - Subsequent logins with same account: Returns 200 with token only
+# - Deleted Google user re-login: Creates new account (OAuth behavior)
+# - User ID regeneration: Each login may get different internal userId
+
+
+# ========== COOKIE JAR LIFECYCLE ==========
+
+# Initial State:
+# /tmp/normal-cookie.txt doesn't exist
+
+# After Test 1b (register):
+# /tmp/normal-cookie.txt contains token cookie (valid)
+
+# After Test 7 (logout after test 5 login):
+# /tmp/normal-cookie.txt contains empty/expired cookie (invalid)
+
+# Cookie Verification:
+# - Check presence: grep "token" /tmp/normal-cookie.txt
+# - Check absence: ! grep "token" /tmp/normal-cookie.txt
+# - View content: cat /tmp/normal-cookie.txt
