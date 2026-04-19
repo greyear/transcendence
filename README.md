@@ -123,7 +123,7 @@ Useful management commands:
 ### Accessing the application
 
 - **Frontend**: `https://localhost:8443` (or `https://localhost`)
-- **API Gateway**: `http://localhost:3000` (internal/development)
+- **API Gateway**: `http://localhost:5173` (internal/development)
 - **Auth Service**: `http://auth-service:3001` (internal Docker network)
 - **Core Service**: `http://core-service:3002` (internal Docker network)
 - **Traefik Dashboard**: `http://localhost:8080` (traffic and routing visualisation)
@@ -259,7 +259,7 @@ All AI-generated code passes before human eyes prior to any use in the project.
 
 ## Module strategy
 
-Due to the time pressure we had for this project we agreed on a module selection that gave us some leeway for change but should easily allow us to meet the required minimum. Our plan consisted of modules totalling 20 points. This gives us ample flexibility should problems or unseen issues arrive. This also gives us some flexibility should an evaluator encounter a critical failure.
+Due to the time pressure we had for this project we agreed on a module selection that gave us some leeway for change but should easily allow us to meet the required minimum. Our plan consisted of modules totalling 18 points. This gives us ample flexibility should problems or unseen issues arrive. This also gives us some flexibility should an evaluator encounter a critical failure.
 
 ## Planned modules
 
@@ -293,7 +293,6 @@ Due to the time pressure we had for this project we agreed on a module selection
 | Module Name | Type | Points | Notes |
 |-------------|------|--------|-------|
 | Implement a complete RAG (Retrieval-Augmented Generation) system | Major | 2 | Complete RAG implementation for intelligent content retrieval |
-| Recommendation system using machine learning | Major | 2 | ML-based recommendation engine for recipe suggestions |
 
 ### DevOps - 2 points
 
@@ -301,7 +300,7 @@ Due to the time pressure we had for this project we agreed on a module selection
 |-------------|------|--------|-------|
 | Backend as microservices | Major | 2 | Backend implemented as microservices (Auth, Core, Search, Translation services) |
 
-**Total Points: 20**
+**Total Points: 18**
 
 ---
 
