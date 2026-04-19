@@ -26,5 +26,5 @@ INSERT INTO users (id, username, role, status) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 UPDATE users
-SET avatar = '/avatars/avatar-' || (((id - 1) % 8) + 1)::text || '.svg'
+SET avatar = '/avatars/avatar-' || (((id - 1) % 8) + 1)::text || '.jpeg'
 WHERE id BETWEEN 1 AND 20;
