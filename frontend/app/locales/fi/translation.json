@@ -74,7 +74,8 @@
 		"recipesTab": "Reseptit",
 		"usersTab": "Käyttäjät",
 		"perPage": "Per sivu",
-		"noResults": "Reseptejä ei löytynyt."
+		"noResults": "Reseptejä ei löytynyt.",
+		"searching": "Haetaan reseptejä..."
 	},
 	"usersPage": {
 		"title": "Käyttäjät",

@@ -83,6 +83,7 @@ const SearchPage = () => {
 	const activeTab = typeParam === "users" ? usersTab : recipesTab;
 
 	const [results, setResults] = useState<SearchResponse | null>(null);
+	const [isLoading, setIsLoading] = useState(false);
 
 	const total = results?.total ?? 0;
 	const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -91,11 +92,13 @@ const SearchPage = () => {
 	useEffect(() => {
 		if (!query) {
 			setResults(null);
+			setIsLoading(false);
 			return;
 		}
 
 		if (typeParam === "users") {
 			setResults({ type: "users", data: [], total: 0 });
+			setIsLoading(false);
 			return;
 		}
 
@@ -104,6 +107,7 @@ const SearchPage = () => {
 			limit: String(limit),
 		});
 
+		setIsLoading(true);
 		fetch(`${API_BASE_URL}/search/recipes?${params}`)
 			.then(async (res) => {
 				if (!res.ok) {
@@ -124,7 +128,8 @@ const SearchPage = () => {
 					})),
 				});
 			})
-			.catch(console.error);
+			.catch(console.error)
+			.finally(() => setIsLoading(false));
 	}, [query, typeParam, limit]);
 
 	const handleSearch = (newQuery: string) => {
@@ -200,13 +205,19 @@ const SearchPage = () => {
 				</TextIconButton>
 			</div>
 
-			{query && results && (
+			{query && isLoading && (
+				<p className="search-page__status">{t("searchPage.searching")}</p>
+			)}
+
+			{query && !isLoading && results && (
 				<>
+					{results.type === "recipes" && results.summary && (
+						<p className="search-page__summary">{results.summary}</p>
+					)}
+
 					{results.data.length === 0 ? (
 						<p className="search-page__empty">
-							{results.type === "recipes" && results.summary
-								? results.summary
-								: t("searchPage.noResults")}
+							{t("searchPage.noResults")}
 						</p>
 					) : results.type === "recipes" ? (
 						<ul className="recipe-card-list">
