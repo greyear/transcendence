@@ -75,15 +75,6 @@ npm run start
 
 `npm run build` outputs to `build/` (client assets under `build/client/`, server bundle under `build/server/`). `npm run start` serves it with `@react-router/serve`.
 
-## Docker
-
-```bash
-docker build -t transcendence-frontend .
-docker run -p 3000:3000 transcendence-frontend
-```
-
-See [Dockerfile](Dockerfile) for the build stages. The container runs the React Router server on port 3000.
-
 ## Browser Support
 
 The application is developed and tested primarily against **Google Chrome** (latest stable). Other modern browsers should work, but some features render or behave differently.
