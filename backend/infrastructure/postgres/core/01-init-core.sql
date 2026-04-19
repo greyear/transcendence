@@ -99,6 +99,7 @@ CREATE TABLE "recipe_categories" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "category_type_id" integer NOT NULL,
   "code" varchar(32) NOT NULL,
+  "name" varchar(64) NOT NULL,
   "created_at" timestamptz DEFAULT now(),
 
   CONSTRAINT "recipe_categories_category_type_id_fkey"
@@ -125,6 +126,7 @@ CREATE TABLE "recipe_category_map" (
 CREATE TABLE "ingredient_categories" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "code" varchar(32) UNIQUE NOT NULL,
+  "name" varchar(64) NOT NULL,
   "created_at" timestamptz DEFAULT now()
 );
 
@@ -146,6 +148,7 @@ CREATE TABLE "ingredient_category_correspondence" (
 CREATE TABLE "allergens" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "code" varchar(32) UNIQUE NOT NULL,
+  "name" varchar(64) NOT NULL,
   "created_at" timestamptz DEFAULT now()
 );
 

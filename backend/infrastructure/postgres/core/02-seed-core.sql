@@ -41,339 +41,217 @@ ON CONFLICT (code) DO NOTHING;
 -- RECIPE CATEGORIES
 -- ============================================
 -- Meal Time
-INSERT INTO recipe_categories (category_type_id, code)
-SELECT id, 'breakfast' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'brunch' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'lunch' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'dinner' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'supper' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'snack' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'late_night' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'tea_time' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'pre_workout' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'post_workout' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'kids_meal' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'holiday' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'picnic' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'party' FROM recipe_category_types WHERE code = 'meal_time'
-UNION ALL
-SELECT id, 'buffet' FROM recipe_category_types WHERE code = 'meal_time'
+INSERT INTO recipe_categories (category_type_id, code, name)
+SELECT t.id, v.code, v.name
+FROM recipe_category_types t
+JOIN (VALUES
+  ('breakfast',    'Breakfast'),
+  ('brunch',       'Brunch'),
+  ('lunch',        'Lunch'),
+  ('dinner',       'Dinner'),
+  ('supper',       'Supper'),
+  ('snack',        'Snack'),
+  ('late_night',   'Late Night'),
+  ('tea_time',     'Tea Time'),
+  ('pre_workout',  'Pre Workout'),
+  ('post_workout', 'Post Workout'),
+  ('kids_meal',    'Kids Meal'),
+  ('holiday',      'Holiday'),
+  ('picnic',       'Picnic'),
+  ('party',        'Party'),
+  ('buffet',       'Buffet')
+) AS v(code, name) ON true
+WHERE t.code = 'meal_time'
 ON CONFLICT (category_type_id, code) DO NOTHING;
 
 -- Dish Type
-INSERT INTO recipe_categories (category_type_id, code)
-SELECT id, 'soup' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'stew' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'salad' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'main_course' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'side_dish' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'dessert' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'beverage' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'cocktail' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'smoothie' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'appetizer' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'sandwich' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'wrap' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'burger' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'pizza' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'pasta' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'noodles' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'rice_dish' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'casserole' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'curry' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'stir_fry' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'bowl' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'porridge' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'omelette' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'quiche' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'pancake' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'waffle' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'crepe' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'dumpling' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'roll' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'skewer' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'grill' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'barbecue' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'roast' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'hot_pot' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'pie' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'tart' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'cake' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'cookie' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'pastry' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'bread' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'ice_cream' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'dip' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'sauce' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'pickle' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'preserve' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'risotto' FROM recipe_category_types WHERE code = 'dish_type'
-UNION ALL
-SELECT id, 'taco' FROM recipe_category_types WHERE code = 'dish_type'
+INSERT INTO recipe_categories (category_type_id, code, name)
+SELECT t.id, v.code, v.name
+FROM recipe_category_types t
+JOIN (VALUES
+  ('soup',        'Soup'),
+  ('stew',        'Stew'),
+  ('salad',       'Salad'),
+  ('main_course', 'Main Course'),
+  ('side_dish',   'Side Dish'),
+  ('dessert',     'Dessert'),
+  ('beverage',    'Beverage'),
+  ('cocktail',    'Cocktail'),
+  ('smoothie',    'Smoothie'),
+  ('appetizer',   'Appetizer'),
+  ('sandwich',    'Sandwich'),
+  ('wrap',        'Wrap'),
+  ('burger',      'Burger'),
+  ('pizza',       'Pizza'),
+  ('pasta',       'Pasta'),
+  ('noodles',     'Noodles'),
+  ('rice_dish',   'Rice Dish'),
+  ('casserole',   'Casserole'),
+  ('curry',       'Curry'),
+  ('stir_fry',    'Stir Fry'),
+  ('bowl',        'Bowl'),
+  ('porridge',    'Porridge'),
+  ('omelette',    'Omelette'),
+  ('quiche',      'Quiche'),
+  ('pancake',     'Pancake'),
+  ('waffle',      'Waffle'),
+  ('crepe',       'Crepe'),
+  ('dumpling',    'Dumpling'),
+  ('roll',        'Roll'),
+  ('skewer',      'Skewer'),
+  ('grill',       'Grill'),
+  ('barbecue',    'Barbecue'),
+  ('roast',       'Roast'),
+  ('hot_pot',     'Hot Pot'),
+  ('pie',         'Pie'),
+  ('tart',        'Tart'),
+  ('cake',        'Cake'),
+  ('cookie',      'Cookie'),
+  ('pastry',      'Pastry'),
+  ('bread',       'Bread'),
+  ('ice_cream',   'Ice Cream'),
+  ('dip',         'Dip'),
+  ('sauce',       'Sauce'),
+  ('pickle',      'Pickle'),
+  ('preserve',    'Preserve'),
+  ('risotto',     'Risotto'),
+  ('taco',        'Taco')
+) AS v(code, name) ON true
+WHERE t.code = 'dish_type'
 ON CONFLICT (category_type_id, code) DO NOTHING;
 
 -- Main Ingredient (each code corresponds to an entry in the ingredients table — subset relationship)
-INSERT INTO recipe_categories (category_type_id, code)
-SELECT id, 'chicken' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'turkey' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'duck' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'beef' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'pork' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'lamb' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'salmon' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'tuna' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'cod' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'trout' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'shrimp' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'crab' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'lobster' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'eggs' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'tofu' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'tempeh' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'beans' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'lentils' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'chickpeas' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'rice' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'pasta' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'quinoa' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'potato' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'mushroom' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'cheese' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'avocado' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'broccoli' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'spinach' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'tomato' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'eggplant' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'cauliflower' FROM recipe_category_types WHERE code = 'main_ingredient'
-UNION ALL
-SELECT id, 'pumpkin' FROM recipe_category_types WHERE code = 'main_ingredient'
+INSERT INTO recipe_categories (category_type_id, code, name)
+SELECT t.id, v.code, v.name
+FROM recipe_category_types t
+JOIN (VALUES
+  ('chicken',     'Chicken'),
+  ('turkey',      'Turkey'),
+  ('duck',        'Duck'),
+  ('beef',        'Beef'),
+  ('pork',        'Pork'),
+  ('lamb',        'Lamb'),
+  ('salmon',      'Salmon'),
+  ('tuna',        'Tuna'),
+  ('cod',         'Cod'),
+  ('trout',       'Trout'),
+  ('shrimp',      'Shrimp'),
+  ('crab',        'Crab'),
+  ('lobster',     'Lobster'),
+  ('eggs',        'Eggs'),
+  ('tofu',        'Tofu'),
+  ('tempeh',      'Tempeh'),
+  ('beans',       'Beans'),
+  ('lentils',     'Lentils'),
+  ('chickpeas',   'Chickpeas'),
+  ('rice',        'Rice'),
+  ('pasta',       'Pasta'),
+  ('quinoa',      'Quinoa'),
+  ('potato',      'Potato'),
+  ('mushroom',    'Mushroom'),
+  ('cheese',      'Cheese'),
+  ('avocado',     'Avocado'),
+  ('broccoli',    'Broccoli'),
+  ('spinach',     'Spinach'),
+  ('tomato',      'Tomato'),
+  ('eggplant',    'Eggplant'),
+  ('cauliflower', 'Cauliflower'),
+  ('pumpkin',     'Pumpkin')
+) AS v(code, name) ON true
+WHERE t.code = 'main_ingredient'
 ON CONFLICT (category_type_id, code) DO NOTHING;
 
 -- Cuisine
-INSERT INTO recipe_categories (category_type_id, code)
-SELECT id, 'italian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'asian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'chinese' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'japanese' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'korean' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'thai' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'vietnamese' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'indian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'indonesian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'filipino' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'mexican' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'tex_mex' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'cajun' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'creole' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'french' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'american' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'southern_us' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'mediterranean' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'spanish' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'portuguese' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'greek' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'turkish' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'moroccan' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'ethiopian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'middle_eastern' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'lebanese' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'persian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'israeli' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'finnish' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'swedish' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'norwegian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'danish' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'nordic' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'russian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'ukrainian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'georgian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'polish' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'hungarian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'czech' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'german' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'austrian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'swiss' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'british' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'irish' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'scottish' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'brazilian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'peruvian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'argentinian' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'caribbean' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'cuban' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'jamaican' FROM recipe_category_types WHERE code = 'cuisine'
-UNION ALL
-SELECT id, 'fusion' FROM recipe_category_types WHERE code = 'cuisine'
+INSERT INTO recipe_categories (category_type_id, code, name)
+SELECT t.id, v.code, v.name
+FROM recipe_category_types t
+JOIN (VALUES
+  ('italian',        'Italian'),
+  ('asian',          'Asian'),
+  ('chinese',        'Chinese'),
+  ('japanese',       'Japanese'),
+  ('korean',         'Korean'),
+  ('thai',           'Thai'),
+  ('vietnamese',     'Vietnamese'),
+  ('indian',         'Indian'),
+  ('indonesian',     'Indonesian'),
+  ('filipino',       'Filipino'),
+  ('mexican',        'Mexican'),
+  ('tex_mex',        'Tex Mex'),
+  ('cajun',          'Cajun'),
+  ('creole',         'Creole'),
+  ('french',         'French'),
+  ('american',       'American'),
+  ('southern_us',    'Southern US'),
+  ('mediterranean',  'Mediterranean'),
+  ('spanish',        'Spanish'),
+  ('portuguese',     'Portuguese'),
+  ('greek',          'Greek'),
+  ('turkish',        'Turkish'),
+  ('moroccan',       'Moroccan'),
+  ('ethiopian',      'Ethiopian'),
+  ('middle_eastern', 'Middle Eastern'),
+  ('lebanese',       'Lebanese'),
+  ('persian',        'Persian'),
+  ('israeli',        'Israeli'),
+  ('finnish',        'Finnish'),
+  ('swedish',        'Swedish'),
+  ('norwegian',      'Norwegian'),
+  ('danish',         'Danish'),
+  ('nordic',         'Nordic'),
+  ('russian',        'Russian'),
+  ('ukrainian',      'Ukrainian'),
+  ('georgian',       'Georgian'),
+  ('polish',         'Polish'),
+  ('hungarian',      'Hungarian'),
+  ('czech',          'Czech'),
+  ('german',         'German'),
+  ('austrian',       'Austrian'),
+  ('swiss',          'Swiss'),
+  ('british',        'British'),
+  ('irish',          'Irish'),
+  ('scottish',       'Scottish'),
+  ('brazilian',      'Brazilian'),
+  ('peruvian',       'Peruvian'),
+  ('argentinian',    'Argentinian'),
+  ('caribbean',      'Caribbean'),
+  ('cuban',          'Cuban'),
+  ('jamaican',       'Jamaican'),
+  ('fusion',         'Fusion')
+) AS v(code, name) ON true
+WHERE t.code = 'cuisine'
 ON CONFLICT (category_type_id, code) DO NOTHING;
 
 -- ============================================
 -- INGREDIENT CATEGORIES
 -- ============================================
-INSERT INTO ingredient_categories (code) VALUES
-  ('nuts'),
-  ('dairy'),
-  ('meat'),
-  ('fish'),
-  ('grains'),
-  ('spices'),
-  ('vegetables'),
-  ('fruits'),
-  ('legumes'),
-  ('eggs')
+INSERT INTO ingredient_categories (code, name) VALUES
+  ('nuts',       'Nuts'),
+  ('dairy',      'Dairy'),
+  ('meat',       'Meat'),
+  ('fish',       'Fish'),
+  ('grains',     'Grains'),
+  ('spices',     'Spices'),
+  ('vegetables', 'Vegetables'),
+  ('fruits',     'Fruits'),
+  ('legumes',    'Legumes'),
+  ('eggs',       'Eggs')
 ON CONFLICT (code) DO NOTHING;
 
 -- ============================================
 -- ALLERGENS
 -- ============================================
-INSERT INTO allergens (code) VALUES
-  ('nuts'),
-  ('lactose'),
-  ('gluten'),
-  ('eggs'),
-  ('fish'),
-  ('shellfish'),
-  ('soy'),
-  ('sesame'),
-  ('berries'),
-  ('fruits')
+INSERT INTO allergens (code, name) VALUES
+  ('nuts',      'Nuts'),
+  ('lactose',   'Lactose'),
+  ('gluten',    'Gluten'),
+  ('eggs',      'Eggs'),
+  ('fish',      'Fish'),
+  ('shellfish', 'Shellfish'),
+  ('soy',       'Soy'),
+  ('sesame',    'Sesame'),
+  ('berries',   'Berries'),
+  ('fruits',    'Fruits')
 ON CONFLICT (code) DO NOTHING;
 
 -- ============================================
