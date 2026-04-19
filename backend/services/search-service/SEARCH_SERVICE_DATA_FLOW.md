@@ -1,110 +1,510 @@
 # Search Service Data Flow
 
-This file explains the current search feature in plain language for PR reviewers.
+This file explains the current search feature in plain language for PR reviewers and teammates.
 
-The goal of this feature is simple:
+The goal of this feature is:
 
 - keep recipe source-of-truth data in `core-service`
-- build a separate search index in `search-service`
-- let the frontend call one search endpoint through `api-gateway`
-- return both:
-  - a short Gemini-generated summary
-  - the list of matching recipes
+- build a separate searchable copy in `search-service`
+- store embeddings and searchable text in `search-db`
+- let frontend search through `api-gateway`
+- return both matching recipes and a Gemini-generated summary when available
 
 ## Big Picture
 
-There are 4 moving parts:
+There are 4 main moving parts.
 
 1. `core-service`
-- owns the real recipe data in `core-db`
+
+File:
+`backend/services/core-service/src/services/recipes.service.ts`
+
+Purpose:
+Owns the real recipe data in `core-db` and exposes internal read models for search indexing.
 
 2. `search-service`
-- fetches recipe data from `core-service`
-- transforms it into search-ready documents
-- stores those documents in `search-db`
-- answers search requests
+
+File:
+`backend/services/search-service/app/main.py`
+
+Purpose:
+Fetches published recipe data from `core-service`, creates embeddings, stores search documents in `search-db`, and answers search requests.
 
 3. `search-db`
-- separate PostgreSQL database for indexed search documents
+
+File:
+`backend/infrastructure/postgres/search/01-init-search.sql`
+
+Purpose:
+Stores indexed search documents in `recipe_search_docs`, including `searchable_text` and pgvector embeddings.
 
 4. `api-gateway`
-- exposes the search endpoint to frontend
-- forwards requests to `search-service`
+
+File:
+`backend/services/api-gateway/src/routes/search.routes.ts`
+
+Purpose:
+Exposes `GET /search/recipes` to frontend and forwards the request to `search-service`.
 
 ## Why A Separate Search Service Exists
 
-We do not want `search-service` to connect directly to `core-db`.
+`search-service` does not connect directly to `core-db`.
 
 Instead:
+
 - `core-service` owns recipe data
 - `search-service` consumes recipe data through internal HTTP endpoints
+- `search-db` is only a derived search index, not the source of truth
 
-This keeps service boundaries clean:
-- `core-service` stays source of truth
-- `search-service` stays consumer/indexer
+This keeps the service boundary clear.
 
-## Core-Service Internal Endpoints
+## Core-Service Internal Search Read Model
 
-`search-service` gets its source data from:
+`search-service` gets source recipe data from these internal endpoints:
 
 - `GET /internal/search/recipes`
 - `GET /internal/search/recipes/:id`
 
-These endpoints are internal only.
+These are mounted in core-service here:
 
-They return the fields needed for search indexing, including:
-- title
-- description
-- instructions
-- servings
-- spiciness
-- rating
-- ingredients
-- categories
-- updated_at
+File:
+`backend/services/core-service/src/app.ts`
 
-## Reindex Flow
+Route mount:
+`app.use("/internal/search", internalSearchRouter)`
 
-Reindexing is how `search-db` gets populated or refreshed.
+Router file:
+`backend/services/core-service/src/routes/internalSearch.routes.ts`
 
-There are 3 admin endpoints in `search-service`:
+Functions:
+`getSearchRecipesHandler(...)`
+`getSearchRecipeByIdHandler(...)`
+
+Service file:
+`backend/services/core-service/src/services/recipes.service.ts`
+
+Functions:
+`getSearchRecipes(...)`
+`getSearchRecipeById(...)`
+
+The internal read model only returns published recipes:
+
+```sql
+WHERE r.status = 'published'
+```
+
+This means drafts are not searchable.
+
+The read model returns fields needed for indexing:
+
+- `id`
+- `title`
+- `description`
+- `instructions`
+- `author_id`
+- `servings`
+- `spiciness`
+- `rating_avg`
+- `ingredients`
+- `categories`
+- `updated_at`
+
+## Automatic Publish-To-Search Flow
+
+This is the current important application flow.
+
+When a recipe is published, core-service now automatically asks search-service to reindex that one recipe by ID.
+
+### Step 1: User publishes a recipe
+
+Frontend/API caller sends:
+
+```http
+POST /recipes/:id/publish
+```
+
+File:
+`backend/services/api-gateway/src/routes/recipes.routes.ts`
+
+Function:
+`publishRecipeHandler(...)`
+
+What happens next:
+The API gateway forwards the publish request to core-service.
+
+### Step 2: Core-service updates the recipe status
+
+File:
+`backend/services/core-service/src/routes/recipes.routes.ts`
+
+Function:
+`publishRecipeHandler(...)`
+
+File:
+`backend/services/core-service/src/services/recipes.service.ts`
+
+Function:
+`publishRecipe(...)`
+
+What happens next:
+`publishRecipe(...)` updates the recipe from `draft` to `published`.
+
+Relevant SQL shape:
+
+```sql
+UPDATE recipes
+SET status = 'published', updated_at = now()
+WHERE id = $1 AND author_id = $2 AND status = 'draft'
+```
+
+### Step 3: Core-service schedules targeted search reindex
+
+File:
+`backend/services/core-service/src/services/recipes.service.ts`
+
+Function:
+`publishRecipe(...)`
+
+Call:
+
+```ts
+scheduleRecipeSearchReindex(recipeId);
+```
+
+What happens next:
+After the recipe is successfully published and loaded, core-service starts a fire-and-forget search reindex request.
+
+### Step 4: Core-service calls search-service admin endpoint
+
+File:
+`backend/services/core-service/src/services/searchIndex.service.ts`
+
+Function:
+`scheduleRecipeSearchReindex(...)`
+
+Function:
+`reindexRecipeInSearch(...)`
+
+What happens next:
+Core-service sends an internal POST request to search-service:
+
+```http
+POST /admin/reindex/:recipeId
+X-Internal-Service-Token: <INTERNAL_SERVICE_TOKEN>
+```
+
+This is fire-and-forget. Publishing does not wait for Gemini embedding to finish.
+
+If reindexing fails, core-service logs the error and the recipe still stays published.
+
+### Step 5: Search-service receives single recipe reindex request
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`reindex_one(...)`
+
+Endpoint:
+
+```py
+@app.post("/admin/reindex/{recipe_id}")
+```
+
+What happens next:
+Search-service validates the internal token and fetches that one published recipe from core-service.
+
+### Step 6: Search-service fetches the published recipe from core-service
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`fetch_search_recipe_by_id(...)`
+
+Function:
+`fetch_core_json(...)`
+
+Core endpoint called:
+
+```http
+GET /internal/search/recipes/:id
+```
+
+What happens next:
+If core-service returns the recipe, search-service continues. If the recipe is not published or does not exist, core-service returns 404 and reindex fails.
+
+### Step 7: Search-service normalizes the recipe into a search document
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`normalize_recipe_document(...)`
+
+Helper functions:
+`normalize_ingredient_lines(...)`
+`normalize_category_labels(...)`
+`parse_core_timestamp(...)`
+
+What happens next:
+Search-service builds one `searchable_text` field from title, description, servings, spiciness, rating, ingredients, categories, and instructions.
+
+### Step 8: Search-service creates the embedding
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`embed_text(...)`
+
+Function:
+`get_embedding_client(...)`
+
+What happens next:
+Search-service sends `searchable_text` to Gemini embedding model and receives a vector.
+
+If Gemini embedding fails, the reindex request fails and the error is logged by core-service because the call was fire-and-forget.
+
+### Step 9: Search-service upserts into search-db
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`upsert_search_document(...)`
+
+Database table:
+`recipe_search_docs`
+
+What happens next:
+The recipe search document is inserted or updated in `search-db`. After this, the newly published recipe can be found by search.
+
+## Manual Reindex Admin Endpoints
+
+Search-service has 3 admin endpoints.
+
+File:
+`backend/services/search-service/app/main.py`
+
+Endpoints:
 
 - `POST /admin/reindex`
 - `GET /admin/reindex/jobs/{job_id}`
 - `POST /admin/reindex/{recipe_id}`
 
-These are admin maintenance endpoints.
-Callers must send `X-Internal-Service-Token`; Docker Compose now requires
-`INTERNAL_SERVICE_TOKEN` to be set instead of falling back to a default value.
+All admin endpoints require:
 
-### Full reindex
+```http
+X-Internal-Service-Token: <INTERNAL_SERVICE_TOKEN>
+```
 
-Flow:
+Token check function:
+`require_internal_service_token(...)`
 
-1. `POST /admin/reindex` creates an in-process reindex job and returns `job_id`
-2. the HTTP request finishes immediately with `status: accepted`
-3. a background task calls `core-service /internal/search/recipes`
-4. each recipe is normalized into one search document
-5. one combined `searchable_text` field is built
-6. Gemini creates an embedding vector from that text
-7. the document is inserted or updated in `search-db`
-8. stale search rows are deleted
-9. `GET /admin/reindex/jobs/{job_id}` returns progress and final status
+Docker Compose requires `INTERNAL_SERVICE_TOKEN` to be set. There is no default fallback token.
 
-### Single recipe reindex
+## Full Reindex Flow
 
-Flow:
+Full reindex is mainly an admin/debug/recovery tool. It is not the normal user flow.
 
-1. `search-service` calls `core-service /internal/search/recipes/{id}`
-2. it normalizes that one recipe
-3. Gemini generates the embedding
-4. the row is upserted into `search-db`
+### Step 1: Admin starts a full reindex job
+
+Request:
+
+```http
+POST /admin/reindex
+```
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`reindex_all(...)`
+
+What happens next:
+Search-service creates or reuses an active in-memory job.
+
+### Step 2: Search-service creates job metadata
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`create_or_get_active_reindex_job(...)`
+
+What happens next:
+The job is stored in `_reindex_jobs` with status `queued`, counts, timestamps, and a generated `job_id`.
+
+### Step 3: FastAPI starts the job as a background task
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`reindex_all(...)`
+
+Function called in background:
+`run_reindex_job(...)`
+
+What happens next:
+The HTTP response returns quickly with `status: accepted`, `job_id`, and `status_url`.
+
+### Step 4: Background worker fetches all published recipes
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`run_reindex_job(...)`
+
+Function:
+`fetch_all_search_recipes(...)`
+
+Function:
+`fetch_core_json(...)`
+
+Core endpoint called:
+
+```http
+GET /internal/search/recipes
+```
+
+What happens next:
+Search-service receives all published recipe documents from core-service.
+
+### Step 5: Each recipe is indexed
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`run_reindex_job(...)`
+
+Function:
+`upsert_search_document(...)`
+
+Function:
+`normalize_recipe_document(...)`
+
+Function:
+`embed_text(...)`
+
+What happens next:
+Each recipe is normalized, embedded with Gemini, and upserted into `recipe_search_docs`.
+
+### Step 6: Deleted or unpublished recipes are pruned from search-db
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`run_reindex_job(...)`
+
+Function:
+`delete_search_document(...)`
+
+What happens next:
+Search-service compares active published recipe IDs from core-service against IDs currently in `recipe_search_docs`. IDs no longer active are deleted from `search-db`.
+
+### Step 7: Admin checks full reindex progress
+
+Request:
+
+```http
+GET /admin/reindex/jobs/{job_id}
+```
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`get_reindex_job_status(...)`
+
+Function:
+`get_reindex_job(...)`
+
+What happens next:
+Search-service returns current job status, indexed count, deleted count, and any error.
+
+## Single Recipe Manual Reindex Flow
+
+Single recipe reindex can be used manually as a repair command.
+
+### Step 1: Admin requests one recipe reindex
+
+Request:
+
+```http
+POST /admin/reindex/:recipeId
+```
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`reindex_one(...)`
+
+What happens next:
+Search-service validates the internal token and validates that `recipe_id` is positive.
+
+### Step 2: Search-service fetches one published recipe
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`fetch_search_recipe_by_id(...)`
+
+Function:
+`fetch_core_json(...)`
+
+Core endpoint called:
+
+```http
+GET /internal/search/recipes/:id
+```
+
+What happens next:
+If core-service returns the recipe, search-service indexes it. If the recipe is not published, the internal endpoint returns 404.
+
+### Step 3: Search-service upserts the recipe into search-db
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`upsert_search_document(...)`
+
+What happens next:
+The recipe row is inserted or updated in `recipe_search_docs`.
 
 ## What Gets Indexed
 
-Each search document combines recipe data into text that is useful for semantic search.
+Each row in `recipe_search_docs` contains:
 
-Current indexed content includes:
+- `recipe_id`
+- `title`
+- `description`
+- `instructions`
+- `searchable_text`
+- `embedding`
+- `source_updated_at`
+- `indexed_at`
+
+Table definition file:
+`backend/infrastructure/postgres/search/01-init-search.sql`
+
+Search document builder:
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`normalize_recipe_document(...)`
+
+Current `searchable_text` includes:
+
 - title
 - description
 - servings
@@ -115,130 +515,446 @@ Current indexed content includes:
 - instructions
 
 Important detail:
+Ingredients, categories, and spiciness are included inside `searchable_text`. They are not separate filter columns in `search-db` yet.
 
-- ingredients, categories, and spiciness are currently included through `searchable_text`
-- they are not separate structured columns in `search-db`
-- this is enough for retrieval and embeddings, even if it is not yet full metadata filtering
+## User Search Request Flow
 
-## Search Request Flow
+Frontend should call:
 
-The frontend should call:
+```http
+GET /search/recipes?q=...
+```
 
-- `GET /search/recipes?q=...`
+Usually frontend does not need to send `limit`.
 
-through `api-gateway`, not directly through `search-service`.
+`limit` is still supported as optional:
 
-Important detail:
+```http
+GET /search/recipes?q=beef&limit=3
+```
 
-- `limit` still exists as an optional query parameter
-- but the normal product flow does not require frontend to send it
-- if `limit` is omitted, `search-service` infers the result count from the user query text
-- if `limit` is explicitly provided, it overrides the inferred count
+If `limit` is missing, search-service asks Gemini to infer how many recipes the user seems to want. Inferred and explicit limits are capped at `5`. If inference fails, it defaults to `5`.
 
-### Full request path
+### Step 1: Frontend sends search request to API gateway
 
-1. user types a search query in frontend
-2. frontend sends request to `api-gateway`
-3. `api-gateway` route forwards the request to `search-service`
-4. `search-service` searches `search-db`
-5. `search-service` returns:
-  - summary
-  - matching recipes
-6. `api-gateway` returns that response back to frontend
+Request:
 
-## What Happens Inside `/search/recipes`
+```http
+GET /search/recipes?q=...
+```
 
-When `/search/recipes` is called:
+File:
+`backend/services/api-gateway/src/routes/search.routes.ts`
 
-1. the query text is validated
-2. if `limit` is missing, Gemini infers how many recipe results the user seems to want
-3. Gemini creates an embedding for the query
-4. `search-service` compares that query embedding against stored recipe embeddings in `search-db`
-5. PostgreSQL returns the best matching recipe documents
-6. Gemini generates a short summary from those retrieved documents
-7. the endpoint returns:
-  - `query`
-  - `summary`
-  - `summary_status`
-  - `count`
-  - `limit`
-  - `data`
+Function:
+`getSearchRecipesHandler(...)`
 
-So this endpoint now does two things:
-- retrieval
-- grounded LLM summary
+What happens next:
+API gateway reads `q` and optional `limit` from the query string.
 
-## Why Summary And Results Are Returned Together
+### Step 2: API gateway forwards request to search-service
 
-We intentionally kept one frontend-facing search endpoint:
+File:
+`backend/services/api-gateway/src/routes/search.routes.ts`
 
-- `/search/recipes`
+Function:
+`getSearchRecipesHandler(...)`
 
-instead of creating a separate `/rag/ask` endpoint.
+Helper:
+`getInternalHeaders(...)`
 
-Reason:
-- less frontend work
-- simpler project structure
-- easier to explain in a school project
-- one search action gives both:
-  - human-readable summary
-  - raw recipe results
+What happens next:
+API gateway calls search-service:
 
-## Freshness / Stale Repair
+```http
+GET /search/recipes?q=...
+```
 
-After returning results, `search-service` can check whether those indexed recipes are stale.
+It forwards internal metadata headers through `getInternalHeaders(...)`.
 
-It compares:
-- `source_updated_at` stored in `search-db`
-against
-- current `updated_at` from `core-service`
+### Step 3: Search-service validates query parameters
 
-If a mismatch is detected:
-- the stale recipe is reindexed in the background
-- deleted recipes are pruned from `search-db` during maintenance/reindex flows
+File:
+`backend/services/search-service/app/main.py`
 
-This means:
-- users get the best current response immediately
-- stale index entries get repaired after the response
+Function:
+`search_recipes(...)`
 
-## Databases
+Endpoint:
 
-### `core-db`
-- owned by `core-service`
-- stores real recipe data
+```py
+@app.get("/search/recipes")
+```
 
-### `search-db`
-- owned by `search-service`
-- stores indexed search documents in `recipe_search_docs`
+What happens next:
+FastAPI validates `q` length and optional `limit`. The function trims the query and rejects blank input.
 
-This separation is intentional.
+### Step 4: Search-service resolves result limit
 
-`search-db` is not the source of truth.
-It is a search index built from the source of truth.
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`search_recipes(...)`
+
+Function:
+`infer_result_limit(...)`
+
+What happens next:
+If `limit` was provided, it is used up to a maximum of `5`. If not, Gemini infers the result count from the full natural-language query.
+
+Prompt-injection mitigation:
+`infer_result_limit(...)` JSON-encodes the user query and tells Gemini to treat it as untrusted data, not instructions.
+
+Fallback:
+If Gemini limit inference fails, the limit becomes `5`. If Gemini returns a number higher than `5`, search-service clamps it to `5`.
+
+### Step 5: Search-service creates query embedding
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`search_recipe_documents(...)`
+
+Function:
+`embed_text(...)`
+
+What happens next:
+The user query is embedded with Gemini so it can be compared against stored recipe embeddings.
+
+### Step 6: Search-service queries search-db
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`search_recipe_documents(...)`
+
+Database table:
+`recipe_search_docs`
+
+What happens next:
+PostgreSQL ranks recipes using semantic similarity.
+
+Semantic ranking:
+
+```sql
+1 - (embedding <=> query_embedding)
+```
+
+Final order:
+
+```sql
+ORDER BY score DESC, source_updated_at DESC, recipe_id DESC
+```
+
+### Step 7: Search-service builds API result data
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`search_recipes(...)`
+
+What happens next:
+Search-service strips internal fields like full `searchable_text` from the public result and returns recipe IDs, titles, descriptions, timestamps, and semantic score.
+
+### Step 8: Search-service generates summary
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`generate_search_summary(...)`
+
+What happens next:
+Gemini receives the user query and retrieved recipe context, then generates a short grounded summary.
+
+Prompt-injection mitigation:
+`generate_search_summary(...)` JSON-encodes the user query and recipe context and tells Gemini to treat both as untrusted data, not instructions.
+
+Fallback:
+If Gemini summary generation fails, search-service still returns the recipe results with:
+
+```json
+"summary_status": "unavailable"
+```
+
+and summary text:
+
+```text
+Summary temporarily unavailable, but matching recipes were found.
+```
+
+### Step 9: Search-service schedules stale repair and prune tasks
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`search_recipes(...)`
+
+Background functions:
+`refresh_search_documents_if_stale(...)`
+`prune_deleted_search_documents_if_due(...)`
+
+What happens next:
+After responding, search-service can repair stale indexed rows and periodically prune deleted/unpublished recipes.
+
+### Step 10: API gateway returns response to frontend
+
+File:
+`backend/services/api-gateway/src/routes/search.routes.ts`
+
+Function:
+`getSearchRecipesHandler(...)`
+
+What happens next:
+API gateway returns the search-service JSON response to frontend.
+
+Response shape:
+
+```json
+{
+  "query": "beef recipe",
+  "summary": "...",
+  "summary_status": "ok",
+  "count": 1,
+  "limit": 1,
+  "data": []
+}
+```
+
+## Freshness And Stale Repair
+
+Search-db is a derived index, so indexed rows can become stale if the source recipe changes.
+
+### Step 1: Search response is returned first
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`search_recipes(...)`
+
+What happens next:
+The user gets the current search result without waiting for maintenance work.
+
+### Step 2: Search-service checks returned results against core-service
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`refresh_search_documents_if_stale(...)`
+
+Function:
+`fetch_search_recipe_by_id(...)`
+
+What happens next:
+For returned recipes, search-service compares `source_updated_at` stored in `search-db` against current `updated_at` from core-service.
+
+### Step 3: Stale rows are reindexed
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`refresh_search_documents_if_stale(...)`
+
+Function:
+`upsert_search_document(...)`
+
+What happens next:
+If core-service has a newer `updated_at`, the recipe is reindexed.
+
+### Step 4: Missing rows are deleted from search-db
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`refresh_search_documents_if_stale(...)`
+
+Function:
+`delete_search_document(...)`
+
+What happens next:
+If core-service returns 404 for a previously indexed recipe, search-service deletes that row.
+
+## Periodic Prune
+
+Deleted or unpublished recipes can also be pruned by a periodic maintenance task.
+
+### Step 1: Search endpoint schedules prune task
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`search_recipes(...)`
+
+Background function:
+`prune_deleted_search_documents_if_due(...)`
+
+What happens next:
+The task runs after the response, but only if the cooldown interval has passed.
+
+### Step 2: Prune task fetches all active published recipes
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`prune_deleted_search_documents_if_due(...)`
+
+Function:
+`fetch_all_search_recipes(...)`
+
+What happens next:
+Search-service gets the current active published recipe IDs from core-service.
+
+### Step 3: Prune task deletes stale search rows
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`prune_deleted_search_documents_if_due(...)`
+
+Function:
+`delete_search_document(...)`
+
+What happens next:
+Rows in `recipe_search_docs` that are no longer active published recipe IDs are deleted.
+
+## Failure Behavior
+
+### Gemini embedding fails during publish-triggered reindex
+
+File:
+`backend/services/core-service/src/services/searchIndex.service.ts`
+
+Function:
+`scheduleRecipeSearchReindex(...)`
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`embed_text(...)`
+
+Behavior:
+The recipe stays published. Core-service logs the reindex failure. The recipe may not appear in search until a manual retry or full reindex succeeds.
+
+### Gemini summary generation fails during search
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`generate_search_summary(...)`
+
+Function:
+`search_recipes(...)`
+
+Behavior:
+Search-service still returns matching recipes with `summary_status: unavailable`.
+
+### Gemini result-count inference fails during search
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`infer_result_limit(...)`
+
+Behavior:
+Search-service defaults to `5` results.
+
+### Internal token is missing or wrong
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`require_internal_service_token(...)`
+
+Behavior:
+Admin reindex endpoints reject the request with `503` if the service token is not configured, or `403` if the header does not match.
 
 ## Current Practical Scope
 
 This implementation is designed for the school-project deadline.
 
-It currently provides:
+It provides:
+
 - internal recipe export endpoints from `core-service`
-- search indexing into a separate DB
+- automatic single-recipe reindex after publish
+- manual full reindex job support
+- manual single-recipe reindex support
+- separate `search-db`
 - Gemini embeddings
-- semantic recipe retrieval
-- Gemini-generated search summary
-- one frontend-facing search endpoint via `api-gateway`
+- semantic recipe retrieval with pgvector
+- Gemini-generated search summaries with fallback
+- one frontend-facing search endpoint through `api-gateway`
 
-It is not trying to be a full production search platform.
+It does not yet provide:
 
-That is intentional.
+- a persistent retry queue for failed indexing
+- structured metadata filters in `search-db`
+- production-grade distributed job processing
 
 ## Short Summary
 
-If you only remember one thing, it is this:
+If you only remember one flow, remember this:
 
-- `core-service` owns recipe data
-- `search-service` copies and transforms that data into a search index
-- frontend calls `/search/recipes` through `api-gateway`
-- `search-service` returns both:
-  - a Gemini summary
-  - matching recipes from `search-db`
+1. User publishes recipe.
+
+File:
+`backend/services/core-service/src/services/recipes.service.ts`
+
+Function:
+`publishRecipe(...)`
+
+2. Core-service starts targeted search reindex.
+
+File:
+`backend/services/core-service/src/services/searchIndex.service.ts`
+
+Function:
+`scheduleRecipeSearchReindex(...)`
+
+3. Search-service fetches the published recipe from core-service.
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`fetch_search_recipe_by_id(...)`
+
+4. Search-service builds searchable text and embedding.
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`normalize_recipe_document(...)`
+`embed_text(...)`
+
+5. Search-service upserts the indexed document into search-db.
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`upsert_search_document(...)`
+
+6. Frontend search can now find the recipe.
+
+File:
+`backend/services/search-service/app/main.py`
+
+Function:
+`search_recipes(...)`

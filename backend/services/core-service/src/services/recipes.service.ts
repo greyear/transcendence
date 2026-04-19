@@ -41,6 +41,7 @@ import {
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
 } from "../validation/schemas.js";
+import { scheduleRecipeSearchReindex } from "./searchIndex.service.js";
 import {
 	localizeInstructionStepsFromSource,
 	localizeTextFromSource,
@@ -693,6 +694,8 @@ export const publishRecipe = async (
 			throw new Error(`Updated recipe ${recipeId} could not be loaded`);
 		}
 
+		scheduleRecipeSearchReindex(recipeId);
+
 		return { success: true, recipe };
 	} catch (error) {
 		console.error("Database error in publishRecipe:", error);
@@ -1067,11 +1070,15 @@ export const getRecipeReviews = async (
 				rr.author_id,
 				u.username,
 				u.avatar,
+				rrt.rating,
 				rr.body,
 				rr.created_at,
 				rr.updated_at
 			FROM recipe_reviews rr
 			LEFT JOIN users u ON u.id = rr.author_id
+			LEFT JOIN recipe_ratings rrt
+				ON rrt.recipe_id = rr.recipe_id
+				AND rrt.user_id = rr.author_id
 			WHERE rr.recipe_id = $1 AND rr.is_deleted = false
 			ORDER BY rr.created_at DESC
 		`,
@@ -1141,11 +1148,15 @@ export const updateReview = async (
 				rr.author_id,
 				u.username,
 				u.avatar,
+				rrt.rating,
 				rr.body,
 				rr.created_at,
 				rr.updated_at
 			FROM recipe_reviews rr
 			LEFT JOIN users u ON u.id = rr.author_id
+			LEFT JOIN recipe_ratings rrt
+				ON rrt.recipe_id = rr.recipe_id
+				AND rrt.user_id = rr.author_id
 			WHERE rr.id = $1
 		`,
 			[reviewId],
