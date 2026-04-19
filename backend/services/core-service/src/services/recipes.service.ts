@@ -1577,7 +1577,7 @@ export const getIngredientList = async (): Promise<{
 }> => {
 	try {
 		const result = await pool.query<{ id: number; name: string }>(
-			`SELECT id, name FROM ingredients ORDER BY name ASC`,
+			`SELECT id, name FROM ingredients ORDER BY name COLLATE "C" ASC`,
 		);
 		return { ingredients: result.rows };
 	} catch (error) {
