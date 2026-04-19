@@ -20,8 +20,7 @@ search {
 }
 
 .search-field {
-	flex: 1;
-	min-width: 0;
+	width: 100%;
 	padding: 0;
 	border: none;
 	outline: none;

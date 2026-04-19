@@ -75,7 +75,9 @@
 		"usersTab": "Пользователи",
 		"perPage": "На странице",
 		"noResults": "Подходящие рецепты не найдены.",
-		"searching": "Ищем рецепты..."
+		"searching": "Ищем рецепты...",
+		"aiSummaryOn": "Сводка ИИ включена",
+		"aiSummaryOff": "Сводка ИИ выключена"
 	},
 	"usersPage": {
 		"title": "Авторы рецептов",
@@ -185,6 +187,8 @@
 		"openSearch": "Открыть поиск",
 		"closeSearch": "Закрыть поиск",
 		"clearSearch": "Очистить поиск",
+		"enableAiSummary": "Включить сводку ИИ",
+		"disableAiSummary": "Выключить сводку ИИ",
 		"firstPage": "Первая страница",
 		"previousPage": "Предыдущая страница",
 		"nextPage": "Следующая страница",

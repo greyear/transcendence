@@ -1,7 +1,8 @@
-import { Filter } from "iconoir-react";
+import { Filter, Sparks } from "iconoir-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
+import { IconButton } from "~/components/buttons/IconButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { RecipeCard } from "~/components/cards/RecipeCard";
 import { UserCard } from "~/components/cards/UserCard";
@@ -10,12 +11,11 @@ import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
 import { Pagination } from "~/components/pagination/Pagination";
 import { SortMenu } from "~/components/SortMenu";
-import { getCurrentPage } from "~/composables/getCurrentPage";
 import "~/assets/styles/recipesGrid.css";
 import "~/assets/styles/usersGrid.css";
 import "~/assets/styles/search.css";
-import { useSortOptions } from "~/composables/useSortOptions";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { useSortOptions } from "~/composables/useSortOptions";
 
 const SEARCH_MAX_LIMIT = 5;
 const DEFAULT_LIMIT = 5;
@@ -74,6 +74,7 @@ const SearchPage = () => {
 	const typeParam = rawType === "users" ? "users" : "recipes";
 	const sort = searchParams.get("sort") ?? "";
 	const limit = parseLimit(searchParams.get("limit"));
+	const aiEnabled = searchParams.get("ai") !== "0";
 
 	const sortOptions = useSortOptions(typeParam);
 
@@ -87,7 +88,6 @@ const SearchPage = () => {
 
 	const total = results?.total ?? 0;
 	const totalPages = Math.max(1, Math.ceil(total / limit));
-	const page = getCurrentPage(searchParams, totalPages);
 
 	useEffect(() => {
 		if (!query) {
@@ -161,6 +161,16 @@ const SearchPage = () => {
 		navigate(`/search?${params.toString()}`);
 	};
 
+	const handleAiToggle = () => {
+		const params = new URLSearchParams(searchParams);
+		if (aiEnabled) {
+			params.set("ai", "0");
+		} else {
+			params.delete("ai");
+		}
+		navigate(`/search?${params.toString()}`);
+	};
+
 	const limitOptions = LIMIT_OPTIONS.map((n) => ({
 		label: String(n),
 		value: String(n),
@@ -172,12 +182,32 @@ const SearchPage = () => {
 		<section className="search-page">
 			<PageHeader title={t("searchPage.title")} totalLabel={totalLabel} />
 
-			<SearchField
-				key={query}
-				defaultValue={query}
-				onSubmit={handleSearch}
-				placeholder={t("common.searchPlaceholder")}
-			/>
+			<div className="search-page__search-row">
+				<SearchField
+					key={query}
+					defaultValue={query}
+					onSubmit={handleSearch}
+					placeholder={t("common.searchPlaceholder")}
+				/>
+				<IconButton
+					type="button"
+					className={`search-page__ai-toggle${aiEnabled ? " is-active" : ""}`}
+					aria-pressed={aiEnabled}
+					aria-label={
+						aiEnabled
+							? t("ariaLabels.disableAiSummary")
+							: t("ariaLabels.enableAiSummary")
+					}
+					title={
+						aiEnabled
+							? t("searchPage.aiSummaryOn")
+							: t("searchPage.aiSummaryOff")
+					}
+					onClick={handleAiToggle}
+				>
+					<Sparks aria-hidden />
+				</IconButton>
+			</div>
 
 			<FilterList
 				filters={tabs}
@@ -204,14 +234,12 @@ const SearchPage = () => {
 
 			{query && !isLoading && results && (
 				<>
-					{results.type === "recipes" && results.summary && (
+					{aiEnabled && results.type === "recipes" && results.summary && (
 						<p className="search-page__summary">{results.summary}</p>
 					)}
 
 					{results.data.length === 0 ? (
-						<p className="search-page__empty">
-							{t("searchPage.noResults")}
-						</p>
+						<p className="search-page__empty">{t("searchPage.noResults")}</p>
 					) : results.type === "recipes" ? (
 						<ul className="recipe-card-list">
 							{results.data.map(({ id, title, description, rating_avg }) => (

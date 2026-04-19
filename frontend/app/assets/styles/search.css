@@ -12,6 +12,26 @@
 	width: 100%;
 }
 
+.search-page__search-row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-s);
+	width: 100%;
+}
+
+.search-page__search-row > :first-child {
+	flex: 1;
+}
+
+.search-page__ai-toggle.is-active {
+	background-color: var(--surface-action-active, var(--surface-primary));
+	border-color: var(--borders-action, var(--borders-input));
+}
+
+.search-page__ai-toggle.is-active svg {
+	color: var(--text-on-accent, var(--icons-primary));
+}
+
 .search-page__pagination-row {
 	display: flex;
 	justify-content: space-between;
