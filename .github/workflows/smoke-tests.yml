@@ -9,6 +9,9 @@ on:
       - '.github/workflows/smoke-tests.yml'
   workflow_dispatch:
 
+env:
+  INTERNAL_SERVICE_TOKEN: ${{ secrets.INTERNAL_SERVICE_TOKEN }}
+
 jobs:
   smoke-tests:
     name: Smoke Tests with Docker
@@ -29,8 +32,6 @@ jobs:
 
       - name: Start services with docker compose
         run: docker compose up -d
-        env:
-          INTERNAL_SERVICE_TOKEN: ${{ secrets.INTERNAL_SERVICE_TOKEN }}
 
       - name: Wait for API Gateway to be ready
         run: |
@@ -53,5 +54,3 @@ jobs:
       - name: Cleanup docker services
         if: always()
         run: docker compose down -v
-        env:
-          INTERNAL_SERVICE_TOKEN: ${{ secrets.INTERNAL_SERVICE_TOKEN }}
