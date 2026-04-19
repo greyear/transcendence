@@ -127,6 +127,18 @@ What to check:
 - `limit` is larger than `1`
 - multiple recipes are returned
 
+Explicit natural-language count example:
+
+```bash
+curl -s "http://localhost:3000/search/recipes?q=show%20me%20three%20chicken%20recipes" | jq
+```
+
+What to check:
+
+- `limit` is inferred to `3`
+- `count` is at most `3`
+- inferred and explicit limits never exceed `5`
+
 ## 5. Test Explicit `limit` Override
 
 Example:
