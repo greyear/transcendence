@@ -53,3 +53,5 @@ jobs:
       - name: Cleanup docker services
         if: always()
         run: docker compose down -v
+        env:
+          INTERNAL_SERVICE_TOKEN: ${{ secrets.INTERNAL_SERVICE_TOKEN }}
