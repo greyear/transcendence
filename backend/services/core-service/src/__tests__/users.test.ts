@@ -524,6 +524,15 @@ describe("Users Routes", () => {
 			expect(response.body).toHaveProperty("error");
 		});
 
+		it("should return 404 when authenticated user is not found", async () => {
+			const response = await request(app)
+				.get("/users/me/friends")
+				.set("X-User-Id", "999999");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toHaveProperty("error");
+		});
+
 		it("should only include mutual followers", async () => {
 			// From beforeAll: user 1 and user 2 follow each other (mutual)
 			// user 3 follows user 1 but user 1 does NOT follow user 3 (not mutual)

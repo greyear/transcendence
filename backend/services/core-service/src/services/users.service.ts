@@ -190,6 +190,12 @@ export const getFollowing = async (userId: number) => {
 };
 
 export const getMyFriends = async (userId: number) => {
+	const userExists = await doesUserExist(userId);
+
+	if (!userExists) {
+		throw new Error("User not found");
+	}
+
 	const result = await pool.query(
 		`SELECT
 			u.id,
