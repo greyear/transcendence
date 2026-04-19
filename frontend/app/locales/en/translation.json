@@ -85,7 +85,7 @@
 		"avatar": "Avatar",
 		"noAvatar": "No avatar set"
 	},
-	"loginPage": {
+	"authModal": {
 		"title": "Log in",
 		"signupTitle": "Create an account",
 		"emailLabel": "Email address",
@@ -99,6 +99,10 @@
 		"logInButton": "Log in",
 		"googleLoginButton": "Log in with Google",
 		"googleSignupButton": "Sign up with Google",
+		"googleSubmittingButton": "Signing in with Google...",
+		"googleTokenError": "Google did not return a sign-in token.",
+		"googleMissingClientId": "Google client ID is not configured.",
+		"googleUnavailable": "Google sign-in is not available.",
 		"signupSubmittingButton": "Creating account...",
 		"signupSuccess": "Account created. You are signed in.",
 		"toggleSignupPrompt": "Need an account? Create one",

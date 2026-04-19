@@ -16,8 +16,10 @@ import express, { type Express } from "express";
 import "dotenv/config";
 import { authRouter } from "./routes/auth.routes.js";
 import { healthRouter } from "./routes/health.routes.js";
+import { mediaRouter } from "./routes/media.routes.js";
 import { profileRouter } from "./routes/profile.routes.js";
 import { recipesRouter } from "./routes/recipes.routes.js";
+import { searchRouter } from "./routes/search.routes.js";
 import { usersRouter } from "./routes/users.routes.js";
 import {
 	createResponseTimeoutMiddleware,
@@ -46,8 +48,13 @@ app.use(createResponseTimeoutMiddleware(GATEWAY_RESPONSE_TIMEOUT_MS));
 // ===== ROUTES =====
 // Mount health router
 app.use("/health", healthRouter);
+// Proxy static media served by core-service
+app.use("/avatars", mediaRouter);
+app.use("/recipe-pictures", mediaRouter);
 // Mount recipes router (includes authentication middleware)
 app.use("/recipes", recipesRouter);
+// Mount search router
+app.use("/search", searchRouter);
 // Mount users router
 app.use("/users", usersRouter);
 // Mount profile router

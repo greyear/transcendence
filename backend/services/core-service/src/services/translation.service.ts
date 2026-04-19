@@ -25,6 +25,7 @@ const TRANSLATION_API_URL = process.env.TRANSLATION_API_URL;
 const TRANSLATION_TIMEOUT_MS = Number(
 	process.env.TRANSLATION_TIMEOUT_MS ?? 2500,
 );
+const INTERNAL_SERVICE_TOKEN = process.env.INTERNAL_SERVICE_TOKEN?.trim();
 
 type TranslationApiResponse = {
 	translations?: Partial<Record<SupportedLocale, string>>;
@@ -171,6 +172,9 @@ const requestTranslations = async (
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				...(INTERNAL_SERVICE_TOKEN
+					? { "X-Internal-Service-Token": INTERNAL_SERVICE_TOKEN }
+					: {}),
 			},
 			body: JSON.stringify({
 				source_language: sourceLocale,
@@ -223,6 +227,9 @@ const requestBatchedTranslations = async (
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
+				...(INTERNAL_SERVICE_TOKEN
+					? { "X-Internal-Service-Token": INTERNAL_SERVICE_TOKEN }
+					: {}),
 			},
 			body: JSON.stringify({
 				source_language: sourceLocale,

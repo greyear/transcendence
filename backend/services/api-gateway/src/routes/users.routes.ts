@@ -10,6 +10,18 @@ import {
 const CORE_SERVICE_URL =
 	process.env.CORE_SERVICE_URL || "http://core-service:3002";
 
+const withForwardedQuery = (
+	req: Parameters<RequestHandler>[0],
+	path: string,
+) => {
+	const queryIndex = req.originalUrl.indexOf("?");
+	if (queryIndex === -1) {
+		return `${CORE_SERVICE_URL}${path}`;
+	}
+
+	return `${CORE_SERVICE_URL}${path}${req.originalUrl.slice(queryIndex)}`;
+};
+
 export const usersRouter = Router();
 
 const getUsersHandler: RequestHandler = async (req, res, _next) => {
@@ -34,10 +46,13 @@ const getUsersHandler: RequestHandler = async (req, res, _next) => {
 
 const getUserByIdHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		const response = await fetch(`${CORE_SERVICE_URL}/users/${req.params.id}`, {
-			headers: getInternalHeaders(req),
-			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
-		});
+		const response = await fetch(
+			withForwardedQuery(req, `/users/${req.params.id}`),
+			{
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
 
 		const data = await response.json();
 		res.status(response.status).json(data);
@@ -55,7 +70,7 @@ const getUserByIdHandler: RequestHandler = async (req, res, _next) => {
 const getUserRecipesHandler: RequestHandler = async (req, res, _next) => {
 	try {
 		const response = await fetch(
-			`${CORE_SERVICE_URL}/users/${req.params.id}/recipes`,
+			withForwardedQuery(req, `/users/${req.params.id}/recipes`),
 			{
 				headers: getInternalHeaders(req),
 				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
@@ -79,7 +94,7 @@ const getUserRecipesHandler: RequestHandler = async (req, res, _next) => {
 
 const getMyRecipesHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		const response = await fetch(`${CORE_SERVICE_URL}/users/me/recipes`, {
+		const response = await fetch(withForwardedQuery(req, "/users/me/recipes"), {
 			headers: getInternalHeaders(req),
 			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 		});
@@ -101,10 +116,13 @@ const getMyRecipesHandler: RequestHandler = async (req, res, _next) => {
 
 const getMyFavoritesHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		const response = await fetch(`${CORE_SERVICE_URL}/users/me/favorites`, {
-			headers: getInternalHeaders(req),
-			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
-		});
+		const response = await fetch(
+			withForwardedQuery(req, "/users/me/favorites"),
+			{
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
 
 		const data = await response.json();
 		res.status(response.status).json(data);
@@ -236,6 +254,29 @@ const heartbeatHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
+const getFavoritesHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			`${CORE_SERVICE_URL}/users/${req.params.id}/favorites`,
+			{
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to fetch user favorites" });
+	}
+};
+
 // Register more specific routes FIRST, then less specific
 usersRouter.post("/me/heartbeat", requireAuth, heartbeatHandler);
 // /me/recipes is most specific
@@ -243,9 +284,10 @@ usersRouter.get("/me/recipes", requireAuth, getMyRecipesHandler);
 usersRouter.get("/me/favorites", requireAuth, getMyFavoritesHandler);
 usersRouter.post("/:id/follow", requireAuth, followUserHandler);
 usersRouter.delete("/:id/follow", requireAuth, unfollowUserHandler);
-// /:id/followers and /:id/following are more specific than /:id/recipes
+// /:id/followers and /:id/following are public, /:id/favorites requires auth
 usersRouter.get("/:id/followers", getFollowersHandler);
 usersRouter.get("/:id/following", getFollowingHandler);
+usersRouter.get("/:id/favorites", requireAuth, getFavoritesHandler);
 // /:id/recipes is less specific, should be last
 usersRouter.get("/:id/recipes", getUserRecipesHandler);
 usersRouter.get("/:id", getUserByIdHandler);

@@ -26,7 +26,9 @@ import {
 	archiveRecipe,
 	createRecipe,
 	deleteReview,
-	getAllRecipes,
+	getAllRecipesPaginated,
+	getCategoryList,
+	getIngredientList,
 	getRecipeById,
 	getRecipeReviews,
 	leaveRecipeReview,
@@ -43,6 +45,7 @@ import {
 import {
 	validateCreateRecipeInput,
 	validateCreateRecipeReviewInput,
+	validatePaginationQuery,
 	validateRecipeId,
 	validateReviewId,
 	validateUpdateRecipeInput,
@@ -111,6 +114,30 @@ const handleRecipePictureMulterError = (
 		return;
 	}
 	next(err);
+};
+
+const getCategoryListHandler =
+	(categoryType: string) =>
+	async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+		try {
+			const result = await getCategoryList(categoryType);
+			res.status(200).json(result);
+		} catch (error) {
+			next(error);
+		}
+	};
+
+const getIngredientListHandler = async (
+	_req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		const result = await getIngredientList();
+		res.status(200).json(result);
+	} catch (error) {
+		next(error);
+	}
 };
 
 // middleware for picture upload to protect from malicious actions
@@ -476,7 +503,7 @@ const unfavoriteRecipeHandler = async (
 };
 
 /**
- * GET /recipes - fetch all published recipes
+ * GET /recipes - fetch all published recipes with pagination
  *
  * Note: No authentication needed - returns only published recipes
  */
@@ -487,8 +514,18 @@ const getAllRecipesHandler = async (
 ): Promise<void> => {
 	try {
 		const locale = resolveRequestedLocale(req);
-		const recipes = await getAllRecipes(locale);
-		res.status(200).json({ data: recipes, count: recipes.length });
+
+		const pagination = validatePaginationQuery(req.query);
+		if (!pagination.valid) {
+			res.status(400).json({ error: pagination.error });
+			return;
+		}
+		const result = await getAllRecipesPaginated(
+			pagination.value.page,
+			pagination.value.per_page,
+			locale,
+		);
+		res.status(200).json(result);
 	} catch (error) {
 		next(error);
 	}
@@ -846,6 +883,15 @@ const deleteReviewHandler = async (
 };
 
 // extractUser middleware extracts userId from X-User-Id header
+
+recipesRouter.get("/meal_time", getCategoryListHandler("meal_time"));
+recipesRouter.get("/dish_type", getCategoryListHandler("dish_type"));
+recipesRouter.get(
+	"/main_ingredient",
+	getCategoryListHandler("main_ingredient"),
+);
+recipesRouter.get("/cuisine", getCategoryListHandler("cuisine"));
+recipesRouter.get("/ingredients", getIngredientListHandler);
 
 recipesRouter.post("/:id/publish", publishRecipeHandler);
 

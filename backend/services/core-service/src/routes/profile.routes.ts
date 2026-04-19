@@ -110,9 +110,6 @@ const registerProfileHandler = async (
 		);
 		const validation = validateRegisterProfileInput(req.body);
 		if (!validation.valid) {
-			console.warn(
-				`[core-service] profile/register:validation-failed error=${validation.error}`,
-			);
 			const error: CustomError = new Error(validation.error);
 			error.statusCode = 400;
 			throw error;
@@ -141,9 +138,6 @@ const getProfileHandler = async (
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		console.info(
-			`[core-service] profile:get start userId=${String(req.userId)}`,
-		);
 		if (req.userId === undefined) {
 			const error: CustomError = new Error("Authentication required");
 			error.statusCode = 401;
@@ -152,17 +146,10 @@ const getProfileHandler = async (
 
 		const profile = await getProfile(req.userId);
 		if (!profile) {
-			console.warn(
-				`[core-service] profile:get not-found userId=${req.userId}`,
-			);
 			const error: CustomError = new Error("User not found");
 			error.statusCode = 404;
 			throw error;
 		}
-
-		console.info(
-			`[core-service] profile:get success userId=${req.userId} username=${profile.username}`,
-		);
 
 		res.status(200).json({ data: profile });
 	} catch (error) {

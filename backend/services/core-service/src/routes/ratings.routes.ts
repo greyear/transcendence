@@ -11,10 +11,7 @@
  */
 
 import { type NextFunction, type Response, Router } from "express";
-import {
-	type AuthenticatedRequest,
-	extractUser,
-} from "../middleware/extractUser.js";
+import type { AuthenticatedRequest } from "../middleware/extractUser.js";
 import {
 	createRating,
 	deleteRating,

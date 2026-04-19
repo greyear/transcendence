@@ -18,6 +18,7 @@ import path from "node:path";
 import type { PoolClient } from "pg";
 import { z } from "zod";
 import { pool } from "../db/database.js";
+import { areMutualFollowers } from "../utils/service.utils.js";
 import {
 	type CreateRecipeInput,
 	type CreateRecipeReviewInput,
@@ -26,6 +27,7 @@ import {
 	favoriteRecipeListItemSchema,
 	type MyRecipeListItem,
 	myRecipeListItemSchema,
+	type PaginatedResponse,
 	type Recipe,
 	type RecipeListItem,
 	type RecipeReviewListItem,
@@ -33,7 +35,9 @@ import {
 	recipeReviewListItemSchema,
 	recipeSchema,
 	recipeStatusSchema,
+	type SearchRecipeDocument,
 	type SupportedLocale,
+	searchRecipeDocumentSchema,
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
 } from "../validation/schemas.js";
@@ -100,6 +104,12 @@ type DeleteReviewResult =
 	| { success: true; reviewId: number; recipeId: number; updatedAt: string }
 	| { success: false; reason: "not-found" | "forbidden" };
 
+interface ErrorWithCode extends Error {
+	code?: string;
+}
+
+const USER_NOT_FOUND_CODE = "USER_NOT_FOUND";
+
 const recipeIdRowSchema = z.object({
 	id: z.coerce.number().int().positive(),
 });
@@ -131,6 +141,12 @@ const getRecipeWithIngredientsQuery = `
 		r.spiciness,
 		r.author_id,
 		r.rating_avg,
+		(
+			SELECT rm.url
+			FROM recipe_media rm
+			WHERE rm.recipe_id = r.id AND rm.position = 0
+			LIMIT 1
+		) AS picture_url,
 		r.status,
 		COALESCE(
 			(
@@ -402,7 +418,13 @@ export const getAllRecipes = async (
 				COALESCE(title->>$1, title->>'en') AS title,
 				COALESCE(description->>$1, description->>'en') AS description,
 				author_id,
-				rating_avg
+				rating_avg,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = recipes.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url
       FROM recipes
       WHERE status = 'published'
       ORDER BY created_at DESC
@@ -416,6 +438,59 @@ export const getAllRecipes = async (
 	} catch (error) {
 		// If error - log it and throw it to caller
 		console.error("Database error in getAllRecipes:", error);
+		throw error;
+	}
+};
+
+/**
+ * Get published recipes for exact page
+ */
+export const getAllRecipesPaginated = async (
+	page: number,
+	perPage: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<PaginatedResponse<RecipeListItem>> => {
+	try {
+		const offset = (page - 1) * perPage;
+
+		const [dataResult, countResult] = await Promise.all([
+			pool.query(
+				`
+				SELECT
+					id,
+					COALESCE(title->>$1, title->>'en') AS title,
+					COALESCE(description->>$1, description->>'en') AS description,
+					author_id,
+					rating_avg,
+					(
+						SELECT rm.url
+						FROM recipe_media rm
+						WHERE rm.recipe_id = recipes.id AND rm.position = 0
+						LIMIT 1
+					) AS picture_url
+				FROM recipes
+				WHERE status = 'published'
+				ORDER BY created_at DESC
+				LIMIT $2 OFFSET $3
+				`,
+				[locale, perPage, offset],
+			),
+			pool.query(
+				`SELECT COUNT(*)::int AS total FROM recipes WHERE status = 'published'`,
+			),
+		]);
+
+		const total_count = countResult.rows[0].total as number;
+		const total_pages = Math.ceil(total_count / perPage);
+		const data = parseRecipeRows(
+			dataResult.rows,
+			recipeListItemSchema,
+			"recipe",
+		);
+
+		return { data, total_count, total_pages, page, per_page: perPage };
+	} catch (error) {
+		console.error("Database error in getAllRecipesPaginated:", error);
 		throw error;
 	}
 };
@@ -443,7 +518,13 @@ export const getPublishedRecipesByUserId = async (
 				COALESCE(title->>$2, title->>'en') AS title,
 				COALESCE(description->>$2, description->>'en') AS description,
 				author_id,
-				rating_avg
+				rating_avg,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = recipes.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url
       FROM recipes
       WHERE author_id = $1 AND status = 'published'
       ORDER BY created_at DESC
@@ -875,6 +956,63 @@ export const getMyFavoriteRecipes = async (
 	}
 };
 
+export const getFavoriteRecipesByUserId = async (
+	userId: number,
+	currentUserId: number,
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<FavoriteRecipeListItem[] | null> => {
+	try {
+		// Check if target user exists
+		const userCheckResult = await pool.query(
+			"SELECT id FROM users WHERE id = $1",
+			[userId],
+		);
+
+		if (userCheckResult.rows.length === 0) {
+			const error: ErrorWithCode = new Error("User not found");
+			error.code = USER_NOT_FOUND_CODE;
+			throw error;
+		}
+
+		const isMutualFollow = await areMutualFollowers(currentUserId, userId);
+		if (!isMutualFollow) {
+			// Not mutual followers - access denied
+			return null;
+		}
+
+		const query = `
+	SELECT
+		r.id,
+		COALESCE(r.title->>$2, r.title->>'en') AS title,
+		COALESCE(r.description->>$2, r.description->>'en') AS description,
+		u.avatar
+      FROM favorites f
+      JOIN recipes r ON r.id = f.recipe_id
+      LEFT JOIN users u ON u.id = r.author_id
+      WHERE f.user_id = $1 AND r.status = 'published'
+      ORDER BY f.created_at DESC
+    `;
+
+		const result = await pool.query(query, [userId, locale]);
+
+		return parseRecipeRows(
+			result.rows,
+			favoriteRecipeListItemSchema,
+			"favorite recipe",
+		);
+	} catch (error) {
+		const isUserNotFoundError =
+			error instanceof Error &&
+			"code" in error &&
+			error.code === USER_NOT_FOUND_CODE;
+
+		if (!isUserNotFoundError) {
+			console.error("Database error in getFavoriteRecipesByUserId:", error);
+		}
+		throw error;
+	}
+};
+
 export const leaveRecipeReview = async (
 	recipeId: number,
 	userId: number,
@@ -1146,6 +1284,185 @@ export const getRecipeById = async (
 	}
 };
 
+/**
+ * Get all published recipes for search indexing.
+ *
+ * This is an internal-only read model used by search-service.
+ * It exposes just enough data to build embeddings and track freshness.
+ */
+export const getSearchRecipes = async (): Promise<SearchRecipeDocument[]> => {
+	try {
+		const query = `
+			SELECT
+				r.id,
+				COALESCE(
+					r.title->>'en',
+					r.title->>'fi',
+					r.title->>'ru'
+				) AS title,
+				COALESCE(
+					r.description->>'en',
+					r.description->>'fi',
+					r.description->>'ru'
+				) AS description,
+				COALESCE(
+					r.instructions->'en',
+					r.instructions->'fi',
+					r.instructions->'ru',
+					'[]'::jsonb
+				) AS instructions,
+				r.author_id,
+				r.servings,
+				r.spiciness,
+				r.rating_avg,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'ingredient_id', ri.ingredient_id,
+								'name', i.name,
+								'amount', ri.amount,
+								'unit', ri.unit
+							)
+							ORDER BY ri.ingredient_id
+						)
+						FROM recipe_ingredients ri
+						JOIN ingredients i ON i.id = ri.ingredient_id
+						WHERE ri.recipe_id = r.id
+					),
+					'[]'::json
+				) AS ingredients,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'id', rc.id,
+								'code', rc.code,
+								'category_type_id', rct.id,
+								'category_type_code', rct.code,
+								'category_type_name', rct.name
+							)
+							ORDER BY rct.id, rc.id
+						)
+						FROM recipe_category_map rcm
+						JOIN recipe_categories rc ON rc.id = rcm.category_id
+						JOIN recipe_category_types rct ON rct.id = rc.category_type_id
+						WHERE rcm.recipe_id = r.id
+					),
+					'[]'::json
+				) AS categories,
+				r.updated_at
+			FROM recipes r
+			WHERE r.status = 'published'
+			ORDER BY r.updated_at DESC, r.id DESC
+		`;
+
+		const result = await pool.query(query);
+
+		return parseRecipeRows(
+			result.rows,
+			searchRecipeDocumentSchema,
+			"search recipe document",
+		);
+	} catch (error) {
+		console.error("Database error in getSearchRecipes:", error);
+		throw error;
+	}
+};
+
+/**
+ * Get one published recipe for targeted search reindex.
+ */
+export const getSearchRecipeById = async (
+	id: number,
+): Promise<SearchRecipeDocument | null> => {
+	try {
+		const query = `
+			SELECT
+				r.id,
+				COALESCE(
+					r.title->>'en',
+					r.title->>'fi',
+					r.title->>'ru'
+				) AS title,
+				COALESCE(
+					r.description->>'en',
+					r.description->>'fi',
+					r.description->>'ru'
+				) AS description,
+				COALESCE(
+					r.instructions->'en',
+					r.instructions->'fi',
+					r.instructions->'ru',
+					'[]'::jsonb
+				) AS instructions,
+				r.author_id,
+				r.servings,
+				r.spiciness,
+				r.rating_avg,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'ingredient_id', ri.ingredient_id,
+								'name', i.name,
+								'amount', ri.amount,
+								'unit', ri.unit
+							)
+							ORDER BY ri.ingredient_id
+						)
+						FROM recipe_ingredients ri
+						JOIN ingredients i ON i.id = ri.ingredient_id
+						WHERE ri.recipe_id = r.id
+					),
+					'[]'::json
+				) AS ingredients,
+				COALESCE(
+					(
+						SELECT json_agg(
+							json_build_object(
+								'id', rc.id,
+								'code', rc.code,
+								'category_type_id', rct.id,
+								'category_type_code', rct.code,
+								'category_type_name', rct.name
+							)
+							ORDER BY rct.id, rc.id
+						)
+						FROM recipe_category_map rcm
+						JOIN recipe_categories rc ON rc.id = rcm.category_id
+						JOIN recipe_category_types rct ON rct.id = rc.category_type_id
+						WHERE rcm.recipe_id = r.id
+					),
+					'[]'::json
+				) AS categories,
+				r.updated_at
+			FROM recipes r
+			WHERE r.id = $1 AND r.status = 'published'
+		`;
+
+		const result = await pool.query(query, [id]);
+
+		if (result.rows.length === 0) {
+			return null;
+		}
+
+		const validation = searchRecipeDocumentSchema.safeParse(result.rows[0]);
+		if (!validation.success) {
+			console.error(
+				`Invalid search recipe document for ID ${id}:`,
+				z.prettifyError(validation.error),
+			);
+			return null;
+		}
+
+		return validation.data;
+	} catch (error) {
+		console.error("Database error in getSearchRecipeById:", error);
+		throw error;
+	}
+};
+
 export const updateRecipePicture = async (
 	recipeId: number,
 	userId: number,
@@ -1204,8 +1521,8 @@ export const updateRecipePicture = async (
 		if (oldPictureUrl && oldPictureUrl !== pictureUrl) {
 			const oldFilename = oldPictureUrl.replace("/recipe-pictures/", "");
 			const oldFilePath = path.resolve("uploads/recipes", oldFilename);
-			fs.unlink(oldFilePath, (err) => {
-				if (err && err.code !== "ENOENT") {
+			await fs.promises.unlink(oldFilePath).catch((err) => {
+				if (err.code !== "ENOENT") {
 					console.error("Failed to delete old recipe picture:", err);
 				}
 			});
@@ -1214,6 +1531,46 @@ export const updateRecipePicture = async (
 		return { success: true };
 	} catch (error) {
 		console.error("Database error in updateRecipePicture:", error);
+		throw error;
+	}
+};
+
+export const getCategoryList = async (
+	categoryTypeCode: string,
+): Promise<{ [key: string]: string[] }> => {
+	try {
+		const result = await pool.query<{ code: string }>(
+			`
+			SELECT rc.code
+			FROM recipe_categories rc
+			JOIN recipe_category_types rct ON rct.id = rc.category_type_id
+			WHERE rct.code = $1
+			ORDER BY rc.code ASC
+			`,
+			[categoryTypeCode],
+		);
+
+		const codes = result.rows.map((row) => row.code);
+		return { [categoryTypeCode]: codes };
+	} catch (error) {
+		console.error(
+			`Database error in getCategoryList(${categoryTypeCode}):`,
+			error,
+		);
+		throw error;
+	}
+};
+
+export const getIngredientList = async (): Promise<{
+	ingredients: { id: number; name: string }[];
+}> => {
+	try {
+		const result = await pool.query<{ id: number; name: string }>(
+			`SELECT id, name FROM ingredients ORDER BY name ASC`,
+		);
+		return { ingredients: result.rows };
+	} catch (error) {
+		console.error("Database error in getIngredientList:", error);
 		throw error;
 	}
 };

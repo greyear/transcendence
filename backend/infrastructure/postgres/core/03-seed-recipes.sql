@@ -350,4 +350,42 @@ FROM (VALUES
     'Enjoy cold or gently warm in the microwave'
   ],
   1, 0, 1, 'published', 4.20, 16
-) AS v(title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count);
+)) AS v(title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count);
+
+WITH seeded_media(title_en, image_url) AS (
+  VALUES
+    ('Spaghetti Carbonara', '/recipe-pictures/recipe-01.jpeg'),
+    ('Chicken Tikka Masala', '/recipe-pictures/recipe-02.jpeg'),
+    ('Avocado Toast with Poached Egg', '/recipe-pictures/recipe-03.jpeg'),
+    ('Classic Caesar Salad', '/recipe-pictures/recipe-04.jpeg'),
+    ('Beef Tacos', '/recipe-pictures/recipe-05.jpeg'),
+    ('Mushroom Risotto', '/recipe-pictures/recipe-06.jpeg'),
+    ('Greek Salad', '/recipe-pictures/recipe-07.jpeg'),
+    ('Banana Oat Pancakes', '/recipe-pictures/recipe-08.jpeg'),
+    ('Tom Yum Soup', '/recipe-pictures/recipe-09.jpeg'),
+    ('Margherita Pizza', '/recipe-pictures/recipe-10.jpeg'),
+    ('Shakshuka', '/recipe-pictures/recipe-11.jpeg'),
+    ('Grilled Salmon with Lemon Butter', '/recipe-pictures/recipe-12.jpeg'),
+    ('Vegetable Stir-fry with Tofu', '/recipe-pictures/recipe-13.jpeg'),
+    ('French Onion Soup', '/recipe-pictures/recipe-14.jpeg'),
+    ('Mango Smoothie Bowl', '/recipe-pictures/recipe-15.jpeg'),
+    ('Borscht', '/recipe-pictures/recipe-16.jpeg'),
+    ('Butter Chicken', '/recipe-pictures/recipe-17.jpeg'),
+    ('Lentil Soup', '/recipe-pictures/recipe-18.jpeg'),
+    ('Chocolate Lava Cakes', '/recipe-pictures/recipe-19.jpeg'),
+    ('Overnight Oats', '/recipe-pictures/recipe-20.jpeg')
+)
+MERGE INTO recipe_media rm
+USING (
+  SELECT
+    r.id AS recipe_id,
+    sm.image_url
+  FROM recipes r
+  JOIN seeded_media sm ON COALESCE(r.title->>'en', '') = sm.title_en
+) src
+ON rm.recipe_id = src.recipe_id AND rm.position = 0
+WHEN MATCHED THEN
+  UPDATE SET type = 'image', url = src.image_url
+WHEN NOT MATCHED THEN
+  INSERT (recipe_id, type, url, position)
+  VALUES (src.recipe_id, 'image', src.image_url, 0);

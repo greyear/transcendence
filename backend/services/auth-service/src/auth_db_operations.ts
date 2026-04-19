@@ -57,7 +57,9 @@ async function registerCoreProfile(id: number): Promise<void> {
 				`[auth-service] registerCoreProfile:failed userId=${id} payload=${JSON.stringify(responseBody)}`,
 			);
 			const errorMessage =
-				responseBody && typeof responseBody === "object" && "error" in responseBody
+				responseBody &&
+				typeof responseBody === "object" &&
+				"error" in responseBody
 					? String(responseBody.error)
 					: `core-service /profile/register returned ${res.status} for user ${id}`;
 			throw new Error(errorMessage);
@@ -106,7 +108,6 @@ authRouter.post(
 	async (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const { email, password } = req.body;
-			console.info(`[auth-service] register:start email=${email}`);
 
 			const userDocument = await userModel.findOne({ email });
 
@@ -142,9 +143,6 @@ authRouter.post(
 			}
 
 			const currentCount = await help.makeID();
-			console.info(
-				`[auth-service] register:generated-user-id email=${email} userId=${currentCount}`,
-			);
 
 			const newUser = new userModel({
 				id: currentCount,
@@ -152,9 +150,6 @@ authRouter.post(
 				passwordHash: hashedPassword,
 			});
 			await newUser.save();
-			console.info(
-				`[auth-service] register:mongo-user-created email=${email} userId=${currentCount}`,
-			);
 
 			try {
 				await registerCoreProfile(currentCount);
@@ -179,9 +174,6 @@ authRouter.post(
 			if (setCookie) {
 				res.set("Set-Cookie", setCookie);
 			}
-			console.info(
-				`[auth-service] register:completed email=${email} userId=${currentCount} loginStatus=${loginRes.status}`,
-			);
 			res.status(201).json({ email, id: currentCount, ...loginPayload });
 		} catch (error) {
 			if (mongoErrorSchema.safeParse(error).success) {
@@ -221,7 +213,6 @@ authRouter.post(
 			const userDocument = await userModel.findOne({ email });
 
 			if (!userDocument) {
-				console.warn(`[auth-service] login:user-not-found email=${email}`);
 				res.status(404).json({ error: "User not found" });
 				return;
 			}
@@ -239,7 +230,6 @@ authRouter.post(
 			const gotHash = userDocument.get("passwordHash");
 			const passwordMatch = await help.comparePassword(password, gotHash);
 			if (!passwordMatch) {
-				console.warn(`[auth-service] login:password-mismatch email=${email}`);
 				res.status(401).json({ error: "Password mismatch" });
 				return;
 			}
@@ -266,9 +256,6 @@ authRouter.post(
 				sameSite: "lax",
 				maxAge: 60 * 60 * 1000, //1 hour in ms
 			});
-			console.info(
-				`[auth-service] login:success email=${email} userId=${userDocument.get("id")}`,
-			);
 			res.status(200).json({
 				token: JWToken,
 				message: "Login successful",
