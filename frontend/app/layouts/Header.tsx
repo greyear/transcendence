@@ -1,4 +1,4 @@
-import { Bell, Menu, ProfileCircle, Xmark } from "iconoir-react";
+import { Menu, ProfileCircle, Xmark } from "iconoir-react";
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
@@ -131,12 +131,6 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 							onSubmit={handleSearch}
 						/>
 					)}
-					<IconButton
-						aria-label={t("ariaLabels.notifications")}
-						variant="transparent"
-					>
-						<Bell />
-					</IconButton>
 					{!isDesktop ? (
 						<IconButton
 							onClick={handleMenuButtonClick}
