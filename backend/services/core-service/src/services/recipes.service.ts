@@ -41,6 +41,7 @@ import {
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
 } from "../validation/schemas.js";
+import { scheduleRecipeSearchReindex } from "./searchIndex.service.js";
 import {
 	localizeInstructionStepsFromSource,
 	localizeTextFromSource,
@@ -692,6 +693,8 @@ export const publishRecipe = async (
 		if (!recipe) {
 			throw new Error(`Updated recipe ${recipeId} could not be loaded`);
 		}
+
+		scheduleRecipeSearchReindex(recipeId);
 
 		return { success: true, recipe };
 	} catch (error) {
