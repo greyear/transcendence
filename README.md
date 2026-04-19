@@ -8,11 +8,11 @@ A recipe sharing platform with a clean interface, social features and AI integra
 
 # Description
 
-## Project Overview
+## Project overview
 
 Our ft_transcendence project, **Recipe Creating Platform (RCP)**, is a full-stack web application designed to help users discover, create, and manage recipes with comprehensive social features. The product enables users to share their culinary creations, follow other cooking enthusiasts (cooks), save favourite recipes, leave comments, and explore a rich collection of user-generated culinary content.
 
-## Key Features
+## Key features
 
 - **Recipe Discovery & Browsing**: Browse and search recipes with filtering and sorting options
 - **Social Features**: Follow other cooks, view their profiles, and see their recipe collections
@@ -37,7 +37,7 @@ Our team consists of 5 members:
 - Jimi Karhu (jkarhu)
 - Eric Lehtonen (elehtone)
 
-## Mandatory Roles
+## Mandatory roles
 
 - **Product Owner**: Overall project vision, work priority and validation of completed work.
 	- Anya and Nick shared this role at various stages during the project
@@ -48,6 +48,17 @@ Our team consists of 5 members:
 - **Developers**: Implement features, review code, test, and document contributions.
 	- All 5 of us were developers to various degrees
 
+## Project management practices
+	
+Our group tried to follow the subject guidelines regarding project management.
+
+- Regular group meetings. Concise meeting notes available [here](./docs/meetings.md).
+- Task planning using GitHub Issues & Kanban board as well as Discord.
+- Work was generally broken into manageable parts and we aimed to have single issue pull requests.
+- Peer review was mandatory for all pull requests.
+- Mostly ongoing documentation of decisions.
+- Discord was used for day-to-day group communication.
+
 ---
 
 # Instructions
@@ -56,7 +67,7 @@ Our team consists of 5 members:
 
 Before starting the project, ensure the following tools are installed on your system:
 
-| Tool | Minimum version | Version check (bash) |
+| Tool | Minimum Version | Version Check (bash) |
 |------|---------|-----------|
 | Docker | 20.10 | `docker --version` |
 | Docker Compose | 1.29 | `docker-compose --version` |
@@ -64,7 +75,7 @@ Before starting the project, ensure the following tools are installed on your sy
 | Node.js | 20 | `node --version` |
 | npm | 10 | `npm --version` |
 
-## Environment Configuration
+## Environment configuration
 
 Each service requires environment variable configuration. Copy the `env.template` files to `.env`:
 
@@ -80,7 +91,7 @@ cp backend/services/auth-service/.env.template backend/services/auth-service/.en
 
 Replace placeholder values (e.g., `JWT_SECRET="your-super-secret-jwt-key-min-32-chars"`) with appropriate configuration values for your environment.
 
-## Running the Project
+## Running the project
 
 ### Start all services via Docker Compose:
 
@@ -109,7 +120,7 @@ Useful management commands:
 | `make clean` | Full cleanup including all volumes |
 | `make re` | Full cleanup and restart |
 
-### Accessing the Application
+### Accessing the application
 
 - **Frontend**: `https://localhost:8443` (or `https://localhost`)
 - **API Gateway**: `http://localhost:3000` (internal/development)
@@ -121,7 +132,7 @@ Useful management commands:
 
 The project uses **Jest** and **Supertest** for integration testing.
 
-### How to Run Tests
+### How to run tests
 
 From the project root:
 
@@ -146,7 +157,7 @@ cd backend/services/api-gateway && npm run test:watch
 
 # Resources
 
-## Documentation References
+## Documentation references
 
 - [Express.js Documentation](https://expressjs.com/)
 - [React 19 Documentation](https://react.dev/)
@@ -157,9 +168,9 @@ cd backend/services/api-gateway && npm run test:watch
 - [Traefik Reverse Proxy Documentation](https://doc.traefik.io/)
 - [Docker & Docker Compose Documentation](https://docs.docker.com/)
 
-## AI Usage in This Project
+## AI usage in this project
 
-AI tools (such as GitHub Copilot and Claude Code) were used int he following ways:
+AI tools (such as GitHub Copilot and Claude Code) were used in the following ways:
 
 - Researching new concepts or tools efficiently
 - Writing documentation drafts and templates
@@ -224,76 +235,79 @@ All AI-generated code passes before human eyes prior to any use in the project.
 
 ---
 
-# Features List
+# Features list
 
-## Core Features (Implemented)
+## Core features
 
-| Feature | Description | Owner(s) | Status |
-|---------|-------------|----------|--------|
-| User Registration & Authentication | Secure user account creation and login | Eric | <unknown or lacking> |
-| User Profiles | Customisable user profiles with avatar support | <unknown or lacking> | <unknown or lacking> |
-| Recipe Creation | Users can create and publish recipes | <unknown or lacking> | <unknown or lacking> |
-| Recipe Discovery | Browse and search recipes with filtering | <unknown or lacking> | <unknown or lacking> |
-| Favourites | Save recipes to favourites list | <unknown or lacking> | <unknown or lacking> |
-| Follow System | Follow other cooks, view follower lists | <unknown or lacking> | <unknown or lacking> |
-| Comments | Leave comments on recipes | <unknown or lacking> | <unknown or lacking> |
-| Recipe Ratings | Rate recipes (1–5 stars) | <unknown or lacking> | <unknown or lacking> |
-| Multilingual Support | Interface in English, Finnish, Russian | <unknown or lacking> | <unknown or lacking> |
-| Responsive Design | Mobile and desktop compatibility | <unknown or lacking> | <unknown or lacking> |
+| Feature | Description | Developer |
+|---------|-------------|----------|
+| User Registration & Authentication | Secure user account creation and login | Eric, Anya, Nick |
+| User Profiles | Customisable user profiles with avatar support | Anya |
+| Recipe Creation | Users can create and publish recipes | Nick, Anya |
+| Recipe Discovery | Browse and search recipes with filtering | Nick, Jimi |
+| Favourites | Save recipes to favourites list | Anya |
+| Follow System | Follow other cooks, view follower lists | Nick, Anya |
+| Comments | Leave comments on recipes | Anya |
+| Recipe Ratings | Rate recipes (1–5 stars) | Anya |
+| Multilingual Support | Interface in English, Finnish, Russian | Nick, Seela, Anya |
+| Responsive Design | Mobile and desktop compatibility | Nick, Seela |
+| AI Features | Recipe recommendations and intelligent search | Nick, Jimi |
+
+---
 
 # Modules
 
-## Module Strategy
+## Module strategy
 
 Due to the time pressure we had for this project we agreed on a module selection that gave us some leeway for change but should easily allow us to meet the required minimum. Our plan consisted of modules totalling 20 points. This gives us ample flexibility should problems or unseen issues arrive. This also gives us some flexibility should an evaluator encounter a critical failure.
 
-## Planned Modules
+## Planned modules
 
 ### WEB - 5 points
 
-| Module Name | Type | Points | Notes |
+| Module | Type | Points | Notes |
 |-------------|------|--------|-------|
-| Framework for Frontend and Backend | Major | 2 | React 19 (frontend) and Express.js (backend) implemented |
-| Server-Side Rendering (SSR) | Minor | 1 | React Router v7 with server-side rendering capabilities |
-| Custom Design System | Minor | 1 | Reusable components with consistent color palette, typography, and Iconoir icons |
-| Advanced Search Functionality | Minor | 1 | Filtering, sorting, and pagination implemented across recipes and users |
+| Use a framework for both the frontend and backend | Major | 2 | React 19 (frontend) and Express.js (backend) implemented |
+| Server-Side Rendering (SSR) for improved performance and SEO | Minor | 1 | React Router v7 with server-side rendering capabilities |
+| Custom-made design system with reusable components, including a proper colour palette, typography, and icons (minimum: 10 reusable components) | Minor | 1 | Reusable components with consistent colour palette, typography, and Iconoir icons |
+| Implement advanced search functionality with filters, sorting, and pagination | Minor | 1 | Filtering, sorting, and pagination implemented across recipes and users |
 
-### Accessibility and Internationalization - 4 points
-
-| Module Name | Type | Points | Notes |
-|-------------|------|--------|-------|
-| WCAG 2.1 AA Accessibility Compliance | Major | 2 | Screen reader support, keyboard navigation, and assistive technology support |
-| Multiple Language Support | Minor | 1 | Support for English, Finnish, and Russian using react-i18next |
-| Additional Browser Support | Minor | 1 | Responsive design and cross-browser compatibility |
-
-### User Management - 5 points
+### Accessibility and internationalization - 4 points
 
 | Module Name | Type | Points | Notes |
 |-------------|------|--------|-------|
-| Standard User Management and Authentication | Major | 2 | Secure registration, login, and JWT-based authentication |
-| OAuth 2.0 Remote Authentication | Minor | 1 | Google OAuth integration for single sign-on |
+| Complete accessibility compliance (WCAG 2.1 AA) with screen reader support, keyboard navigation, and assistive technologies | Major | 2 | Screen reader support, keyboard navigation, and assistive technology support |
+| Support for multiple languages (at least 3 languages) | Minor | 1 | Support for English, Finnish, and Russian using react-i18next |
+| Support for additional browsers | Minor | 1 | Responsive design and cross-browser compatibility |
+
+### User management - 5 points
+
+| Module Name | Type | Points | Notes |
+|-------------|------|--------|-------|
+| Standard user management and authentication | Major | 2 | Secure registration, login, and JWT-based authentication |
+| Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.) | Minor | 1 | Google OAuth integration for single sign-on |
 | Advanced Permissions System | Major | 2 | Role-based access control (admin, user, guest) |
 
-### Artificial Intelligence - 4 points
+### Artificial intelligence - 4 points
 
 | Module Name | Type | Points | Notes |
 |-------------|------|--------|-------|
-| RAG (Retrieval-Augmented Generation) System | Major | 2 | Complete RAG implementation for intelligent content retrieval |
-| Machine Learning Recommendation System | Major | 2 | ML-based recommendation engine for recipe suggestions |
+| Implement a complete RAG (Retrieval-Augmented Generation) system | Major | 2 | Complete RAG implementation for intelligent content retrieval |
+| Recommendation system using machine learning | Major | 2 | ML-based recommendation engine for recipe suggestions |
 
-### Devops - 2 points
+### DevOps - 2 points
 
 | Module Name | Type | Points | Notes |
 |-------------|------|--------|-------|
-| Microservices Architecture | Major | 2 | Backend implemented as microservices (Auth, Core, Search, Translation services) |
+| Backend as microservices | Major | 2 | Backend implemented as microservices (Auth, Core, Search, Translation services) |
 
 **Total Points: 20**
 
 ---
 
-# Database Schema
+# Database schema
 
-## Recipe erDiagram
+## Core erDiagram
 
 ```mermaid
 erDiagram
@@ -516,7 +530,7 @@ erDiagram
     UNITS ||--o{ NUTRITION_FACTS : "base_unit"
 ```
 
-## Auth Database Collections
+## Auth database collections
 
 ### userModel
 
@@ -540,112 +554,32 @@ Used in the function to generate the next userId.
 | name | String | ✓ | ✓ | "CounterDB" |
 | seq | Number | ✓ | | 1 |
 
+---
+
 # Rationale for tech choices
 
-## Database choice:
-This project uses multiple databases, each chosen to suit the way the relevant service stores and queries data.
+## Databases
 
-Each microservice owns its database and is the single source of truth for its data.
+We use two databases because they solve different problems well.
 
-* The authentication service stores identity and credential data in MongoDB.
-* The core service stores business data in PostgreSQL.
+**PostgreSQL** for the core service. This handles recipes, users, followers, and social interactions.
 
-This separation:
-* keeps the services loosely coupled by isolating their data and responsibilities
-* simplifies scaling and maintenance
-* aligns with microservice best practices
-* avoids cross-service database access
+These entities have lots of relationships and constraints that need to stay consistent—a user can't favourite a recipe that doesn't exist, followers need proper cascading deletes, ingredients link to multiple recipes via join tables. PostgreSQL gives us ACID transactions and strong foreign key support without boilerplate. The strong schema also catches mistakes early.
 
-**PostgreSQL**
-PostgreSQL is used for the core service, where the system relies heavily on:
-* strong relationships between entities
-* referential integrity across related records
-* transactional consistency
-* complex queries and filtering
-* many-to-many relationships
+**MongoDB** for the auth service. This approach keeps credentials and session data separate.
 
-Core domain features such as public profiles, recipes, ingredients, categories, followers, favourites, and comments require reliable consistency and explicit relationships between entities, which relational databases provide naturally.
+Authentication doesn't need complex relationships; it just needs to quickly check if a user exists and verify passwords. MongoDB's flexibility means we can evolve the auth schema without migrations. Keeping auth data isolated also means a compromise of the auth database doesn't expose recipe or additional user data, and vice versa.
 
-PostgreSQL was selected due to:
-* ACID-compliant transactions
-* rich support for relational modelling
-* advanced indexing capabilities
-* support for complex joins and constraints
-* suitability for scalable microservice architectures with strict data ownership
+Each microservice owns its own database, so they can scale independently and don't step on each other's data.
 
-These characteristics are important for maintaining data correctness under concurrent operations and higher read/write load.
+## Microservices
 
-PostgreSQL is also widely used in modern development, making it a practical and familiar choice.
+We split the system into three services that each handle one thing:
 
-**MongoDB**
-MongoDB is used exclusively by the authentication service.
+**API Gateway** — Routes requests to the right service. Handles JWT validation, logs requests, and aggregates responses if needed. It's thin on purpose: no business logic, no database access.
 
-Authentication data has different characteristics from the core domain:
-* flexible and evolving schema (allows schema changes without costly migrations)
-* no complex joins
-* high read/write frequency
-* isolated data ownership
+**Auth Service** — Handles user registration, login, password hashing, token generation, and OAuth with Google. Stores credentials in MongoDB. Keeps this concern isolated so we can patch or scale it independently.
 
-MongoDB is a good fit for this use case because it:
-* allows flexible document-based modelling
-* simplifies storage of authentication-related data
-* avoids unnecessary relational overhead
-* remains isolated from core domain data
+**Core Service** — Manages recipes, user profiles, followers, ratings, comments, and everything else. Talks to PostgreSQL. The bulk of the app logic lives here.
 
-Using MongoDB for authentication keeps sensitive credential data decoupled from the core relational database, which improves security and scalability.
-
-## Microservices:
-The system is divided into microservices based on clearly defined responsibilities: authentication, core domain logic, and request routing.
-Each service owns its data and encapsulates a single responsibility, while the API Gateway acts as the unified entry point for client requests.
-
-Business logic lives within the individual services, while cross-cutting concerns are handled at the gateway level.
-
-### API Gateway
-
-Responsibility:
-* Acts as the single entry point for all client requests.
-
-Contains:
-* Request routing to internal services
-* JWT validation and authentication middleware
-* Rate limiting and API key validation
-* Request/response logging
-* Basic request validation
-* Response aggregation (if needed)
-
-Does NOT contain:
-* Business logic
-* Database access
-
-### Auth Service
-
-Responsibility:
-* Manages authentication and user identity.
-
-Contains:
-* User registration and login
-* Password hashing and verification
-* JWT and refresh token generation
-* OAuth 2.0 integration (Google)
-* Two-factor authentication logic (auth app)
-* Token revocation and session management
-
-Database: auth_db (MongoDB)
-
-### Core Service
-
-Responsibility:
-Manages the core business domain of the application, including user profiles, recipes, and social interactions.
-
-Contains:
-* User profile management (public profile data)
-* Avatar metadata management
-* Recipes CRUD operations
-* Ingredients, categories, and dietary data management
-* Favourites and user–recipe interactions
-* Followers system (mutual follows treated as friends)
-* Comments on recipes
-* Advanced filtering and search across recipes
-* Domain-specific business rules and validations
-
-Database: core_db (PostgreSQL)
+This separation means each service can scale independently, and we can deploy changes to auth without touching recipes (or vice versa).
