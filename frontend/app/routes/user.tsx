@@ -1,7 +1,7 @@
 import { NavArrowRight } from "iconoir-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useOutletContext, useParams } from "react-router";
+import { Navigate, useOutletContext, useParams } from "react-router";
 import { z } from "zod";
 import userPhoto from "~/assets/images/user-photo.jpg";
 import "~/assets/styles/userProfile.css";
@@ -43,7 +43,7 @@ const UserPage = () => {
 	const { t } = useTranslation();
 	const { id } = useParams();
 	const { screenSize } = useScreenSize();
-	const { isAuthenticated, openAuthModal } =
+	const { isAuthenticated, currentUserId, openAuthModal } =
 		useOutletContext<LayoutOutletContext>();
 	const [profile, setProfile] = useState<UserProfileData | null>(null);
 	const [favorites, setFavorites] = useState<FavoriteRecipe[] | null>(null);
@@ -55,9 +55,12 @@ const UserPage = () => {
 	const [isFollowPending, setIsFollowPending] = useState(false);
 
 	const recipesPerPage = screenSize === "mobile" ? 2 : 4;
+	const numericId = id ? Number(id) : null;
+	const isOwnProfile =
+		numericId !== null && currentUserId !== null && numericId === currentUserId;
 
 	useEffect(() => {
-		if (!id) {
+		if (!id || isOwnProfile) {
 			return;
 		}
 
@@ -122,7 +125,7 @@ const UserPage = () => {
 		return () => {
 			ignore = true;
 		};
-	}, [id]);
+	}, [id, isOwnProfile]);
 
 	const sendFollowRequest = async (next: boolean) => {
 		if (!id) {
@@ -163,6 +166,10 @@ const UserPage = () => {
 
 		void sendFollowRequest(!isFollowing);
 	};
+
+	if (isOwnProfile) {
+		return <Navigate to="/profile" replace />;
+	}
 
 	if (isLoading) {
 		return (
@@ -229,7 +236,12 @@ const UserPage = () => {
 						<NavArrowRight aria-hidden="true" />
 					</TextIconButton>
 				</div>
-				<RecipesGrid sortValue="" page={1} perPage={recipesPerPage} />
+				<RecipesGrid
+					sortValue=""
+					page={1}
+					perPage={recipesPerPage}
+					userId={profile.id}
+				/>
 			</section>
 
 			{favorites !== null ? (

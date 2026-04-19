@@ -15,13 +15,14 @@ type RecipeCardResponse = {
 };
 
 type RecipesGridProps = {
+	isAuthenticated: boolean;
+	openAuthModal: (onSuccessAction?: () => void) => void;
 	sortValue?: string;
 	page?: number;
 	perPage?: number;
 	onLoad?: (totalCount: number) => void;
 	sort?: "top";
-	isAuthenticated: boolean;
-	openAuthModal: (onSuccessAction?: () => void) => void;
+	userId?: number;
 };
 
 const sortRecipes = (
@@ -70,13 +71,14 @@ const updateFavoriteIds = (
 };
 
 export const RecipesGrid = ({
+	isAuthenticated,
+	openAuthModal,
 	page = 1,
 	perPage = 12,
 	onLoad,
 	sort,
 	sortValue = "",
-	isAuthenticated,
-	openAuthModal,
+	userId,
 }: RecipesGridProps) => {
 	const { t } = useTranslation();
 	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
@@ -94,7 +96,11 @@ export const RecipesGrid = ({
 		setIsLoading(true);
 		setErrorStatus(null);
 
-		fetch(`${API_BASE_URL}/recipes`)
+		const endpoint =
+			userId !== undefined
+				? `${API_BASE_URL}/users/${userId}/recipes`
+				: `${API_BASE_URL}/recipes`;
+		fetch(endpoint)
 			.then((res) => {
 				if (!res.ok) {
 					setErrorStatus(res.status);
@@ -120,7 +126,7 @@ export const RecipesGrid = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [onLoad, sort]);
+	}, [onLoad, sort, userId]);
 
 	useEffect(() => {
 		if (!isAuthenticated) {
