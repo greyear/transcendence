@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 export type CategoryOption = {
 	id: number;
 	code: string;
+	name: string;
 };
 
 export const CATEGORY_TYPE_CODES = [
@@ -64,9 +65,7 @@ export const RecipeCategorySection = ({
 											onChange={() => onToggle(option.id)}
 										/>
 										<label htmlFor={inputId} className="recipe-category-label">
-											{t(`recipeCreatePage.categoryCode.${option.code}`, {
-												defaultValue: option.code,
-											})}
+											{option.name}
 										</label>
 									</li>
 								);

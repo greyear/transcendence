@@ -144,6 +144,7 @@ const IngredientsResponseSchema = z.object({
 const CategoryListItemSchema = z.object({
 	id: z.number().int().positive(),
 	code: z.string(),
+	name: z.string(),
 });
 
 const makeCategoryResponseSchema = (typeCode: CategoryTypeCode) =>

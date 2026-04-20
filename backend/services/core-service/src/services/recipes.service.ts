@@ -1548,15 +1548,21 @@ export const updateRecipePicture = async (
 
 export const getCategoryList = async (
 	categoryTypeCode: string,
-): Promise<{ [key: string]: { id: number; code: string }[] }> => {
+): Promise<{
+	[key: string]: { id: number; code: string; name: string }[];
+}> => {
 	try {
-		const result = await pool.query<{ id: number; code: string }>(
+		const result = await pool.query<{
+			id: number;
+			code: string;
+			name: string;
+		}>(
 			`
-			SELECT rc.id, rc.code
+			SELECT rc.id, rc.code, rc.name
 			FROM recipe_categories rc
 			JOIN recipe_category_types rct ON rct.id = rc.category_type_id
 			WHERE rct.code = $1
-			ORDER BY rc.code ASC
+			ORDER BY rc.name ASC
 			`,
 			[categoryTypeCode],
 		);
