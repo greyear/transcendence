@@ -68,6 +68,18 @@
 		"ratingOption": "{{value}} tähteä viidestä",
 		"submit": "Lähetä"
 	},
+	"searchPage": {
+		"title": "Haku",
+		"totalCount": "Tuloksia:",
+		"recipesTab": "Reseptit",
+		"usersTab": "Käyttäjät",
+		"perPage": "Per sivu",
+		"noResults": "Reseptejä ei löytynyt.",
+		"searching": "Haetaan reseptejä...",
+		"error": "Haku epäonnistui. Yritä uudelleen.",
+		"aiSummaryOn": "Tekoälytiivistelmä käytössä",
+		"aiSummaryOff": "Tekoälytiivistelmä poissa käytöstä"
+	},
 	"usersPage": {
 		"title": "Käyttäjät",
 		"totalCount": "Käyttäjiä yhteensä:",
@@ -181,6 +193,8 @@
 		"openSearch": "Avaa haku",
 		"closeSearch": "Sulje haku",
 		"clearSearch": "Tyhjennä haku",
+		"enableAiSummary": "Ota tekoälytiivistelmä käyttöön",
+		"disableAiSummary": "Poista tekoälytiivistelmä käytöstä",
 		"firstPage": "Ensimmäinen sivu",
 		"previousPage": "Edellinen sivu",
 		"nextPage": "Seuraava sivu",

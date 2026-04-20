@@ -68,6 +68,18 @@
 		"ratingOption": "{{value}} out of 5 stars",
 		"submit": "Submit"
 	},
+	"searchPage": {
+		"title": "Search",
+		"totalCount": "Results:",
+		"recipesTab": "Recipes",
+		"usersTab": "Users",
+		"perPage": "Per page",
+		"noResults": "No matching recipes found.",
+		"searching": "Searching recipes...",
+		"error": "Search failed. Please try again.",
+		"aiSummaryOn": "AI summary on",
+		"aiSummaryOff": "AI summary off"
+	},
 	"usersPage": {
 		"title": "Users",
 		"totalCount": "Total users:",
@@ -181,6 +193,8 @@
 		"openSearch": "Open search",
 		"closeSearch": "Close search",
 		"clearSearch": "Clear search",
+		"enableAiSummary": "Enable AI summary",
+		"disableAiSummary": "Disable AI summary",
 		"firstPage": "First page",
 		"previousPage": "Previous page",
 		"nextPage": "Next page",

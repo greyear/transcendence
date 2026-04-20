@@ -1,10 +1,10 @@
-import { Bell, Menu, ProfileCircle, Xmark } from "iconoir-react";
+import { Menu, ProfileCircle, Xmark } from "iconoir-react";
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
 import "../assets/styles/header.css";
 import { useTranslation } from "react-i18next";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SearchField } from "~/components/inputs/SearchField";
 import { LanguageSelector } from "~/components/LanguageSelector";
@@ -84,7 +84,10 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 	const headerRef = useRef<HTMLElement>(null);
 	const { pathname } = useLocation();
 
+	const navigate = useNavigate();
 	const handleMenuButtonClick = () => setIsOpen((prev) => !prev);
+	const handleSearch = (query: string) =>
+		navigate(`/search?q=${encodeURIComponent(query)}`);
 
 	const isDesktop = screenSize === "desktop";
 	const isMobile = screenSize === "mobile";
@@ -122,16 +125,12 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 				<div className="header-top-icon-row">
 					{!isMobile && (
 						<SearchField
+							className="header-search"
 							mode={isDesktop ? "always-open" : "collapsible"}
 							placeholder={t("common.searchPlaceholder")}
+							onSubmit={handleSearch}
 						/>
 					)}
-					<IconButton
-						aria-label={t("ariaLabels.notifications")}
-						variant="transparent"
-					>
-						<Bell />
-					</IconButton>
 					{!isDesktop ? (
 						<IconButton
 							onClick={handleMenuButtonClick}
@@ -170,7 +169,10 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 						</MainButton>
 					)}
 					{isMobile && (
-						<SearchField placeholder={t("common.searchPlaceholder")} />
+						<SearchField
+							placeholder={t("common.searchPlaceholder")}
+							onSubmit={handleSearch}
+						/>
 					)}
 					<LanguageSelector isHeader />
 				</div>
