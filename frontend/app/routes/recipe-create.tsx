@@ -627,6 +627,12 @@ const RecipeCreate = () => {
 					</div>
 				</RecipeFormFieldset>
 
+				<RecipeCategorySection
+					categories={categories}
+					selectedIds={selectedCategoryIds}
+					onTypeChange={handleCategoryTypeChange}
+				/>
+
 				<RecipeIngredientSection
 					rows={ingredients}
 					ingredientOptions={ingredientOptions}
@@ -637,12 +643,6 @@ const RecipeCreate = () => {
 				<RecipeInstructionSection
 					rows={instructions}
 					onChange={setInstructions}
-				/>
-
-				<RecipeCategorySection
-					categories={categories}
-					selectedIds={selectedCategoryIds}
-					onTypeChange={handleCategoryTypeChange}
 				/>
 
 				{formError ? (
