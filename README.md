@@ -122,11 +122,12 @@ Useful management commands:
 
 ### Accessing the application
 
-- **Frontend**: `https://localhost:8443` (or `https://localhost`)
-- **API Gateway**: `http://localhost:5173` (internal/development)
+- **Frontend**: `https://localhost:5173`
+- **API Gateway**: External: `https://localhost:8443` Internal: `http://localhost:3000`
 - **Auth Service**: `http://auth-service:3001` (internal Docker network)
 - **Core Service**: `http://core-service:3002` (internal Docker network)
-- **Traefik Dashboard**: `http://localhost:8080` (traffic and routing visualisation)
+- **Search Service**: `http://search-service:8000` (internal Docker network)
+- **Translation Service**: `http://translation-service:8001` (internal Docker network)
 
 ## Testing
 
