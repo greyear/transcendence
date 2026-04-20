@@ -2049,4 +2049,24 @@ describe("Recipes Routes", () => {
 		);
 		expect(names).toEqual([...names].sort());
 	});
+
+	it("should return units list for GET /recipes/units", async () => {
+		const response = await request(app).get("/recipes/units");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("units");
+		expect(Array.isArray(response.body.units)).toBe(true);
+		expect(response.body.units.length).toBeGreaterThan(0);
+		for (const unit of response.body.units) {
+			expect(unit).toEqual(
+				expect.objectContaining({
+					code: expect.any(String),
+					kind: expect.any(String),
+				}),
+			);
+			expect(["mass", "volume", "portion"]).toContain(unit.kind);
+		}
+		const codes = response.body.units.map((u: { code: string }) => u.code);
+		expect(codes).toEqual(expect.arrayContaining(["g", "kg", "ml", "tsp"]));
+	});
 });

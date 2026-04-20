@@ -196,6 +196,7 @@
 		"instructionsHeading": "Instructions",
 		"ingredientNamePlaceholder": "Ingredient name",
 		"ingredientAmountPlaceholder": "Amount",
+		"ingredientUnitPlaceholder": "Unit",
 		"instructionPlaceholder": "Describe this step…",
 		"addIngredient": "+ Add ingredient",
 		"addStep": "+ Add step",

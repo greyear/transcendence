@@ -196,6 +196,7 @@
 		"instructionsHeading": "Инструкции",
 		"ingredientNamePlaceholder": "Название ингредиента",
 		"ingredientAmountPlaceholder": "Кол-во",
+		"ingredientUnitPlaceholder": "Ед.",
 		"instructionPlaceholder": "Опишите этот шаг…",
 		"addIngredient": "+ Добавить ингредиент",
 		"addStep": "+ Добавить шаг",

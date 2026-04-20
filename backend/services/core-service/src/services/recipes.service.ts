@@ -1590,3 +1590,17 @@ export const getIngredientList = async (): Promise<{
 		throw error;
 	}
 };
+
+export const getUnitList = async (): Promise<{
+	units: { code: string; kind: string }[];
+}> => {
+	try {
+		const result = await pool.query<{ code: string; kind: string }>(
+			`SELECT code, kind FROM units ORDER BY kind ASC, code COLLATE "C" ASC`,
+		);
+		return { units: result.rows };
+	} catch (error) {
+		console.error("Database error in getUnitList:", error);
+		throw error;
+	}
+};

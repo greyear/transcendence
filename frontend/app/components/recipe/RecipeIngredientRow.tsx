@@ -5,24 +5,14 @@ import { IconButton } from "~/components/buttons/IconButton";
 import { InputField } from "~/components/inputs/InputField";
 import { SelectField } from "~/components/inputs/SelectField";
 
-const UNIT_OPTIONS = [
-	"tsp",
-	"tbsp",
-	"cup",
-	"ml",
-	"l",
-	"g",
-	"kg",
-	"oz",
-	"lb",
-	"piece",
-];
-
-const UNIT_SELECT_OPTIONS = UNIT_OPTIONS.map((u) => ({ label: u, value: u }));
-
 export type IngredientOption = {
 	id: number;
 	name: string;
+};
+
+export type UnitOption = {
+	code: string;
+	kind: string;
 };
 
 export type IngredientRow = {
@@ -36,12 +26,13 @@ export const createIngredient = (): IngredientRow => ({
 	id: crypto.randomUUID(),
 	ingredientId: null,
 	amount: "",
-	unit: "g",
+	unit: "",
 });
 
 type RecipeIngredientRowProps = {
 	ingredient: IngredientRow;
 	ingredientOptions: IngredientOption[];
+	unitOptions: UnitOption[];
 	provided: DraggableProvided;
 	index: number;
 	isOnly: boolean;
@@ -52,6 +43,7 @@ type RecipeIngredientRowProps = {
 export const RecipeIngredientRow = ({
 	ingredient,
 	ingredientOptions,
+	unitOptions,
 	provided,
 	index,
 	isOnly,
@@ -63,6 +55,10 @@ export const RecipeIngredientRow = ({
 	const selectOptions = ingredientOptions.map((option) => ({
 		label: option.name,
 		value: String(option.id),
+	}));
+	const unitSelectOptions = unitOptions.map((unit) => ({
+		label: unit.code,
+		value: unit.code,
 	}));
 	const selectValue =
 		ingredient.ingredientId !== null ? String(ingredient.ingredientId) : "";
@@ -110,7 +106,8 @@ export const RecipeIngredientRow = ({
 				/>
 				<SelectField
 					inputId={`${ingredient.id}-unit`}
-					options={UNIT_SELECT_OPTIONS}
+					options={unitSelectOptions}
+					placeholder={t("recipeCreatePage.ingredientUnitPlaceholder")}
 					value={ingredient.unit}
 					onChange={(value) => onChange({ unit: value })}
 					className="recipe-ingredient-unit"

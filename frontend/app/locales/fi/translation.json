@@ -196,6 +196,7 @@
 		"instructionsHeading": "Ohjeet",
 		"ingredientNamePlaceholder": "Aineksen nimi",
 		"ingredientAmountPlaceholder": "Määrä",
+		"ingredientUnitPlaceholder": "Yksikkö",
 		"instructionPlaceholder": "Kuvaile tämä vaihe…",
 		"addIngredient": "+ Lisää aines",
 		"addStep": "+ Lisää vaihe",

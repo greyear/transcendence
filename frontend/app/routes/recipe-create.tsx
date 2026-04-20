@@ -25,6 +25,7 @@ import { RecipeFormFieldset } from "~/components/recipe/RecipeFormFieldset";
 import type {
 	IngredientOption,
 	IngredientRow,
+	UnitOption,
 } from "~/components/recipe/RecipeIngredientRow";
 import { RecipeIngredientSection } from "~/components/recipe/RecipeIngredientSection";
 import type { InstructionRow } from "~/components/recipe/RecipeInstructionItem";
@@ -123,8 +124,8 @@ const RecipeFormSchema = z
 			.min(1, "At least one instruction step is required"),
 		categoryIds: z.array(z.number().int().positive()),
 	})
-	.refine((d) => d.prepHours * 60 + d.prepMinutes > 0, {
-		message: "Prep time must be greater than 0",
+	.refine((d) => d.prepHours * 60 + d.prepMinutes >= 0, {
+		message: "Prep time must be greater or equal to 0",
 		path: ["prepHours"],
 	})
 	.refine((d) => d.cookHours * 60 + d.cookMinutes > 0, {
@@ -137,6 +138,15 @@ const IngredientsResponseSchema = z.object({
 		z.object({
 			id: z.number().int().positive(),
 			name: z.string(),
+		}),
+	),
+});
+
+const UnitsResponseSchema = z.object({
+	units: z.array(
+		z.object({
+			code: z.string().min(1),
+			kind: z.string().min(1),
 		}),
 	),
 });
@@ -202,7 +212,7 @@ const RecipeCreate = () => {
 	const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 	const [form, setForm] = useState<FormState>(initialForm);
 	const [ingredients, setIngredients] = useState<IngredientRow[]>(() => [
-		{ id: `${baseId}-i0`, ingredientId: null, amount: "", unit: "g" },
+		{ id: `${baseId}-i0`, ingredientId: null, amount: "", unit: "" },
 	]);
 	const [instructions, setInstructions] = useState<InstructionRow[]>(() => [
 		{ id: `${baseId}-s0`, text: "" },
@@ -212,6 +222,7 @@ const RecipeCreate = () => {
 	const [ingredientOptions, setIngredientOptions] = useState<
 		IngredientOption[]
 	>([]);
+	const [unitOptions, setUnitOptions] = useState<UnitOption[]>([]);
 	const [categories, setCategories] = useState<CategoryMap>(() =>
 		emptyCategoryMap(),
 	);
@@ -273,6 +284,27 @@ const RecipeCreate = () => {
 			}
 		};
 
+		const fetchUnits = async () => {
+			try {
+				const response = await fetch(`${API_BASE_URL}/recipes/units`);
+				if (!response.ok) {
+					console.error(`Failed to fetch units: ${response.status}`);
+					return;
+				}
+				const body: unknown = await response.json();
+				const parsed = UnitsResponseSchema.safeParse(body);
+				if (!parsed.success) {
+					console.error("Unexpected units response", parsed.error);
+					return;
+				}
+				if (!cancelled) {
+					setUnitOptions(parsed.data.units);
+				}
+			} catch (error) {
+				console.error(error);
+			}
+		};
+
 		const fetchCategoryType = async (typeCode: CategoryTypeCode) => {
 			try {
 				const response = await fetch(`${API_BASE_URL}/recipes/${typeCode}`);
@@ -301,6 +333,7 @@ const RecipeCreate = () => {
 		};
 
 		void fetchIngredients();
+		void fetchUnits();
 		for (const typeCode of CATEGORY_TYPE_CODES) {
 			void fetchCategoryType(typeCode);
 		}
@@ -597,6 +630,7 @@ const RecipeCreate = () => {
 				<RecipeIngredientSection
 					rows={ingredients}
 					ingredientOptions={ingredientOptions}
+					unitOptions={unitOptions}
 					onChange={setIngredients}
 				/>
 

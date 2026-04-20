@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type {
 	IngredientOption,
 	IngredientRow,
+	UnitOption,
 } from "~/components/recipe/RecipeIngredientRow";
 import {
 	createIngredient,
@@ -14,12 +15,14 @@ import { RecipeSortableList } from "~/components/recipe/RecipeSortableList";
 type RecipeIngredientSectionProps = {
 	rows: IngredientRow[];
 	ingredientOptions: IngredientOption[];
+	unitOptions: UnitOption[];
 	onChange: (rows: IngredientRow[]) => void;
 };
 
 export const RecipeIngredientSection = ({
 	rows,
 	ingredientOptions,
+	unitOptions,
 	onChange,
 }: RecipeIngredientSectionProps) => {
 	const { t } = useTranslation();
@@ -73,6 +76,7 @@ export const RecipeIngredientSection = ({
 									provided={provided}
 									ingredient={row}
 									ingredientOptions={ingredientOptions}
+									unitOptions={unitOptions}
 									index={index}
 									isOnly={rows.length === 1}
 									onChange={(patch) => handleChange(row.id, patch)}
