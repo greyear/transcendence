@@ -1,6 +1,7 @@
 services:
 
   traefik:
+    env_file: .env
     image: traefik:v3.4
     container_name: traefik
     restart: unless-stopped
@@ -21,6 +22,7 @@ services:
       - transcendence-network
 
   auth-db:
+    env_file: .env
     image: mongo:6
     container_name: auth-mongo
     restart: unless-stopped
@@ -36,6 +38,7 @@ services:
       - transcendence-network
 
   core-db:
+    env_file: .env
     image: postgres:15
     container_name: core-postgres
     restart: unless-stopped
@@ -65,6 +68,7 @@ services:
       - transcendence-network
 
   search-db:
+    env_file: .env
     image: pgvector/pgvector:pg15
     container_name: search-postgres
     restart: unless-stopped
@@ -91,6 +95,7 @@ services:
       - transcendence-network
 
   api-gateway:
+    env_file: .env
     build:
       context: ./backend/services/api-gateway
       dockerfile: Dockerfile
@@ -124,6 +129,7 @@ services:
       - transcendence-network
 
   auth-service:
+    env_file: .env
     build:
       context: ./backend/services/auth-service
       dockerfile: Dockerfile
@@ -145,6 +151,7 @@ services:
       - transcendence-network
 
   core-service:
+    env_file: .env
     build:
       context: ./backend/services/core-service
       dockerfile: Dockerfile
@@ -175,6 +182,7 @@ services:
       - transcendence-network
 
   search-service:
+    env_file: .env
     build:
       context: ./backend/services/search-service
       dockerfile: Dockerfile
@@ -207,6 +215,7 @@ services:
       - transcendence-network
 
   translation-service:
+    env_file: .env
     build:
       context: ./backend/services/translation-service
       dockerfile: Dockerfile
