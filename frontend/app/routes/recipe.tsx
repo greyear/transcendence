@@ -10,6 +10,7 @@ import { RatingModal } from "~/components/rating/ratingModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import type { LayoutOutletContext } from "~/layouts/layout";
+import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
 
 type RecipeIngredient = {
@@ -31,13 +32,11 @@ type Recipe = {
 
 type RecipeReview = {
 	id: number;
-	recipe_id: number;
 	author_id: number | null;
 	username: string | null;
-	avatar: string | null;
+	rating: number | null;
 	body: string;
 	created_at: string;
-	updated_at: string;
 };
 
 const RecipeIngredientSchema = z.object({
@@ -51,7 +50,8 @@ const RecipeSchema = z.object({
 	id: z.number(),
 	title: z.string(),
 	description: z.string().nullable(),
-	rating_avg: z.number().nullable(),
+	rating_avg: z.coerce.number().nullable(),
+	picture_url: z.string().nullable(),
 	ingredients: z.array(RecipeIngredientSchema).optional().default([]),
 	instructions: z.array(z.string()).optional().default([]),
 });
@@ -62,13 +62,18 @@ const RecipeResponseSchema = z.object({
 
 const RecipeReviewSchema = z.object({
 	id: z.number(),
-	recipe_id: z.number(),
 	author_id: z.number().nullable(),
 	username: z.string().nullable(),
-	avatar: z.string().nullable(),
+	rating: z.coerce
+		.number()
+		.int()
+		.min(1)
+		.max(5)
+		.nullable()
+		.optional()
+		.default(null),
 	body: z.string(),
 	created_at: z.string(),
-	updated_at: z.string(),
 });
 
 const RecipeReviewsResponseSchema = z.object({
@@ -98,7 +103,7 @@ const fetchRecipeById = async (id: string): Promise<FetchRecipeResult> => {
 			return { errorStatus: response.status, recipe: null };
 		}
 
-		const body = await response.json();
+		const body: unknown = await response.json();
 		const parsed = RecipeResponseSchema.safeParse(body);
 		if (!parsed.success) {
 			return { errorStatus: null, recipe: null };
@@ -125,7 +130,7 @@ const fetchRecipeReviews = async (
 			return { errorStatus: response.status, reviews: [] };
 		}
 
-		const body = await response.json();
+		const body: unknown = await response.json();
 		const parsed = RecipeReviewsResponseSchema.safeParse(body);
 		if (!parsed.success) {
 			return { errorStatus: null, reviews: [] };
@@ -136,6 +141,16 @@ const fetchRecipeReviews = async (
 		console.error(error);
 		return { errorStatus: "unknown" as const, reviews: [] };
 	}
+};
+
+const formatReviewDate = (value: string) => {
+	const date = new Date(value);
+
+	if (Number.isNaN(date.getTime())) {
+		return value;
+	}
+
+	return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 };
 
 const RecipePage = () => {
@@ -158,6 +173,55 @@ const RecipePage = () => {
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 	const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null);
 	const [reviewActionError, setReviewActionError] = useState("");
+	const [isFavorited, setIsFavorited] = useState(false);
+	const [isFavoritePending, setIsFavoritePending] = useState(false);
+
+	const toggleFavorite = async () => {
+		if (!id || isFavoritePending) {
+			return;
+		}
+
+		const wasFavoritedBeforeClick = isFavorited;
+		const shouldBeFavorited = !wasFavoritedBeforeClick;
+
+		setIsFavorited(shouldBeFavorited);
+		setIsFavoritePending(true);
+
+		try {
+			const response = await fetch(`${API_BASE_URL}/recipes/${id}/favorite`, {
+				method: shouldBeFavorited ? "POST" : "DELETE",
+				credentials: "include",
+			});
+
+			if (!response.ok) {
+				if (response.status === 409) {
+					setIsFavorited(shouldBeFavorited);
+					return;
+				}
+
+				setIsFavorited(wasFavoritedBeforeClick);
+				return;
+			}
+
+			setIsFavorited(shouldBeFavorited);
+		} catch (error) {
+			setIsFavorited(wasFavoritedBeforeClick);
+			console.error(error);
+		} finally {
+			setIsFavoritePending(false);
+		}
+	};
+
+	const handleFavoriteClick = () => {
+		if (!isAuthenticated) {
+			openAuthModal(() => {
+				void toggleFavorite();
+			});
+			return;
+		}
+
+		void toggleFavorite();
+	};
 
 	const onCloseRatingModal = () => {
 		setIsRatingModalOpen(false);
@@ -328,6 +392,57 @@ const RecipePage = () => {
 			});
 	}, [id]);
 
+	useEffect(() => {
+		if (!isAuthenticated || !id) {
+			setIsFavorited(false);
+			setIsFavoritePending(false);
+			return;
+		}
+
+		let ignoreResult = false;
+
+		fetch(`${API_BASE_URL}/users/me/favorites`, {
+			credentials: "include",
+		})
+			.then((res) => {
+				if (!res.ok) {
+					return null;
+				}
+				return res.json();
+			})
+			.then((body: unknown) => {
+				if (ignoreResult) {
+					return;
+				}
+
+				if (body === null) {
+					setIsFavorited(false);
+					return;
+				}
+
+				const parsed = FavoriteRecipesResponseSchema.safeParse(body);
+				if (!parsed.success) {
+					setIsFavorited(false);
+					return;
+				}
+
+				const currentRecipeId = Number(id);
+				setIsFavorited(
+					parsed.data.data.some((favorite) => favorite.id === currentRecipeId),
+				);
+			})
+			.catch((error) => {
+				console.error(error);
+				if (!ignoreResult) {
+					setIsFavorited(false);
+				}
+			});
+
+		return () => {
+			ignoreResult = true;
+		};
+	}, [id, isAuthenticated]);
+
 	if (isLoading) {
 		return <p className="recipe-page-status">{t("recipePage.loading")}</p>;
 	}
@@ -381,13 +496,17 @@ const RecipePage = () => {
 				{recipe.rating_avg !== null ? (
 					<div className="recipe-rating-display text-label">
 						<span>{recipe.rating_avg.toFixed(1)}</span>
-						<StarSolid />
+						<StarSolid aria-hidden="true" />
 					</div>
 				) : null}
 				<IconButton className="recipe-action" onClick={onOpenRatingModal}>
-					{t("recipePage.rate")} <Reports />
+					{t("recipePage.rate")} <Reports aria-hidden="true" />
 				</IconButton>
-				<FavoriteButton />
+				<FavoriteButton
+					isFavorited={isFavorited}
+					disabled={isFavoritePending}
+					onClick={handleFavoriteClick}
+				/>
 			</div>
 
 			<section
@@ -467,33 +586,44 @@ const RecipePage = () => {
 							<ul className="recipe-page-detail-list recipe-page-reviews-list">
 								{reviews.map((review) => {
 									const canDeleteReview =
-										currentUserId !== null && review.author_id === currentUserId;
+										currentUserId !== null &&
+										review.author_id === currentUserId;
 
 									return (
 										<li key={review.id} className="recipe-page-review-card">
 											<div className="recipe-page-review-meta">
-												<span className="recipe-page-review-author text-label">
+												<span className="recipe-page-review-author text-caption">
 													{review.username ?? t("recipePage.reviewAnonymous")}
 												</span>
-												<time
-													className="recipe-page-review-date text-body3"
-													dateTime={review.created_at}
-												>
-													{new Date(review.created_at).toLocaleDateString()}
-												</time>
+												<div className="recipe-page-review-meta-details">
+													{review.rating !== null ? (
+														<span className="recipe-page-review-rating text-body3">
+															({review.rating})
+															<StarSolid aria-hidden="true" />
+														</span>
+													) : null}
+													<time
+														className="recipe-page-review-date text-caption"
+														dateTime={review.created_at}
+													>
+														{formatReviewDate(review.created_at)}
+													</time>
+												</div>
 											</div>
 											<div className="recipe-page-review-body">
 												<p className="text-body3">{review.body}</p>
-												{canDeleteReview ? (
-													<IconButton
-														className="recipe-page-review-delete"
-														aria-label={t("ariaLabels.deleteReview")}
-														disabled={deletingReviewId === review.id}
-														onClick={() => void deleteFeedback(review.id)}
-													>
-														<Trash aria-hidden="true" />
-													</IconButton>
-												) : null}
+												<div className="recipe-page-review-action">
+													{canDeleteReview ? (
+														<IconButton
+															className="recipe-page-review-delete"
+															aria-label={t("ariaLabels.deleteReview")}
+															disabled={deletingReviewId === review.id}
+															onClick={() => void deleteFeedback(review.id)}
+														>
+															<Trash aria-hidden="true" />
+														</IconButton>
+													) : null}
+												</div>
 											</div>
 										</li>
 									);

@@ -1070,11 +1070,15 @@ export const getRecipeReviews = async (
 				rr.author_id,
 				u.username,
 				u.avatar,
+				rrt.rating,
 				rr.body,
 				rr.created_at,
 				rr.updated_at
 			FROM recipe_reviews rr
 			LEFT JOIN users u ON u.id = rr.author_id
+			LEFT JOIN recipe_ratings rrt
+				ON rrt.recipe_id = rr.recipe_id
+				AND rrt.user_id = rr.author_id
 			WHERE rr.recipe_id = $1 AND rr.is_deleted = false
 			ORDER BY rr.created_at DESC
 		`,
@@ -1144,11 +1148,15 @@ export const updateReview = async (
 				rr.author_id,
 				u.username,
 				u.avatar,
+				rrt.rating,
 				rr.body,
 				rr.created_at,
 				rr.updated_at
 			FROM recipe_reviews rr
 			LEFT JOIN users u ON u.id = rr.author_id
+			LEFT JOIN recipe_ratings rrt
+				ON rrt.recipe_id = rr.recipe_id
+				AND rrt.user_id = rr.author_id
 			WHERE rr.id = $1
 		`,
 			[reviewId],
@@ -1569,7 +1577,7 @@ export const getIngredientList = async (): Promise<{
 }> => {
 	try {
 		const result = await pool.query<{ id: number; name: string }>(
-			`SELECT id, name FROM ingredients ORDER BY name ASC`,
+			`SELECT id, name FROM ingredients ORDER BY name COLLATE "C" ASC`,
 		);
 		return { ingredients: result.rows };
 	} catch (error) {

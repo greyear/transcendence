@@ -78,9 +78,12 @@ export const RatingForm = ({
 	};
 
 	const getExistingReviewId = async (userId: number) => {
-		const response = await fetch(`${API_BASE_URL}/recipes/${recipeId}/reviews`, {
-			credentials: "include",
-		});
+		const response = await fetch(
+			`${API_BASE_URL}/recipes/${recipeId}/reviews`,
+			{
+				credentials: "include",
+			},
+		);
 		if (!response.ok) {
 			return null;
 		}
@@ -111,25 +114,31 @@ export const RatingForm = ({
 
 		try {
 			const payload = JSON.stringify({ rating });
-			let ratingResponse = await fetch(`${API_BASE_URL}/recipes/${recipeId}/rating`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-				body: payload,
-			});
-			let ratingData = await parseApiResponse(ratingResponse);
-
-			if (ratingResponse.status === 409) {
-				ratingResponse = await fetch(`${API_BASE_URL}/recipes/${recipeId}/rating`, {
-					method: "PUT",
+			let ratingResponse = await fetch(
+				`${API_BASE_URL}/recipes/${recipeId}/rating`,
+				{
+					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
 					},
 					credentials: "include",
 					body: payload,
-				});
+				},
+			);
+			let ratingData = await parseApiResponse(ratingResponse);
+
+			if (ratingResponse.status === 409) {
+				ratingResponse = await fetch(
+					`${API_BASE_URL}/recipes/${recipeId}/rating`,
+					{
+						method: "PUT",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						credentials: "include",
+						body: payload,
+					},
+				);
 				ratingData = await parseApiResponse(ratingResponse);
 			}
 

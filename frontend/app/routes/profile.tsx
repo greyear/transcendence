@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useOutletContext } from "react-router";
 import { z } from "zod";
 import "~/assets/styles/profile.css";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import type { LayoutOutletContext } from "~/layouts/layout";
+import {
+	type FavoriteRecipe,
+	FavoriteRecipesResponseSchema,
+} from "~/schemas/favorites";
 
 type ProfileData = {
 	id: number;
@@ -20,16 +26,29 @@ const ProfileResponseSchema = z.object({
 
 const ProfilePage = () => {
 	const { t } = useTranslation();
+	const { isAuthenticated } = useOutletContext<LayoutOutletContext>();
 	const [profile, setProfile] = useState<ProfileData | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
+	const [favorites, setFavorites] = useState<FavoriteRecipe[]>([]);
+	const [isProfileLoading, setIsProfileLoading] = useState(true);
+	const [isFavoritesLoading, setIsFavoritesLoading] = useState(true);
 	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
 		null,
 	);
+	const [favoritesErrorStatus, setFavoritesErrorStatus] = useState<
+		number | "unknown" | null
+	>(null);
 
 	useEffect(() => {
+		if (!isAuthenticated) {
+			setProfile(null);
+			setIsProfileLoading(false);
+			setErrorStatus(null);
+			return;
+		}
+
 		let ignore = false;
 
-		setIsLoading(true);
+		setIsProfileLoading(true);
 		setErrorStatus(null);
 		setProfile(null);
 
@@ -71,17 +90,82 @@ const ProfilePage = () => {
 			})
 			.finally(() => {
 				if (!ignore) {
-					setIsLoading(false);
+					setIsProfileLoading(false);
 				}
 			});
 
 		return () => {
 			ignore = true;
 		};
-	}, []);
+	}, [isAuthenticated]);
 
-	if (isLoading) {
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setFavorites([]);
+			setIsFavoritesLoading(false);
+			setFavoritesErrorStatus(null);
+			return;
+		}
+
+		let ignore = false;
+
+		setIsFavoritesLoading(true);
+		setFavoritesErrorStatus(null);
+		setFavorites([]);
+
+		fetch(`${API_BASE_URL}/users/me/favorites`, {
+			credentials: "include",
+		})
+			.then((res) => {
+				if (!res.ok) {
+					if (!ignore) {
+						setFavoritesErrorStatus(res.status);
+					}
+					return null;
+				}
+				return res.json();
+			})
+			.then((body: unknown | null) => {
+				if (ignore) {
+					return;
+				}
+				if (body === null) {
+					return;
+				}
+
+				const parsed = FavoriteRecipesResponseSchema.safeParse(body);
+				if (!parsed.success) {
+					setFavorites([]);
+					return;
+				}
+
+				setFavorites(parsed.data.data);
+			})
+			.catch((error: unknown) => {
+				if (!ignore) {
+					setFavoritesErrorStatus("unknown");
+				}
+				console.error(error);
+			})
+			.finally(() => {
+				if (!ignore) {
+					setIsFavoritesLoading(false);
+				}
+			});
+
+		return () => {
+			ignore = true;
+		};
+	}, [isAuthenticated]);
+
+	if (isProfileLoading) {
 		return <p className="profile-page-status">{t("profilePage.loading")}</p>;
+	}
+
+	if (!isAuthenticated) {
+		return (
+			<p className="profile-page-status">{t("profilePage.signInRequired")}</p>
+		);
 	}
 
 	if (errorStatus !== null) {
@@ -116,6 +200,30 @@ const ProfilePage = () => {
 					{profile.avatar ?? t("profilePage.noAvatar")}
 				</p>
 			</div>
+			<section className="profile-page-favorites">
+				<h2>{t("profilePage.favoritesTitle")}</h2>
+				{isFavoritesLoading ? (
+					<p className="profile-page-status">
+						{t("profilePage.favoritesLoading")}
+					</p>
+				) : favoritesErrorStatus !== null ? (
+					<p className="profile-page-status">
+						{t("profilePage.favoritesError", { status: favoritesErrorStatus })}
+					</p>
+				) : favorites.length === 0 ? (
+					<p className="profile-page-status">
+						{t("profilePage.favoritesNotFound")}
+					</p>
+				) : (
+					<ul>
+						{favorites.map((favorite) => (
+							<li key={favorite.id}>
+								<h3>{favorite.title}</h3>
+							</li>
+						))}
+					</ul>
+				)}
+			</section>
 		</section>
 	);
 };

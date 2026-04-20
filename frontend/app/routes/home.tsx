@@ -8,11 +8,15 @@ import { useScreenSize } from "~/composables/useScreenSize";
 import "../assets/styles/home.css";
 import { NavArrowLeft, NavArrowRight } from "iconoir-react";
 import { useTranslation } from "react-i18next";
+import { useOutletContext } from "react-router";
 import heroImage from "~/assets/images/hero-image.jpg";
+import type { LayoutOutletContext } from "~/layouts/layout";
 
 const HomePage = () => {
 	const { t } = useTranslation();
 	const { screenSize } = useScreenSize();
+	const { isAuthenticated, openAuthModal } =
+		useOutletContext<LayoutOutletContext>();
 	const recipesPerPage = screenSize === "mobile" ? 4 : 6;
 	const cooksRowRef = useRef<CooksRowHandle | null>(null);
 	const [cooksRowState, setCooksRowState] = useState({
@@ -51,7 +55,13 @@ const HomePage = () => {
 						<NavArrowRight aria-hidden="true" />
 					</TextIconButton>
 				</div>
-				<RecipesGrid sort="top" page={1} perPage={recipesPerPage} />
+				<RecipesGrid
+					sort="top"
+					page={1}
+					perPage={recipesPerPage}
+					isAuthenticated={isAuthenticated}
+					openAuthModal={openAuthModal}
+				/>
 			</section>
 
 			<section

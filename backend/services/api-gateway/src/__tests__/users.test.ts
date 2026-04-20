@@ -519,6 +519,247 @@ describe("API Gateway - Users Routes", () => {
 		});
 	});
 
+	describe("GET /users/me/followers", () => {
+		it("should reject without authentication", async () => {
+			const response = await request(app).get("/users/me/followers");
+
+			expect(response.status).toBe(401);
+			expect(response.body).toEqual({ error: "Authentication required" });
+			expect(fetchSpy).not.toHaveBeenCalled();
+		});
+
+		it("should validate token and proxy to core-service", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			fetchSpy.mockResolvedValueOnce({
+				status: 200,
+				json: async () => ({
+					data: [
+						{ id: 2, username: "follower", avatar: null, recipes_count: 3 },
+					],
+					count: 1,
+				}),
+			} as unknown as Response);
+
+			const response = await request(app)
+				.get("/users/me/followers")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({
+				data: [{ id: 2, username: "follower", avatar: null, recipes_count: 3 }],
+				count: 1,
+			});
+			expect(fetchSpy).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining("/users/me/followers"),
+				expect.objectContaining({
+					headers: expect.objectContaining({ "x-user-id": "42" }),
+					signal: expect.any(AbortSignal),
+				}),
+			);
+		});
+
+		it("should return 504 on timeout", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			const timeoutError = new Error("Request timed out");
+			timeoutError.name = "TimeoutError";
+			fetchSpy.mockRejectedValueOnce(timeoutError);
+
+			const response = await request(app)
+				.get("/users/me/followers")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(504);
+			expect(response.body).toEqual({ error: "Gateway Timeout" });
+		});
+	});
+
+	describe("GET /users/me/following", () => {
+		it("should reject without authentication", async () => {
+			const response = await request(app).get("/users/me/following");
+
+			expect(response.status).toBe(401);
+			expect(response.body).toEqual({ error: "Authentication required" });
+			expect(fetchSpy).not.toHaveBeenCalled();
+		});
+
+		it("should validate token and proxy to core-service", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			fetchSpy.mockResolvedValueOnce({
+				status: 200,
+				json: async () => ({
+					data: [
+						{ id: 3, username: "following", avatar: null, recipes_count: 1 },
+					],
+					count: 1,
+				}),
+			} as unknown as Response);
+
+			const response = await request(app)
+				.get("/users/me/following")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({
+				data: [
+					{ id: 3, username: "following", avatar: null, recipes_count: 1 },
+				],
+				count: 1,
+			});
+			expect(fetchSpy).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining("/users/me/following"),
+				expect.objectContaining({
+					headers: expect.objectContaining({ "x-user-id": "42" }),
+					signal: expect.any(AbortSignal),
+				}),
+			);
+		});
+
+		it("should return 504 on timeout", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			const timeoutError = new Error("Request timed out");
+			timeoutError.name = "TimeoutError";
+			fetchSpy.mockRejectedValueOnce(timeoutError);
+
+			const response = await request(app)
+				.get("/users/me/following")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(504);
+			expect(response.body).toEqual({ error: "Gateway Timeout" });
+		});
+	});
+
+	describe("GET /users/me/friends", () => {
+		it("should reject without authentication", async () => {
+			const response = await request(app).get("/users/me/friends");
+
+			expect(response.status).toBe(401);
+			expect(response.body).toEqual({ error: "Authentication required" });
+			expect(fetchSpy).not.toHaveBeenCalled();
+		});
+
+		it("should validate token and proxy to core-service", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			fetchSpy.mockResolvedValueOnce({
+				status: 200,
+				json: async () => ({
+					data: [
+						{
+							id: 2,
+							username: "mutual_friend",
+							avatar: null,
+							recipes_count: 5,
+						},
+					],
+					count: 1,
+				}),
+			} as unknown as Response);
+
+			const response = await request(app)
+				.get("/users/me/friends")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({
+				data: [
+					{ id: 2, username: "mutual_friend", avatar: null, recipes_count: 5 },
+				],
+				count: 1,
+			});
+			expect(fetchSpy).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining("/users/me/friends"),
+				expect.objectContaining({
+					headers: expect.objectContaining({ "x-user-id": "42" }),
+					signal: expect.any(AbortSignal),
+				}),
+			);
+		});
+
+		it("should return 504 on timeout", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			const timeoutError = new Error("Request timed out");
+			timeoutError.name = "TimeoutError";
+			fetchSpy.mockRejectedValueOnce(timeoutError);
+
+			const response = await request(app)
+				.get("/users/me/friends")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(504);
+			expect(response.body).toEqual({ error: "Gateway Timeout" });
+		});
+
+		it("should forward 404 from core-service", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			fetchSpy.mockResolvedValueOnce({
+				status: 404,
+				json: async () => ({ error: "User not found" }),
+			} as unknown as Response);
+
+			const response = await request(app)
+				.get("/users/me/friends")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toEqual({ error: "User not found" });
+		});
+
+		it("should return 500 on unexpected error", async () => {
+			fetchSpy.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ id: 42 }),
+			} as unknown as Response);
+
+			fetchSpy.mockRejectedValueOnce(new Error("boom"));
+
+			const response = await request(app)
+				.get("/users/me/friends")
+				.set("Authorization", "Bearer validtoken");
+
+			expect(response.status).toBe(500);
+			expect(response.body).toEqual({ error: "Failed to fetch my friends" });
+		});
+	});
+
 	describe("GET /users/:id/favorites", () => {
 		/**
 		 * Test: GET /users/:id/favorites requires authentication

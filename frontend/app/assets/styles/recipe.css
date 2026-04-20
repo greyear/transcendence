@@ -76,10 +76,6 @@
 	color: var(--icons-dark);
 }
 
-.recipe-action-label {
-	display: none;
-}
-
 .recipe-page-hero-media {
 	flex: 0 0 auto;
 	display: flex;
@@ -147,10 +143,31 @@
 	min-width: 0;
 }
 
+.recipe-page-review-meta-details {
+	display: inline-flex;
+	align-items: center;
+	column-gap: var(--space-m);
+	flex: 0 0 auto;
+}
+
+.recipe-page-review-rating {
+	--review-star-size: 18px;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	white-space: nowrap;
+}
+
+.recipe-page-review-rating svg {
+	width: var(--review-star-size);
+	height: var(--review-star-size);
+	color: var(--icons-dark);
+	flex-shrink: 0;
+}
+
 .recipe-page-review-body {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 	gap: var(--space-m);
 }
 
@@ -159,8 +176,17 @@
 	min-width: 0;
 }
 
+.recipe-page-review-action {
+	width: var(--icon-button-size);
+	height: var(--icon-button-size);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 var(--icon-button-size);
+}
+
 .recipe-page-review-author {
-	color: var(--text-primary);
+	color: var(--text-secondary);
 	flex: 1 1 auto;
 	min-width: 0;
 	overflow: hidden;
@@ -191,13 +217,18 @@
 	.recipe-page-hero {
 		--recipe-image-size: 352px;
 	}
-	.recipe-action-label {
-		display: inline;
+
+	.recipe-page-review-rating {
+		--review-star-size: 20px;
 	}
 }
 
 @media (min-width: 1440px) {
 	.recipe-page-hero {
 		--recipe-image-size: 420px;
+	}
+
+	.recipe-page-review-rating {
+		--review-star-size: 24px;
 	}
 }

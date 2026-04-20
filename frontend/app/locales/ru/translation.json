@@ -62,7 +62,7 @@
 		"reviewsLoading": "Загрузка отзывов...",
 		"reviewsError": "Не удалось загрузить отзывы (статус: {{status}}).",
 		"noReviewsAvailable": "Отзывов пока нет.",
-		"reviewAnonymous": "Аноним",
+		"reviewAnonymous": "Удаленный пользователь",
 		"confirmDeleteFeedback": "Удалить ваш отзыв и оценку?",
 		"deleteReviewError": "Не удалось удалить отзыв (статус: {{status}}).",
 		"deleteRatingError": "Отзыв удален, но оценку удалить не удалось (статус: {{status}}).",
@@ -87,13 +87,18 @@
 	},
 	"profilePage": {
 		"loading": "Загрузка профиля...",
+		"signInRequired": "Войдите, чтобы просмотреть свой профиль.",
 		"error": "Не удалось загрузить профиль (статус: {{status}}).",
 		"notFound": "Профиль не найден.",
 		"title": "Мой профиль",
 		"username": "Имя пользователя",
 		"userId": "ID пользователя",
 		"avatar": "Аватар",
-		"noAvatar": "Аватар не установлен"
+		"noAvatar": "Аватар не установлен",
+		"favoritesError": "Не удалось загрузить избранное (статус: {{status}}).",
+		"favoritesLoading": "Загрузка избранного...",
+		"favoritesNotFound": "Избранные рецепты не найдены.",
+		"favoritesTitle": "Мое избранное"
 	},
 	"authModal": {
 		"title": "Войти",

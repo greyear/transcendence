@@ -277,11 +277,68 @@ const getFavoritesHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
+const getMyFollowersHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(`${CORE_SERVICE_URL}/users/me/followers`, {
+			headers: getInternalHeaders(req),
+			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+		});
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to fetch my followers" });
+	}
+};
+
+const getMyFollowingHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(`${CORE_SERVICE_URL}/users/me/following`, {
+			headers: getInternalHeaders(req),
+			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+		});
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to fetch my following" });
+	}
+};
+
+const getMyFriendsHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(`${CORE_SERVICE_URL}/users/me/friends`, {
+			headers: getInternalHeaders(req),
+			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+		});
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to fetch my friends" });
+	}
+};
+
 // Register more specific routes FIRST, then less specific
 usersRouter.post("/me/heartbeat", requireAuth, heartbeatHandler);
 // /me/recipes is most specific
 usersRouter.get("/me/recipes", requireAuth, getMyRecipesHandler);
 usersRouter.get("/me/favorites", requireAuth, getMyFavoritesHandler);
+usersRouter.get("/me/followers", requireAuth, getMyFollowersHandler);
+usersRouter.get("/me/following", requireAuth, getMyFollowingHandler);
+usersRouter.get("/me/friends", requireAuth, getMyFriendsHandler);
 usersRouter.post("/:id/follow", requireAuth, followUserHandler);
 usersRouter.delete("/:id/follow", requireAuth, unfollowUserHandler);
 // /:id/followers and /:id/following are public, /:id/favorites requires auth

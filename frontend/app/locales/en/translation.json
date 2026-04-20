@@ -62,7 +62,7 @@
 		"reviewsLoading": "Loading reviews...",
 		"reviewsError": "Failed to fetch reviews (status: {{status}}).",
 		"noReviewsAvailable": "No reviews yet.",
-		"reviewAnonymous": "Anonymous",
+		"reviewAnonymous": "Deleted user",
 		"confirmDeleteFeedback": "Delete your review and rating?",
 		"deleteReviewError": "Failed to delete review (status: {{status}}).",
 		"deleteRatingError": "Review was deleted, but rating deletion failed (status: {{status}}).",
@@ -87,13 +87,18 @@
 	},
 	"profilePage": {
 		"loading": "Loading profile...",
+		"signInRequired": "Sign in to view your profile.",
 		"error": "Failed to load profile (status: {{status}}).",
 		"notFound": "Profile not found.",
 		"title": "My profile",
 		"username": "Username",
 		"userId": "User ID",
 		"avatar": "Avatar",
-		"noAvatar": "No avatar set"
+		"noAvatar": "No avatar set",
+		"favoritesError": "Failed to load favorites (status: {{status}}).",
+		"favoritesLoading": "Loading favorites...",
+		"favoritesNotFound": "Favorites not found.",
+		"favoritesTitle": "My favorites"
 	},
 	"authModal": {
 		"title": "Log in",

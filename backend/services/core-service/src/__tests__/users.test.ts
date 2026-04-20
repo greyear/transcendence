@@ -421,6 +421,132 @@ describe("Users Routes", () => {
 		});
 	});
 
+	describe("GET /users/me/followers", () => {
+		it("should return list of followers for authenticated user", async () => {
+			const response = await request(app)
+				.get("/users/me/followers")
+				.set("X-User-Id", "1");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body).toHaveProperty("count");
+			expect(Array.isArray(response.body.data)).toBe(true);
+			expect(response.body.count).toBe(response.body.data.length);
+			if (response.body.data.length > 0) {
+				expect(response.body.data[0]).toHaveProperty("id");
+				expect(response.body.data[0]).toHaveProperty("username");
+				expect(response.body.data[0]).toHaveProperty("avatar");
+				expect(response.body.data[0]).toHaveProperty("recipes_count");
+			}
+		});
+
+		it("should return 401 without authentication", async () => {
+			const response = await request(app).get("/users/me/followers");
+
+			expect(response.status).toBe(401);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should include users who follow the authenticated user", async () => {
+			// From beforeAll: user 2 and 3 follow user 1
+			const response = await request(app)
+				.get("/users/me/followers")
+				.set("X-User-Id", "1");
+
+			expect(response.status).toBe(200);
+			const ids = response.body.data.map((u: { id: number }) => u.id);
+			expect(ids).toContain(2);
+			expect(ids).toContain(3);
+		});
+	});
+
+	describe("GET /users/me/following", () => {
+		it("should return list of users the authenticated user follows", async () => {
+			const response = await request(app)
+				.get("/users/me/following")
+				.set("X-User-Id", "1");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body).toHaveProperty("count");
+			expect(Array.isArray(response.body.data)).toBe(true);
+			expect(response.body.count).toBe(response.body.data.length);
+			if (response.body.data.length > 0) {
+				expect(response.body.data[0]).toHaveProperty("id");
+				expect(response.body.data[0]).toHaveProperty("username");
+				expect(response.body.data[0]).toHaveProperty("avatar");
+				expect(response.body.data[0]).toHaveProperty("recipes_count");
+			}
+		});
+
+		it("should return 401 without authentication", async () => {
+			const response = await request(app).get("/users/me/following");
+
+			expect(response.status).toBe(401);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should include users that the authenticated user follows", async () => {
+			// From beforeAll: user 1 follows user 2
+			const response = await request(app)
+				.get("/users/me/following")
+				.set("X-User-Id", "1");
+
+			expect(response.status).toBe(200);
+			const ids = response.body.data.map((u: { id: number }) => u.id);
+			expect(ids).toContain(2);
+		});
+	});
+
+	describe("GET /users/me/friends", () => {
+		it("should return list of mutual followers for authenticated user", async () => {
+			const response = await request(app)
+				.get("/users/me/friends")
+				.set("X-User-Id", "1");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body).toHaveProperty("count");
+			expect(Array.isArray(response.body.data)).toBe(true);
+			expect(response.body.count).toBe(response.body.data.length);
+			if (response.body.data.length > 0) {
+				expect(response.body.data[0]).toHaveProperty("id");
+				expect(response.body.data[0]).toHaveProperty("username");
+				expect(response.body.data[0]).toHaveProperty("avatar");
+				expect(response.body.data[0]).toHaveProperty("recipes_count");
+			}
+		});
+
+		it("should return 401 without authentication", async () => {
+			const response = await request(app).get("/users/me/friends");
+
+			expect(response.status).toBe(401);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should return 404 when authenticated user is not found", async () => {
+			const response = await request(app)
+				.get("/users/me/friends")
+				.set("X-User-Id", "999999");
+
+			expect(response.status).toBe(404);
+			expect(response.body).toHaveProperty("error");
+		});
+
+		it("should only include mutual followers", async () => {
+			// From beforeAll: user 1 and user 2 follow each other (mutual)
+			// user 3 follows user 1 but user 1 does NOT follow user 3 (not mutual)
+			const response = await request(app)
+				.get("/users/me/friends")
+				.set("X-User-Id", "1");
+
+			expect(response.status).toBe(200);
+			const ids = response.body.data.map((u: { id: number }) => u.id);
+			expect(ids).toContain(2);
+			expect(ids).not.toContain(3);
+		});
+	});
+
 	describe("GET /users/:id/favorites", () => {
 		/**
 		 * Test: GET /users/:id/favorites without authentication returns 401
