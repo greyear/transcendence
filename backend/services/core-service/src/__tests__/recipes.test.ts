@@ -1969,9 +1969,21 @@ describe("Recipes Routes", () => {
 		expect(response.status).toBe(200);
 		expect(response.body).toHaveProperty("meal_time");
 		expect(Array.isArray(response.body.meal_time)).toBe(true);
-		expect(response.body.meal_time).toEqual(
+		const codes = response.body.meal_time.map(
+			(item: { code: string }) => item.code,
+		);
+		expect(codes).toEqual(
 			expect.arrayContaining(["breakfast", "lunch", "dinner", "snack"]),
 		);
+		for (const item of response.body.meal_time) {
+			expect(item).toEqual(
+				expect.objectContaining({
+					id: expect.any(Number),
+					code: expect.any(String),
+					name: expect.any(String),
+				}),
+			);
+		}
 	});
 
 	it("should return dish_type categories for GET /recipes/dish_type", async () => {
@@ -1998,9 +2010,21 @@ describe("Recipes Routes", () => {
 		expect(response.status).toBe(200);
 		expect(response.body).toHaveProperty("cuisine");
 		expect(Array.isArray(response.body.cuisine)).toBe(true);
-		expect(response.body.cuisine).toEqual(
+		const codes = response.body.cuisine.map(
+			(item: { code: string }) => item.code,
+		);
+		expect(codes).toEqual(
 			expect.arrayContaining(["italian", "asian", "finnish"]),
 		);
+		for (const item of response.body.cuisine) {
+			expect(item).toEqual(
+				expect.objectContaining({
+					id: expect.any(Number),
+					code: expect.any(String),
+					name: expect.any(String),
+				}),
+			);
+		}
 	});
 
 	it("should return empty array for unknown category type", async () => {
