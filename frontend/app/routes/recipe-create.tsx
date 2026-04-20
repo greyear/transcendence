@@ -1,13 +1,31 @@
-import { useEffect, useId, useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useOutletContext } from "react-router";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
 import { InputField } from "~/components/inputs/InputField";
 import { TextArea } from "~/components/inputs/TextArea";
+import type {
+	CategoryMap,
+	CategoryTypeCode,
+} from "~/components/recipe/RecipeCategorySection";
+import {
+	CATEGORY_TYPE_CODES,
+	RecipeCategorySection,
+} from "~/components/recipe/RecipeCategorySection";
 import { RecipeFormField } from "~/components/recipe/RecipeFormField";
 import { RecipeFormFieldset } from "~/components/recipe/RecipeFormFieldset";
-import type { IngredientRow } from "~/components/recipe/RecipeIngredientRow";
+import type {
+	IngredientOption,
+	IngredientRow,
+} from "~/components/recipe/RecipeIngredientRow";
 import { RecipeIngredientSection } from "~/components/recipe/RecipeIngredientSection";
 import type { InstructionRow } from "~/components/recipe/RecipeInstructionItem";
 import { RecipeInstructionSection } from "~/components/recipe/RecipeInstructionSection";
@@ -65,6 +83,11 @@ const amountSchema = z.preprocess(
 		.positive("Ingredient amount must be positive"),
 );
 
+const ingredientIdSchema = z
+	.number({ error: "Ingredient is required" })
+	.int()
+	.positive("Ingredient is required");
+
 const RecipeFormSchema = z
 	.object({
 		title: z.string().min(1, "Recipe title is required"),
@@ -84,15 +107,21 @@ const RecipeFormSchema = z
 		ingredients: z
 			.array(
 				z.object({
+					ingredientId: ingredientIdSchema,
 					amount: amountSchema,
 					unit: z.string().min(1, "Ingredient unit is required"),
-					name: z.string().min(1, "Ingredient name is required"),
 				}),
 			)
-			.min(1, "At least one ingredient is required"),
+			.min(1, "At least one ingredient is required")
+			.refine(
+				(items) =>
+					new Set(items.map((item) => item.ingredientId)).size === items.length,
+				"Ingredients must be unique",
+			),
 		instructions: z
 			.array(z.object({ text: z.string().min(1, "Step text is required") }))
 			.min(1, "At least one instruction step is required"),
+		categoryIds: z.array(z.number().int().positive()),
 	})
 	.refine((d) => d.prepHours * 60 + d.prepMinutes > 0, {
 		message: "Prep time must be greater than 0",
@@ -101,6 +130,25 @@ const RecipeFormSchema = z
 	.refine((d) => d.cookHours * 60 + d.cookMinutes > 0, {
 		message: "Cook time must be greater than 0",
 		path: ["cookHours"],
+	});
+
+const IngredientsResponseSchema = z.object({
+	ingredients: z.array(
+		z.object({
+			id: z.number().int().positive(),
+			name: z.string(),
+		}),
+	),
+});
+
+const CategoryListItemSchema = z.object({
+	id: z.number().int().positive(),
+	code: z.string(),
+});
+
+const makeCategoryResponseSchema = (typeCode: CategoryTypeCode) =>
+	z.object({
+		[typeCode]: z.array(CategoryListItemSchema),
 	});
 
 type FormState = {
@@ -133,6 +181,13 @@ const initialForm: FormState = {
 	cookMinutes: "",
 };
 
+const emptyCategoryMap = (): CategoryMap => ({
+	meal_time: [],
+	dish_type: [],
+	main_ingredient: [],
+	cuisine: [],
+});
+
 type CreateRecipeResponse = {
 	data?: { id: number };
 };
@@ -141,18 +196,28 @@ const RecipeCreate = () => {
 	const baseId = useId();
 	const { t } = useTranslation();
 	const navigate = useNavigate();
-	const { isAuthenticated, openAuthModal } =
+	const { isAuthenticated, isAuthResolved, openAuthModal } =
 		useOutletContext<LayoutOutletContext>();
 	const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 	const [form, setForm] = useState<FormState>(initialForm);
 	const [ingredients, setIngredients] = useState<IngredientRow[]>(() => [
-		{ id: `${baseId}-i0`, amount: "", unit: "g", name: "" },
+		{ id: `${baseId}-i0`, ingredientId: null, amount: "", unit: "g" },
 	]);
 	const [instructions, setInstructions] = useState<InstructionRow[]>(() => [
 		{ id: `${baseId}-s0`, text: "" },
 	]);
 	const [formError, setFormError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [ingredientOptions, setIngredientOptions] = useState<
+		IngredientOption[]
+	>([]);
+	const [categories, setCategories] = useState<CategoryMap>(() =>
+		emptyCategoryMap(),
+	);
+	const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<number>>(
+		() => new Set<number>(),
+	);
+	const authGateHandledRef = useRef(false);
 
 	useEffect(() => {
 		if (!photoPreview) {
@@ -164,11 +229,102 @@ const RecipeCreate = () => {
 	}, [photoPreview]);
 
 	useEffect(() => {
-		if (isAuthenticated) {
+		if (!isAuthResolved) {
 			return;
 		}
-		openAuthModal(() => {});
-	}, [isAuthenticated, openAuthModal]);
+		if (isAuthenticated) {
+			authGateHandledRef.current = false;
+			return;
+		}
+		if (authGateHandledRef.current) {
+			return;
+		}
+		authGateHandledRef.current = true;
+		openAuthModal(
+			() => {},
+			() => {
+				navigate("/recipes");
+			},
+		);
+	}, [isAuthResolved, isAuthenticated, openAuthModal, navigate]);
+
+	useEffect(() => {
+		let cancelled = false;
+
+		const fetchIngredients = async () => {
+			try {
+				const response = await fetch(`${API_BASE_URL}/recipes/ingredients`);
+				if (!response.ok) {
+					console.error(`Failed to fetch ingredients: ${response.status}`);
+					return;
+				}
+				const body: unknown = await response.json();
+				const parsed = IngredientsResponseSchema.safeParse(body);
+				if (!parsed.success) {
+					console.error("Unexpected ingredients response", parsed.error);
+					return;
+				}
+				if (!cancelled) {
+					setIngredientOptions(parsed.data.ingredients);
+				}
+			} catch (error) {
+				console.error(error);
+			}
+		};
+
+		const fetchCategoryType = async (typeCode: CategoryTypeCode) => {
+			try {
+				const response = await fetch(`${API_BASE_URL}/recipes/${typeCode}`);
+				if (!response.ok) {
+					console.error(
+						`Failed to fetch categories ${typeCode}: ${response.status}`,
+					);
+					return;
+				}
+				const body: unknown = await response.json();
+				const parsed = makeCategoryResponseSchema(typeCode).safeParse(body);
+				if (!parsed.success) {
+					console.error(
+						`Unexpected categories response for ${typeCode}`,
+						parsed.error,
+					);
+					return;
+				}
+				const items = parsed.data[typeCode] ?? [];
+				if (!cancelled) {
+					setCategories((prev) => ({ ...prev, [typeCode]: items }));
+				}
+			} catch (error) {
+				console.error(error);
+			}
+		};
+
+		void fetchIngredients();
+		for (const typeCode of CATEGORY_TYPE_CODES) {
+			void fetchCategoryType(typeCode);
+		}
+
+		return () => {
+			cancelled = true;
+		};
+	}, []);
+
+	const toggleCategory = useCallback((id: number) => {
+		setSelectedCategoryIds((prev) => {
+			const next = new Set(prev);
+			if (next.has(id)) {
+				next.delete(id);
+			} else {
+				next.add(id);
+			}
+			return next;
+		});
+	}, []);
+
+	const categoryIdsArray = useMemo(
+		() => Array.from(selectedCategoryIds),
+		[selectedCategoryIds],
+	);
 
 	const setText =
 		(field: "title" | "description") =>
@@ -206,11 +362,11 @@ const RecipeCreate = () => {
 			spiciness: parsed.spiciness,
 			instructions: parsed.instructions.map((step) => step.text),
 			ingredients: parsed.ingredients.map((ingredient) => ({
-				name: ingredient.name,
+				ingredient_id: ingredient.ingredientId,
 				amount: ingredient.amount,
 				unit: ingredient.unit,
 			})),
-			category_ids: [],
+			category_ids: parsed.categoryIds,
 		};
 
 		try {
@@ -222,9 +378,14 @@ const RecipeCreate = () => {
 			});
 
 			if (response.status === 401) {
-				openAuthModal(() => {
-					void submitRecipe(parsed);
-				});
+				openAuthModal(
+					() => {
+						void submitRecipe(parsed);
+					},
+					() => {
+						navigate("/recipes");
+					},
+				);
 				return;
 			}
 
@@ -258,6 +419,7 @@ const RecipeCreate = () => {
 			...form,
 			ingredients,
 			instructions,
+			categoryIds: categoryIdsArray,
 		});
 
 		if (!parsed.success) {
@@ -422,11 +584,21 @@ const RecipeCreate = () => {
 					</div>
 				</RecipeFormFieldset>
 
-				<RecipeIngredientSection rows={ingredients} onChange={setIngredients} />
+				<RecipeIngredientSection
+					rows={ingredients}
+					ingredientOptions={ingredientOptions}
+					onChange={setIngredients}
+				/>
 
 				<RecipeInstructionSection
 					rows={instructions}
 					onChange={setInstructions}
+				/>
+
+				<RecipeCategorySection
+					categories={categories}
+					selectedIds={selectedCategoryIds}
+					onToggle={toggleCategory}
 				/>
 
 				{formError ? (

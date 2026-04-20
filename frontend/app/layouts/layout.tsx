@@ -7,15 +7,25 @@ import { Header } from "./Header";
 
 export type LayoutOutletContext = {
 	isAuthenticated: boolean;
-	openAuthModal: (onSuccessAction?: () => void) => void;
+	isAuthResolved: boolean;
+	openAuthModal: (
+		onSuccessAction?: () => void,
+		onCancelAction?: () => void,
+	) => void;
 };
 
 const Layout = () => {
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	const [isAuthResolved, setIsAuthResolved] = useState(false);
 	const authSuccessActionRef = useRef<(() => void) | null>(null);
-	const openAuthModal = (onSuccessAction?: () => void) => {
+	const authCancelActionRef = useRef<(() => void) | null>(null);
+	const openAuthModal = (
+		onSuccessAction?: () => void,
+		onCancelAction?: () => void,
+	) => {
 		authSuccessActionRef.current = onSuccessAction ?? null;
+		authCancelActionRef.current = onCancelAction ?? null;
 		setIsAuthModalOpen(true);
 	};
 
@@ -29,6 +39,8 @@ const Layout = () => {
 				setIsAuthenticated(response.ok);
 			} catch {
 				setIsAuthenticated(false);
+			} finally {
+				setIsAuthResolved(true);
 			}
 		};
 
@@ -66,7 +78,7 @@ const Layout = () => {
 				onOpenAuthModal={() => openAuthModal()}
 			/>
 			<main className="app-main">
-				<Outlet context={{ isAuthenticated, openAuthModal }} />
+				<Outlet context={{ isAuthenticated, isAuthResolved, openAuthModal }} />
 			</main>
 			<Footer
 				isAuthenticated={isAuthenticated}
@@ -76,13 +88,16 @@ const Layout = () => {
 				isOpen={isAuthModalOpen}
 				onClose={() => {
 					setIsAuthModalOpen(false);
+					authCancelActionRef.current?.();
 					authSuccessActionRef.current = null;
+					authCancelActionRef.current = null;
 				}}
 				onSuccess={() => {
 					setIsAuthenticated(true);
 					setIsAuthModalOpen(false);
 					authSuccessActionRef.current?.();
 					authSuccessActionRef.current = null;
+					authCancelActionRef.current = null;
 				}}
 			/>
 		</div>

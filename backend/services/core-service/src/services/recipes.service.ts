@@ -1548,11 +1548,11 @@ export const updateRecipePicture = async (
 
 export const getCategoryList = async (
 	categoryTypeCode: string,
-): Promise<{ [key: string]: string[] }> => {
+): Promise<{ [key: string]: { id: number; code: string }[] }> => {
 	try {
-		const result = await pool.query<{ code: string }>(
+		const result = await pool.query<{ id: number; code: string }>(
 			`
-			SELECT rc.code
+			SELECT rc.id, rc.code
 			FROM recipe_categories rc
 			JOIN recipe_category_types rct ON rct.id = rc.category_type_id
 			WHERE rct.code = $1
@@ -1561,8 +1561,7 @@ export const getCategoryList = async (
 			[categoryTypeCode],
 		);
 
-		const codes = result.rows.map((row) => row.code);
-		return { [categoryTypeCode]: codes };
+		return { [categoryTypeCode]: result.rows };
 	} catch (error) {
 		console.error(
 			`Database error in getCategoryList(${categoryTypeCode}):`,

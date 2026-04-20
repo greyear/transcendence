@@ -206,7 +206,42 @@
 		"createSuccess": "Рецепт создан.",
 		"createError": "Не удалось создать рецепт (код: {{status}}).",
 		"networkError": "Не удалось связаться с сервером. Попробуйте снова.",
-		"genericError": "Исправьте ошибки выше."
+		"genericError": "Исправьте ошибки выше.",
+		"categoriesHeading": "Категории",
+		"categoryTypeLabel": {
+			"meal_time": "Время приёма пищи",
+			"dish_type": "Тип блюда",
+			"main_ingredient": "Главный ингредиент",
+			"cuisine": "Кухня"
+		},
+		"categoryCode": {
+			"breakfast": "Завтрак",
+			"lunch": "Обед",
+			"dinner": "Ужин",
+			"snack": "Перекус",
+			"soup": "Суп",
+			"salad": "Салат",
+			"main_course": "Основное блюдо",
+			"dessert": "Десерт",
+			"beverage": "Напиток",
+			"appetizer": "Закуска",
+			"poultry": "Птица",
+			"beef": "Говядина",
+			"pork": "Свинина",
+			"fish": "Рыба",
+			"seafood": "Морепродукты",
+			"vegetables": "Овощи",
+			"italian": "Итальянская",
+			"asian": "Азиатская",
+			"mexican": "Мексиканская",
+			"french": "Французская",
+			"american": "Американская",
+			"mediterranean": "Средиземноморская",
+			"finnish": "Финская",
+			"russian": "Русская",
+			"ukrainian": "Украинская",
+			"german": "Немецкая"
+		}
 	},
 	"recipeCreateAria": {
 		"addPhoto": "Добавить фото рецепта",

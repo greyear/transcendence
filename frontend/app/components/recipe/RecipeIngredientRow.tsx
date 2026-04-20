@@ -20,22 +20,28 @@ const UNIT_OPTIONS = [
 
 const UNIT_SELECT_OPTIONS = UNIT_OPTIONS.map((u) => ({ label: u, value: u }));
 
+export type IngredientOption = {
+	id: number;
+	name: string;
+};
+
 export type IngredientRow = {
 	id: string;
+	ingredientId: number | null;
 	amount: number | "";
 	unit: string;
-	name: string;
 };
 
 export const createIngredient = (): IngredientRow => ({
 	id: crypto.randomUUID(),
+	ingredientId: null,
 	amount: "",
 	unit: "g",
-	name: "",
 });
 
 type RecipeIngredientRowProps = {
 	ingredient: IngredientRow;
+	ingredientOptions: IngredientOption[];
 	provided: DraggableProvided;
 	index: number;
 	isOnly: boolean;
@@ -45,6 +51,7 @@ type RecipeIngredientRowProps = {
 
 export const RecipeIngredientRow = ({
 	ingredient,
+	ingredientOptions,
 	provided,
 	index,
 	isOnly,
@@ -53,6 +60,12 @@ export const RecipeIngredientRow = ({
 }: RecipeIngredientRowProps) => {
 	const { t } = useTranslation();
 	const number = index + 1;
+	const selectOptions = ingredientOptions.map((option) => ({
+		label: option.name,
+		value: String(option.id),
+	}));
+	const selectValue =
+		ingredient.ingredientId !== null ? String(ingredient.ingredientId) : "";
 	return (
 		<li ref={provided.innerRef} {...provided.draggableProps}>
 			<fieldset className="recipe-ingredient-row">
@@ -67,15 +80,19 @@ export const RecipeIngredientRow = ({
 				>
 					<Menu aria-hidden="true" />
 				</button>
-				<InputField
-					id={`${ingredient.id}-name`}
-					type="text"
-					className="recipe-ingredient-name"
+				<SelectField
+					inputId={`${ingredient.id}-name`}
+					options={selectOptions}
 					placeholder={t("recipeCreatePage.ingredientNamePlaceholder")}
-					required
-					value={ingredient.name}
-					onChange={(e) => onChange({ name: e.target.value })}
-					aria-label={t("recipeCreateAria.ingredientName", { number })}
+					value={selectValue}
+					onChange={(value) => {
+						const parsed = Number.parseInt(value, 10);
+						onChange({
+							ingredientId: Number.isNaN(parsed) ? null : parsed,
+						});
+					}}
+					className="recipe-ingredient-name"
+					ariaLabel={t("recipeCreateAria.ingredientName", { number })}
 				/>
 				<InputField
 					id={`${ingredient.id}-amount`}

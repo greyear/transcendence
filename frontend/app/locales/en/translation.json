@@ -206,7 +206,42 @@
 		"createSuccess": "Recipe created.",
 		"createError": "Failed to create recipe (status: {{status}}).",
 		"networkError": "Could not reach the server. Please try again.",
-		"genericError": "Please fix the errors above."
+		"genericError": "Please fix the errors above.",
+		"categoriesHeading": "Categories",
+		"categoryTypeLabel": {
+			"meal_time": "Meal time",
+			"dish_type": "Dish type",
+			"main_ingredient": "Main ingredient",
+			"cuisine": "Cuisine"
+		},
+		"categoryCode": {
+			"breakfast": "Breakfast",
+			"lunch": "Lunch",
+			"dinner": "Dinner",
+			"snack": "Snack",
+			"soup": "Soup",
+			"salad": "Salad",
+			"main_course": "Main course",
+			"dessert": "Dessert",
+			"beverage": "Beverage",
+			"appetizer": "Appetizer",
+			"poultry": "Poultry",
+			"beef": "Beef",
+			"pork": "Pork",
+			"fish": "Fish",
+			"seafood": "Seafood",
+			"vegetables": "Vegetables",
+			"italian": "Italian",
+			"asian": "Asian",
+			"mexican": "Mexican",
+			"french": "French",
+			"american": "American",
+			"mediterranean": "Mediterranean",
+			"finnish": "Finnish",
+			"russian": "Russian",
+			"ukrainian": "Ukrainian",
+			"german": "German"
+		}
 	},
 	"recipeCreateAria": {
 		"addPhoto": "Add a recipe photo",

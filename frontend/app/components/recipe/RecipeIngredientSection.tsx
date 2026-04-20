@@ -1,7 +1,10 @@
 import type { DropResult } from "@hello-pangea/dnd";
 import { DragDropContext, Draggable } from "@hello-pangea/dnd";
 import { useTranslation } from "react-i18next";
-import type { IngredientRow } from "~/components/recipe/RecipeIngredientRow";
+import type {
+	IngredientOption,
+	IngredientRow,
+} from "~/components/recipe/RecipeIngredientRow";
 import {
 	createIngredient,
 	RecipeIngredientRow,
@@ -10,11 +13,13 @@ import { RecipeSortableList } from "~/components/recipe/RecipeSortableList";
 
 type RecipeIngredientSectionProps = {
 	rows: IngredientRow[];
+	ingredientOptions: IngredientOption[];
 	onChange: (rows: IngredientRow[]) => void;
 };
 
 export const RecipeIngredientSection = ({
 	rows,
+	ingredientOptions,
 	onChange,
 }: RecipeIngredientSectionProps) => {
 	const { t } = useTranslation();
@@ -67,6 +72,7 @@ export const RecipeIngredientSection = ({
 								<RecipeIngredientRow
 									provided={provided}
 									ingredient={row}
+									ingredientOptions={ingredientOptions}
 									index={index}
 									isOnly={rows.length === 1}
 									onChange={(patch) => handleChange(row.id, patch)}

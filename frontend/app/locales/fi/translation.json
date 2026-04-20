@@ -206,7 +206,42 @@
 		"createSuccess": "Resepti luotu.",
 		"createError": "Reseptin luonti epäonnistui (tila: {{status}}).",
 		"networkError": "Palvelimeen ei saatu yhteyttä. Yritä uudelleen.",
-		"genericError": "Korjaa yllä olevat virheet."
+		"genericError": "Korjaa yllä olevat virheet.",
+		"categoriesHeading": "Kategoriat",
+		"categoryTypeLabel": {
+			"meal_time": "Ateria-aika",
+			"dish_type": "Ruokalaji",
+			"main_ingredient": "Pääraaka-aine",
+			"cuisine": "Keittiö"
+		},
+		"categoryCode": {
+			"breakfast": "Aamiainen",
+			"lunch": "Lounas",
+			"dinner": "Päivällinen",
+			"snack": "Välipala",
+			"soup": "Keitto",
+			"salad": "Salaatti",
+			"main_course": "Pääruoka",
+			"dessert": "Jälkiruoka",
+			"beverage": "Juoma",
+			"appetizer": "Alkupala",
+			"poultry": "Siipikarja",
+			"beef": "Naudanliha",
+			"pork": "Sianliha",
+			"fish": "Kala",
+			"seafood": "Merenelävät",
+			"vegetables": "Vihannekset",
+			"italian": "Italialainen",
+			"asian": "Aasialainen",
+			"mexican": "Meksikolainen",
+			"french": "Ranskalainen",
+			"american": "Amerikkalainen",
+			"mediterranean": "Välimerellinen",
+			"finnish": "Suomalainen",
+			"russian": "Venäläinen",
+			"ukrainian": "Ukrainalainen",
+			"german": "Saksalainen"
+		}
 	},
 	"recipeCreateAria": {
 		"addPhoto": "Lisää reseptin kuva",
