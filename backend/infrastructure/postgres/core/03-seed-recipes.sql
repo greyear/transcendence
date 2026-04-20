@@ -354,17 +354,81 @@ seeded_recipes_ranked AS (
     row_number() OVER (ORDER BY sr.title) AS rn
   FROM seeded_recipes sr
 ),
+localized_recipe_texts AS (
+  SELECT
+    v.title_en,
+    v.title_fi,
+    v.title_ru,
+    v.description_fi,
+    v.description_ru
+  FROM (VALUES
+    ('Spaghetti Carbonara', 'Spagetti Carbonara', 'Спагетти карбонара', 'Klassinen roomalainen pasta-annos kananmunalla, juustolla, pancettalla ja mustapippurilla.', 'Классическое римское блюдо из пасты с яйцами, сыром, панчеттой и чёрным перцем.'),
+    ('Chicken Tikka Masala', 'Kana Tikka Masala', 'Курица тикка масала', 'Mureaa kanaa täyteläisessä mausteisessa tomaatti-kermakastikkeessa — suosittu intialainen klassikko.', 'Нежная курица в насыщенном пряном томатно-сливочном соусе — популярная индийская классика.'),
+    ('Avocado Toast with Poached Egg', 'Avokadoleipä uppomunalla', 'Тост с авокадо и яйцом пашот', 'Yksinkertainen ja ravitseva aamiainen, joka valmistuu alle 15 minuutissa.', 'Простой и питательный завтрак, который готовится менее чем за 15 минут.'),
+    ('Classic Caesar Salad', 'Klassinen Caesar-salaatti', 'Классический салат Цезарь', 'Rapeaa roomansalaattia kotitekoisella Caesar-kastikkeella, krutongeilla ja parmesaanilla.', 'Хрустящий ромэн с домашней заправкой Цезарь, крутонами и стружкой пармезана.'),
+    ('Beef Tacos', 'Naudanlihatacot', 'Тако с говядиной', 'Nopeat ja maukkaat jauhelihatacot tuoreilla lisukkeilla.', 'Быстрые и ароматные тако с говяжьим фаршем и свежими топпингами.'),
+    ('Mushroom Risotto', 'Sienirisotto', 'Грибное ризотто', 'Kermainen italialainen riisiruoka metsäsienillä ja valkoviinillä.', 'Кремовое итальянское ризотто с ароматными грибами и белым вином.'),
+    ('Greek Salad', 'Kreikkalainen salaatti', 'Греческий салат', 'Raikas välimerellinen salaatti kurkulla, tomaatilla, oliiveilla ja fetalla.', 'Освежающий средиземноморский салат с огурцом, томатами, оливками и фетой.'),
+    ('Banana Oat Pancakes', 'Banaani-kaurapannukakut', 'Бананово-овсяные панкейки', 'Terveelliset pannukakut kahdesta pääainesosasta ilman vehnäjauhoja ja lisättyä sokeria.', 'Полезные панкейки из двух основных ингредиентов без муки и добавленного сахара.'),
+    ('Tom Yum Soup', 'Tom Yum -keitto', 'Суп Том Ям', 'Tulinen ja hapan thaikeitto katkaravuilla, sitruunaruoholla ja sienillä.', 'Острый и кислый тайский суп с креветками, лемонграссом и грибами.'),
+    ('Margherita Pizza', 'Pizza Margherita', 'Пицца Маргарита', 'Yksinkertainen napolilainen pizza tomaattikastikkeella, tuoreella mozzarellalla ja basilikalla.', 'Классическая неаполитанская пицца с томатным соусом, свежей моцареллой и базиликом.'),
+    ('Shakshuka', 'Shakshuka', 'Шакшука', 'Munia mausteisessa tomaatti-paprikakastikkeessa — Lähi-idän aamiaisklassikko.', 'Яйца в пряном томатно-перечном соусе — классический ближневосточный завтрак.'),
+    ('Grilled Salmon with Lemon Butter', 'Grillattu lohi sitruunavoilla', 'Лосось на гриле с лимонным маслом', 'Helppo pannulla paistettu lohifilee kirkkaalla sitruuna-voikastikkeella.', 'Простой лосось, обжаренный на сковороде, с ярким лимонно-сливочным соусом.'),
+    ('Vegetable Stir-fry with Tofu', 'Kasviswokki tofulla', 'Овощной стир-фрай с тофу', 'Nopea ja värikäs proteiinipitoinen vegaaninen wokki suolaisella kastikkeella.', 'Быстрый и яркий веганский стир-фрай с тофу и насыщенным соусом.'),
+    ('French Onion Soup', 'Ranskalainen sipulikeitto', 'Французский луковый суп', 'Täyteläinen karamellisoitu sipulikeitto, päällä gruyère-juustolla kuorrutettu leipä.', 'Насыщенный суп из карамелизованного лука с гренкой под расплавленным сыром грюйер.'),
+    ('Mango Smoothie Bowl', 'Mangoinen smoothie-kulho', 'Смузи-боул с манго', 'Paksu trooppinen smoothie-kulho tuoreilla hedelmillä ja granolalla.', 'Густой тропический смузи-боул со свежими фруктами и гранолой.'),
+    ('Borscht', 'Borssikeitto', 'Борщ', 'Perinteinen itäeurooppalainen punajuurikeitto, täyteläinen ja syvän punainen.', 'Традиционный восточноевропейский борщ — сытный и насыщенного красного цвета.'),
+    ('Butter Chicken', 'Voikana', 'Баттер чикен', 'Mieto ja kermainen intialainen curry, josta on tullut maailmanlaajuinen suosikki.', 'Нежный сливочный индийский карри, ставший любимым блюдом во всём мире.'),
+    ('Lentil Soup', 'Linssikeitto', 'Чечевичный суп', 'Ravitseva ja edullinen keitto punaisilla linsseillä ja lämpimillä mausteilla.', 'Питательный и доступный суп из красной чечевицы с согревающими специями.'),
+    ('Chocolate Lava Cakes', 'Suklaa-laavakakut', 'Шоколадные лавакейки', 'Ylelliset annoskakut, joiden keskellä on lämmin valuva suklaasydän.', 'Насыщенные порционные кексы с тёплой жидкой шоколадной серединой.'),
+    ('Overnight Oats', 'Yön yli -kaurapuuro', 'Овсянка на ночь', 'Vaivaton ennakkoon tehtävä aamiainen — valmista illalla, nauti suoraan jääkaapista.', 'Простой завтрак на ночь: приготовьте вечером и ешьте утром прямо из холодильника.')
+  ) AS v(title_en, title_fi, title_ru, description_fi, description_ru)
+),
+localized_recipe_steps AS (
+  SELECT
+    v.title_en,
+    v.instructions_fi,
+    v.instructions_ru
+  FROM (VALUES
+    ('Spaghetti Carbonara', ARRAY['Keitä pasta suolatussa vedessä al denteksi','Paista pancetta rapeaksi keskilämmöllä','Vatkaa munat ja juustoraaste mustapippurin kanssa','Sekoita kuuma pasta pannulla, lisää munaseos ja hieman pastavettä kermaiseksi kastikkeeksi','Tarjoile heti juuston ja mustapippurin kanssa'], ARRAY['Сварите пасту в подсоленной воде до состояния al dente','Обжарьте панчетту до хруста на среднем огне','Взбейте яйца с тёртым сыром и чёрным перцем','Смешайте горячую пасту с панчеттой, добавьте яичную смесь и немного воды от пасты','Подавайте сразу с сыром и свежемолотым перцем']),
+    ('Chicken Tikka Masala', ARRAY['Marinoi kana jogurtissa, valkosipulissa ja mausteissa vähintään tunnin','Kypsennä kana grillissä tai uunissa kevyesti ruskistaen','Kuullota sipuli, lisää valkosipuli, inkivääri ja mausteet','Lisää tomaattisose ja kypsennä kastiketta','Sekoita kerma joukkoon, lisää kana ja hauduta valmiiksi'], ARRAY['Замаринуйте курицу в йогурте, чесноке и специях минимум на час','Запеките или обжарьте курицу до лёгкой корочки','Обжарьте лук, добавьте чеснок, имбирь и специи','Добавьте томатное пюре и проварите соус','Влейте сливки, добавьте курицу и доведите до готовности']),
+    ('Avocado Toast with Poached Egg', ARRAY['Paahda leipä kullanruskeaksi','Muussaa avokado sitruunamehun, suolan ja chilihiutaleiden kanssa','Valmista uppomuna hiljalleen poreilevassa vedessä','Levitä avokado paahtoleivälle ja nosta muna päälle','Mausta pippurilla ja tarjoile heti'], ARRAY['Поджарьте хлеб до золотистой корочки','Разомните авокадо с лимонным соком, солью и чили','Приготовьте яйцо пашот в едва кипящей воде','Намажьте авокадо на тост и выложите сверху яйцо','Приправьте перцем и сразу подавайте']),
+    ('Classic Caesar Salad', ARRAY['Vatkaa kastike valkosipulista, sitruunasta, sinapista ja majoneesista','Lisää parmesaani ja oliiviöljy kastikkeeseen','Paahda leipäkuutiot krutongeiksi','Sekoita roomansalaatti kastikkeen kanssa','Viimeistele krutongeilla ja juustolla'], ARRAY['Смешайте соус из чеснока, лимона, горчицы и майонеза','Добавьте в заправку пармезан и оливковое масло','Поджарьте хлебные кубики до состояния крутонов','Перемешайте ромэн с заправкой','Добавьте крутоны и сыр перед подачей']),
+    ('Beef Tacos', ARRAY['Ruskista jauheliha pannulla ja valuta ylimääräinen rasva','Lisää mausteseos ja tilkka vettä, hauduta hetki','Lämmitä tortillat kuivalla pannulla','Täytä tortillat lihalla ja tuoreilla lisukkeilla','Tarjoa limetin kanssa'], ARRAY['Обжарьте говяжий фарш и удалите лишний жир','Добавьте специи и немного воды, протушите','Разогрейте тортильи на сухой сковороде','Наполните тортильи мясом и свежими топпингами','Подавайте с дольками лайма']),
+    ('Mushroom Risotto', ARRAY['Pidä liemi lämpimänä kattilassa','Kuullota sipuli voissa ja lisää riisi paahtumaan','Lisää viini ja anna imeytyä','Lisää lientä vähitellen jatkuvasti sekoittaen','Lisää sienet ja kypsennä riisi al denteksi, viimeistele voilla ja juustolla'], ARRAY['Держите бульон тёплым в отдельной кастрюле','Обжарьте лук в масле и добавьте рис','Влейте вино и дайте ему впитаться','Постепенно подливайте бульон, постоянно помешивая','Добавьте грибы, доведите рис до al dente и завершите маслом и сыром']),
+    ('Greek Salad', ARRAY['Pilko kurkku, tomaatit ja punasipuli','Yhdistä kulhossa oliivien kanssa','Lorauta päälle oliiviöljyä ja etikkaa','Mausta suolalla, oreganolla ja pippurilla','Lisää feta ja tarjoile'], ARRAY['Нарежьте огурец, помидоры и красный лук','Смешайте овощи с оливками в миске','Добавьте оливковое масло и уксус','Приправьте солью, орегано и перцем','Добавьте фету и подавайте']),
+    ('Banana Oat Pancakes', ARRAY['Muussaa banaanit sileäksi','Sekoita joukkoon kaurahiutaleet ja munat','Anna taikinan levätä muutama minuutti','Paista pieniä lettuja keskilämmöllä molemmin puolin','Tarjoa marjojen ja hunajan kanssa'], ARRAY['Разомните бананы до однородности','Добавьте овсяные хлопья и яйца','Дайте тесту постоять несколько минут','Жарьте небольшие оладьи на среднем огне с двух сторон','Подавайте с ягодами и мёдом']),
+    ('Tom Yum Soup', ARRAY['Kiehauta liemi kattilassa','Lisää sitruunaruoho, galangal ja limetinlehdet','Lisää sienet ja hauduta hetki','Lisää katkaravut ja kypsennä juuri valmiiksi','Mausta kalakastikkeella, limetillä ja chilitahnalla'], ARRAY['Доведите бульон до кипения','Добавьте лемонграсс, галангал и листья лайма','Добавьте грибы и немного проварите','Положите креветки и готовьте до готовности','Приправьте рыбным соусом, лаймом и пастой чили']),
+    ('Margherita Pizza', ARRAY['Vaivaa taikina jauhoista, vedestä, hiivasta ja suolasta','Anna taikinan kohota','Venytä taikina ohueksi pohjaksi','Levitä tomaattikastike ja lisää mozzarella','Paista kuumassa uunissa ja viimeistele basilikalla'], ARRAY['Замесите тесто из муки, воды, дрожжей и соли','Дайте тесту подняться','Растяните тесто в тонкую основу','Добавьте томатный соус и моцареллу','Выпекайте в очень горячей духовке и добавьте базилик']),
+    ('Shakshuka', ARRAY['Kuullota sipuli ja paprika pehmeiksi','Lisää valkosipuli ja mausteet','Lisää tomaatit ja hauduta kastike','Tee kastikkeeseen kuopat ja riko munat niihin','Kypsennä kannen alla kunnes valkuaiset ovat hyytyneet'], ARRAY['Обжарьте лук и перец до мягкости','Добавьте чеснок и специи','Добавьте томаты и потушите соус','Сделайте углубления и разбейте туда яйца','Готовьте под крышкой до схватывания белков']),
+    ('Grilled Salmon with Lemon Butter', ARRAY['Kuivaa lohifileet ja mausta ne','Kuumenna pannu ja paista lohi ensin nahkapuolelta','Käännä ja kypsennä loppuun','Lisää voi, valkosipuli ja sitruuna pannulle','Valele lohi voikastikkeella ja tarjoile'], ARRAY['Обсушите филе лосося и приправьте','Разогрейте сковороду и сначала обжарьте кожей вниз','Переверните и доведите до готовности','Добавьте в сковороду масло, чеснок и лимон','Полейте лосось соусом и подавайте']),
+    ('Vegetable Stir-fry with Tofu', ARRAY['Purista tofu kuivaksi ja kuutioi se','Paista tofu kullanruskeaksi ja nosta sivuun','Wokkaa vihannekset nopeasti kuumalla pannulla','Lisää valkosipuli ja inkivääri','Palauta tofu pannulle, lisää kastike ja sekoita sakeaksi'], ARRAY['Отожмите тофу и нарежьте кубиками','Обжарьте тофу до золотистой корочки и отложите','Быстро обжарьте овощи в горячем воке','Добавьте чеснок и имбирь','Верните тофу, влейте соус и готовьте до загустения']),
+    ('French Onion Soup', ARRAY['Viipaloi sipulit ohuiksi','Hauduta sipuleita voissa pitkään karamellisoiden','Lisää valkosipuli ja yrtit','Kaada joukkoon liemi ja keitä miedosti','Tarjoa kulhoissa paahdetun leivän ja juuston kanssa'], ARRAY['Тонко нарежьте лук','Долго томите лук в сливочном масле до карамелизации','Добавьте чеснок и травы','Влейте бульон и варите на слабом огне','Подавайте с гренкой и расплавленным сыром']),
+    ('Mango Smoothie Bowl', ARRAY['Soseuta pakastettu mango pienen nestemäärän kanssa paksuksi','Kaada smoothie kulhoon','Lisää päälle tuoreita hedelmiä','Ripottele granolaa ja chia-siemeniä','Viimeistele hunajalla ja tarjoile heti'], ARRAY['Взбейте замороженное манго с небольшим количеством жидкости до густоты','Переложите смузи в миску','Добавьте сверху свежие фрукты','Посыпьте гранолой и семенами чиа','Полейте мёдом и сразу подавайте']),
+    ('Borscht', ARRAY['Kuullota sipuli, porkkana ja selleri öljyssä','Lisää punajuuri ja kuullota hetki','Lisää peruna, kaali ja liemi','Hauduta kunnes kasvikset pehmenevät','Mausta tomaatilla, etikalla ja tarjoile tillin kanssa'], ARRAY['Обжарьте лук, морковь и сельдерей в масле','Добавьте свёклу и немного потушите','Добавьте картофель, капусту и бульон','Варите до мягкости овощей','Приправьте томатом и уксусом, подавайте с укропом']),
+    ('Butter Chicken', ARRAY['Marinoi kana jogurtissa ja mausteissa yön yli','Paista tai grillaa kana kypsäksi','Kuullota sipuli voissa ja lisää inkivääri sekä valkosipuli','Lisää tomaattisose ja mausteet, kypsennä kastike','Soseuta kastike, lisää kerma ja kana, hauduta valmiiksi'], ARRAY['Замаринуйте курицу в йогурте и специях на ночь','Обжарьте или запеките курицу до готовности','Обжарьте лук в масле, добавьте имбирь и чеснок','Добавьте томатное пюре и специи, проварите соус','Пробейте соус блендером, добавьте сливки и курицу, доведите до готовности']),
+    ('Lentil Soup', ARRAY['Kuullota sipuli ja valkosipuli oliiviöljyssä','Lisää mausteet ja paahda hetki','Lisää linssit, tomaatit ja liemi','Hauduta kunnes linssit pehmenevät','Soseuta osa keitosta ja mausta sitruunalla'], ARRAY['Обжарьте лук и чеснок в оливковом масле','Добавьте специи и прогрейте','Добавьте чечевицу, томаты и бульон','Варите до мягкости чечевицы','Часть супа пробейте блендером и приправьте лимоном']),
+    ('Chocolate Lava Cakes', ARRAY['Esilämmitä uuni ja voitele annosvuoat','Sulata suklaa ja voi yhdessä','Vatkaa munat ja sokeri kuohkeaksi','Kääntele suklaaseos joukkoon, lisää jauhot varovasti','Paista hetki niin, että keskusta jää valuvaksi'], ARRAY['Разогрейте духовку и смажьте формочки','Растопите шоколад и масло','Взбейте яйца с сахаром до пышности','Аккуратно вмешайте шоколадную смесь и немного муки','Выпекайте недолго, чтобы середина осталась жидкой']),
+    ('Overnight Oats', ARRAY['Sekoita purkissa kaurahiutaleet, maito ja chia-siemenet','Lisää jogurtti kermaisuutta varten','Makeuta hunajalla tai siirapilla','Sulje purkki ja anna tekeytyä jääkaapissa yön yli','Aamulla lisää halutessasi maitoa ja viimeistele marjoilla'], ARRAY['Смешайте в банке овсяные хлопья, молоко и семена чиа','Добавьте йогурт для кремовой текстуры','Подсластите мёдом или сиропом','Закройте банку и оставьте в холодильнике на ночь','Утром при необходимости добавьте молоко и украсьте ягодами'])
+  ) AS v(title_en, instructions_fi, instructions_ru)
+),
 recipes_with_authors AS (
   SELECT
     srr.title,
     srr.description,
     srr.instructions,
+    COALESCE(lrs.instructions_fi, srr.instructions) AS instructions_fi,
+    COALESCE(lrs.instructions_ru, srr.instructions) AS instructions_ru,
     srr.servings,
     srr.spiciness,
     aa.id AS author_id,
     srr.status,
     srr.rating_avg,
-    srr.rating_count
+    srr.rating_count,
+    lrt.title_fi,
+    lrt.title_ru,
+    lrt.description_fi,
+    lrt.description_ru
   FROM seeded_recipes_ranked srr
   CROSS JOIN LATERAL (
     SELECT (floor(random() * 1000000000))::text AS seed
@@ -375,25 +439,27 @@ recipes_with_authors AS (
     ORDER BY md5(rs.seed || ':' || srr.title || ':' || a.id::text)
     LIMIT 1
   ) aa ON true
+  JOIN localized_recipe_texts lrt ON lrt.title_en = srr.title
+  LEFT JOIN localized_recipe_steps lrs ON lrs.title_en = srr.title
 )
 INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count)
 SELECT
-  jsonb_build_object('en', v.title, 'fi', v.title, 'ru', v.title),
+  jsonb_build_object('en', v.title, 'fi', v.title_fi, 'ru', v.title_ru),
   CASE
     WHEN v.description IS NULL THEN NULL
-    ELSE jsonb_build_object('en', v.description, 'fi', v.description, 'ru', v.description)
+    ELSE jsonb_build_object('en', v.description, 'fi', v.description_fi, 'ru', v.description_ru)
   END,
   jsonb_build_object(
     'en', to_jsonb(v.instructions),
-    'fi', to_jsonb(v.instructions),
-    'ru', to_jsonb(v.instructions)
+    'fi', to_jsonb(v.instructions_fi),
+    'ru', to_jsonb(v.instructions_ru)
   ),
   v.servings,
   v.spiciness,
   v.author_id,
   v.status,
-  v.rating_avg,
-  v.rating_count
+  NULL,
+  0
 FROM recipes_with_authors v
 WHERE NOT EXISTS (
   SELECT 1
