@@ -5,31 +5,44 @@
 ```
 /backend/services/core-service/
 ├── src/
-│   ├── __tests__/              # Integration tests
-│   │   ├── setup.ts           # Jest test setup
-│   │   ├── health.test.ts     # Health endpoint tests
-│   │   ├── recipes.test.ts    # Recipe endpoint tests
-│   │   └── users.test.ts      # User endpoint tests
-│   ├── middleware/            # Express middleware
-│   │   ├── errorHandler.ts    # Global error handling
-│   │   └── extractUser.ts     # User authentication
-│   ├── routes/                # HTTP route definitions
-│   │   ├── health.routes.ts   # Health check endpoints
-│   │   ├── recipes.routes.ts  # Recipe CRUD endpoints
-│   │   └── users.routes.ts    # User-specific endpoints
-│   ├── services/              # Business logic layer
-│   │   └── recipes.service.ts # Recipe business logic
-│   ├── validation/            # Input validation schemas
-│   │   └── schemas.ts         # Zod validation schemas
-│   ├── db/                    # Database connection
-│   │   └── database.ts        # PostgreSQL connection pool
-│   ├── app.ts                 # Express app configuration
-│   └── index.ts               # Server startup
-├── Dockerfile                 # Container build
-├── package.json              # Dependencies
-├── tsconfig.json             # TypeScript config
-├── jest.config.js            # Test configuration
-└── .env.template            # Environment variables
+│   ├── __tests__/                 # Integration tests
+│   │   ├── setup.ts              # Jest test setup
+│   │   ├── health.test.ts        # Health endpoint tests
+│   │   ├── recipes.test.ts       # Recipe endpoint tests
+│   │   └── users.test.ts         # User endpoint tests
+│   ├── middleware/               # Express middleware
+│   │   ├── errorHandler.ts       # Global error handling
+│   │   ├── extractUser.ts        # User authentication
+│   │   └── updateLastSeen.ts     # Track user activity
+│   ├── routes/                   # HTTP route definitions
+│   │   ├── health.routes.ts      # Health check endpoints
+│   │   ├── recipes.routes.ts     # Recipe CRUD endpoints
+│   │   ├── users.routes.ts       # User-specific endpoints
+│   │   ├── profile.routes.ts     # User profile endpoints
+│   │   ├── ratings.routes.ts     # Recipe review endpoints
+│   │   └── internalSearch.routes.ts  # Search functionality
+│   ├── services/                 # Business logic layer
+│   │   ├── recipes.service.ts    # Recipe business logic
+│   │   ├── users.service.ts      # User operations
+│   │   ├── profile.service.ts    # Profile management
+│   │   ├── ratings.service.ts    # Review and rating logic
+│   │   ├── translation.service.ts # Translation operations
+│   │   └── service.utils.ts      # Shared service utilities
+│   ├── utils/                    # Utility functions
+│   │   ├── locale.js             # Locale handling
+│   │   ├── internalHeaders.js    # Internal header utilities
+│   │   └── timeouts.js           # Timeout management
+│   ├── validation/               # Input validation schemas
+│   │   └── schemas.ts            # Zod validation schemas
+│   ├── db/                       # Database connection
+│   │   └── database.ts           # PostgreSQL connection pool
+│   ├── app.ts                    # Express app configuration
+│   └── index.ts                  # Server startup
+├── Dockerfile                    # Container build
+├── package.json                 # Dependencies
+├── tsconfig.json                # TypeScript config
+├── jest.config.js               # Test configuration
+└── .env.template               # Environment variables
 ```
 
 ## 2. Router/Endpoint Architecture
@@ -38,7 +51,7 @@
 **Routing Pattern**: Modular routers with middleware chains
 **File Organization**: Route-specific files in `/src/routes/`
 
-### Endpoint Structure
+### Endpoint structure
 ```typescript
 // Global middleware chain (src/app.ts)
 app.use(cors())
@@ -46,6 +59,9 @@ app.use(express.json())
 app.use('/health', healthRouter)
 app.use('/recipes', recipesRouter)
 app.use('/users', usersRouter)
+app.use('/profile', profileRouter)
+app.use('/ratings', ratingsRouter)
+app.use('/internalSearch', internalSearchRouter)
 app.use(notFoundHandler)
 app.use(errorHandler)
 ```
@@ -144,7 +160,7 @@ try {
 
 ## 5. Middleware
 
-### Authentication Middleware (`/src/middleware/extractUser.ts`)
+### Authentication middleware (`/src/middleware/extractUser.ts`)
 ```typescript
 export const extractUser = (req: AuthenticatedRequest, _res: Response, next: NextFunction): void => {
   const result = headerUserIdSchema.safeParse(req.headers["x-user-id"]);

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { MainButton } from "~/components/buttons/MainButton";
 import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
@@ -26,6 +26,12 @@ const RecipesPage = () => {
 	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams] = useSearchParams();
+	const navigate = useNavigate();
+
+	const handleSearch = (q: string) => {
+		const params = new URLSearchParams({ q, type: "recipes" });
+		navigate(`/search?${params.toString()}`);
+	};
 
 	const sortOptions = useSortOptions("recipes");
 	const DEFAULT_SORT = sortOptions[0].value;
@@ -55,7 +61,10 @@ const RecipesPage = () => {
 				}
 			/>
 
-			<SearchField placeholder={t("common.searchPlaceholder")} />
+			<SearchField
+				placeholder={t("common.searchPlaceholder")}
+				onSubmit={handleSearch}
+			/>
 
 			<FilterList
 				filters={filters}
