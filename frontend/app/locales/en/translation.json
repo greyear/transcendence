@@ -207,7 +207,8 @@
 		"createError": "Failed to create recipe (status: {{status}}).",
 		"networkError": "Could not reach the server. Please try again.",
 		"genericError": "Please fix the errors above.",
-		"categoriesHeading": "Categories",
+		"categoryPlaceholder": "Select one",
+		"categoriesPlaceholder": "Select one or more",
 		"categoryTypeLabel": {
 			"meal_time": "Meal time",
 			"dish_type": "Dish type",

@@ -207,7 +207,8 @@
 		"createError": "Reseptin luonti epäonnistui (tila: {{status}}).",
 		"networkError": "Palvelimeen ei saatu yhteyttä. Yritä uudelleen.",
 		"genericError": "Korjaa yllä olevat virheet.",
-		"categoriesHeading": "Kategoriat",
+		"categoryPlaceholder": "Valitse yksi",
+		"categoriesPlaceholder": "Valitse yksi tai useampi",
 		"categoryTypeLabel": {
 			"meal_time": "Ateria-aika",
 			"dish_type": "Ruokalaji",

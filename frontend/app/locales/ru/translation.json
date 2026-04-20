@@ -207,7 +207,8 @@
 		"createError": "Не удалось создать рецепт (код: {{status}}).",
 		"networkError": "Не удалось связаться с сервером. Попробуйте снова.",
 		"genericError": "Исправьте ошибки выше.",
-		"categoriesHeading": "Категории",
+		"categoryPlaceholder": "Выберите один",
+		"categoriesPlaceholder": "Выберите один или несколько",
 		"categoryTypeLabel": {
 			"meal_time": "Время приёма пищи",
 			"dish_type": "Тип блюда",

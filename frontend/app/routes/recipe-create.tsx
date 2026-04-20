@@ -310,17 +310,26 @@ const RecipeCreate = () => {
 		};
 	}, []);
 
-	const toggleCategory = useCallback((id: number) => {
-		setSelectedCategoryIds((prev) => {
-			const next = new Set(prev);
-			if (next.has(id)) {
-				next.delete(id);
-			} else {
-				next.add(id);
-			}
-			return next;
-		});
-	}, []);
+	const handleCategoryTypeChange = useCallback(
+		(typeCode: CategoryTypeCode, ids: number[]) => {
+			const typeOptionIds = new Set(
+				(categories[typeCode] ?? []).map((option) => option.id),
+			);
+			setSelectedCategoryIds((prev) => {
+				const next = new Set<number>();
+				for (const id of prev) {
+					if (!typeOptionIds.has(id)) {
+						next.add(id);
+					}
+				}
+				for (const id of ids) {
+					next.add(id);
+				}
+				return next;
+			});
+		},
+		[categories],
+	);
 
 	const categoryIdsArray = useMemo(
 		() => Array.from(selectedCategoryIds),
@@ -599,7 +608,7 @@ const RecipeCreate = () => {
 				<RecipeCategorySection
 					categories={categories}
 					selectedIds={selectedCategoryIds}
-					onToggle={toggleCategory}
+					onTypeChange={handleCategoryTypeChange}
 				/>
 
 				{formError ? (

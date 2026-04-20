@@ -282,33 +282,6 @@
 	color: var(--surface-error);
 }
 
-/* Categories */
-
-.recipe-category-group {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-s);
-}
-
-.recipe-category-list {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--space-s);
-	list-style: none;
-	padding: 0;
-	margin: 0;
-}
-
-.recipe-category-item {
-	display: inline-flex;
-	align-items: center;
-	gap: var(--space-xs);
-}
-
-.recipe-category-label {
-	cursor: pointer;
-}
-
 /* Submit */
 
 .recipe-create-submit {
