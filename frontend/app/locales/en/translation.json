@@ -72,9 +72,10 @@
 		"title": "Share your thoughts about this recipe",
 		"rateRecipe": "Rate this recipe",
 		"describeRecipe": "Describe the recipe (optional)",
+		"emptyReviewHint": "Any previous feedback you saved for this recipe will be replaced by this one.",
 		"ratingOption": "{{value}} out of 5 stars",
-		"submit": "Submit",
-		"submitting": "Submitting...",
+		"submit": "Save feedback",
+		"submitting": "Saving...",
 		"genericError": "Could not submit your rating. Please try again.",
 		"networkError": "The request could not reach the server."
 	},

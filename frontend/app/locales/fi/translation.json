@@ -72,9 +72,10 @@
 		"title": "Kerro ajatuksesi tästä reseptistä",
 		"rateRecipe": "Arvioi tämä resepti",
 		"describeRecipe": "Kuvaile reseptiä (valinnainen)",
+		"emptyReviewHint": "Tämä palaute korvaa mahdollisen aiemman palautteesi tästä reseptistä.",
 		"ratingOption": "{{value}} tähteä viidestä",
-		"submit": "Lähetä",
-		"submitting": "Lähetetään...",
+		"submit": "Tallenna palaute",
+		"submitting": "Tallennetaan...",
 		"genericError": "Arvion lähettäminen epäonnistui. Yritä uudelleen.",
 		"networkError": "Pyyntö ei tavoittanut palvelinta."
 	},

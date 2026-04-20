@@ -77,7 +77,7 @@ export const RatingForm = ({
 		return parsed.data.data.id;
 	};
 
-	const getExistingReviewId = async (userId: number) => {
+	const getExistingReviewIds = async (userId: number) => {
 		const response = await fetch(
 			`${API_BASE_URL}/recipes/${recipeId}/reviews`,
 			{
@@ -85,21 +85,76 @@ export const RatingForm = ({
 			},
 		);
 		if (!response.ok) {
-			return null;
+			return [];
 		}
 
 		const body: unknown = await response.json();
 		const parsed = RecipeReviewsResponseSchema.safeParse(body);
 
 		if (!parsed.success) {
-			return null;
+			return [];
 		}
 
-		const existingReview = parsed.data.data.find(
-			(reviewItem) => reviewItem.author_id === userId,
-		);
+		return parsed.data.data
+			.filter((reviewItem) => reviewItem.author_id === userId)
+			.map((reviewItem) => reviewItem.id);
+	};
 
-		return existingReview?.id ?? null;
+	const syncReview = async (trimmedReview: string) => {
+		const currentUserId = await getCurrentUserId();
+		if (currentUserId === null) {
+			setError(t("ratingModal.genericError"));
+			return false;
+		}
+
+		const existingReviewIds = await getExistingReviewIds(currentUserId);
+
+		if (!trimmedReview) {
+			if (existingReviewIds.length === 0) {
+				return true;
+			}
+
+			for (const existingReviewId of existingReviewIds) {
+				const deleteResponse = await fetch(
+					`${API_BASE_URL}/recipes/${recipeId}/reviews/${existingReviewId}`,
+					{
+						method: "DELETE",
+						credentials: "include",
+					},
+				);
+				const deleteData = await parseApiResponse(deleteResponse);
+
+				if (!deleteResponse.ok && deleteResponse.status !== 404) {
+					setError(deleteData.error ?? t("ratingModal.genericError"));
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		const existingReviewId = existingReviewIds[0] ?? null;
+		const reviewResponse = await fetch(
+			existingReviewId === null
+				? `${API_BASE_URL}/recipes/${recipeId}/reviews`
+				: `${API_BASE_URL}/recipes/${recipeId}/reviews/${existingReviewId}`,
+			{
+				method: existingReviewId === null ? "POST" : "PUT",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+				body: JSON.stringify({ body: trimmedReview }),
+			},
+		);
+		const reviewData = await parseApiResponse(reviewResponse);
+
+		if (!reviewResponse.ok) {
+			setError(reviewData.error ?? t("ratingModal.genericError"));
+			return false;
+		}
+
+		return true;
 	};
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -147,34 +202,9 @@ export const RatingForm = ({
 				return;
 			}
 
-			const trimmedReview = review.trim();
-			if (trimmedReview) {
-				const currentUserId = await getCurrentUserId();
-				if (currentUserId === null) {
-					setError(t("ratingModal.genericError"));
-					return;
-				}
-
-				const existingReviewId = await getExistingReviewId(currentUserId);
-				const reviewResponse = await fetch(
-					existingReviewId === null
-						? `${API_BASE_URL}/recipes/${recipeId}/reviews`
-						: `${API_BASE_URL}/recipes/${recipeId}/reviews/${existingReviewId}`,
-					{
-						method: existingReviewId === null ? "POST" : "PUT",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						credentials: "include",
-						body: JSON.stringify({ body: trimmedReview }),
-					},
-				);
-				const reviewData = await parseApiResponse(reviewResponse);
-
-				if (!reviewResponse.ok) {
-					setError(reviewData.error ?? t("ratingModal.genericError"));
-					return;
-				}
+			const reviewSynced = await syncReview(review.trim());
+			if (!reviewSynced) {
+				return;
 			}
 
 			setRating(0);
@@ -272,6 +302,9 @@ export const RatingForm = ({
 							value={review}
 							onChange={(event) => setReview(event.target.value)}
 						/>
+						<p className="rating-help-text text-caption">
+							{t("ratingModal.emptyReviewHint")}
+						</p>
 					</div>
 
 					<div className="rating-status" aria-live="polite">
