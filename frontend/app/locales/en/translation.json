@@ -76,6 +76,7 @@
 		"perPage": "Per page",
 		"noResults": "No matching recipes found.",
 		"searching": "Searching recipes...",
+		"error": "Search failed. Please try again.",
 		"aiSummaryOn": "AI summary on",
 		"aiSummaryOff": "AI summary off"
 	},

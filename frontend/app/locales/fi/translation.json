@@ -76,6 +76,7 @@
 		"perPage": "Per sivu",
 		"noResults": "Reseptejä ei löytynyt.",
 		"searching": "Haetaan reseptejä...",
+		"error": "Haku epäonnistui. Yritä uudelleen.",
 		"aiSummaryOn": "Tekoälytiivistelmä käytössä",
 		"aiSummaryOff": "Tekoälytiivistelmä poissa käytöstä"
 	},

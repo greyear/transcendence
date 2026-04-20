@@ -2,6 +2,7 @@ import { Filter, Sparks } from "iconoir-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
+import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { RecipeCard } from "~/components/cards/RecipeCard";
@@ -29,18 +30,18 @@ const parseLimit = (raw: string | null): number => {
 	return Math.min(Math.trunc(parsed), SEARCH_MAX_LIMIT);
 };
 
-type SearchRecipesApiItem = {
-	recipe_id: number;
-	title: string;
-	description: string | null;
-};
+const SearchRecipesApiItemSchema = z.object({
+	recipe_id: z.number(),
+	title: z.string(),
+	description: z.string().nullable(),
+});
 
-type SearchRecipesApiResponse = {
-	count: number;
-	data: SearchRecipesApiItem[];
-	summary?: string;
-	summary_status?: string;
-};
+const SearchRecipesApiResponseSchema = z.object({
+	count: z.number(),
+	data: z.array(SearchRecipesApiItemSchema),
+	summary: z.string().optional(),
+	summary_status: z.string().optional(),
+});
 
 type SearchRecipeItem = {
 	id: number;
@@ -79,12 +80,12 @@ const SearchPage = () => {
 	const sortOptions = useSortOptions(typeParam);
 
 	const recipesTab = t("searchPage.recipesTab");
-	const usersTab = t("searchPage.usersTab");
-	const tabs = [recipesTab, usersTab];
-	const activeTab = typeParam === "users" ? usersTab : recipesTab;
+	const tabs = [recipesTab];
+	const activeTab = recipesTab;
 
 	const [results, setResults] = useState<SearchResponse | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
+	const [hasError, setHasError] = useState(false);
 
 	const total = results?.total ?? 0;
 	const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -93,14 +94,11 @@ const SearchPage = () => {
 		if (!query) {
 			setResults(null);
 			setIsLoading(false);
+			setHasError(false);
 			return;
 		}
 
-		if (typeParam === "users") {
-			setResults({ type: "users", data: [], total: 0 });
-			setIsLoading(false);
-			return;
-		}
+		const controller = new AbortController();
 
 		const params = new URLSearchParams({
 			q: query,
@@ -108,19 +106,38 @@ const SearchPage = () => {
 		});
 
 		setIsLoading(true);
-		fetch(`${API_BASE_URL}/search/recipes?${params}`)
+		setHasError(false);
+		fetch(`${API_BASE_URL}/search/recipes?${params}`, {
+			signal: controller.signal,
+		})
 			.then(async (res) => {
 				if (!res.ok) {
-					return { count: 0, data: [] } as SearchRecipesApiResponse;
+					console.error(`Failed to search recipes: ${res.status}`);
+					return null;
 				}
-				return (await res.json()) as SearchRecipesApiResponse;
+				return res.json();
 			})
 			.then((body) => {
+				if (body === null) {
+					setResults(null);
+					setHasError(true);
+					return;
+				}
+				const parsed = SearchRecipesApiResponseSchema.safeParse(body);
+				if (!parsed.success) {
+					console.error(
+						"Unexpected /search/recipes response shape",
+						parsed.error,
+					);
+					setResults(null);
+					setHasError(true);
+					return;
+				}
 				setResults({
 					type: "recipes",
-					total: body.count,
-					summary: body.summary,
-					data: body.data.map((item) => ({
+					total: parsed.data.count,
+					summary: parsed.data.summary,
+					data: parsed.data.data.map((item) => ({
 						id: item.recipe_id,
 						title: item.title,
 						description: item.description ?? "",
@@ -128,9 +145,24 @@ const SearchPage = () => {
 					})),
 				});
 			})
-			.catch(console.error)
-			.finally(() => setIsLoading(false));
-	}, [query, typeParam, limit]);
+			.catch((error: unknown) => {
+				if (error instanceof DOMException && error.name === "AbortError") {
+					return;
+				}
+				console.error(error);
+				setResults(null);
+				setHasError(true);
+			})
+			.finally(() => {
+				if (!controller.signal.aborted) {
+					setIsLoading(false);
+				}
+			});
+
+		return () => {
+			controller.abort();
+		};
+	}, [query, limit]);
 
 	const handleSearch = (newQuery: string) => {
 		const params = new URLSearchParams(searchParams);
@@ -139,9 +171,9 @@ const SearchPage = () => {
 		navigate(`/search?${params.toString()}`);
 	};
 
-	const handleTabChange = (tab: string) => {
+	const handleTabChange = (_tab: string) => {
 		const params = new URLSearchParams(searchParams);
-		params.set("type", tab === usersTab ? "users" : "recipes");
+		params.set("type", "recipes");
 		params.delete("page");
 		params.delete("sort");
 		navigate(`/search?${params.toString()}`);
@@ -232,7 +264,11 @@ const SearchPage = () => {
 				<p className="search-page__status">{t("searchPage.searching")}</p>
 			)}
 
-			{query && !isLoading && results && (
+			{query && !isLoading && hasError && (
+				<p className="search-page__status">{t("searchPage.error")}</p>
+			)}
+
+			{query && !isLoading && !hasError && results && (
 				<>
 					{aiEnabled && results.type === "recipes" && results.summary && (
 						<p className="search-page__summary">{results.summary}</p>
