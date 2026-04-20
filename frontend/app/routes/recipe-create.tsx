@@ -210,6 +210,7 @@ const RecipeCreate = () => {
 	const { isAuthenticated, isAuthResolved, openAuthModal } =
 		useOutletContext<LayoutOutletContext>();
 	const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+	const [photoFile, setPhotoFile] = useState<File | null>(null);
 	const [form, setForm] = useState<FormState>(initialForm);
 	const [ingredients, setIngredients] = useState<IngredientRow[]>(() => [
 		{ id: `${baseId}-i0`, ingredientId: null, amount: "", unit: "" },
@@ -389,7 +390,24 @@ const RecipeCreate = () => {
 		if (!file) {
 			return;
 		}
+		setPhotoFile(file);
 		setPhotoPreview(URL.createObjectURL(file));
+	};
+
+	const uploadPicture = async (recipeId: number, file: File): Promise<void> => {
+		const formData = new FormData();
+		formData.append("picture", file);
+		const response = await fetch(
+			`${API_BASE_URL}/recipes/${recipeId}/picture`,
+			{
+				method: "PUT",
+				credentials: "include",
+				body: formData,
+			},
+		);
+		if (!response.ok) {
+			console.error(`Failed to upload recipe picture: ${response.status}`);
+		}
 	};
 
 	const submitRecipe = async (
@@ -442,6 +460,9 @@ const RecipeCreate = () => {
 			const body: CreateRecipeResponse = await response.json();
 			const newId = body.data?.id;
 			if (typeof newId === "number") {
+				if (photoFile) {
+					await uploadPicture(newId, photoFile);
+				}
 				navigate(`/recipes/${newId}`);
 				return;
 			}
