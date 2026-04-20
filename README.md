@@ -1,121 +1,139 @@
-# Recipe Sharing Platform
+*This project has been created as part of the 42 curriculum by azinchen, msavelie, ssalorin, jkarhu, elehtone.*
 
-A modern web application for sharing, discovering, and managing recipes with social features. Users can create and share their favorite recipes, follow other cooking enthusiasts, save favorites, leave comments, and explore a rich collection of culinary content.
+# ft_transcendence
 
-## Quick Start (Makefile)
+A recipe sharing platform with a clean interface, social features and AI integration.
 
-### 1) Prerequisites
+---
 
-Install the following tools:
+# Description
 
-- Docker Engine
-- Docker Compose (`docker-compose` command)
-- GNU Make (`make`)
-- Node.js 20+ and npm (only for local service development without Docker)
+## Project overview
 
-Check that tools are available:
+Our ft_transcendence project, **Recipe Creating Platform (RCP)**, is a full-stack web application designed to help users discover, create, and manage recipes with comprehensive social features. The product enables users to share their culinary creations, follow other cooking enthusiasts (cooks), save favourite recipes, leave comments, and explore a rich collection of user-generated culinary content.
+
+## Key features
+
+- **Recipe Discovery & Browsing**: Browse and search recipes with filtering and sorting options
+- **Social Features**: Follow other cooks, view their profiles, and see their recipe collections
+- **User Profiles**: Customisable user profiles with avatar support and online status visibility
+- **Recipe Management**: Create, edit, and publish recipes with multilingual support
+- **Community Interaction**: Comment on recipes, rate dishes, and build a community around shared culinary interests
+- **Favourites**: Save favourite recipes for quick access
+- **Multi-language Support**: Support for English, Finnish, and Russian languages
+
+---
+
+# Team members and roles
+
+Teams are required to consist of at least 4 and at most 5 members. Ours consisted of 5 members at kick-off.
+
+## Team members
+
+Our team consists of 5 members:
+- Anya Zinchenko (azinchen)
+- Nick Saveliev (msavelie)
+- Seela Salorinta (ssalorin)
+- Jimi Karhu (jkarhu)
+- Eric Lehtonen (elehtone)
+
+## Mandatory roles
+
+- **Product Owner**: Overall project vision, work priority and validation of completed work.
+	- Anya and Nick shared this role at various stages during the project
+- **Project Manager**: Project planning, communication and deadlines.
+	- Anya
+- **Technical Lead**: Leads architecture and stack decisions, code quality, and critical reviews.
+	- Nick
+- **Developers**: Implement features, review code, test, and document contributions.
+	- All 5 of us were developers to various degrees
+
+## Project management practices
+	
+Our group tried to follow the subject guidelines regarding project management.
+
+- Regular group meetings. Concise meeting notes available [here](./docs/meetings.md).
+- Task planning using GitHub Issues & Kanban board as well as Discord.
+- Work was generally broken into manageable parts and we aimed to have single issue pull requests.
+- Peer review was mandatory for all pull requests.
+- Mostly ongoing documentation of decisions.
+- Discord was used for day-to-day group communication.
+
+---
+
+# Instructions
+
+## Prerequisites
+
+Before starting the project, ensure the following tools are installed on your system:
+
+| Tool | Minimum Version | Version Check (bash) |
+|------|---------|-----------|
+| Docker | 20.10 | `docker --version` |
+| Docker Compose | 1.29 | `docker-compose --version` |
+| GNU Make | Any modern version | `make --version` |
+| Node.js | 20 | `node --version` |
+| npm | 10 | `npm --version` |
+
+## Environment configuration
+
+Each service requires environment variable configuration. Copy the `env.template` files to `.env`:
 
 ```bash
-docker --version
-docker-compose --version
-make --version
-node --version
-npm --version
-```
-
-### 1.2) Environment files (`.env`)
-
-This repository contains `.env.template` files. Copy them to `.env` before local development:
-
-```bash
+# Root project level
 cp .env.template .env
+
+# Backend services
 cp backend/services/api-gateway/.env.template backend/services/api-gateway/.env
 cp backend/services/core-service/.env.template backend/services/core-service/.env
 cp backend/services/auth-service/.env.template backend/services/auth-service/.env
-cp backend/services/notification-service/.env.template backend/services/notification-service/.env
 ```
 
-Then replace placeholder values (for example, `JWT_SECRET="change-me"`).
+Replace placeholder values (e.g., `JWT_SECRET="your-super-secret-jwt-key-min-32-chars"`) with appropriate configuration values for your environment.
 
-### 1.3) Node.js version for local dev
+## Running the project
 
-Local commands `make dev-api`, `make dev-core`, and `npm test` require **Node.js >= 18** (recommended **Node.js 20 LTS**).
-
-If your version is older (for example Node 12), install Node 20 with `nvm`:
+### Start all services via Docker Compose:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-source ~/.nvm/nvm.sh
-nvm install 20
-nvm use 20
-node --version
+make up
 ```
 
-## 2) Running the Application
+Bear in mind `sudo` is not available on Hive systems.
 
-### 2.1) Start all backend services via Docker (recommended)
+This command:
+- Generates certificates if needed
+- Starts all database containers (MongoDB for auth, PostgreSQL for core)
+- Launches all backend services (API Gateway, Auth Service, Core Service)
+- Configures Traefik reverse proxy for HTTPS routing
+- Exposes the application at `https://localhost:8443`
 
-From the project root:
+Useful management commands:
 
-```bash
-sudo make up
-```
+| Command | Description |
+|---------|-------------|
+| `make down` | Stop all services |
+| `make restart` | Restart the entire stack |
+| `make logs` | Watch logs for all services |
+| `make db-status` | View container health status |
+| `make db-reset` | Reset database containers and volumes |
+| `make clean` | Full cleanup including all volumes |
+| `make re` | Full cleanup and restart |
 
-This starts databases and backend microservices via Docker Compose.
+### Accessing the application
 
-Useful commands:
+- **Frontend**: `https://localhost:5173`
+- **API Gateway**: External: `https://localhost:8443` Internal: `http://localhost:3000`
+- **Auth Service**: `http://auth-service:3001` (internal Docker network)
+- **Core Service**: `http://core-service:3002` (internal Docker network)
+- **Search Service**: `http://search-service:8000` (internal Docker network)
+- **Translation Service**: `http://translation-service:8001` (internal Docker network)
 
-- `sudo make down` — stop all services
-- `sudo make restart` — restart services
-- `sudo make logs` — follow logs
-- `sudo make db-status` — container and health status
-- `sudo make db-reset` — reset only DB containers/volumes
-- `sudo make clean` — full reset (including volumes)
+## Testing
 
-### 2.2) Run services locally (dev mode, without running app containers)
+The project uses **Jest** and **Supertest** for integration testing.
 
-If you want hot-reload development locally:
-
-1. Start infrastructure first (DBs) with Docker:
-
-```bash
-sudo make up
-```
-
-2. In separate terminals run the services you need:
-
-```bash
-make dev-api
-make dev-core
-```
-
-> Note: in this repository `auth-service` and `notification-service` are Docker stubs and are started with `make up`.
-
-3. If dependencies are missing, install once per service:
-
-```bash
-cd backend/services/<service-name>
-npm install
-```
-
-### 2.3) Main service endpoints
-
-- API Gateway: `https://localhost:8443`
-- Auth Service: `http://localhost:3001`
-- Core Service: `http://localhost:3002`
-- Notification Service: `http://localhost:3003`
-
-## 3) Testing
-
-The project uses **Jest** and **Supertest** for developer-friendly integration testing.
-
-### Test Architecture
-- **Integration Tests**: We test entire service routes without a browser.
-- **Supertest**: Allows testing Express apps in-memory (no need to manage ports or wait for servers to start).
-- **Mocks**: In the API Gateway, we mock downstream services using `jest.spyOn(global, 'fetch')` to ensure tests are fast and isolated.
-- **Database**: `core-service` tests run against the real PostgreSQL database (specified in `.env`).
-
-### How to Run Tests
+### How to run tests
 
 From the project root:
 
@@ -127,209 +145,441 @@ make test-jest-all
 make test-jest-core
 make test-jest-api
 
-# Alternative: run directly in service directory via npm
+# Alternative: run directly in the service directory via npm
 cd backend/services/core-service && npm test
 cd backend/services/api-gateway && npm test
 
 # Run tests in "watch" mode (re-runs on file changes)
 cd backend/services/core-service && npm run test:watch
+cd backend/services/api-gateway && npm run test:watch
 ```
-
-## Overview
-
-This project is a full-stack Recipe Sharing Platform built with a microservices architecture. It demonstrates industry best practices in modern web development, including containerization, orchestration, and scalable service design.
-
-### Key Features
-
-- **Recipe Management**: Create, update, delete, and browse recipes with detailed ingredients, categories, and dietary information
-- **Social Interactions**: Follow users, comment on recipes, and build a community around shared culinary interests
-- **User Profiles**: Manage public profiles with avatars and track your recipe collection
-- **Advanced Search**: Filter and discover recipes based on ingredients, categories, dietary preferences, and more
-- **Notifications**: Stay updated on new followers, comments, and interactions
-- **Secure Authentication**: OAuth 2.0 integration (Google) and two-factor authentication support
-
-## Code cleanup
-
-Check the code linting and formatting:
-```bash
-npm run check
-```
-Fix lint and formatting issues:
-```bash
-npm run fix
-```
-
-## Project Requirements
-
-This project fulfills the following technical requirements:
-
-- **Web Application**: Complete frontend and backend with persistent data storage
-- **Version Control**: Git-based workflow with clear, meaningful commit messages and proper team collaboration
-- **Containerization**: Fully containerized deployment using Docker, orchestrated with Kubernetes
-- **Single-Command Deployment**: The entire application stack can be deployed with one command
-- **Browser Compatibility**: Optimized for the latest stable version of Google Chrome
-- **Production Quality**: No warnings or errors in the browser console
-- **Legal Compliance**: Includes accessible Privacy Policy and Terms of Service pages
-
-## Architecture Overview
-
-The application follows a microservices architecture with clear separation of concerns:
-
-- **API Gateway**: Single entry point for all client requests
-- **Auth Service**: Handles authentication, authorization, and user identity
-- **Core Service**: Manages recipes, profiles, and social interactions
-- **Notification Service**: Handles event-driven notifications
-- **Frontend**: User interface served as a containerized service
-
-Each service is independently deployable, scalable, and maintains its own database, following the database-per-service pattern.
 
 ---
 
-## DATABASE CHOICE:
-This project uses multiple databases, each selected according to the purpose of each microservice and how it accesses data.
+# Resources
 
-Each microservice owns its database and is the single source of truth for its data.
+## Documentation references
 
-* The authentication service manages identity and credentials using MongoDB.
-* The core service manages business data using PostgreSQL.
-* The notification service manages delivery state and event tracking using PostgreSQL.
+- [Express.js Documentation](https://expressjs.com/)
+- [React 19 Documentation](https://react.dev/)
+- [React Router v7 Documentation](https://react-router.dev/)
+- [PostgreSQL Database Documentation](https://www.postgresql.org/docs/)
+- [MongoDB Documentation](https://docs.mongodb.com/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [Traefik Reverse Proxy Documentation](https://doc.traefik.io/)
+- [Docker & Docker Compose Documentation](https://docs.docker.com/)
 
-This separation:
-* maintains loose coupling between services by isolating their data and responsibilities
-* simplifies scaling and maintenance
-* aligns with microservice best practices
-* avoids cross-service database access
+## AI usage in this project
 
-**PostgreSQL**
-PostgreSQL is used for the core and notification services, where the system relies heavily on
-* strong relationships between entities
-* referential integrity (consistency of references across related entities)
-* transactional consistency (related changes are either fully completed or rolled back)
-* complex queries and filtering
-* many-to-many relationships
+AI tools (such as GitHub Copilot and Claude Code) were used in the following ways:
 
-Core domain features such as users’ public profiles, recipes, ingredients, categories, followers, favorites, and comments require reliable data consistency and explicit relationships between entities, which relational databases provide out of the box.
+- Researching new concepts or tools efficiently
+- Writing documentation drafts and templates
+- Assistance with mundane code generation
+- Initial code review and sanity checking
+- Test evaluation and test testing, to make sure testy tests test testily
 
-PostgreSQL was selected due to:
-* ACID-compliant transactions (atomicity, consistency, isolation, durability)
-* rich support for relational modeling
-* advanced indexing capabilities
-* support for complex joins and constraints
-* suitability for scalable microservice architectures with strict data ownership
+A practical example of AI usage is this here README. Initial work was done by passing the README requirements section of the subject PDF to the AI and asking it to generate a readme for our project. We worked that into the end result you see here.
 
-These characteristics are essential for maintaining data correctness under concurrent operations and high read/write load.
+All AI-generated code passes before human eyes prior to any use in the project.
 
-Additionally, PostgreSQL is widely used in modern development, making it a practical choice for gaining relevant industry experience.
+---
 
-**MongoDB**
-MongoDB is used exclusively by the authentication service.
+# Tech stack
 
-Authentication data has fundamentally different characteristics compared to the core domain:
-* flexible and evolving schema (allows schema changes without costly migrations)
-* no complex joins
-* high read/write frequency
-* isolated data ownership
+## Frontend
 
-MongoDB is a good fit for this use case because it:
-* allows flexible document-based modeling
-* simplifies storage of authentication-related data
-* avoids unnecessary relational overhead
-* remains isolated from core domain data
+- **Framework**: React 19 with React Router v7
+- **Language**: TypeScript 5.9+
+- **Build Tool**: Vite 7.1
+- **Styling**: <unknown or lacking> (CSS framework or solution)
+- **State Management**: React Context API / <unknown or lacking>
+- **Internationalisation**: react-i18next with remix-i18next
+- **Form Validation**: Zod 4.3
+- **Component Library**: Iconoir React (icons)
+- **HTTP Client**: <unknown or lacking>
 
-Using MongoDB for authentication ensures that sensitive credential data is fully decoupled from the core relational database, improving security and scalability.
+**Rationale**: React Router v7 provides modern, performant routing with server-side rendering capabilities. Vite ensures fast development build cycles and optimised production bundles. TypeScript provides type safety across the frontend layer.
 
-## MICROSERVICES:
-The system is divided into microservices based on clearly defined business responsibilities: authentication, core domain logic, and notifications.
-Each service owns its data and encapsulates a single responsibility, while the API Gateway serves as a unified entry point responsible for request routing, security, and cross-cutting concerns.
+## Backend
 
-Business logic is implemented within individual services, while cross-cutting concerns are handled at the gateway level.
+- **API Gateway**: Express.js 4.18 with TypeScript
+- **Service Architecture**: Microservices pattern with three independent services
+- **Language**: TypeScript 5.9+
+- **Authentication Service**: Node.js with Express
+- **Core Service**: Node.js with Express
+- **Form Validation**: Zod 4.3 for schema validation
+- **Testing**: Jest 30.3 with Supertest
 
-### API Gateway
+**Rationale**: Express provides a lightweight, flexible HTTP server foundation. Microservices architecture enables independent scaling and deployment of different concerns (authentication, recipes, notifications).
 
-Responsibility:
-* Acts as a single entry point for all client requests.
+## Databases
 
-Contains:
-* Request routing to internal services
-* JWT validation and authentication middleware
-* Rate limiting and API key validation
-* Request/response logging
-* Basic request validation
-* Response aggregation (if needed)
+- **Auth Database**: MongoDB 6 (stores user authentication credentials and sessions)
+  - **Port**: 27017
+  - **Credentials**: Configurable via environment variables
+  
+- **Core Database**: PostgreSQL 15 (stores recipes, users, followers, ratings, comments)
+  - **Port**: 5433
+  - **Name**: `core_db`
+  
+**Rationale**: PostgreSQL selected for relational data (recipes, users, followers) with ACID compliance. MongoDB selected for flexible authentication session storage. Separate databases enable independent scaling and failure isolation.
 
-Does NOT contain:
-* Business logic
-* Database access
+## Infrastructure & DevOps
 
-### Auth Service
+- **Containerisation**: Docker & Docker Compose
+- **Reverse Proxy & Load Balancing**: Traefik v3.0
+- **SSL/TLS**: Self-signed certificates for HTTPS
+- **Service Orchestration**: Docker Compose (development/staging); Kubernetes manifests available for production
 
-Responsibility:
-* Manages authentication and user identity.
+**Rationale**: Docker ensures consistency across development and production environments. Traefik provides automatic HTTPS routing and service discovery within the containerised environment.
 
-Contains:
-* User registration and login
-* Password hashing and verification
-* JWT and refresh token generation
-* OAuth 2.0 integration (Google)
-* Two-factor authentication logic (auth app)
-* Token revocation and session management
+---
 
-Database: auth_db (MongoDB)
+# Features list
 
-### Core Service
+## Core features
 
-Responsibility:
-Manages the core business domain of the application, including user profiles, recipes, and social interactions.
+| Feature | Description | Developer |
+|---------|-------------|----------|
+| User Registration & Authentication | Secure user account creation and login | Eric, Anya, Nick |
+| User Profiles | Customisable user profiles with avatar support | Anya |
+| Recipe Creation | Users can create and publish recipes | Nick, Anya |
+| Recipe Discovery | Browse and search recipes with filtering | Nick, Jimi |
+| Favourites | Save recipes to favourites list | Anya |
+| Follow System | Follow other cooks, view follower lists | Nick, Anya |
+| Comments | Leave comments on recipes | Anya |
+| Recipe Ratings | Rate recipes (1–5 stars) | Anya |
+| Multilingual Support | Interface in English, Finnish, Russian | Nick, Seela, Anya |
+| Responsive Design | Mobile and desktop compatibility | Nick, Seela |
+| AI Features | Recipe recommendations and intelligent search | Nick, Jimi |
 
-Contains:
-* User profile management (public profile data)
-* Avatar metadata management
-* Recipes CRUD operations
-* Ingredients, categories, and dietary data management
-* Favorites and user–recipe interactions
-* Followers system (mutual follows treated as friends)
-* Comments on recipes
-* Advanced filtering and search across recipes
-* Domain-specific business rules and validations
+---
 
-Database: core_db (PostgreSQL)
+# Modules
 
-### Notification Service
+## Module strategy
 
-Responsibility:
-Handles user notifications and delivery tracking for domain events.
+Due to the time pressure we had for this project we agreed on a module selection that gave us some leeway for change but should easily allow us to meet the required minimum. Our plan consisted of modules totalling 18 points. This gives us ample flexibility should problems or unseen issues arrive. This also gives us some flexibility should an evaluator encounter a critical failure.
 
-Contains:
-* Notification creation based on domain events (new follower, new comment, etc.)
-* Notification delivery status tracking
-* User notification preferences (optional)
-* Marking notifications as read/unread
-* Retry logic for failed deliveries (optional)
-* Integration points for external delivery channels (optional)
+## Planned modules
 
-Database: notification_db (PostgreSQL)
+### WEB - 5 points
 
-## KUBERNETES:
-Kubernetes (K8s) is an open-source container orchestration platform designed to manage, scale, and maintain containerized applications.
+| Module | Type | Points | Notes |
+|-------------|------|--------|-------|
+| Use a framework for both the frontend and backend | Major | 2 | React 19 (frontend) and Express.js (backend) implemented |
+| Server-Side Rendering (SSR) for improved performance and SEO | Minor | 1 | React Router v7 with server-side rendering capabilities |
+| Custom-made design system with reusable components, including a proper colour palette, typography, and icons (minimum: 10 reusable components) | Minor | 1 | Reusable components with consistent colour palette, typography, and Iconoir icons |
+| Implement advanced search functionality with filters, sorting, and pagination | Minor | 1 | Filtering, sorting, and pagination implemented across recipes and users |
 
-While Docker Compose is suitable for local development and simple setups, it lacks the orchestration, scalability, and fault-tolerance required for a microservices-based architecture. Kubernetes provides these capabilities by managing service lifecycle, networking, scaling, and resilience.
+### Accessibility and internationalization - 4 points
 
-For this reason, the project is deployed using Kubernetes with Minikube.
+| Module Name | Type | Points | Notes |
+|-------------|------|--------|-------|
+| Complete accessibility compliance (WCAG 2.1 AA) with screen reader support, keyboard navigation, and assistive technologies | Major | 2 | Screen reader support, keyboard navigation, and assistive technology support |
+| Support for multiple languages (at least 3 languages) | Minor | 1 | Support for English, Finnish, and Russian using react-i18next |
+| Support for additional browsers | Minor | 1 | Responsive design and cross-browser compatibility |
 
-Kubernetes is responsible for orchestrating all components of the system, including:
-* frontend application
-* backend microservices
-* databases
+### User management - 5 points
 
-This approach ensures a deployment model that closely resembles production-grade environments.
+| Module Name | Type | Points | Notes |
+|-------------|------|--------|-------|
+| Standard user management and authentication | Major | 2 | Secure registration, login, and JWT-based authentication |
+| Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.) | Minor | 1 | Google OAuth integration for single sign-on |
+| Advanced Permissions System | Major | 2 | Role-based access control (admin, user, guest) |
 
-Kubernetes continuously monitors the state of the system and is able to:
-* automatically restart failed containers
-* terminate containers that do not pass defined health checks
-* replace unhealthy instances to maintain the desired system state
+### Artificial intelligence - 4 points
 
-Minikube is a local Kubernetes distribution that runs a single-node cluster, where both control plane and worker components operate on the same node. It is well-suited for development and educational purposes while preserving real Kubernetes behavior.
+| Module Name | Type | Points | Notes |
+|-------------|------|--------|-------|
+| Implement a complete RAG (Retrieval-Augmented Generation) system | Major | 2 | Complete RAG implementation for intelligent content retrieval |
 
-kubectl is the command-line tool used to interact with and manage Kubernetes clusters, allowing users to deploy resources, inspect cluster state, and control workloads.
+### DevOps - 2 points
 
+| Module Name | Type | Points | Notes |
+|-------------|------|--------|-------|
+| Backend as microservices | Major | 2 | Backend implemented as microservices (Auth, Core, Search, Translation services) |
 
+**Total Points: 18**
+
+---
+
+# Database schema
+
+## Core erDiagram
+
+```mermaid
+erDiagram
+    USERS {
+        integer **id**
+        varchar username
+        varchar avatar
+        varchar status
+        varchar role
+        timestamptz last_seen_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    FOLLOWERS {
+        integer **user_id**
+        integer **followed_id**
+        timestamptz created_at
+    }
+    
+    RECIPES {
+        integer **id**
+        jsonb title
+        jsonb description
+        jsonb instructions
+        integer servings
+        smallint spiciness
+        integer *author_id*
+        varchar status
+        numeric rating_avg
+        integer rating_count
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    INGREDIENTS {
+        integer **id**
+        varchar name
+        timestamptz created_at
+    }
+    
+    UNITS {
+        varchar **code**
+        varchar kind
+    }
+    
+    RECIPE_INGREDIENTS {
+        integer **recipe_id**
+        integer **ingredient_id**
+        numeric amount
+        varchar unit
+    }
+    
+    RECIPE_CATEGORY_TYPES {
+        integer **id**
+        varchar code
+        varchar name
+        timestamptz created_at
+    }
+    
+    RECIPE_CATEGORIES {
+        integer **id**
+        integer *category_type_id*
+        varchar code
+        timestamptz created_at
+    }
+    
+    RECIPE_CATEGORY_MAP {
+        integer **recipe_id**
+        integer **category_id**
+    }
+    
+    INGREDIENT_CATEGORIES {
+        integer **id**
+        varchar code
+        timestamptz created_at
+    }
+    
+    INGREDIENT_CATEGORY_CORRESPONDENCE {
+        integer **ingredient_id**
+        integer **category_id**
+    }
+    
+    ALLERGENS {
+        integer **id**
+        varchar code
+        timestamptz created_at
+    }
+    
+    ALLERGEN_CATEGORIES {
+        integer **allergen_id**
+        integer **category_id**
+    }
+    
+    USER_ALLERGENS {
+        integer **user_id**
+        integer **allergen_id**
+        timestamptz created_at
+    }
+    
+    DIETS {
+        integer **id**
+        varchar code
+        varchar name
+        timestamptz created_at
+    }
+    
+    DIET_RESTRICTED_CATEGORIES {
+        integer **diet_id**
+        integer **category_id**
+    }
+    
+    USER_DIETS {
+        integer **user_id**
+        integer **diet_id**
+        timestamptz created_at
+    }
+    
+    INGREDIENT_UNIT_CONVERSIONS {
+        integer **ingredient_id**
+        varchar **unit**
+        numeric grams
+        timestamptz created_at
+    }
+    
+    NUTRITION_FACTS {
+        integer **ingredient_id**
+        numeric calories
+        numeric protein
+        numeric fat
+        numeric carbs
+        varchar base_unit
+        timestamptz created_at
+    }
+    
+    INGREDIENT_PORTIONS {
+        integer **id**
+        integer *ingredient_id*
+        varchar name
+        numeric weight_in_grams
+        timestamptz created_at
+    }
+    
+    FAVORITES {
+        integer **user_id**
+        integer **recipe_id**
+        timestamptz created_at
+    }
+    
+    RECIPE_SHARES {
+        integer **user_id**
+        integer **recipe_id**
+        timestamptz created_at
+    }
+    
+    RECIPE_MEDIA {
+        integer **id**
+        integer *recipe_id*
+        varchar type
+        varchar url
+        integer position
+        timestamptz created_at
+    }
+    
+    RECIPE_REVIEWS {
+        integer **id**
+        integer *recipe_id*
+        integer *author_id*
+        text body
+        boolean is_deleted
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    RECIPE_RATINGS {
+        integer **user_id**
+        integer **recipe_id**
+        smallint rating
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    USERS ||--o{ FOLLOWERS : "follows"
+    USERS ||--o{ RECIPES : "authors"
+    USERS ||--o{ RECIPE_RATINGS : "rates"
+    USERS ||--o{ RECIPE_REVIEWS : "writes"
+    USERS ||--o{ FAVORITES : "saves"
+    USERS ||--o{ RECIPE_SHARES : "shares"
+    USERS ||--o{ USER_ALLERGENS : "has"
+    USERS ||--o{ USER_DIETS : "follows"
+    
+    RECIPES ||--o{ RECIPE_INGREDIENTS : "contains"
+    RECIPES ||--o{ RECIPE_CATEGORY_MAP : "belongs_to"
+    RECIPES ||--o{ RECIPE_MEDIA : "has"
+    RECIPES ||--o{ RECIPE_REVIEWS : "receives"
+    RECIPES ||--o{ RECIPE_RATINGS : "receives"
+    
+    INGREDIENTS ||--o{ RECIPE_INGREDIENTS : "used_in"
+    INGREDIENTS ||--o{ INGREDIENT_CATEGORY_CORRESPONDENCE : "maps_to"
+    INGREDIENTS ||--o{ NUTRITION_FACTS : "has"
+    INGREDIENTS ||--o{ INGREDIENT_UNIT_CONVERSIONS : "converts"
+    INGREDIENTS ||--o{ INGREDIENT_PORTIONS : "has"
+    
+    RECIPE_INGREDIENTS ||--o{ UNITS : "uses"
+    
+    RECIPE_CATEGORIES ||--o{ RECIPE_CATEGORY_MAP : "categorizes"
+    RECIPE_CATEGORIES ||--o{ RECIPE_CATEGORY_TYPES : "types"
+    
+    INGREDIENT_CATEGORIES ||--o{ INGREDIENT_CATEGORY_CORRESPONDENCE : "categorizes"
+    INGREDIENT_CATEGORIES ||--o{ ALLERGEN_CATEGORIES : "maps"
+    INGREDIENT_CATEGORIES ||--o{ DIET_RESTRICTED_CATEGORIES : "restricts"
+    
+    ALLERGENS ||--o{ ALLERGEN_CATEGORIES : "restricts"
+    ALLERGENS ||--o{ USER_ALLERGENS : "restricted_by"
+    
+    DIETS ||--o{ DIET_RESTRICTED_CATEGORIES : "restricts"
+    DIETS ||--o{ USER_DIETS : "followed_by"
+    
+    UNITS ||--o{ INGREDIENT_UNIT_CONVERSIONS : "converts"
+    UNITS ||--o{ NUTRITION_FACTS : "base_unit"
+```
+
+## Auth database collections
+
+### userModel
+
+Stores registered users' data.
+
+| Field | Type | Required | Unique |
+|-------|------|----------|--------|
+| _id | ObjectId | ✓ | ✓ |
+| id | Number | ✓ | ✓ |
+| email | String | ✓ | ✓ |
+| passwordHash | String | ✓ | |
+| googleID | String | | ✓ |
+
+### userCounter
+
+Used in the function to generate the next userId.
+
+| Field | Type | Required | Unique | Default |
+|-------|------|----------|--------|---------|
+| _id | ObjectId | ✓ | ✓ | |
+| name | String | ✓ | ✓ | "CounterDB" |
+| seq | Number | ✓ | | 1 |
+
+---
+
+# Rationale for tech choices
+
+## Databases
+
+We use two databases because they solve different problems well.
+
+**PostgreSQL** for the core service. This handles recipes, users, followers, and social interactions.
+
+These entities have lots of relationships and constraints that need to stay consistent—a user can't favourite a recipe that doesn't exist, followers need proper cascading deletes, ingredients link to multiple recipes via join tables. PostgreSQL gives us ACID transactions and strong foreign key support without boilerplate. The strong schema also catches mistakes early.
+
+**MongoDB** for the auth service. This approach keeps credentials and session data separate.
+
+Authentication doesn't need complex relationships; it just needs to quickly check if a user exists and verify passwords. MongoDB's flexibility means we can evolve the auth schema without migrations. Keeping auth data isolated also means a compromise of the auth database doesn't expose recipe or additional user data, and vice versa.
+
+Each microservice owns its own database, so they can scale independently and don't step on each other's data.
+
+## Microservices
+
+We split the system into three services that each handle one thing:
+
+**API Gateway** — Routes requests to the right service. Handles JWT validation, logs requests, and aggregates responses if needed. It's thin on purpose: no business logic, no database access.
+
+**Auth Service** — Handles user registration, login, password hashing, token generation, and OAuth with Google. Stores credentials in MongoDB. Keeps this concern isolated so we can patch or scale it independently.
+
+**Core Service** — Manages recipes, user profiles, followers, ratings, comments, and everything else. Talks to PostgreSQL. The bulk of the app logic lives here.
+
+This separation means each service can scale independently, and we can deploy changes to auth without touching recipes (or vice versa).
