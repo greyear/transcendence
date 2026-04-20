@@ -482,10 +482,19 @@ const RecipeCreate = () => {
 		>
 			<header className="recipe-create-header">
 				<h1 id="recipe-create-heading">{t("recipeCreatePage.title")}</h1>
-				<p className="text-caption">{t("recipeCreatePage.subtitle")}</p>
+				<p id="recipe-create-subtitle" className="text-caption">
+					{t("recipeCreatePage.subtitle")}
+				</p>
 			</header>
 
-			<form className="recipe-create-form" onSubmit={handleSubmit} noValidate>
+			<form
+				className="recipe-create-form"
+				onSubmit={handleSubmit}
+				noValidate
+				aria-labelledby="recipe-create-heading"
+				aria-describedby="recipe-create-subtitle"
+				aria-busy={isSubmitting}
+			>
 				<RecipePhotoUpload
 					photoPreview={photoPreview}
 					onChange={handlePhotoChange}
@@ -646,7 +655,11 @@ const RecipeCreate = () => {
 				/>
 
 				{formError ? (
-					<p className="recipe-create-error text-caption-s" role="alert">
+					<p
+						key={formError}
+						className="recipe-create-error text-caption-s"
+						role="alert"
+					>
 						{formError}
 					</p>
 				) : null}
