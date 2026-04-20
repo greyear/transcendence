@@ -29,10 +29,6 @@ This repository contains `.env.template` files. Copy them to `.env` before local
 
 ```bash
 cp .env.template .env
-cp backend/services/api-gateway/.env.template backend/services/api-gateway/.env
-cp backend/services/core-service/.env.template backend/services/core-service/.env
-cp backend/services/auth-service/.env.template backend/services/auth-service/.env
-cp backend/services/notification-service/.env.template backend/services/notification-service/.env
 ```
 
 Then replace placeholder values (for example, `JWT_SECRET="change-me"`).
