@@ -599,7 +599,7 @@ export const createRecipe = async (
 		const result = await client.query(
 			`
       INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status)
-      VALUES ($1, $2, $3, $4, $5, $6, 'draft')
+      VALUES ($1, $2, $3, $4, $5, $6, 'published')
       RETURNING id, updated_at
     `,
 			[

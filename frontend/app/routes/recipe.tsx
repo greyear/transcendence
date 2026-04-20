@@ -114,6 +114,8 @@ const RecipePage = () => {
 		setErrorStatus(null);
 		setRecipe(null);
 
+		// TODO: send credentials so the server can tell us if the recipe belongs
+		// to the current user (needed to show the edit button below).
 		fetch(`${API_BASE_URL}/recipes/${id}`)
 			.then((res) => {
 				if (!res.ok) {
@@ -248,6 +250,7 @@ const RecipePage = () => {
 					disabled={isFavoritePending}
 					onClick={handleFavoriteClick}
 				/>
+				{/* TODO: add an edit button here, visible only to the recipe owner. */}
 				<IconButton
 					className="recipe-action"
 					aria-label={t("ariaLabels.shareRecipe")}

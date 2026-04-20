@@ -231,7 +231,7 @@ describe("Recipes Routes", () => {
 
 			expect(response.status).toBe(201);
 			expect(response.body).toHaveProperty("data");
-			expect(response.body.data).toHaveProperty("status", "draft");
+			expect(response.body.data).toHaveProperty("status", "published");
 			expect(response.body.data).toHaveProperty("author_id", userId);
 			expect(Array.isArray(response.body.data.ingredients)).toBe(true);
 			expect(response.body.data.ingredients).toHaveLength(1);
