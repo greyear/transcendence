@@ -57,7 +57,7 @@
 	width: 20px;
 	height: 20px;
 	stroke-width: 1.5;
-	color: var(--icons-primary);
+	color: var(--icons-dark);
 }
 
 @media (min-width: 768px) {

@@ -1,40 +1,38 @@
 import type { DraggableProvided } from "@hello-pangea/dnd";
 import { Menu, XmarkCircle } from "iconoir-react";
+import { useTranslation } from "react-i18next";
 import { IconButton } from "~/components/buttons/IconButton";
 import { InputField } from "~/components/inputs/InputField";
 import { SelectField } from "~/components/inputs/SelectField";
 
-const UNIT_OPTIONS = [
-	"tsp",
-	"tbsp",
-	"cup",
-	"ml",
-	"l",
-	"g",
-	"kg",
-	"oz",
-	"lb",
-	"piece",
-];
+export type IngredientOption = {
+	id: number;
+	name: string;
+};
 
-const UNIT_SELECT_OPTIONS = UNIT_OPTIONS.map((u) => ({ label: u, value: u }));
+export type UnitOption = {
+	code: string;
+	kind: string;
+};
 
 export type IngredientRow = {
 	id: string;
+	ingredientId: number | null;
 	amount: number | "";
 	unit: string;
-	name: string;
 };
 
 export const createIngredient = (): IngredientRow => ({
 	id: crypto.randomUUID(),
+	ingredientId: null,
 	amount: "",
-	unit: "g",
-	name: "",
+	unit: "",
 });
 
 type RecipeIngredientRowProps = {
 	ingredient: IngredientRow;
+	ingredientOptions: IngredientOption[];
+	unitOptions: UnitOption[];
 	provided: DraggableProvided;
 	index: number;
 	isOnly: boolean;
@@ -44,35 +42,59 @@ type RecipeIngredientRowProps = {
 
 export const RecipeIngredientRow = ({
 	ingredient,
+	ingredientOptions,
+	unitOptions,
 	provided,
 	index,
 	isOnly,
 	onChange,
 	onRemove,
 }: RecipeIngredientRowProps) => {
-	const label = `Ingredient ${index + 1}`;
+	const { t } = useTranslation();
+	const number = index + 1;
+	const selectOptions = ingredientOptions.map((option) => ({
+		label: option.name,
+		value: String(option.id),
+	}));
+	const unitSelectOptions = unitOptions.map((unit) => ({
+		label: unit.code,
+		value: unit.code,
+	}));
+	const selectValue =
+		ingredient.ingredientId !== null ? String(ingredient.ingredientId) : "";
 	return (
 		<li ref={provided.innerRef} {...provided.draggableProps}>
 			<fieldset className="recipe-ingredient-row">
-				<legend className="recipe-ingredient-legend">{label}</legend>
-				<span className="recipe-drag-handle" {...provided.dragHandleProps}>
+				<legend className="recipe-ingredient-legend">
+					{t("recipeCreateAria.ingredientLegend", { number })}
+				</legend>
+				<button
+					type="button"
+					className="recipe-drag-handle"
+					{...provided.dragHandleProps}
+					aria-label={t("recipeCreateAria.reorderIngredient", { number })}
+				>
 					<Menu aria-hidden="true" />
-				</span>
-				<InputField
-					id={`${ingredient.id}-name`}
-					type="text"
+				</button>
+				<SelectField
+					inputId={`${ingredient.id}-name`}
+					options={selectOptions}
+					placeholder={t("recipeCreatePage.ingredientNamePlaceholder")}
+					value={selectValue}
+					onChange={(value) => {
+						const parsed = Number.parseInt(value, 10);
+						onChange({
+							ingredientId: Number.isNaN(parsed) ? null : parsed,
+						});
+					}}
 					className="recipe-ingredient-name"
-					placeholder="Ingredient name"
-					required
-					value={ingredient.name}
-					onChange={(e) => onChange({ name: e.target.value })}
-					aria-label={`${label} name`}
+					ariaLabel={t("recipeCreateAria.ingredientName", { number })}
 				/>
 				<InputField
 					id={`${ingredient.id}-amount`}
 					type="number"
 					className="recipe-ingredient-amount"
-					placeholder="Amount"
+					placeholder={t("recipeCreatePage.ingredientAmountPlaceholder")}
 					min={0}
 					required
 					value={ingredient.amount}
@@ -80,21 +102,22 @@ export const RecipeIngredientRow = ({
 						const v = e.target.valueAsNumber;
 						onChange({ amount: Number.isNaN(v) ? "" : v });
 					}}
-					aria-label={`${label} amount`}
+					aria-label={t("recipeCreateAria.ingredientAmount", { number })}
 				/>
 				<SelectField
 					inputId={`${ingredient.id}-unit`}
-					options={UNIT_SELECT_OPTIONS}
+					options={unitSelectOptions}
+					placeholder={t("recipeCreatePage.ingredientUnitPlaceholder")}
 					value={ingredient.unit}
 					onChange={(value) => onChange({ unit: value })}
 					className="recipe-ingredient-unit"
-					ariaLabel={`${label} unit`}
+					ariaLabel={t("recipeCreateAria.ingredientUnit", { number })}
 				/>
 				<IconButton
 					variant="transparent"
 					className="recipe-remove-button"
 					onClick={onRemove}
-					aria-label={`Remove ${label.toLowerCase()}`}
+					aria-label={t("recipeCreateAria.removeIngredient", { number })}
 					disabled={isOnly}
 				>
 					<XmarkCircle aria-hidden="true" />

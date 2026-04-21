@@ -1,5 +1,6 @@
 import type { DropResult } from "@hello-pangea/dnd";
 import { DragDropContext, Draggable } from "@hello-pangea/dnd";
+import { useTranslation } from "react-i18next";
 import type { InstructionRow } from "~/components/recipe/RecipeInstructionItem";
 import {
 	createInstruction,
@@ -16,6 +17,7 @@ export const RecipeInstructionSection = ({
 	rows,
 	onChange,
 }: RecipeInstructionSectionProps) => {
+	const { t } = useTranslation();
 	const handleDragEnd = (result: DropResult) => {
 		if (!result.destination) {
 			return;
@@ -44,7 +46,7 @@ export const RecipeInstructionSection = ({
 			aria-labelledby="instructions-heading"
 		>
 			<h2 id="instructions-heading" className="recipe-create-label">
-				Instructions{" "}
+				{t("recipeCreatePage.instructionsHeading")}{" "}
 				<span className="recipe-create-required" aria-hidden="true">
 					*
 				</span>
@@ -54,7 +56,7 @@ export const RecipeInstructionSection = ({
 					droppableId="instructions"
 					type="instructions"
 					className="recipe-create-list recipe-instructions-list"
-					ariaLabel="Instructions list"
+					ariaLabel={t("recipeCreateAria.instructionsList")}
 				>
 					{rows.map((row, index) => (
 						<Draggable key={row.id} draggableId={row.id} index={index}>
@@ -77,7 +79,7 @@ export const RecipeInstructionSection = ({
 				className="recipe-add-button text-body3"
 				onClick={handleAdd}
 			>
-				+ Add step
+				{t("recipeCreatePage.addStep")}
 			</button>
 		</section>
 	);

@@ -25,7 +25,7 @@
 	align-items: center;
 	justify-content: center;
 	width: 100%;
-	min-height: 100px;
+	min-height: 160px;
 	border: 2px dashed var(--borders-action);
 	border-radius: var(--radius-m);
 	background-color: var(--surface-action-inactive);
@@ -178,6 +178,9 @@
 	cursor: grab;
 	width: var(--icon-button-size);
 	height: var(--icon-button-size);
+	background: transparent;
+	border: none;
+	padding: 0;
 }
 
 .recipe-drag-handle svg {
@@ -286,6 +289,12 @@
 }
 
 @media (min-width: 768px) {
+	.recipe-photo-upload {
+		aspect-ratio: 16 / 9;
+		max-width: 50%;
+		min-height: 0;
+	}
+
 	.recipe-ingredient-row {
 		display: flex;
 		align-items: start;

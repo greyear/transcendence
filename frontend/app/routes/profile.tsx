@@ -157,7 +157,7 @@ const ProfilePage = () => {
 			ignore = true;
 		};
 	}, [isAuthenticated]);
-	
+
 	if (isProfileLoading) {
 		return <p className="profile-page-status">{t("profilePage.loading")}</p>;
 	}
