@@ -130,8 +130,9 @@ const SearchPage = () => {
 	const sortOptions = useSortOptions(typeParam);
 
 	const recipesTab = t("searchPage.recipesTab");
-	const tabs = [recipesTab];
-	const activeTab = recipesTab;
+	const usersTab = t("searchPage.usersTab");
+	const tabs = [recipesTab, usersTab];
+	const activeTab = typeParam === "users" ? usersTab : recipesTab;
 
 	const [results, setResults] = useState<SearchResponse | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
@@ -250,9 +251,10 @@ const SearchPage = () => {
 		navigate(`/search?${params.toString()}`);
 	};
 
-	const handleTabChange = (_tab: string) => {
+	const handleTabChange = (tab: string) => {
+		const nextType = tab === usersTab ? "users" : "recipes";
 		const params = new URLSearchParams(searchParams);
-		params.set("type", "recipes");
+		params.set("type", nextType);
 		params.delete("page");
 		params.delete("sort");
 		navigate(`/search?${params.toString()}`);
