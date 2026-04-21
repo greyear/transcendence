@@ -97,8 +97,8 @@ services:
     container_name: api-gateway
     restart: unless-stopped
 
-    expose:
-      - "3000"
+    ports:
+      - "127.0.0.1:3000:3000"
 
     environment:
       NODE_ENV: development
@@ -134,7 +134,7 @@ services:
       NODE_ENV: development
       PORT: 3001
       MONGODB_URI: mongodb://root:rootpassword@auth-db:27017/auth_db?authSource=admin
-      JWT_SECRET: your-jwt-secret-key
+      JWT_SECRET: ${JWT_SECRET}
       CORE_SERVICE_URL: http://core-service:3002
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
 
