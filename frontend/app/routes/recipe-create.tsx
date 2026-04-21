@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import {
 	useCallback,
 	useEffect,
@@ -41,97 +42,100 @@ type NumOrEmpty = number | "";
 
 const emptyToUndef = (v: unknown) => (v === "" ? undefined : v);
 
-const servingsSchema = z.preprocess(
-	emptyToUndef,
-	z
-		.number({ error: "Servings is required" })
-		.int("Servings must be a whole number")
-		.positive("Servings must be a positive integer"),
-);
+const buildRecipeFormSchema = (t: TFunction) => {
+	const v = (key: string, opts?: Record<string, unknown>) =>
+		t(`recipeCreateValidation.${key}`, opts);
 
-const hoursSchema = (field: string) =>
-	z.preprocess(
+	const servingsSchema = z.preprocess(
 		emptyToUndef,
 		z
-			.number({ error: `${field} is required` })
-			.int("Hours must be a whole number")
-			.nonnegative("Hours must be 0 or more"),
+			.number({ error: v("servingsRequired") })
+			.int(v("servingsInt"))
+			.positive(v("servingsPositive")),
 	);
 
-const minutesSchema = (field: string) =>
-	z.preprocess(
+	const hoursSchema = (requiredKey: string) =>
+		z.preprocess(
+			emptyToUndef,
+			z
+				.number({ error: v(requiredKey) })
+				.int(v("hoursInt"))
+				.nonnegative(v("hoursNonneg")),
+		);
+
+	const minutesSchema = (requiredKey: string) =>
+		z.preprocess(
+			emptyToUndef,
+			z
+				.number({ error: v(requiredKey) })
+				.int(v("minutesInt"))
+				.min(0, v("minutesRange"))
+				.max(59, v("minutesRange")),
+		);
+
+	const spicinessSchema = z.preprocess(
 		emptyToUndef,
 		z
-			.number({ error: `${field} is required` })
-			.int("Minutes must be a whole number")
-			.min(0, "Minutes must be 0–59")
-			.max(59, "Minutes must be 0–59"),
+			.number({ error: v("spicinessRequired") })
+			.int(v("spicinessInt"))
+			.min(0, v("spicinessRange"))
+			.max(3, v("spicinessRange")),
 	);
 
-const spicinessSchema = z.preprocess(
-	emptyToUndef,
-	z
-		.number({ error: "Spiciness is required" })
-		.int("Spiciness must be a whole number")
-		.min(0, "Spiciness must be 0–3")
-		.max(3, "Spiciness must be 0–3"),
-);
+	const amountSchema = z.preprocess(
+		emptyToUndef,
+		z.number({ error: v("amountRequired") }).positive(v("amountPositive")),
+	);
 
-const amountSchema = z.preprocess(
-	emptyToUndef,
-	z
-		.number({ error: "Ingredient amount is required" })
-		.positive("Ingredient amount must be positive"),
-);
+	const ingredientIdSchema = z
+		.number({ error: v("ingredientRequired") })
+		.int()
+		.positive(v("ingredientRequired"));
 
-const ingredientIdSchema = z
-	.number({ error: "Ingredient is required" })
-	.int()
-	.positive("Ingredient is required");
+	return z
+		.object({
+			title: z.string().min(1, v("titleRequired")),
+			description: z
+				.string()
+				.min(1, v("descriptionRequired"))
+				.max(DESCRIPTION_MAX, v("descriptionMax", { count: DESCRIPTION_MAX })),
+			servings: servingsSchema,
+			spiciness: spicinessSchema,
+			prepHours: hoursSchema("prepHoursRequired"),
+			prepMinutes: minutesSchema("prepMinutesRequired"),
+			cookHours: hoursSchema("cookHoursRequired"),
+			cookMinutes: minutesSchema("cookMinutesRequired"),
+			ingredients: z
+				.array(
+					z.object({
+						ingredientId: ingredientIdSchema,
+						amount: amountSchema,
+						unit: z.string().min(1, v("unitRequired")),
+					}),
+				)
+				.min(1, v("ingredientsMin"))
+				.refine(
+					(items) =>
+						new Set(items.map((item) => item.ingredientId)).size ===
+						items.length,
+					v("ingredientsUnique"),
+				),
+			instructions: z
+				.array(z.object({ text: z.string().min(1, v("stepRequired")) }))
+				.min(1, v("instructionsMin")),
+			categoryIds: z.array(z.number().int().positive()),
+		})
+		.refine((d) => d.prepHours * 60 + d.prepMinutes >= 0, {
+			message: v("prepTimeNonneg"),
+			path: ["prepHours"],
+		})
+		.refine((d) => d.cookHours * 60 + d.cookMinutes > 0, {
+			message: v("cookTimePositive"),
+			path: ["cookHours"],
+		});
+};
 
-const RecipeFormSchema = z
-	.object({
-		title: z.string().min(1, "Recipe title is required"),
-		description: z
-			.string()
-			.min(1, "Description is required")
-			.max(
-				DESCRIPTION_MAX,
-				`Description must be at most ${DESCRIPTION_MAX} characters`,
-			),
-		servings: servingsSchema,
-		spiciness: spicinessSchema,
-		prepHours: hoursSchema("Prep hours"),
-		prepMinutes: minutesSchema("Prep minutes"),
-		cookHours: hoursSchema("Cook hours"),
-		cookMinutes: minutesSchema("Cook minutes"),
-		ingredients: z
-			.array(
-				z.object({
-					ingredientId: ingredientIdSchema,
-					amount: amountSchema,
-					unit: z.string().min(1, "Ingredient unit is required"),
-				}),
-			)
-			.min(1, "At least one ingredient is required")
-			.refine(
-				(items) =>
-					new Set(items.map((item) => item.ingredientId)).size === items.length,
-				"Ingredients must be unique",
-			),
-		instructions: z
-			.array(z.object({ text: z.string().min(1, "Step text is required") }))
-			.min(1, "At least one instruction step is required"),
-		categoryIds: z.array(z.number().int().positive()),
-	})
-	.refine((d) => d.prepHours * 60 + d.prepMinutes >= 0, {
-		message: "Prep time must be greater or equal to 0",
-		path: ["prepHours"],
-	})
-	.refine((d) => d.cookHours * 60 + d.cookMinutes > 0, {
-		message: "Cook time must be greater than 0",
-		path: ["cookHours"],
-	});
+type RecipeFormValues = z.infer<ReturnType<typeof buildRecipeFormSchema>>;
 
 const IngredientsResponseSchema = z.object({
 	ingredients: z.array(
@@ -394,25 +398,35 @@ const RecipeCreate = () => {
 		setPhotoPreview(URL.createObjectURL(file));
 	};
 
-	const uploadPicture = async (recipeId: number, file: File): Promise<void> => {
-		const formData = new FormData();
-		formData.append("picture", file);
-		const response = await fetch(
-			`${API_BASE_URL}/recipes/${recipeId}/picture`,
-			{
-				method: "PUT",
-				credentials: "include",
-				body: formData,
-			},
-		);
-		if (!response.ok) {
-			console.error(`Failed to upload recipe picture: ${response.status}`);
+	const uploadPicture = async (
+		recipeId: number,
+		file: File,
+	): Promise<boolean> => {
+		try {
+			const response = await fetch(
+				`${API_BASE_URL}/recipes/${recipeId}/picture`,
+				{
+					method: "PUT",
+					credentials: "include",
+					body: (() => {
+						const formData = new FormData();
+						formData.append("picture", file);
+						return formData;
+					})(),
+				},
+			);
+			if (!response.ok) {
+				console.error(`Failed to upload recipe picture: ${response.status}`);
+				return false;
+			}
+			return true;
+		} catch (error) {
+			console.error(error);
+			return false;
 		}
 	};
 
-	const submitRecipe = async (
-		parsed: z.infer<typeof RecipeFormSchema>,
-	): Promise<void> => {
+	const submitRecipe = async (parsed: RecipeFormValues): Promise<void> => {
 		setIsSubmitting(true);
 		setFormError(null);
 
@@ -460,10 +474,16 @@ const RecipeCreate = () => {
 			const body: CreateRecipeResponse = await response.json();
 			const newId = body.data?.id;
 			if (typeof newId === "number") {
+				let pictureUploadFailed = false;
 				if (photoFile) {
-					await uploadPicture(newId, photoFile);
+					const ok = await uploadPicture(newId, photoFile);
+					pictureUploadFailed = !ok;
 				}
-				navigate(`/recipes/${newId}`);
+				navigate(`/recipes/${newId}`, {
+					state: pictureUploadFailed
+						? { pictureUploadFailed: true }
+						: undefined,
+				});
 				return;
 			}
 			navigate("/recipes");
@@ -479,7 +499,8 @@ const RecipeCreate = () => {
 		event.preventDefault();
 		setFormError(null);
 
-		const parsed = RecipeFormSchema.safeParse({
+		const schema = buildRecipeFormSchema(t);
+		const parsed = schema.safeParse({
 			...form,
 			ingredients,
 			instructions,

@@ -32,7 +32,7 @@ export const RecipePhotoUpload = ({
 			<input
 				id="recipe-photo"
 				type="file"
-				accept="image/*"
+				accept="image/jpeg,image/png,image/webp"
 				className="recipe-photo-input"
 				onChange={onChange}
 			/>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useOutletContext, useParams } from "react-router";
+import { useLocation, useOutletContext, useParams } from "react-router";
+import { z } from "zod";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.css";
 import { ArrowEmailForward, Reports, StarSolid } from "iconoir-react";
@@ -29,11 +30,20 @@ type Recipe = {
 	instructions: string[];
 };
 
+const RecipeLocationStateSchema = z.object({
+	pictureUploadFailed: z.literal(true),
+});
+
 const RecipePage = () => {
 	const { id } = useParams();
 	const { t } = useTranslation();
+	const location = useLocation();
 	const { isAuthenticated, openAuthModal } =
 		useOutletContext<LayoutOutletContext>();
+
+	const [showPictureUploadWarning, setShowPictureUploadWarning] = useState(
+		() => RecipeLocationStateSchema.safeParse(location.state).success,
+	);
 
 	const [recipe, setRecipe] = useState<Recipe | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
@@ -218,6 +228,21 @@ const RecipePage = () => {
 
 	return (
 		<section className="recipe-page" aria-labelledby="recipe-title">
+			{showPictureUploadWarning ? (
+				<output className="recipe-page-warning">
+					<p className="text-body3">
+						{t("recipePage.pictureUploadFailedWarning")}
+					</p>
+					<button
+						type="button"
+						className="recipe-page-warning-dismiss"
+						onClick={() => setShowPictureUploadWarning(false)}
+						aria-label={t("ariaLabels.dismissWarning")}
+					>
+						&times;
+					</button>
+				</output>
+			) : null}
 			<section className="recipe-page-hero">
 				<div className="recipe-page-hero-text">
 					<h1 id="recipe-title">{recipe.title}</h1>

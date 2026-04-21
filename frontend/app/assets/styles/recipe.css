@@ -10,6 +10,32 @@
 	padding: var(--space-m) 0;
 }
 
+.recipe-page-warning {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-m);
+	padding: var(--space-m) var(--space-l);
+	border-radius: var(--radius-m);
+	background-color: var(--surface-card);
+	border: 1px solid var(--border-default, currentColor);
+	color: var(--text-primary);
+}
+
+.recipe-page-warning p {
+	margin: 0;
+	flex: 1;
+}
+
+.recipe-page-warning-dismiss {
+	background: transparent;
+	border: none;
+	color: inherit;
+	cursor: pointer;
+	font-size: var(--font-size-l);
+	line-height: 1;
+	padding: 0;
+}
+
 .recipe-page-hero {
 	display: flex;
 	align-items: flex-start;

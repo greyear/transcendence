@@ -59,7 +59,8 @@
 		"instructions": "Instructions",
 		"noInstructionsAvailable": "No instructions available for this recipe.",
 		"step": "Step {{number}}",
-		"share": "Share"
+		"share": "Share",
+		"pictureUploadFailedWarning": "Recipe created, but the photo could not be uploaded. A default image is being used — you can try adding a photo again later."
 	},
 	"ratingModal": {
 		"title": "Share your thoughts about this recipe",
@@ -268,6 +269,36 @@
 		"ingredientsAndInstructions": "Recipe ingredients and instructions",
 		"closeAuthDialog": "Close authentication dialog",
 		"toProfilePage": "Go to profile page",
-		"closeRatingDialog": "Close rating dialog"
+		"closeRatingDialog": "Close rating dialog",
+		"dismissWarning": "Dismiss warning"
+	},
+	"recipeCreateValidation": {
+		"titleRequired": "Recipe title is required",
+		"descriptionRequired": "Description is required",
+		"descriptionMax": "Description must be at most {{count}} characters",
+		"servingsRequired": "Servings is required",
+		"servingsInt": "Servings must be a whole number",
+		"servingsPositive": "Servings must be a positive integer",
+		"spicinessRequired": "Spiciness is required",
+		"spicinessInt": "Spiciness must be a whole number",
+		"spicinessRange": "Spiciness must be between 0 and 3",
+		"prepHoursRequired": "Prep hours is required",
+		"prepMinutesRequired": "Prep minutes is required",
+		"cookHoursRequired": "Cook hours is required",
+		"cookMinutesRequired": "Cook minutes is required",
+		"hoursInt": "Hours must be a whole number",
+		"hoursNonneg": "Hours must be 0 or more",
+		"minutesInt": "Minutes must be a whole number",
+		"minutesRange": "Minutes must be between 0 and 59",
+		"amountRequired": "Ingredient amount is required",
+		"amountPositive": "Ingredient amount must be positive",
+		"ingredientRequired": "Ingredient is required",
+		"unitRequired": "Ingredient unit is required",
+		"ingredientsMin": "At least one ingredient is required",
+		"ingredientsUnique": "Ingredients must be unique",
+		"stepRequired": "Step text is required",
+		"instructionsMin": "At least one instruction step is required",
+		"prepTimeNonneg": "Prep time must be 0 or more",
+		"cookTimePositive": "Cook time must be greater than 0"
 	}
 }
