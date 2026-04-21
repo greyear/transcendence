@@ -60,6 +60,7 @@ interface CustomError extends Error {
 const RECIPE_PICTURES_DIR = path.resolve("uploads/recipes");
 const MAX_PICTURE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_PICTURE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const RECIPE_SEARCH_MAX_LENGTH = 500;
 
 const recipePictureStorage = multer.diskStorage({
 	destination: (
@@ -514,8 +515,32 @@ const getAllRecipesHandler = async (
 ): Promise<void> => {
 	try {
 		const locale = resolveRequestedLocale(req);
+		const rawSearch = req.query.q;
+		if (rawSearch !== undefined && typeof rawSearch !== "string") {
+			res.status(400).json({ error: "Search query must be a string" });
+			return;
+		}
 
-		const pagination = validatePaginationQuery(req.query);
+		const search = rawSearch?.trim();
+		if (search && search.length > RECIPE_SEARCH_MAX_LENGTH) {
+			res.status(400).json({
+				error: `Search query must be ${RECIPE_SEARCH_MAX_LENGTH} characters or less`,
+			});
+			return;
+		}
+
+		const rawLimit = req.query.limit;
+		if (rawLimit !== undefined && typeof rawLimit !== "string") {
+			res.status(400).json({ error: "Limit must be a string" });
+			return;
+		}
+
+		const paginationInput =
+			rawLimit === undefined || rawLimit.trim() === ""
+				? req.query
+				: { ...req.query, per_page: rawLimit };
+
+		const pagination = validatePaginationQuery(paginationInput);
 		if (!pagination.valid) {
 			res.status(400).json({ error: pagination.error });
 			return;
@@ -524,6 +549,7 @@ const getAllRecipesHandler = async (
 			pagination.value.page,
 			pagination.value.per_page,
 			locale,
+			search || undefined,
 		);
 		res.status(200).json(result);
 	} catch (error) {
