@@ -10,8 +10,14 @@ import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
 import { Pagination } from "~/components/pagination/Pagination";
-import type { CategoryTypeCode } from "~/components/recipe/RecipeCategorySection";
-import { SearchFilterMenu } from "~/components/SearchFilterMenu";
+import {
+	CATEGORY_TYPE_CODES,
+	type CategoryTypeCode,
+} from "~/components/recipe/RecipeCategorySection";
+import {
+	SearchFilterMenu,
+	type SearchFilterValues,
+} from "~/components/SearchFilterMenu";
 import { SortMenu } from "~/components/SortMenu";
 import "~/assets/styles/recipesGrid.css";
 import "~/assets/styles/usersGrid.css";
@@ -276,14 +282,16 @@ const SearchPage = () => {
 		navigate(`/search?${params.toString()}`);
 	};
 
-	const handleFilterChange = (typeCode: CategoryTypeCode, codes: string[]) => {
-		const paramKey = FILTER_PARAM_BY_TYPE[typeCode];
+	const handleFilterApply = (applied: SearchFilterValues) => {
 		setSearchParams(
 			(prev) => {
 				const next = new URLSearchParams(prev);
-				next.delete(paramKey);
-				for (const code of codes) {
-					next.append(paramKey, code);
+				for (const typeCode of CATEGORY_TYPE_CODES) {
+					const paramKey = FILTER_PARAM_BY_TYPE[typeCode];
+					next.delete(paramKey);
+					for (const code of applied[typeCode]) {
+						next.append(paramKey, code);
+					}
 				}
 				next.delete("page");
 				return next;
@@ -346,7 +354,7 @@ const SearchPage = () => {
 				<SearchFilterMenu
 					categories={categories}
 					values={filterValues}
-					onChange={handleFilterChange}
+					onApply={handleFilterApply}
 				/>
 			</div>
 

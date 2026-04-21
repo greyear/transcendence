@@ -4,6 +4,7 @@
 		"searchPlaceholder": "Поиск...",
 		"sortButton": "Сортировать",
 		"filterButton": "Фильтры",
+		"applyButton": "Применить",
 		"sortOptions": {
 			"nameAsc": "Имя: А→Я",
 			"nameDesc": "Имя: Я→А",

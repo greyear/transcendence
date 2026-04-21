@@ -19,6 +19,15 @@
 	box-shadow: var(--shadow-effect);
 }
 
+.search-filter-menu__fields {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-m);
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+
 .search-filter-menu__legend {
 	position: absolute;
 	width: 1px;

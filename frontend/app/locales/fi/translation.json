@@ -4,6 +4,7 @@
 		"searchPlaceholder": "Hae...",
 		"sortButton": "Järjestä",
 		"filterButton": "Suodata",
+		"applyButton": "Käytä",
 		"sortOptions": {
 			"nameAsc": "Nimi A→Ö",
 			"nameDesc": "Nimi Ö→А",

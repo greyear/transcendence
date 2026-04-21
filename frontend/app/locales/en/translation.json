@@ -4,6 +4,7 @@
 		"searchPlaceholder": "Search for...",
 		"sortButton": "Sort",
 		"filterButton": "Filter",
+		"applyButton": "Apply",
 		"sortOptions": {
 			"nameAsc": "Name A→Z",
 			"nameDesc": "Name Z→A",
