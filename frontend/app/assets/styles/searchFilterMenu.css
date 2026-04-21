@@ -1,0 +1,42 @@
+.search-filter-menu {
+	position: relative;
+}
+
+.search-filter-menu__dropdown {
+	position: absolute;
+	top: calc(100% + var(--space-s));
+	right: 0;
+	z-index: 10;
+	width: calc(100vw - (2 * var(--space-l)));
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-m);
+	margin: 0;
+	padding: var(--space-m);
+	border: none;
+	border-radius: var(--radius-l);
+	background-color: var(--surface-card);
+	box-shadow: var(--shadow-effect);
+}
+
+.search-filter-menu__legend {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+.search-filter-menu__field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-s);
+}
+
+.search-filter-menu__label {
+	color: var(--text-secondary);
+}

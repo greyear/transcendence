@@ -1,10 +1,9 @@
-import { Filter, Sparks } from "iconoir-react";
+import { Sparks } from "iconoir-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
-import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { RecipeCard } from "~/components/cards/RecipeCard";
 import { UserCard } from "~/components/cards/UserCard";
 import { FilterList } from "~/components/FilterList";
@@ -12,7 +11,7 @@ import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
 import { Pagination } from "~/components/pagination/Pagination";
 import type { CategoryTypeCode } from "~/components/recipe/RecipeCategorySection";
-import { SearchFilterPanel } from "~/components/SearchFilterPanel";
+import { SearchFilterMenu } from "~/components/SearchFilterMenu";
 import { SortMenu } from "~/components/SortMenu";
 import "~/assets/styles/recipesGrid.css";
 import "~/assets/styles/usersGrid.css";
@@ -83,7 +82,6 @@ const SearchPage = () => {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const categories = useCategoryMap();
-	const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 
 	const query = searchParams.get("q") ?? "";
 	const rawType = searchParams.get("type") ?? "recipes";
@@ -345,22 +343,12 @@ const SearchPage = () => {
 					onChange={handleSortChange}
 				/>
 
-				<TextIconButton
-					onClick={() => setIsFilterPanelOpen((open) => !open)}
-					selected={isFilterPanelOpen}
-				>
-					{t("common.filterButton")}
-					<Filter />
-				</TextIconButton>
-			</div>
-
-			{isFilterPanelOpen && (
-				<SearchFilterPanel
+				<SearchFilterMenu
 					categories={categories}
 					values={filterValues}
 					onChange={handleFilterChange}
 				/>
-			)}
+			</div>
 
 			{query && isLoading && (
 				<p className="search-page__status">{t("searchPage.searching")}</p>
