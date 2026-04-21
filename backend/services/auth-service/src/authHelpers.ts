@@ -101,7 +101,7 @@ export const generateToken = (
 ) => {
 	const JWTSecret = process.env.JWT_SECRET;
 	if (!JWTSecret) {
-		throw new Error("JWTSecret env variable is not set");
+		throw new Error("Missing JWT_SECRET in environment variables");
 	}
 
 	const payload = {
@@ -122,7 +122,7 @@ export const decodeToken = (token: string) => {
 	try {
 		const JWTSecret = process.env.JWT_SECRET;
 		if (!JWTSecret) {
-			throw new Error("JWTSecret env variable is not set");
+			throw new Error("Missing JWT_SECRET in environment variables");
 		}
 
 		const decoded = jwt.verify(token, JWTSecret);

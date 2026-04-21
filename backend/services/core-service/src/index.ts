@@ -8,9 +8,9 @@
 import { app } from "./app.js";
 
 // PORT from environment variable or default 3002
-const PORT: number = parseInt(process.env.PORT || "3002", 10);
+const PORT_CORE: number = parseInt(process.env.PORT_CORE || "3002", 10);
 
 // Start server
-app.listen(PORT, () => {
-	console.log(`Core service running on port ${PORT}`);
+app.listen(PORT_CORE, () => {
+	console.log(`Core service running on port ${PORT_CORE}`);
 });
