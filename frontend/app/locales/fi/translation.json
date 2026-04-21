@@ -115,6 +115,18 @@
 		"errorDeletingProfile": "Tilin poistaminen epäonnistui.",
 		"errorLoggingOut": "Uloskirjautuminen epäonnistui."
 	},
+	"userProfilePage": {
+		"loading": "Ladataan käyttäjää...",
+		"error": "Käyttäjän lataus epäonnistui (tila: {{status}}).",
+		"notFound": "Käyttäjää ei löytynyt.",
+		"online": "Paikalla",
+		"offline": "Poissa",
+		"follow": "Seuraa",
+		"unfollow": "Lopeta seuraaminen",
+		"authoredRecipes": "Tekijän reseptit",
+		"favoriteRecipes": "Suosikkireseptit",
+		"all": "kaikki"
+	},
 	"authModal": {
 		"title": "Kirjaudu sisään",
 		"signupTitle": "Luo tili",
@@ -160,7 +172,8 @@
 	"userCard": {
 		"recipes": "reseptiä",
 		"follow": "Seuraa",
-		"unfollow": "Lopeta seuraaminen"
+		"unfollow": "Seurataan",
+		"profile": "Profiili"
 	},
 	"privacyPage": {
 		"title": "Tietosuojaseloste",
@@ -302,6 +315,10 @@
 		"toggleMenu": "Vaihda valikon tila",
 		"allRecipes": "Kaikki reseptit",
 		"allUsers": "Kaikki käyttäjät",
+		"profileAvatar": "Käyttäjän {{name}} profiilikuva",
+		"followUser": "Seuraa käyttäjää {{name}}",
+		"unfollowUser": "Lopeta käyttäjän {{name}} seuraaminen",
+		"openMyProfile": "Avaa oma profiili",
 		"sortBy": "Järjestä",
 		"shareRecipe": "Jaa resepti",
 		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet",

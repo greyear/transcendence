@@ -115,6 +115,18 @@
 		"errorDeletingProfile": "Не удалось удалить аккаунт.",
 		"errorLoggingOut": "Не удалось выйти."
 	},
+	"userProfilePage": {
+		"loading": "Загрузка пользователя...",
+		"error": "Не удалось загрузить пользователя (статус: {{status}}).",
+		"notFound": "Пользователь не найден.",
+		"online": "В сети",
+		"offline": "Не в сети",
+		"follow": "Подписаться",
+		"unfollow": "Отписаться",
+		"authoredRecipes": "Авторские рецепты",
+		"favoriteRecipes": "Избранные рецепты",
+		"all": "все"
+	},
 	"authModal": {
 		"title": "Войти",
 		"signupTitle": "Создать аккаунт",
@@ -160,7 +172,8 @@
 	"userCard": {
 		"recipes": "Рецепты",
 		"follow": "Подписаться",
-		"unfollow": "Отписаться"
+		"unfollow": "Отписаться",
+		"profile": "Профиль"
 	},
 	"privacyPage": {
 		"title": "Политика конфиденциальности",
@@ -302,6 +315,10 @@
 		"toggleMenu": "Переключить меню",
 		"allRecipes": "Все рецепты",
 		"allUsers": "Все авторы",
+		"profileAvatar": "Аватар пользователя {{name}}",
+		"followUser": "Подписаться на {{name}}",
+		"unfollowUser": "Отписаться от {{name}}",
+		"openMyProfile": "Открыть мой профиль",
 		"sortBy": "Сортировать по",
 		"shareRecipe": "Поделиться рецептом",
 		"ingredientsAndInstructions": "Ингредиенты и инструкции рецепта",

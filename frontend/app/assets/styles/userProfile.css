@@ -1,0 +1,94 @@
+.user-profile-page {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xl);
+}
+
+.user-profile-status-text {
+	color: var(--text-secondary);
+	margin: 0;
+	padding: var(--space-m) 0;
+}
+
+.user-profile-header {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-l);
+}
+
+.user-profile-avatar {
+	--user-profile-avatar-size: 160px;
+	width: var(--user-profile-avatar-size);
+	height: var(--user-profile-avatar-size);
+	border-radius: var(--radius-full);
+	object-fit: cover;
+	box-shadow: var(--shadow-effect);
+}
+
+.user-profile-identity {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-s);
+}
+
+.user-profile-status {
+	margin: 0;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-xs);
+}
+
+.user-profile-status::before {
+	content: "";
+	display: inline-block;
+	width: 0.6em;
+	height: 0.6em;
+	border-radius: var(--radius-full);
+	background-color: currentColor;
+}
+
+.user-profile-status.online {
+	color: var(--surface-success);
+}
+
+.user-profile-status.offline {
+	color: var(--surface-error);
+}
+
+.user-profile-follow-button {
+	min-width: 160px;
+}
+
+.user-profile-recipes-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-l);
+}
+
+.user-profile-recipe-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+@media (min-width: 768px) {
+	.user-profile-avatar {
+		--user-profile-avatar-size: 240px;
+	}
+
+	.user-profile-follow-button {
+		min-width: 240px;
+	}
+}
+
+@media (min-width: 1440px) {
+	.user-profile-avatar {
+		--user-profile-avatar-size: 300px;
+	}
+
+	.user-profile-follow-button {
+		min-width: 300px;
+	}
+}

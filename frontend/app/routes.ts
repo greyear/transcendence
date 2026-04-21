@@ -13,6 +13,7 @@ export default [
 		route("/users", "routes/users.tsx"),
 		route("/recipes", "routes/recipes.tsx"),
 		route("/profile", "routes/profile.tsx"),
+		route("/user/:id", "routes/user.tsx"),
 		route("/policy", "routes/policy.tsx"),
 		route("/terms", "routes/terms.tsx"),
 		route("/search", "routes/search.tsx"),

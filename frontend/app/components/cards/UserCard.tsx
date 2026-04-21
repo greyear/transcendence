@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import defaultAvatar from "../../assets/images/default-avatar.jpeg";
 import "../../assets/styles/userCard.css";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import { MainButton } from "../buttons/MainButton";
 
@@ -11,22 +10,57 @@ type UserCardProps = {
 	name: string;
 	recipeCount: number;
 	avatar?: string | null;
+	isFollowing?: boolean;
+	isFollowPending?: boolean;
+	onFollowToggle?: (userId: number, shouldFollow: boolean) => void;
+	/**
+	 * Pass `true` when this card represents the logged-in user's own account.
+	 * The Follow/Unfollow button is replaced with a "Profile" shortcut so the
+	 * own card isn't visually empty where the follow button would otherwise be.
+	 */
+	isOwnCard?: boolean;
 };
 
-export const UserCard = ({ id, name, recipeCount, avatar }: UserCardProps) => {
+export const UserCard = ({
+	id,
+	name,
+	recipeCount,
+	avatar,
+	isFollowing = false,
+	isFollowPending = false,
+	onFollowToggle,
+	isOwnCard = false,
+}: UserCardProps) => {
 	const { t } = useTranslation();
+	const navigate = useNavigate();
 	const avatarSrc = resolveMediaUrl(avatar) ?? defaultAvatar;
-	const [isActive, setIsActive] = useState(false);
-	const onClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+
+	const onFollowClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
 		e.stopPropagation();
 		e.preventDefault();
-		//TODO: add confirmation unfollow popup.
-		setIsActive((prev) => !prev);
+		if (isFollowPending) {
+			return;
+		}
+		onFollowToggle?.(id, !isFollowing);
 	};
+
+	// The whole card is wrapped in a <Link>, so we can't render another <Link>
+	// here (nested <a> is invalid). Navigate imperatively and cancel the outer
+	// link's default navigation to avoid a double-nav to `/user/:ownId`.
+	const onProfileClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+		e.stopPropagation();
+		e.preventDefault();
+		navigate("/profile");
+	};
+
 	return (
 		<Link to={`/user/${id}`} className="user-card-link-wrapper">
 			<article className="user-card">
-				<img className="user-card-photo" src={avatarSrc} alt="User profile" />
+				<img
+					className="user-card-photo"
+					src={avatarSrc}
+					alt={t("ariaLabels.profileAvatar", { name })}
+				/>
 				<div className="user-card-container">
 					<header className="user-card-header">
 						<h3>{name}</h3>
@@ -34,12 +68,30 @@ export const UserCard = ({ id, name, recipeCount, avatar }: UserCardProps) => {
 							{recipeCount} {t("userCard.recipes")}
 						</p>
 					</header>
-					<MainButton
-						onClick={onClick}
-						className={`user-card-button ${isActive ? "unfollow" : ""}`}
-					>
-						{isActive ? t("userCard.unfollow") : t("userCard.follow")}
-					</MainButton>
+					{isOwnCard ? (
+						<MainButton
+							onClick={onProfileClick}
+							variant="inverted"
+							aria-label={t("ariaLabels.openMyProfile")}
+							className="user-card-button"
+						>
+							{t("userCard.profile")}
+						</MainButton>
+					) : (
+						<MainButton
+							onClick={onFollowClick}
+							aria-busy={isFollowPending}
+							aria-label={t(
+								isFollowing
+									? "ariaLabels.unfollowUser"
+									: "ariaLabels.followUser",
+								{ name },
+							)}
+							className={`user-card-button ${isFollowing ? "unfollow" : ""}`}
+						>
+							{isFollowing ? t("userCard.unfollow") : t("userCard.follow")}
+						</MainButton>
+					)}
 				</div>
 			</article>
 		</Link>

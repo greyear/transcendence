@@ -361,7 +361,8 @@ export const userProfileSchema = z.object({
 	id: z.number().int().positive(),
 	username: z.string().trim().min(1).max(32),
 	avatar: z.string().nullable(),
-	status: userPresenceStatusSchema.nullable(),
+	status: userPresenceStatusSchema,
+	is_following: z.boolean(),
 	recipes_count: z.coerce.number().int().min(0),
 });
 
