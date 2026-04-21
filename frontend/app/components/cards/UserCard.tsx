@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import userPhoto from "../../assets/images/user-photo.jpg";
+import defaultAvatar from "../../assets/images/default-avatar.jpeg";
 import "../../assets/styles/userCard.css";
 import { Link } from "react-router";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
@@ -15,7 +15,7 @@ type UserCardProps = {
 
 export const UserCard = ({ id, name, recipeCount, avatar }: UserCardProps) => {
 	const { t } = useTranslation();
-	const avatarSrc = resolveMediaUrl(avatar) ?? userPhoto;
+	const avatarSrc = resolveMediaUrl(avatar) ?? defaultAvatar;
 	const [isActive, setIsActive] = useState(false);
 	const onClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
 		e.stopPropagation();

@@ -2,10 +2,219 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-xl);
+	width: min(100%, 560px);
+	margin: 0 auto;
 }
 
 .profile-page-status {
 	color: var(--text-secondary);
 	margin: 0;
 	padding: var(--space-m) 0;
+}
+
+.profile-page-form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-l);
+	align-items: stretch;
+	width: 100%;
+}
+
+.profile-avatar-section {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-m);
+}
+
+.profile-avatar-display {
+	--avatar-size: 200px;
+	display: grid;
+	width: var(--avatar-size);
+	height: var(--avatar-size);
+	border-radius: var(--radius-full);
+	place-items: center;
+	overflow: hidden;
+	background-color: var(--surface-action-active);
+	color: var(--bg-main);
+	border: none;
+	box-shadow: var(--shadow-effect);
+}
+
+.profile-avatar-image {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.profile-avatar-input {
+	display: none;
+}
+
+.profile-change-photo-button {
+	color: var(--text-primary);
+}
+
+.profile-avatar-toggle-icon {
+	transition: transform 160ms ease;
+}
+
+.profile-avatar-toggle-icon.is-open {
+	transform: rotate(180deg);
+}
+
+.profile-upload-photo-button {
+	color: var(--text-primary);
+}
+
+.profile-avatar-picker {
+	--preset-avatar-size: 64px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-m);
+	width: 100%;
+	margin-top: var(--space-m);
+	padding-block: var(--space-s);
+}
+
+.profile-avatar-options {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-s);
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	border: none;
+	min-inline-size: 0;
+}
+
+.profile-avatar-options-label {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	color: var(--text-secondary);
+	text-align: center;
+	margin-bottom: var(--space-m);
+}
+
+.profile-avatar-options-grid {
+	display: grid;
+	grid-template-columns: repeat(
+			auto-fit,
+			minmax(var(--preset-avatar-size), var(--preset-avatar-size))
+		);
+	gap: var(--space-s);
+	justify-content: center;
+	width: min(100%, calc(var(--preset-avatar-size) * 4 + var(--space-s) * 3));
+	margin-inline: auto;
+}
+
+.profile-avatar-option {
+	box-sizing: border-box;
+	width: var(--preset-avatar-size);
+	height: var(--preset-avatar-size);
+	padding: 3px;
+	border: 2px solid transparent;
+	border-radius: var(--radius-full);
+	background-color: transparent;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+.profile-avatar-option:hover,
+.profile-avatar-option:focus-visible {
+	border-color: var(--borders-action);
+	outline: none;
+}
+
+.profile-avatar-option.is-selected {
+	border-color: var(--surface-action-active);
+	background-color: var(--surface-action-active);
+}
+
+.profile-avatar-option img {
+	width: 100%;
+	height: 100%;
+	display: block;
+	border-radius: var(--radius-full);
+	object-fit: cover;
+}
+
+.profile-avatar-separator {
+	margin: 0;
+	color: var(--text-secondary);
+	font-size: var(--fs-body3);
+	line-height: var(--lh-body3);
+}
+
+.profile-page .input-field-container .text-label {
+	font-size: var(--fs-body3);
+	font-weight: var(--fw-body3);
+	line-height: var(--lh-body3);
+}
+
+.profile-email-field .input-wrapper {
+	background-color: var(--bg-main);
+}
+
+.profile-page .main-button.profile-save-button {
+	width: 100%;
+	align-self: center;
+	padding: 0 var(--space-m);
+	font-size: var(--fs-body3);
+	line-height: var(--lh-body3);
+}
+
+.profile-page-form-status {
+	min-height: var(--lh-caption-s);
+}
+
+.profile-success,
+.profile-error {
+	margin: 0;
+	font-size: var(--fs-caption-s);
+	line-height: var(--lh-caption-s);
+}
+
+.profile-success {
+	color: var(--surface-success);
+}
+
+.profile-error {
+	color: var(--surface-error);
+}
+
+.profile-page-actions {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: var(--space-xl);
+	text-align: center;
+}
+
+.action-delete-account {
+	color: var(--surface-error);
+}
+
+@media (min-width: 768px) {
+	.profile-avatar-display {
+		--avatar-size: 240px;
+	}
+
+	.profile-avatar-picker {
+		--preset-avatar-size: 72px;
+	}
+}
+
+@media (min-width: 1440px) {
+	.profile-avatar-display {
+		--avatar-size: 300px;
+	}
+
+	.profile-avatar-picker {
+		--preset-avatar-size: 88px;
+	}
 }
