@@ -2,8 +2,8 @@ import { UserCard } from "./cards/UserCard";
 import "../assets/styles/usersGrid.css";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { z } from "zod";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { useRelationSet } from "~/composables/useRelationSet";
 
 type UserCardResponse = {
 	id: number;
@@ -21,10 +21,6 @@ type UsersGridProps = {
 	perPage?: number;
 	onLoad?: (totalCount: number) => void;
 };
-
-const FollowingResponseSchema = z.object({
-	data: z.array(z.object({ id: z.number() })),
-});
 
 const sortUsers = (
 	users: UserCardResponse[],
@@ -46,20 +42,6 @@ const sortUsers = (
 	}
 };
 
-const updateFollowingIds = (
-	current: Set<number>,
-	userId: number,
-	shouldFollow: boolean,
-) => {
-	const next = new Set(current);
-	if (shouldFollow) {
-		next.add(userId);
-	} else {
-		next.delete(userId);
-	}
-	return next;
-};
-
 export const UsersGrid = ({
 	isAuthenticated,
 	currentUserId,
@@ -75,11 +57,18 @@ export const UsersGrid = ({
 	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
 		null,
 	);
-	const [followingIds, setFollowingIds] = useState<Set<number>>(new Set());
-	const [pendingFollowIds, setPendingFollowIds] = useState<Set<number>>(
-		new Set(),
-	);
-	const [isFollowingLoading, setIsFollowingLoading] = useState(false);
+
+	const {
+		ids: followingIds,
+		pendingIds: pendingFollowIds,
+		isListLoading: isFollowingLoading,
+		handleToggle: handleFollowToggle,
+	} = useRelationSet({
+		isAuthenticated,
+		openAuthModal,
+		listEndpoint: "/users/me/following",
+		itemEndpoint: (userId) => `/users/${userId}/follow`,
+	});
 
 	useEffect(() => {
 		fetch(`${API_BASE_URL}/users`)
@@ -105,90 +94,6 @@ export const UsersGrid = ({
 				setIsLoading(false);
 			});
 	}, [onLoad]);
-
-	useEffect(() => {
-		if (!isAuthenticated) {
-			setFollowingIds(new Set());
-			setIsFollowingLoading(false);
-			return;
-		}
-
-		let ignore = false;
-		setIsFollowingLoading(true);
-
-		fetch(`${API_BASE_URL}/users/me/following`, {
-			credentials: "include",
-		})
-			.then((res) => (res.ok ? res.json() : null))
-			.then((body: unknown) => {
-				if (ignore) {
-					return;
-				}
-				const parsed = FollowingResponseSchema.safeParse(body);
-				setFollowingIds(
-					parsed.success
-						? new Set(parsed.data.data.map((user) => user.id))
-						: new Set(),
-				);
-			})
-			.catch((error: unknown) => {
-				console.error(error);
-				if (!ignore) {
-					setFollowingIds(new Set());
-				}
-			})
-			.finally(() => {
-				if (!ignore) {
-					setIsFollowingLoading(false);
-				}
-			});
-
-		return () => {
-			ignore = true;
-		};
-	}, [isAuthenticated]);
-
-	const toggleFollow = async (userId: number, shouldFollow: boolean) => {
-		if (pendingFollowIds.has(userId)) {
-			return;
-		}
-
-		setFollowingIds((prev) => updateFollowingIds(prev, userId, shouldFollow));
-		setPendingFollowIds((prev) => new Set(prev).add(userId));
-
-		try {
-			const res = await fetch(`${API_BASE_URL}/users/${userId}/follow`, {
-				method: shouldFollow ? "POST" : "DELETE",
-				credentials: "include",
-			});
-			if (!res.ok && res.status !== 409) {
-				setFollowingIds((prev) =>
-					updateFollowingIds(prev, userId, !shouldFollow),
-				);
-			}
-		} catch (error) {
-			console.error(error);
-			setFollowingIds((prev) =>
-				updateFollowingIds(prev, userId, !shouldFollow),
-			);
-		} finally {
-			setPendingFollowIds((prev) => {
-				const next = new Set(prev);
-				next.delete(userId);
-				return next;
-			});
-		}
-	};
-
-	const handleFollowToggle = (userId: number, shouldFollow: boolean) => {
-		if (!isAuthenticated) {
-			openAuthModal(() => {
-				void toggleFollow(userId, true);
-			});
-			return;
-		}
-		void toggleFollow(userId, shouldFollow);
-	};
 
 	const sortedList = useMemo(
 		() => sortUsers(userList, sortValue),

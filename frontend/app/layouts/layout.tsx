@@ -94,7 +94,14 @@ const Layout = () => {
 				onOpenAuthModal={() => openAuthModal()}
 			/>
 			<main className="app-main">
-				<Outlet context={{ isAuthenticated, isAuthResolved, currentUserId, openAuthModal }} />
+				<Outlet
+					context={{
+						isAuthenticated,
+						isAuthResolved,
+						currentUserId,
+						openAuthModal,
+					}}
+				/>
 			</main>
 			<Footer
 				isAuthenticated={isAuthenticated}

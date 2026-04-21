@@ -1,5 +1,5 @@
 import { NavArrowRight } from "iconoir-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useOutletContext, useParams } from "react-router";
 import { z } from "zod";
@@ -12,9 +12,9 @@ import { RecipeCard } from "~/components/cards/RecipeCard";
 import { RecipesGrid } from "~/components/RecipesGrid";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
+import { useRelationSet } from "~/composables/useRelationSet";
 import { useScreenSize } from "~/composables/useScreenSize";
 import type { LayoutOutletContext } from "~/layouts/layout";
-import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 
 const UserResponseSchema = z.object({
 	data: z.object({
@@ -53,18 +53,42 @@ const UserPage = () => {
 	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
 		null,
 	);
-	const [isFollowing, setIsFollowing] = useState(false);
-	const [isFollowPending, setIsFollowPending] = useState(false);
-	const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
-	const [pendingFavoriteIds, setPendingFavoriteIds] = useState<Set<number>>(
-		new Set(),
-	);
-	const [isFavoritesLoading, setIsFavoritesLoading] = useState(false);
 
 	const recipesPerPage = screenSize === "mobile" ? 2 : 4;
 	const numericId = id ? Number(id) : null;
 	const isOwnProfile =
 		numericId !== null && currentUserId !== null && numericId === currentUserId;
+
+	const {
+		ids: favoriteIds,
+		pendingIds: pendingFavoriteIds,
+		isListLoading: isFavoritesLoading,
+		handleToggle: handleFavoriteClick,
+	} = useRelationSet({
+		isAuthenticated,
+		openAuthModal,
+		listEndpoint: "/users/me/favorites",
+		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
+	});
+
+	// Viewer's follow relationship to this one profile. Seeded from the profile
+	// response (`is_following`) rather than fetched as a list.
+	const followInitialIds = useMemo(
+		() => (profile?.is_following ? [profile.id] : []),
+		[profile?.is_following, profile?.id],
+	);
+	const {
+		ids: followingIds,
+		pendingIds: pendingFollowIds,
+		handleToggle: handleFollowToggle,
+	} = useRelationSet({
+		isAuthenticated,
+		openAuthModal,
+		itemEndpoint: (userId) => `/users/${userId}/follow`,
+		initialIds: followInitialIds,
+	});
+	const isFollowing = profile ? followingIds.has(profile.id) : false;
+	const isFollowPending = profile ? pendingFollowIds.has(profile.id) : false;
 
 	useEffect(() => {
 		if (!id || isOwnProfile) {
@@ -104,7 +128,6 @@ const UserPage = () => {
 				}
 
 				setProfile(parsedProfile.data.data);
-				setIsFollowing(parsedProfile.data.data.is_following);
 
 				if (favoritesRes.ok) {
 					const favoritesBody: unknown = await favoritesRes.json();
@@ -134,145 +157,11 @@ const UserPage = () => {
 		};
 	}, [id, isOwnProfile]);
 
-	useEffect(() => {
-		if (!isAuthenticated) {
-			setFavoriteIds(new Set());
-			setIsFavoritesLoading(false);
-			return;
-		}
-
-		let ignore = false;
-		setIsFavoritesLoading(true);
-
-		fetch(`${API_BASE_URL}/users/me/favorites`, {
-			credentials: "include",
-		})
-			.then((res) => (res.ok ? res.json() : null))
-			.then((body: unknown) => {
-				if (ignore) {
-					return;
-				}
-				const parsed = FavoriteRecipesResponseSchema.safeParse(body);
-				setFavoriteIds(
-					parsed.success
-						? new Set(parsed.data.data.map((favorite) => favorite.id))
-						: new Set(),
-				);
-			})
-			.catch((error: unknown) => {
-				console.error(error);
-				if (!ignore) {
-					setFavoriteIds(new Set());
-				}
-			})
-			.finally(() => {
-				if (!ignore) {
-					setIsFavoritesLoading(false);
-				}
-			});
-
-		return () => {
-			ignore = true;
-		};
-	}, [isAuthenticated]);
-
-	const updateFavoriteIds = (
-		current: Set<number>,
-		recipeId: number,
-		shouldBeFavorited: boolean,
-	) => {
-		const next = new Set(current);
-		if (shouldBeFavorited) {
-			next.add(recipeId);
-		} else {
-			next.delete(recipeId);
-		}
-		return next;
-	};
-
-	const toggleFavorite = async (recipeId: number) => {
-		if (pendingFavoriteIds.has(recipeId)) {
-			return;
-		}
-
-		const wasFavorited = favoriteIds.has(recipeId);
-		const shouldBeFavorited = !wasFavorited;
-
-		setFavoriteIds((prev) =>
-			updateFavoriteIds(prev, recipeId, shouldBeFavorited),
-		);
-		setPendingFavoriteIds((prev) => new Set(prev).add(recipeId));
-
-		try {
-			const res = await fetch(`${API_BASE_URL}/recipes/${recipeId}/favorite`, {
-				method: shouldBeFavorited ? "POST" : "DELETE",
-				credentials: "include",
-			});
-			if (!res.ok && res.status !== 409) {
-				setFavoriteIds((prev) =>
-					updateFavoriteIds(prev, recipeId, wasFavorited),
-				);
-			}
-		} catch (error) {
-			console.error(error);
-			setFavoriteIds((prev) => updateFavoriteIds(prev, recipeId, wasFavorited));
-		} finally {
-			setPendingFavoriteIds((prev) => {
-				const next = new Set(prev);
-				next.delete(recipeId);
-				return next;
-			});
-		}
-	};
-
-	const handleFavoriteClick = (recipeId: number) => {
-		if (!isAuthenticated) {
-			openAuthModal(() => {
-				void toggleFavorite(recipeId);
-			});
-			return;
-		}
-		void toggleFavorite(recipeId);
-	};
-
-	const sendFollowRequest = async (next: boolean) => {
-		if (!id) {
-			return;
-		}
-
-		setIsFollowPending(true);
-		setIsFollowing(next);
-
-		try {
-			const res = await fetch(`${API_BASE_URL}/users/${id}/follow`, {
-				method: next ? "POST" : "DELETE",
-				credentials: "include",
-			});
-
-			if (!res.ok) {
-				setIsFollowing(!next);
-			}
-		} catch (error) {
-			console.error(error);
-			setIsFollowing(!next);
-		} finally {
-			setIsFollowPending(false);
-		}
-	};
-
 	const onFollowClick = () => {
-		if (!id || isFollowPending) {
+		if (!profile || isFollowPending) {
 			return;
 		}
-
-		if (!isAuthenticated) {
-			openAuthModal(() => {
-				void sendFollowRequest(true);
-			});
-			return;
-		}
-
-		void sendFollowRequest(!isFollowing);
+		handleFollowToggle(profile.id);
 	};
 
 	if (isOwnProfile) {
