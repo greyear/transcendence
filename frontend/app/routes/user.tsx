@@ -203,9 +203,11 @@ const UserPage = () => {
 				/>
 				<div className="user-profile-identity">
 					<h1 id="user-profile-name">{profile.username}</h1>
-					<p className={`user-profile-status text-body3 ${profile.status}`}>
-						{t(`userProfilePage.${profile.status}`)}
-					</p>
+					{isAuthenticated ? (
+						<p className={`user-profile-status text-body3 ${profile.status}`}>
+							{t(`userProfilePage.${profile.status}`)}
+						</p>
+					) : null}
 				</div>
 				<MainButton
 					onClick={onFollowClick}
@@ -237,7 +239,8 @@ const UserPage = () => {
 					</TextIconButton>
 				</div>
 				<RecipesGrid
-					sortValue=""
+					isAuthenticated={isAuthenticated}
+					openAuthModal={openAuthModal}
 					page={1}
 					perPage={recipesPerPage}
 					userId={profile.id}
@@ -268,11 +271,20 @@ const UserPage = () => {
 						<ul className="recipe-card-list">
 							{favorites.slice(0, recipesPerPage).map((recipe) => (
 								<li key={recipe.id}>
+									{/* TODO(favorites-owner): GET /users/:id/favorites returns the author avatar
+									    (u.avatar), not the recipe thumbnail — update the backend query to
+									    select picture_url from recipe_media, then replace pictureUrl below. */}
+									{/* TODO(favorites-owner): wire isFavorited + onFavoriteClick to the
+									    viewer's /users/me/favorites state so the star reflects and mutates
+									    the real favorite set. */}
 									<RecipeCard
 										id={recipe.id}
 										title={recipe.title}
-										description={recipe.description ?? ""}
-										rating=""
+										description={recipe.description}
+										rating={null}
+										pictureUrl={recipe.avatar}
+										isFavorited={false}
+										onFavoriteClick={() => {}}
 									/>
 								</li>
 							))}
