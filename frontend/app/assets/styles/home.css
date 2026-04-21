@@ -9,7 +9,7 @@
 	background-size: cover;
 	background-position: center;
 	background-repeat: no-repeat;
-	margin: calc(var(--space-l) * -1) calc(var(--space-l) * -1) 0;
+	margin: calc(var(--space-xl) * -1) calc(var(--space-l) * -1) 0;
 }
 
 .home-page-hero-overlay {

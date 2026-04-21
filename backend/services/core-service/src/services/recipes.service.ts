@@ -599,7 +599,7 @@ export const createRecipe = async (
 		const result = await client.query(
 			`
       INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status)
-      VALUES ($1, $2, $3, $4, $5, $6, 'draft')
+      VALUES ($1, $2, $3, $4, $5, $6, 'published')
       RETURNING id, updated_at
     `,
 			[
@@ -1548,21 +1548,26 @@ export const updateRecipePicture = async (
 
 export const getCategoryList = async (
 	categoryTypeCode: string,
-): Promise<{ [key: string]: string[] }> => {
+): Promise<{
+	[key: string]: { id: number; code: string; name: string }[];
+}> => {
 	try {
-		const result = await pool.query<{ code: string }>(
+		const result = await pool.query<{
+			id: number;
+			code: string;
+			name: string;
+		}>(
 			`
-			SELECT rc.code
+			SELECT rc.id, rc.code, rc.name
 			FROM recipe_categories rc
 			JOIN recipe_category_types rct ON rct.id = rc.category_type_id
 			WHERE rct.code = $1
-			ORDER BY rc.code ASC
+			ORDER BY rc.name ASC
 			`,
 			[categoryTypeCode],
 		);
 
-		const codes = result.rows.map((row) => row.code);
-		return { [categoryTypeCode]: codes };
+		return { [categoryTypeCode]: result.rows };
 	} catch (error) {
 		console.error(
 			`Database error in getCategoryList(${categoryTypeCode}):`,
@@ -1582,6 +1587,20 @@ export const getIngredientList = async (): Promise<{
 		return { ingredients: result.rows };
 	} catch (error) {
 		console.error("Database error in getIngredientList:", error);
+		throw error;
+	}
+};
+
+export const getUnitList = async (): Promise<{
+	units: { code: string; kind: string }[];
+}> => {
+	try {
+		const result = await pool.query<{ code: string; kind: string }>(
+			`SELECT code, kind FROM units ORDER BY kind ASC, code COLLATE "C" ASC`,
+		);
+		return { units: result.rows };
+	} catch (error) {
+		console.error("Database error in getUnitList:", error);
 		throw error;
 	}
 };

@@ -40,7 +40,15 @@ export const InputField = ({
 }: InputFieldProps) => {
 	const { t } = useTranslation();
 	const [showPassword, setShowPassword] = useState(false);
-	const [visibleError, setVisibleError] = useState("");
+	const [errorState, setErrorState] = useState<
+		| { kind: "required" }
+		| { kind: "invalidEmail" }
+		| { kind: "tooShort"; count: number }
+		| { kind: "tooLong"; count: number }
+		| { kind: "patternMismatch"; title: string }
+		| { kind: "custom"; message: string }
+		| null
+	>(null);
 	const [isFocused, setIsFocused] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -63,38 +71,58 @@ export const InputField = ({
 		});
 	};
 
-	const getValidationMessage = (input: HTMLInputElement) => {
-		if (error) return error;
-		if (input.validity.valueMissing) return "This field is required.";
+	const getValidationState = (input: HTMLInputElement): typeof errorState => {
+		if (input.validity.valueMissing) return { kind: "required" };
 		if (input.validity.typeMismatch && type === "email")
-			return "Please enter a valid email address.";
+			return { kind: "invalidEmail" };
 		if (input.validity.tooShort)
-			return `Please enter at least ${input.minLength} characters.`;
+			return { kind: "tooShort", count: input.minLength };
 		if (input.validity.tooLong)
-			return `Please enter no more than ${input.maxLength} characters.`;
+			return { kind: "tooLong", count: input.maxLength };
 		if (input.validity.patternMismatch)
-			return input.title || "Please match the requested format.";
-		return input.validationMessage;
+			return { kind: "patternMismatch", title: input.title };
+		return { kind: "custom", message: input.validationMessage };
 	};
+
+	const resolveErrorMessage = (): string => {
+		if (error) return error;
+		if (!errorState) return "";
+		switch (errorState.kind) {
+			case "required":
+				return t("formValidation.required");
+			case "invalidEmail":
+				return t("formValidation.invalidEmail");
+			case "tooShort":
+				return t("formValidation.tooShort", { count: errorState.count });
+			case "tooLong":
+				return t("formValidation.tooLong", { count: errorState.count });
+			case "patternMismatch":
+				return errorState.title || t("formValidation.patternMismatch");
+			case "custom":
+				return errorState.message;
+		}
+	};
+
+	const visibleError = resolveErrorMessage();
 
 	const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
 		setIsFocused(false);
 		const input = e.currentTarget;
 		if (!input.checkValidity()) {
-			setVisibleError(getValidationMessage(input));
+			setErrorState(getValidationState(input));
 		}
 		onBlur?.(e);
 	};
 
 	const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
 		setIsFocused(true);
-		setVisibleError("");
+		setErrorState(null);
 		onFocus?.(e);
 	};
 
 	const handleInvalid = (e: React.InvalidEvent<HTMLInputElement>) => {
 		e.preventDefault();
-		setVisibleError(getValidationMessage(e.currentTarget));
+		setErrorState(getValidationState(e.currentTarget));
 		onInvalid?.(e);
 	};
 

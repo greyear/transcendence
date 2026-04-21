@@ -19,6 +19,12 @@
 	padding: 0 12px;
 }
 
+.react-select__value-container--is-multi {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-xs);
+}
+
 .select-wrapper .react-select__input-container {
 	color: var(--text-primary);
 	font-size: var(--fs-body3);

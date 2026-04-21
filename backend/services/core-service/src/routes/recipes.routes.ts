@@ -29,6 +29,7 @@ import {
 	getAllRecipesPaginated,
 	getCategoryList,
 	getIngredientList,
+	getUnitList,
 	getRecipeById,
 	getRecipeReviews,
 	leaveRecipeReview,
@@ -134,6 +135,19 @@ const getIngredientListHandler = async (
 ): Promise<void> => {
 	try {
 		const result = await getIngredientList();
+		res.status(200).json(result);
+	} catch (error) {
+		next(error);
+	}
+};
+
+const getUnitListHandler = async (
+	_req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		const result = await getUnitList();
 		res.status(200).json(result);
 	} catch (error) {
 		next(error);
@@ -892,6 +906,7 @@ recipesRouter.get(
 );
 recipesRouter.get("/cuisine", getCategoryListHandler("cuisine"));
 recipesRouter.get("/ingredients", getIngredientListHandler);
+recipesRouter.get("/units", getUnitListHandler);
 
 recipesRouter.post("/:id/publish", publishRecipeHandler);
 

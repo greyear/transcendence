@@ -86,6 +86,10 @@
 	align-items: center;
 }
 
+.recipe-card-footer .favorite-button {
+	margin-left: auto;
+}
+
 .rating-row {
 	--star-icon-size: 20px;
 	display: flex;
