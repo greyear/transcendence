@@ -90,6 +90,10 @@ const UserPage = () => {
 	const isFollowing = profile ? followingIds.has(profile.id) : false;
 	const isFollowPending = profile ? pendingFollowIds.has(profile.id) : false;
 
+	// Re-run on auth change: both `/users/:id` (viewer-scoped is_following +
+	// presence) and `/users/:id/favorites` (403 to non-mutual-followers) depend
+	// on the viewer. Without this, logging in/out on the page leaves the follow
+	// button and gated favorites section showing stale guest-mode data.
 	useEffect(() => {
 		if (!id || isOwnProfile) {
 			return;
@@ -105,9 +109,14 @@ const UserPage = () => {
 		const profileRequest = fetch(`${API_BASE_URL}/users/${id}`, {
 			credentials: "include",
 		});
-		const favoritesRequest = fetch(`${API_BASE_URL}/users/${id}/favorites`, {
-			credentials: "include",
-		});
+		// Favorites require auth (401) and mutual-follow (403). Skip the request
+		// entirely for guests so we don't generate a guaranteed-failure network
+		// call on every guest page view.
+		const favoritesRequest = isAuthenticated
+			? fetch(`${API_BASE_URL}/users/${id}/favorites`, {
+					credentials: "include",
+				})
+			: Promise.resolve(null);
 
 		Promise.all([profileRequest, favoritesRequest])
 			.then(async ([profileRes, favoritesRes]) => {
@@ -129,7 +138,7 @@ const UserPage = () => {
 
 				setProfile(parsedProfile.data.data);
 
-				if (favoritesRes.ok) {
+				if (favoritesRes?.ok) {
 					const favoritesBody: unknown = await favoritesRes.json();
 					const parsedFavorites =
 						FavoritesResponseSchema.safeParse(favoritesBody);
@@ -155,7 +164,7 @@ const UserPage = () => {
 		return () => {
 			ignore = true;
 		};
-	}, [id, isOwnProfile]);
+	}, [id, isOwnProfile, isAuthenticated]);
 
 	const onFollowClick = () => {
 		if (!profile || isFollowPending) {
@@ -202,7 +211,11 @@ const UserPage = () => {
 				/>
 				<div className="user-profile-identity">
 					<h1 id="user-profile-name">{profile.username}</h1>
-					{isAuthenticated ? (
+					{/* Presence is only meaningful between mutual followers. The backend
+					    already enforces this boundary on GET /users/:id/favorites (403
+					    for non-mutual viewers), so `favorites !== null` is a trustworthy
+					    signal that the viewer is a mutual follower. */}
+					{favorites !== null ? (
 						<p className={`user-profile-status text-body3 ${profile.status}`}>
 							{t(`userProfilePage.${profile.status}`)}
 						</p>

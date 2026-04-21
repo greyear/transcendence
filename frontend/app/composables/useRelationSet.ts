@@ -124,7 +124,13 @@ export const useRelationSet = ({
 				method: shouldBeMember ? "POST" : "DELETE",
 				credentials: "include",
 			});
-			// 409 on POST = already a member; 409 on DELETE = already absent. Both safe.
+			// 409 on POST = already a member; 409 on DELETE = already absent. Both
+			// mean the server already reflects the requested state, so we keep the
+			// optimistic update instead of rolling back. This is load-bearing for
+			// the guest → login replay: if the user was already following before
+			// logging out, clicking Follow as a guest and logging in will POST once
+			// more and come back 409. Rolling back here would flip the button to
+			// "Follow" even though the relationship exists on the server.
 			if (!res.ok && res.status !== 409) {
 				setIds((prev) => updateSetMember(prev, id, !shouldBeMember));
 			}
