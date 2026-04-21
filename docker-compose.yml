@@ -1,6 +1,7 @@
 services:
 
   traefik:
+    env_file: .env
     image: traefik:v3.4
     container_name: traefik
     restart: unless-stopped
@@ -21,13 +22,14 @@ services:
       - transcendence-network
 
   auth-db:
+    env_file: .env
     image: mongo:6
     container_name: auth-mongo
     restart: unless-stopped
 
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
 
     ports:
       - "27017:27017"
@@ -36,6 +38,7 @@ services:
       - transcendence-network
 
   core-db:
+    env_file: .env
     image: postgres:15
     container_name: core-postgres
     restart: unless-stopped
@@ -65,6 +68,7 @@ services:
       - transcendence-network
 
   search-db:
+    env_file: .env
     image: pgvector/pgvector:pg15
     container_name: search-postgres
     restart: unless-stopped
@@ -91,6 +95,7 @@ services:
       - transcendence-network
 
   api-gateway:
+    env_file: .env
     build:
       context: ./backend/services/api-gateway
       dockerfile: Dockerfile
@@ -102,7 +107,7 @@ services:
 
     environment:
       NODE_ENV: development
-      PORT: 3000
+      PORT_GATEWAY: 3000
       AUTH_SERVICE_URL: http://auth-service:3001
       CORE_SERVICE_URL: http://core-service:3002
       SEARCH_SERVICE_URL: http://search-service:8000
@@ -124,6 +129,7 @@ services:
       - transcendence-network
 
   auth-service:
+    env_file: .env
     build:
       context: ./backend/services/auth-service
       dockerfile: Dockerfile
@@ -132,8 +138,8 @@ services:
 
     environment:
       NODE_ENV: development
-      PORT: 3001
-      MONGODB_URI: mongodb://root:rootpassword@auth-db:27017/auth_db?authSource=admin
+      PORT_AUTH: 3001
+      MONGODB_URI: ${MONGODB_AUTH_URI}
       JWT_SECRET: ${JWT_SECRET}
       CORE_SERVICE_URL: http://core-service:3002
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
@@ -142,9 +148,10 @@ services:
       - auth-db
 
     networks:
-      - transcendence-network
+      - transcendence-network 
 
   core-service:
+    env_file: .env
     build:
       context: ./backend/services/core-service
       dockerfile: Dockerfile
@@ -153,12 +160,12 @@ services:
 
     environment:
       NODE_ENV: development
-      PORT: 3002
+      PORT_CORE: 3002
       DATABASE_URL: postgresql://core_user:core_password@core-db:5432/core_db
-      TRANSLATION_API_URL: http://translation-service:8001/translate
-      TRANSLATION_TIMEOUT_MS: 4000
-      SEARCH_SERVICE_URL: http://search-service:8000
-      SEARCH_REINDEX_TIMEOUT_MS: 5000
+      TRANSLATION_API_URL: ${TRANSLATION_API_URL}
+      TRANSLATION_TIMEOUT_MS: ${TRANSLATION_TIMEOUT_MS}
+      SEARCH_SERVICE_URL: ${SEARCH_SERVICE_URL}
+      SEARCH_REINDEX_TIMEOUT_MS: ${SEARCH_REINDEX_TIMEOUT_MS}
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
 
     volumes:
@@ -175,6 +182,7 @@ services:
       - transcendence-network
 
   search-service:
+    env_file: .env
     build:
       context: ./backend/services/search-service
       dockerfile: Dockerfile
@@ -188,11 +196,11 @@ services:
       PORT: 8000
       SEARCH_DATABASE_URL: postgresql://search_user:search_password@search-db:5432/search_db
       CORE_SERVICE_URL: http://core-service:3002
-      CORE_SERVICE_TIMEOUT_MS: 10000
+      CORE_SERVICE_TIMEOUT_MS: ${CORE_SERVICE_TIMEOUT_MS}
       LLM_PROVIDER: gemini
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_EMBED_MODEL: gemini-embedding-001
-      GEMINI_GEN_MODEL: gemini-2.5-flash
+      GEMINI_GEN_MODEL: ${GEMINI_GEN_MODEL}
       OLLAMA_URL: http://host.docker.internal:11434
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
       SEARCH_PRUNE_INTERVAL_SECONDS: 300
@@ -207,6 +215,7 @@ services:
       - transcendence-network
 
   translation-service:
+    env_file: .env
     build:
       context: ./backend/services/translation-service
       dockerfile: Dockerfile
@@ -216,7 +225,7 @@ services:
     environment:
       PORT: 8001
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_GEN_MODEL: gemini-2.5-flash
+      GEMINI_GEN_MODEL: ${GEMINI_GEN_MODEL}
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN:?Set INTERNAL_SERVICE_TOKEN in .env before starting services}
       TRANSLATION_MAX_TEXT_LENGTH: 2000
       TRANSLATION_MAX_BATCH_ITEMS: 20

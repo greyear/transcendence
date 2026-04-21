@@ -136,7 +136,7 @@ test-core:
 
 test-jest-core:
 	@echo "Running Jest tests for core-service..."
-	cd backend/services/core-service && npm i && npm test
+	cd backend/services/core-service && npm i && DATABASE_URL=postgresql://core_user:core_password@localhost:5433/core_db npm test
 
 test-jest-api:
 	@echo "Running Jest tests for api-gateway..."
