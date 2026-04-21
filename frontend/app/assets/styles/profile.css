@@ -51,20 +51,12 @@
 	display: none;
 }
 
-.profile-change-photo-button {
-	color: var(--text-primary);
-}
-
 .profile-avatar-toggle-icon {
 	transition: transform 160ms ease;
 }
 
 .profile-avatar-toggle-icon.is-open {
 	transform: rotate(180deg);
-}
-
-.profile-upload-photo-button {
-	color: var(--text-primary);
 }
 
 .profile-avatar-picker {
@@ -161,7 +153,6 @@
 
 .profile-page .main-button.profile-save-button {
 	width: 100%;
-	align-self: center;
 	padding: 0 var(--space-m);
 	font-size: var(--fs-body3);
 	line-height: var(--lh-body3);

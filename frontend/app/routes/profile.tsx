@@ -1,4 +1,4 @@
-import { MediaImage, NavArrowDown } from "iconoir-react";
+import { NavArrowDown } from "iconoir-react";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -54,7 +54,6 @@ const ProfilePage = () => {
 	);
 	const avatarInputRef = useRef<HTMLInputElement | null>(null);
 	const [username, setUsername] = useState("");
-	const [savedUsername, setSavedUsername] = useState("");
 	const [avatarFile, setAvatarFile] = useState<File | null>(null);
 	const [selectedAvatarPath, setSelectedAvatarPath] = useState<string | null>(
 		null,
@@ -168,7 +167,6 @@ const ProfilePage = () => {
 
 				setProfile(parsed.data.data);
 				setUsername(parsed.data.data.username);
-				setSavedUsername(parsed.data.data.username);
 			})
 			.catch((error: unknown) => {
 				if (!ignore) {
@@ -195,7 +193,7 @@ const ProfilePage = () => {
 		};
 	}, [avatarPreviewUrl]);
 
-	const hasUsernameChanged = username.trim() !== savedUsername;
+	const hasUsernameChanged = username.trim() !== (profile?.username ?? "");
 	const hasPresetAvatarChanged =
 		selectedAvatarPath !== null && selectedAvatarPath !== profile?.avatar;
 	const hasAvatarChanged = avatarFile !== null || hasPresetAvatarChanged;
@@ -285,7 +283,6 @@ const ProfilePage = () => {
 
 			setProfile(parsed.data.data);
 			setUsername(parsed.data.data.username);
-			setSavedUsername(parsed.data.data.username);
 			setAvatarFile(null);
 			setSelectedAvatarPath(null);
 			setIsAvatarPickerOpen(false);
@@ -408,15 +405,11 @@ const ProfilePage = () => {
 			<form className="profile-page-form" onSubmit={handleProfileSubmit}>
 				<div className="profile-avatar-section">
 					<div className="profile-avatar-display">
-						{avatarSrc ? (
-							<img
-								className="profile-avatar-image"
-								src={avatarSrc}
-								alt={username || profile.username}
-							/>
-						) : (
-							<MediaImage aria-hidden="true" />
-						)}
+						<img
+							className="profile-avatar-image"
+							src={avatarSrc}
+							alt={username || profile.username}
+						/>
 					</div>
 
 					<input
@@ -430,7 +423,6 @@ const ProfilePage = () => {
 					/>
 
 					<TextIconButton
-						className="profile-change-photo-button"
 						onClick={() => setIsAvatarPickerOpen((isOpen) => !isOpen)}
 						selected={isAvatarPickerOpen}
 						size="body2"
@@ -485,7 +477,6 @@ const ProfilePage = () => {
 							</p>
 
 							<TextIconButton
-								className="profile-upload-photo-button"
 								onClick={() => avatarInputRef.current?.click()}
 								size="body2"
 							>
@@ -542,18 +533,10 @@ const ProfilePage = () => {
 			</form>
 
 			<div className="profile-page-actions">
-				<TextIconButton
-					className="action-change-pass"
-					onClick={onOpenChangePasswordModal}
-					size="body2"
-				>
+				<TextIconButton onClick={onOpenChangePasswordModal} size="body2">
 					{t("profilePage.changePassword")}
 				</TextIconButton>
-				<TextIconButton
-					className="action-logout"
-					onClick={handleLogOut}
-					size="body2"
-				>
+				<TextIconButton onClick={handleLogOut} size="body2">
 					{t("profilePage.logout")}
 				</TextIconButton>
 				<TextIconButton
