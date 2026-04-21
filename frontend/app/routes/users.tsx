@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useOutletContext, useSearchParams } from "react-router";
 import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
@@ -13,11 +13,14 @@ import { SortMenu } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";
 import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
+import type { LayoutOutletContext } from "~/layouts/layout";
 
 const PER_PAGE = 12;
 
 const UsersPage = () => {
 	const { t } = useTranslation();
+	const { isAuthenticated, currentUserId, openAuthModal } =
+		useOutletContext<LayoutOutletContext>();
 	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams] = useSearchParams();
@@ -77,6 +80,9 @@ const UsersPage = () => {
 				perPage={PER_PAGE}
 				sortValue={sortValue}
 				onLoad={setTotalCount}
+				isAuthenticated={isAuthenticated}
+				currentUserId={currentUserId}
+				openAuthModal={openAuthModal}
 			/>
 
 			<Pagination
