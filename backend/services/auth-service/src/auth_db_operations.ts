@@ -74,9 +74,9 @@ async function registerCoreProfile(id: number): Promise<void> {
 
 // Connection part
 // Fetch env or throw.
-const MONGO_AUTH_URI = process.env.MONGODB_URI || process.env.MONGODB_AUTH_URI;
+const MONGO_AUTH_URI = process.env.MONGODB_AUTH_URI;
 if (!MONGO_AUTH_URI) {
-	throw new Error("MONGODB_URI or MONGODB_AUTH_URI env variable is not set");
+	throw new Error("MONGODB_AUTH_URI env variable is not set");
 }
 
 // Connect to MongoDB
