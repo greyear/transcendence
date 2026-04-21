@@ -113,7 +113,7 @@
 		"unfollow": "Unfollow",
 		"authoredRecipes": "Authored recipes",
 		"favoriteRecipes": "Favorite recipes",
-		"all": "all"
+		"all": "All"
 	},
 	"authModal": {
 		"title": "Log in",
@@ -290,9 +290,9 @@
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
 		"allUsers": "All users",
-		"allAuthoredRecipes": "All authored recipes",
-		"allFavoriteRecipes": "All favorite recipes",
-		"messageUser": "Message user",
+		"profileAvatar": "Avatar of {{name}}",
+		"followUser": "Follow {{name}}",
+		"unfollowUser": "Unfollow {{name}}",
 		"sortBy": "Sort by",
 		"shareRecipe": "Share recipe",
 		"ingredientsAndInstructions": "Recipe ingredients and instructions",

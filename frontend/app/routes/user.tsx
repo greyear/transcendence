@@ -281,13 +281,15 @@ const UserPage = () => {
 
 	if (isLoading) {
 		return (
-			<p className="user-profile-status-text">{t("userProfilePage.loading")}</p>
+			<p className="user-profile-status-text" aria-live="polite">
+				{t("userProfilePage.loading")}
+			</p>
 		);
 	}
 
 	if (errorStatus !== null) {
 		return (
-			<p className="user-profile-status-text">
+			<p className="user-profile-status-text" aria-live="assertive">
 				{t("userProfilePage.error", { status: errorStatus })}
 			</p>
 		);
@@ -295,7 +297,7 @@ const UserPage = () => {
 
 	if (!profile) {
 		return (
-			<p className="user-profile-status-text">
+			<p className="user-profile-status-text" aria-live="polite">
 				{t("userProfilePage.notFound")}
 			</p>
 		);
@@ -307,7 +309,7 @@ const UserPage = () => {
 				<img
 					className="user-profile-avatar"
 					src={resolveMediaUrl(profile.avatar) ?? userPhoto}
-					alt={`${profile.username} profile`}
+					alt={t("ariaLabels.profileAvatar", { name: profile.username })}
 				/>
 				<div className="user-profile-identity">
 					<h1 id="user-profile-name">{profile.username}</h1>
@@ -320,6 +322,11 @@ const UserPage = () => {
 				<MainButton
 					onClick={onFollowClick}
 					disabled={isFollowPending}
+					aria-busy={isFollowPending}
+					aria-label={t(
+						isFollowing ? "ariaLabels.unfollowUser" : "ariaLabels.followUser",
+						{ name: profile.username },
+					)}
 					variant={isFollowing ? "inverted" : "primary"}
 					className="user-profile-follow-button"
 				>
@@ -340,7 +347,7 @@ const UserPage = () => {
 					<TextIconButton
 						to="/recipes"
 						className="text-body2"
-						aria-label={t("ariaLabels.allAuthoredRecipes")}
+						aria-label={t("ariaLabels.allRecipes")}
 					>
 						{t("userProfilePage.all")}
 						<NavArrowRight aria-hidden="true" />
@@ -367,14 +374,16 @@ const UserPage = () => {
 						<TextIconButton
 							to="/recipes"
 							className="text-body2"
-							aria-label={t("ariaLabels.allFavoriteRecipes")}
+							aria-label={t("ariaLabels.allRecipes")}
 						>
 							{t("userProfilePage.all")}
 							<NavArrowRight aria-hidden="true" />
 						</TextIconButton>
 					</div>
 					{favorites.length === 0 ? (
-						<p className="recipes-grid-status">{t("recipesGrid.empty")}</p>
+						<p className="recipes-grid-status" aria-live="polite">
+							{t("recipesGrid.empty")}
+						</p>
 					) : (
 						<ul className="recipe-card-list">
 							{favorites.slice(0, recipesPerPage).map((recipe) => (
