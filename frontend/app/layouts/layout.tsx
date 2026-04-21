@@ -54,8 +54,11 @@ const Layout = () => {
 			} catch {
 				setIsAuthenticated(false);
 			} finally {
+				// Note: do NOT reset currentUserId here — the success branch above
+				// sets it to the signed-in user's id, and a blanket reset in finally
+				// would clobber that and break any `currentUserId === id` checks
+				// (e.g. the "own card → Profile button" branch in UserCard).
 				setIsAuthResolved(true);
-				setCurrentUserId(null);
 			}
 		};
 

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import userPhoto from "../../assets/images/user-photo.jpg";
 import "../../assets/styles/userCard.css";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import { MainButton } from "../buttons/MainButton";
 
@@ -13,7 +13,12 @@ type UserCardProps = {
 	isFollowing?: boolean;
 	isFollowPending?: boolean;
 	onFollowToggle?: (userId: number, shouldFollow: boolean) => void;
-	showFollowButton?: boolean;
+	/**
+	 * Pass `true` when this card represents the logged-in user's own account.
+	 * The Follow/Unfollow button is replaced with a "Profile" shortcut so the
+	 * own card isn't visually empty where the follow button would otherwise be.
+	 */
+	isOwnCard?: boolean;
 };
 
 export const UserCard = ({
@@ -24,9 +29,10 @@ export const UserCard = ({
 	isFollowing = false,
 	isFollowPending = false,
 	onFollowToggle,
-	showFollowButton = true,
+	isOwnCard = false,
 }: UserCardProps) => {
 	const { t } = useTranslation();
+	const navigate = useNavigate();
 	const avatarSrc = resolveMediaUrl(avatar) ?? userPhoto;
 
 	const onFollowClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -36,6 +42,15 @@ export const UserCard = ({
 			return;
 		}
 		onFollowToggle?.(id, !isFollowing);
+	};
+
+	// The whole card is wrapped in a <Link>, so we can't render another <Link>
+	// here (nested <a> is invalid). Navigate imperatively and cancel the outer
+	// link's default navigation to avoid a double-nav to `/user/:ownId`.
+	const onProfileClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+		e.stopPropagation();
+		e.preventDefault();
+		navigate("/profile");
 	};
 
 	return (
@@ -53,7 +68,16 @@ export const UserCard = ({
 							{recipeCount} {t("userCard.recipes")}
 						</p>
 					</header>
-					{showFollowButton ? (
+					{isOwnCard ? (
+						<MainButton
+							onClick={onProfileClick}
+							variant="inverted"
+							aria-label={t("ariaLabels.openMyProfile")}
+							className="user-card-button"
+						>
+							{t("userCard.profile")}
+						</MainButton>
+					) : (
 						<MainButton
 							onClick={onFollowClick}
 							aria-busy={isFollowPending}
@@ -67,7 +91,7 @@ export const UserCard = ({
 						>
 							{isFollowing ? t("userCard.unfollow") : t("userCard.follow")}
 						</MainButton>
-					) : null}
+					)}
 				</div>
 			</article>
 		</Link>

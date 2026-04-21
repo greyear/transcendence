@@ -131,7 +131,7 @@ export const UsersGrid = ({
 						isFollowing={followingIds.has(id)}
 						isFollowPending={isFollowingLoading || pendingFollowIds.has(id)}
 						onFollowToggle={handleFollowToggle}
-						showFollowButton={currentUserId !== id}
+						isOwnCard={currentUserId === id}
 					/>
 				</li>
 			))}
