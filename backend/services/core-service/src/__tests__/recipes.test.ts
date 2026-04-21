@@ -47,8 +47,59 @@ describe("Recipes Routes", () => {
 		expect(response.body).toHaveProperty("data");
 		expect(response.body.data).toHaveProperty("id", 1);
 		expect(response.body.data).toHaveProperty("title");
+		expect(response.body.data).toHaveProperty("rating_count");
+		expect(response.body.data).toHaveProperty("viewer_rating", null);
 		expect(Array.isArray(response.body.data.ingredients)).toBe(true);
 		expect(Array.isArray(response.body.data.categories)).toBe(true);
+	});
+
+	it("should return viewer_rating for authenticated user on GET /recipes/:id", async () => {
+		const userId = 7011;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "viewer_rating_user"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Viewer Rating Test', 'fi', 'Viewer Rating Test', 'ru', 'Viewer Rating Test'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step 1']), 'fi', to_jsonb(ARRAY['step 1']), 'ru', to_jsonb(ARRAY['step 1'])),
+					'published',
+					$1
+				 ) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id as number;
+
+			const createRatingResponse = await request(app)
+				.post(`/recipes/${recipeId}/rating`)
+				.set("X-User-Id", String(userId))
+				.send({ rating: 5 });
+
+			expect(createRatingResponse.status).toBe(201);
+
+			const authResponse = await request(app)
+				.get(`/recipes/${recipeId}`)
+				.set("X-User-Id", String(userId));
+
+			expect(authResponse.status).toBe(200);
+			expect(authResponse.body.data).toHaveProperty("viewer_rating", 5);
+			expect(authResponse.body.data).toHaveProperty("rating_count", 1);
+
+			const guestResponse = await request(app).get(`/recipes/${recipeId}`);
+			expect(guestResponse.status).toBe(200);
+			expect(guestResponse.body.data).toHaveProperty("viewer_rating", null);
+			expect(guestResponse.body.data).toHaveProperty("rating_count", 1);
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
 	});
 
 	/**

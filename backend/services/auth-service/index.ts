@@ -1,5 +1,5 @@
+import cookieParser from "cookie-parser";
 import express from "express";
-import cookieParser from 'cookie-parser'
 import "dotenv/config";
 import { authRouter } from "./src/auth_db_operations.js";
 import { authGetSet } from "./src/authGetSet.js";
