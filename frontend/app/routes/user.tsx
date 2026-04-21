@@ -13,6 +13,7 @@ import { RecipesGrid } from "~/components/RecipesGrid";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { useScreenSize } from "~/composables/useScreenSize";
 import type { LayoutOutletContext } from "~/layouts/layout";
+import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 
 const UserResponseSchema = z.object({
 	data: z.object({
@@ -53,6 +54,11 @@ const UserPage = () => {
 	);
 	const [isFollowing, setIsFollowing] = useState(false);
 	const [isFollowPending, setIsFollowPending] = useState(false);
+	const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
+	const [pendingFavoriteIds, setPendingFavoriteIds] = useState<Set<number>>(
+		new Set(),
+	);
+	const [isFavoritesLoading, setIsFavoritesLoading] = useState(false);
 
 	const recipesPerPage = screenSize === "mobile" ? 2 : 4;
 	const numericId = id ? Number(id) : null;
@@ -126,6 +132,107 @@ const UserPage = () => {
 			ignore = true;
 		};
 	}, [id, isOwnProfile]);
+
+	useEffect(() => {
+		if (!isAuthenticated) {
+			setFavoriteIds(new Set());
+			setIsFavoritesLoading(false);
+			return;
+		}
+
+		let ignore = false;
+		setIsFavoritesLoading(true);
+
+		fetch(`${API_BASE_URL}/users/me/favorites`, {
+			credentials: "include",
+		})
+			.then((res) => (res.ok ? res.json() : null))
+			.then((body: unknown) => {
+				if (ignore) {
+					return;
+				}
+				const parsed = FavoriteRecipesResponseSchema.safeParse(body);
+				setFavoriteIds(
+					parsed.success
+						? new Set(parsed.data.data.map((favorite) => favorite.id))
+						: new Set(),
+				);
+			})
+			.catch((error: unknown) => {
+				console.error(error);
+				if (!ignore) {
+					setFavoriteIds(new Set());
+				}
+			})
+			.finally(() => {
+				if (!ignore) {
+					setIsFavoritesLoading(false);
+				}
+			});
+
+		return () => {
+			ignore = true;
+		};
+	}, [isAuthenticated]);
+
+	const updateFavoriteIds = (
+		current: Set<number>,
+		recipeId: number,
+		shouldBeFavorited: boolean,
+	) => {
+		const next = new Set(current);
+		if (shouldBeFavorited) {
+			next.add(recipeId);
+		} else {
+			next.delete(recipeId);
+		}
+		return next;
+	};
+
+	const toggleFavorite = async (recipeId: number) => {
+		if (pendingFavoriteIds.has(recipeId)) {
+			return;
+		}
+
+		const wasFavorited = favoriteIds.has(recipeId);
+		const shouldBeFavorited = !wasFavorited;
+
+		setFavoriteIds((prev) =>
+			updateFavoriteIds(prev, recipeId, shouldBeFavorited),
+		);
+		setPendingFavoriteIds((prev) => new Set(prev).add(recipeId));
+
+		try {
+			const res = await fetch(`${API_BASE_URL}/recipes/${recipeId}/favorite`, {
+				method: shouldBeFavorited ? "POST" : "DELETE",
+				credentials: "include",
+			});
+			if (!res.ok && res.status !== 409) {
+				setFavoriteIds((prev) =>
+					updateFavoriteIds(prev, recipeId, wasFavorited),
+				);
+			}
+		} catch (error) {
+			console.error(error);
+			setFavoriteIds((prev) => updateFavoriteIds(prev, recipeId, wasFavorited));
+		} finally {
+			setPendingFavoriteIds((prev) => {
+				const next = new Set(prev);
+				next.delete(recipeId);
+				return next;
+			});
+		}
+	};
+
+	const handleFavoriteClick = (recipeId: number) => {
+		if (!isAuthenticated) {
+			openAuthModal(() => {
+				void toggleFavorite(recipeId);
+			});
+			return;
+		}
+		void toggleFavorite(recipeId);
+	};
 
 	const sendFollowRequest = async (next: boolean) => {
 		if (!id) {
@@ -271,20 +378,21 @@ const UserPage = () => {
 						<ul className="recipe-card-list">
 							{favorites.slice(0, recipesPerPage).map((recipe) => (
 								<li key={recipe.id}>
-									{/* TODO(favorites-owner): GET /users/:id/favorites returns the author avatar
-									    (u.avatar), not the recipe thumbnail — update the backend query to
-									    select picture_url from recipe_media, then replace pictureUrl below. */}
-									{/* TODO(favorites-owner): wire isFavorited + onFavoriteClick to the
-									    viewer's /users/me/favorites state so the star reflects and mutates
-									    the real favorite set. */}
+									{/* TODO(favorites-owner): GET /users/:id/favorites returns the
+									    author avatar (u.avatar), not the recipe thumbnail — update the
+									    backend query to select picture_url from recipe_media, then
+									    replace pictureUrl below. */}
 									<RecipeCard
 										id={recipe.id}
 										title={recipe.title}
 										description={recipe.description}
 										rating={null}
 										pictureUrl={recipe.avatar}
-										isFavorited={false}
-										onFavoriteClick={() => {}}
+										isFavorited={favoriteIds.has(recipe.id)}
+										isFavoritePending={
+											isFavoritesLoading || pendingFavoriteIds.has(recipe.id)
+										}
+										onFavoriteClick={handleFavoriteClick}
 									/>
 								</li>
 							))}
