@@ -81,7 +81,7 @@
 	"reviewModal": {
 		"title": "Write a review",
 		"describeRecipe": "Describe the recipe",
-		"existingReviewHint": "Your review will be published on this recipe page. You can post more than one review for this recipe.",
+		"existingReviewHint": "Your review will be published on this recipe page under your username. You can post more than one review for this recipe.",
 		"submit": "Save review",
 		"submitting": "Saving...",
 		"genericError": "Could not submit your review. Please try again.",
