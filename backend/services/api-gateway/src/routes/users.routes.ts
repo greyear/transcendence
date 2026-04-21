@@ -1,5 +1,5 @@
 import { type RequestHandler, Router } from "express";
-import { requireAuth } from "../middleware/auth.js";
+import { optionalAuth, requireAuth } from "../middleware/auth.js";
 import { getInternalHeaders } from "../utils/internalHeaders.js";
 import {
 	CORE_SERVICE_TIMEOUT_MS,
@@ -347,5 +347,5 @@ usersRouter.get("/:id/following", getFollowingHandler);
 usersRouter.get("/:id/favorites", requireAuth, getFavoritesHandler);
 // /:id/recipes is less specific, should be last
 usersRouter.get("/:id/recipes", getUserRecipesHandler);
-usersRouter.get("/:id", getUserByIdHandler);
+usersRouter.get("/:id", optionalAuth, getUserByIdHandler);
 usersRouter.get("/", getUsersHandler);

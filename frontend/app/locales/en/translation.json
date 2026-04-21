@@ -103,6 +103,18 @@
 		"favoritesNotFound": "Favorites not found.",
 		"favoritesTitle": "My favorites"
 	},
+	"userProfilePage": {
+		"loading": "Loading user...",
+		"error": "Failed to load user (status: {{status}}).",
+		"notFound": "User not found.",
+		"online": "Online",
+		"offline": "Offline",
+		"follow": "Follow",
+		"unfollow": "Unfollow",
+		"authoredRecipes": "Authored recipes",
+		"favoriteRecipes": "Favorite recipes",
+		"all": "All"
+	},
 	"authModal": {
 		"title": "Log in",
 		"signupTitle": "Create an account",
@@ -134,7 +146,8 @@
 	"userCard": {
 		"recipes": "recipes",
 		"follow": "Follow",
-		"unfollow": "Unfollow"
+		"unfollow": "Unfollow",
+		"profile": "Profile"
 	},
 	"privacyPage": {
 		"title": "Privacy Policy",
@@ -278,6 +291,10 @@
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
 		"allUsers": "All users",
+		"profileAvatar": "Avatar of {{name}}",
+		"followUser": "Follow {{name}}",
+		"unfollowUser": "Unfollow {{name}}",
+		"openMyProfile": "Open my profile",
 		"sortBy": "Sort by",
 		"shareRecipe": "Share recipe",
 		"ingredientsAndInstructions": "Recipe ingredients and instructions",

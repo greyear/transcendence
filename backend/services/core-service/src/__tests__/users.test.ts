@@ -87,7 +87,7 @@ describe("Users Routes", () => {
 	});
 
 	describe("GET /users/:id", () => {
-		it("should return public user profile without role and hidden status for anonymous requester", async () => {
+		it("should return public user profile without role for anonymous requester", async () => {
 			const response = await request(app).get("/users/1");
 
 			expect(response.status).toBe(200);
@@ -95,12 +95,13 @@ describe("Users Routes", () => {
 			expect(response.body.data).toHaveProperty("id", 1);
 			expect(response.body.data).toHaveProperty("username");
 			expect(response.body.data).toHaveProperty("avatar");
-			expect(response.body.data).toHaveProperty("status", null);
+			expect(response.body.data.status).toMatch(/^(online|offline)$/);
+			expect(response.body.data).toHaveProperty("is_following", false);
 			expect(response.body.data).not.toHaveProperty("role");
 			expect(response.body.data).toHaveProperty("recipes_count");
 		});
 
-		it("should return status for mutual followers", async () => {
+		it("should report is_following=true when requester follows target", async () => {
 			const response = await request(app)
 				.get("/users/10001")
 				.set("X-User-Id", "10002");
@@ -108,19 +109,21 @@ describe("Users Routes", () => {
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("data");
 			expect(response.body.data).toHaveProperty("id", 10001);
-			expect(response.body.data).toHaveProperty("status", "online");
+			expect(response.body.data.status).toMatch(/^(online|offline)$/);
+			expect(response.body.data).toHaveProperty("is_following", true);
 			expect(response.body.data).not.toHaveProperty("role");
 		});
 
-		it("should hide status when follow is not mutual", async () => {
+		it("should report is_following=false when target is not followed", async () => {
 			const response = await request(app)
-				.get("/users/10003")
-				.set("X-User-Id", "10004");
+				.get("/users/10004")
+				.set("X-User-Id", "10003");
 
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("data");
-			expect(response.body.data).toHaveProperty("id", 10003);
-			expect(response.body.data).toHaveProperty("status", null);
+			expect(response.body.data).toHaveProperty("id", 10004);
+			expect(response.body.data.status).toMatch(/^(online|offline)$/);
+			expect(response.body.data).toHaveProperty("is_following", false);
 			expect(response.body.data).not.toHaveProperty("role");
 		});
 

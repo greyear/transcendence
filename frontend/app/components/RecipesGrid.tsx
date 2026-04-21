@@ -3,7 +3,7 @@ import "../assets/styles/recipesGrid.css";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
-import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
+import { useRelationSet } from "~/composables/useRelationSet";
 
 type RecipeCardResponse = {
 	id: number;
@@ -15,13 +15,14 @@ type RecipeCardResponse = {
 };
 
 type RecipesGridProps = {
+	isAuthenticated: boolean;
+	openAuthModal: (onSuccessAction?: () => void) => void;
 	sortValue?: string;
 	page?: number;
 	perPage?: number;
 	onLoad?: (totalCount: number) => void;
 	sort?: "top";
-	isAuthenticated: boolean;
-	openAuthModal: (onSuccessAction?: () => void) => void;
+	userId?: number;
 };
 
 const sortRecipes = (
@@ -43,40 +44,15 @@ const sortRecipes = (
 	}
 };
 
-const getFavoriteIds = (body: unknown): Set<number> => {
-	const parsed = FavoriteRecipesResponseSchema.safeParse(body);
-
-	if (!parsed.success) {
-		return new Set();
-	}
-
-	return new Set(parsed.data.data.map((favorite) => favorite.id));
-};
-
-const updateFavoriteIds = (
-	currentFavoriteIds: Set<number>,
-	recipeId: number,
-	shouldBeFavorited: boolean,
-) => {
-	const nextFavoriteIds = new Set(currentFavoriteIds);
-
-	if (shouldBeFavorited) {
-		nextFavoriteIds.add(recipeId);
-	} else {
-		nextFavoriteIds.delete(recipeId);
-	}
-
-	return nextFavoriteIds;
-};
-
 export const RecipesGrid = ({
+	isAuthenticated,
+	openAuthModal,
 	page = 1,
 	perPage = 12,
 	onLoad,
 	sort,
 	sortValue = "",
-	isAuthenticated,
-	openAuthModal,
+	userId,
 }: RecipesGridProps) => {
 	const { t } = useTranslation();
 	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
@@ -84,17 +60,28 @@ export const RecipesGrid = ({
 	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
 		null,
 	);
-	const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set());
-	const [pendingFavoriteIds, setPendingFavoriteIds] = useState<Set<number>>(
-		new Set(),
-	);
-	const [isFavoritesLoading, setIsFavoritesLoading] = useState(false);
+
+	const {
+		ids: favoriteIds,
+		pendingIds: pendingFavoriteIds,
+		isListLoading: isFavoritesLoading,
+		handleToggle: handleFavoriteClick,
+	} = useRelationSet({
+		isAuthenticated,
+		openAuthModal,
+		listEndpoint: "/users/me/favorites",
+		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
+	});
 
 	useEffect(() => {
 		setIsLoading(true);
 		setErrorStatus(null);
 
-		fetch(`${API_BASE_URL}/recipes`)
+		const endpoint =
+			userId !== undefined
+				? `${API_BASE_URL}/users/${userId}/recipes`
+				: `${API_BASE_URL}/recipes`;
+		fetch(endpoint)
 			.then((res) => {
 				if (!res.ok) {
 					setErrorStatus(res.status);
@@ -120,90 +107,7 @@ export const RecipesGrid = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [onLoad, sort]);
-
-	useEffect(() => {
-		if (!isAuthenticated) {
-			setFavoriteIds(new Set());
-			setIsFavoritesLoading(false);
-			return;
-		}
-
-		setIsFavoritesLoading(true);
-
-		fetch(`${API_BASE_URL}/users/me/favorites`, {
-			credentials: "include",
-		})
-			.then((res) => {
-				if (!res.ok) {
-					return null;
-				}
-				return res.json();
-			})
-			.then((body: unknown) => {
-				setFavoriteIds(getFavoriteIds(body));
-			})
-			.catch((error) => {
-				console.error(error);
-				setFavoriteIds(new Set());
-			})
-			.finally(() => {
-				setIsFavoritesLoading(false);
-			});
-	}, [isAuthenticated]);
-
-	const toggleFavorite = async (recipeId: number) => {
-		if (pendingFavoriteIds.has(recipeId)) {
-			return;
-		}
-
-		const wasFavoritedBeforeClick = favoriteIds.has(recipeId);
-		const shouldBeFavorited = !wasFavoritedBeforeClick;
-
-		setFavoriteIds((prev) =>
-			updateFavoriteIds(prev, recipeId, shouldBeFavorited),
-		);
-
-		setPendingFavoriteIds((prev) => new Set(prev).add(recipeId));
-
-		try {
-			const response = await fetch(
-				`${API_BASE_URL}/recipes/${recipeId}/favorite`,
-				{
-					method: shouldBeFavorited ? "POST" : "DELETE",
-					credentials: "include",
-				},
-			);
-
-			if (!response.ok && response.status !== 409) {
-				setFavoriteIds((prev) =>
-					updateFavoriteIds(prev, recipeId, wasFavoritedBeforeClick),
-				);
-			}
-		} catch (error) {
-			console.error(error);
-			setFavoriteIds((prev) =>
-				updateFavoriteIds(prev, recipeId, wasFavoritedBeforeClick),
-			);
-		} finally {
-			setPendingFavoriteIds((prev) => {
-				const next = new Set(prev);
-				next.delete(recipeId);
-				return next;
-			});
-		}
-	};
-
-	const handleFavoriteClick = (recipeId: number) => {
-		if (!isAuthenticated) {
-			openAuthModal(() => {
-				void toggleFavorite(recipeId);
-			});
-			return;
-		}
-
-		void toggleFavorite(recipeId);
-	};
+	}, [onLoad, sort, userId]);
 
 	const sortedList = useMemo(
 		() => sortRecipes(recipeList, sortValue),

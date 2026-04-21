@@ -545,5 +545,5 @@ usersRouter.get("/:id/following", getFollowingHandler);
 usersRouter.get("/:id/favorites", extractUser, getFavoritesHandler);
 // /:id/recipes is less specific, should be last before /:id
 usersRouter.get("/:id/recipes", getUserRecipesHandler);
-usersRouter.get("/:id", getUserByIdHandler);
+usersRouter.get("/:id", extractUser, getUserByIdHandler);
 usersRouter.get("/", getAllUsersHandler);

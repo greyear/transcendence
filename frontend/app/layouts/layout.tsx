@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router";
+import { z } from "zod";
 import { AuthModal } from "~/components/auth/AuthModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { Footer } from "./Footer";
@@ -12,12 +13,16 @@ export type LayoutOutletContext = {
 		onSuccessAction?: () => void,
 		onCancelAction?: () => void,
 	) => void;
+	currentUserId: number | null;
 };
+
+const ProfileIdSchema = z.object({ data: z.object({ id: z.number() }) });
 
 const Layout = () => {
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [isAuthResolved, setIsAuthResolved] = useState(false);
+	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 	const authSuccessActionRef = useRef<(() => void) | null>(null);
 	const authCancelActionRef = useRef<(() => void) | null>(null);
 	const openAuthModal = (
@@ -36,10 +41,23 @@ const Layout = () => {
 					credentials: "include",
 				});
 
-				setIsAuthenticated(response.ok);
+				if (!response.ok) {
+					setIsAuthenticated(false);
+					setCurrentUserId(null);
+					return;
+				}
+
+				setIsAuthenticated(true);
+				const body: unknown = await response.json();
+				const parsed = ProfileIdSchema.safeParse(body);
+				setCurrentUserId(parsed.success ? parsed.data.data.id : null);
 			} catch {
 				setIsAuthenticated(false);
 			} finally {
+				// Note: do NOT reset currentUserId here — the success branch above
+				// sets it to the signed-in user's id, and a blanket reset in finally
+				// would clobber that and break any `currentUserId === id` checks
+				// (e.g. the "own card → Profile button" branch in UserCard).
 				setIsAuthResolved(true);
 			}
 		};
@@ -60,6 +78,7 @@ const Layout = () => {
 				});
 				if (response.status === 401) {
 					setIsAuthenticated(false);
+					setCurrentUserId(null);
 				}
 			} catch (error) {
 				console.error(`Heartbeat failed: ${error}`);
@@ -78,7 +97,14 @@ const Layout = () => {
 				onOpenAuthModal={() => openAuthModal()}
 			/>
 			<main className="app-main">
-				<Outlet context={{ isAuthenticated, isAuthResolved, openAuthModal }} />
+				<Outlet
+					context={{
+						isAuthenticated,
+						isAuthResolved,
+						currentUserId,
+						openAuthModal,
+					}}
+				/>
 			</main>
 			<Footer
 				isAuthenticated={isAuthenticated}
@@ -95,6 +121,13 @@ const Layout = () => {
 				onSuccess={() => {
 					setIsAuthenticated(true);
 					setIsAuthModalOpen(false);
+					void fetch(`${API_BASE_URL}/profile`, { credentials: "include" })
+						.then((res) => (res.ok ? res.json() : null))
+						.then((body: unknown) => {
+							const parsed = ProfileIdSchema.safeParse(body);
+							setCurrentUserId(parsed.success ? parsed.data.data.id : null);
+						})
+						.catch(() => setCurrentUserId(null));
 					authSuccessActionRef.current?.();
 					authSuccessActionRef.current = null;
 					authCancelActionRef.current = null;
