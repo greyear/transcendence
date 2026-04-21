@@ -11,6 +11,7 @@ import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { RecipeCard } from "~/components/cards/RecipeCard";
 import { RecipesGrid } from "~/components/RecipesGrid";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import { useScreenSize } from "~/composables/useScreenSize";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
@@ -305,7 +306,7 @@ const UserPage = () => {
 			<header className="user-profile-header">
 				<img
 					className="user-profile-avatar"
-					src={profile.avatar ?? userPhoto}
+					src={resolveMediaUrl(profile.avatar) ?? userPhoto}
 					alt={`${profile.username} profile`}
 				/>
 				<div className="user-profile-identity">
