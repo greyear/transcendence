@@ -1,5 +1,5 @@
 import { Filter, Sparks } from "iconoir-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router";
 import { z } from "zod";
@@ -11,12 +11,22 @@ import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
 import { Pagination } from "~/components/pagination/Pagination";
+import type { CategoryTypeCode } from "~/components/recipe/RecipeCategorySection";
+import { SearchFilterPanel } from "~/components/SearchFilterPanel";
 import { SortMenu } from "~/components/SortMenu";
 import "~/assets/styles/recipesGrid.css";
 import "~/assets/styles/usersGrid.css";
 import "~/assets/styles/search.css";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { useCategoryMap } from "~/composables/useCategoryMap";
 import { useSortOptions } from "~/composables/useSortOptions";
+
+const FILTER_PARAM_BY_TYPE: Record<CategoryTypeCode, string> = {
+	meal_time: "mealType",
+	dish_type: "dishType",
+	main_ingredient: "mainIngredient",
+	cuisine: "cuisine",
+};
 
 const SEARCH_MAX_LIMIT = 5;
 const DEFAULT_LIMIT = 5;
@@ -34,6 +44,8 @@ const SearchRecipesApiItemSchema = z.object({
 	recipe_id: z.number(),
 	title: z.string(),
 	description: z.string().nullable(),
+	rating_avg: z.number().nullable().optional(),
+	picture_url: z.string().nullable().optional(),
 });
 
 const SearchRecipesApiResponseSchema = z.object({
@@ -46,8 +58,9 @@ const SearchRecipesApiResponseSchema = z.object({
 type SearchRecipeItem = {
 	id: number;
 	title: string;
-	description: string;
+	description: string | null;
 	rating_avg: number | null;
+	picture_url: string | null;
 };
 
 type SearchUserItem = {
@@ -67,8 +80,10 @@ type SearchResponse =
 
 const SearchPage = () => {
 	const { t } = useTranslation();
-	const [searchParams] = useSearchParams();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
+	const categories = useCategoryMap();
+	const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
 
 	const query = searchParams.get("q") ?? "";
 	const rawType = searchParams.get("type") ?? "recipes";
@@ -76,6 +91,37 @@ const SearchPage = () => {
 	const sort = searchParams.get("sort") ?? "";
 	const limit = parseLimit(searchParams.get("limit"));
 	const aiEnabled = searchParams.get("ai") !== "0";
+
+	const rawPage = Number(searchParams.get("page") ?? "1");
+	const page =
+		Number.isFinite(rawPage) && rawPage >= 1 ? Math.trunc(rawPage) : 1;
+
+	const mealTypeFilters = useMemo(
+		() => searchParams.getAll("mealType"),
+		[searchParams],
+	);
+	const dishTypeFilters = useMemo(
+		() => searchParams.getAll("dishType"),
+		[searchParams],
+	);
+	const mainIngredientFilters = useMemo(
+		() => searchParams.getAll("mainIngredient"),
+		[searchParams],
+	);
+	const cuisineFilters = useMemo(
+		() => searchParams.getAll("cuisine"),
+		[searchParams],
+	);
+
+	const filterValues = useMemo(
+		() => ({
+			meal_time: mealTypeFilters,
+			dish_type: dishTypeFilters,
+			main_ingredient: mainIngredientFilters,
+			cuisine: cuisineFilters,
+		}),
+		[mealTypeFilters, dishTypeFilters, mainIngredientFilters, cuisineFilters],
+	);
 
 	const sortOptions = useSortOptions(typeParam);
 
@@ -100,10 +146,27 @@ const SearchPage = () => {
 
 		const controller = new AbortController();
 
-		const params = new URLSearchParams({
-			q: query,
-			limit: String(limit),
-		});
+		const params = new URLSearchParams();
+		params.set("q", query);
+		params.set("type", typeParam);
+		params.set("limit", String(limit));
+		params.set("page", String(page));
+		params.set("ai", aiEnabled ? "1" : "0");
+		if (sort) {
+			params.set("sort", sort);
+		}
+		for (const code of mealTypeFilters) {
+			params.append("mealType", code);
+		}
+		for (const code of dishTypeFilters) {
+			params.append("dishType", code);
+		}
+		for (const code of mainIngredientFilters) {
+			params.append("mainIngredient", code);
+		}
+		for (const code of cuisineFilters) {
+			params.append("cuisine", code);
+		}
 
 		setIsLoading(true);
 		setHasError(false);
@@ -140,8 +203,9 @@ const SearchPage = () => {
 					data: parsed.data.data.map((item) => ({
 						id: item.recipe_id,
 						title: item.title,
-						description: item.description ?? "",
-						rating_avg: null,
+						description: item.description,
+						rating_avg: item.rating_avg ?? null,
+						picture_url: item.picture_url ?? null,
 					})),
 				});
 			})
@@ -162,7 +226,18 @@ const SearchPage = () => {
 		return () => {
 			controller.abort();
 		};
-	}, [query, limit]);
+	}, [
+		query,
+		typeParam,
+		limit,
+		page,
+		sort,
+		aiEnabled,
+		mealTypeFilters,
+		dishTypeFilters,
+		mainIngredientFilters,
+		cuisineFilters,
+	]);
 
 	const handleSearch = (newQuery: string) => {
 		const params = new URLSearchParams(searchParams);
@@ -201,6 +276,22 @@ const SearchPage = () => {
 			params.delete("ai");
 		}
 		navigate(`/search?${params.toString()}`);
+	};
+
+	const handleFilterChange = (typeCode: CategoryTypeCode, codes: string[]) => {
+		const paramKey = FILTER_PARAM_BY_TYPE[typeCode];
+		setSearchParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+				next.delete(paramKey);
+				for (const code of codes) {
+					next.append(paramKey, code);
+				}
+				next.delete("page");
+				return next;
+			},
+			{ replace: true },
+		);
 	};
 
 	const limitOptions = LIMIT_OPTIONS.map((n) => ({
@@ -254,11 +345,22 @@ const SearchPage = () => {
 					onChange={handleSortChange}
 				/>
 
-				<TextIconButton>
+				<TextIconButton
+					onClick={() => setIsFilterPanelOpen((open) => !open)}
+					selected={isFilterPanelOpen}
+				>
 					{t("common.filterButton")}
 					<Filter />
 				</TextIconButton>
 			</div>
+
+			{isFilterPanelOpen && (
+				<SearchFilterPanel
+					categories={categories}
+					values={filterValues}
+					onChange={handleFilterChange}
+				/>
+			)}
 
 			{query && isLoading && (
 				<p className="search-page__status">{t("searchPage.searching")}</p>
@@ -278,21 +380,24 @@ const SearchPage = () => {
 						<p className="search-page__empty">{t("searchPage.noResults")}</p>
 					) : results.type === "recipes" ? (
 						<ul className="recipe-card-list">
-							{results.data.map(({ id, title, description, rating_avg }) => (
-								<li key={id}>
-									{/* TODO(favorites-owner): wire isFavorited + onFavoriteClick
+							{results.data.map(
+								({ id, title, description, rating_avg, picture_url }) => (
+									<li key={id}>
+										{/* TODO(favorites-owner): wire isFavorited + onFavoriteClick
 									    to the viewer's /users/me/favorites state so the star
 									    reflects and mutates the real favorite set. */}
-									<RecipeCard
-										id={id}
-										title={title}
-										description={description}
-										rating={rating_avg}
-										isFavorited={false}
-										onFavoriteClick={() => {}}
-									/>
-								</li>
-							))}
+										<RecipeCard
+											id={id}
+											title={title}
+											description={description}
+											rating={rating_avg}
+											pictureUrl={picture_url}
+											isFavorited={false}
+											onFavoriteClick={() => {}}
+										/>
+									</li>
+								),
+							)}
 						</ul>
 					) : (
 						<ul className="user-card-list">
