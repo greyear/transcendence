@@ -156,7 +156,8 @@ const SearchPage = () => {
 		params.set("type", typeParam);
 		params.set("limit", String(limit));
 		params.set("page", String(page));
-		params.set("ai", aiEnabled ? "1" : "0");
+		const effectiveAi = typeParam === "recipes" && aiEnabled;
+		params.set("ai", effectiveAi ? "1" : "0");
 		if (sort) {
 			params.set("sort", sort);
 		}
@@ -320,24 +321,26 @@ const SearchPage = () => {
 					onSubmit={handleSearch}
 					placeholder={t("common.searchPlaceholder")}
 				/>
-				<IconButton
-					type="button"
-					className={`search-page__ai-toggle${aiEnabled ? " is-active" : ""}`}
-					aria-pressed={aiEnabled}
-					aria-label={
-						aiEnabled
-							? t("ariaLabels.disableAiSummary")
-							: t("ariaLabels.enableAiSummary")
-					}
-					title={
-						aiEnabled
-							? t("searchPage.aiSummaryOn")
-							: t("searchPage.aiSummaryOff")
-					}
-					onClick={handleAiToggle}
-				>
-					<Sparks aria-hidden />
-				</IconButton>
+				{typeParam === "recipes" && (
+					<IconButton
+						type="button"
+						className={`search-page__ai-toggle${aiEnabled ? " is-active" : ""}`}
+						aria-pressed={aiEnabled}
+						aria-label={
+							aiEnabled
+								? t("ariaLabels.disableAiSummary")
+								: t("ariaLabels.enableAiSummary")
+						}
+						title={
+							aiEnabled
+								? t("searchPage.aiSummaryOn")
+								: t("searchPage.aiSummaryOff")
+						}
+						onClick={handleAiToggle}
+					>
+						<Sparks aria-hidden />
+					</IconButton>
+				)}
 			</div>
 
 			<FilterList
@@ -353,11 +356,13 @@ const SearchPage = () => {
 					onChange={handleSortChange}
 				/>
 
-				<SearchFilterMenu
-					categories={categories}
-					values={filterValues}
-					onApply={handleFilterApply}
-				/>
+				{typeParam === "recipes" && (
+					<SearchFilterMenu
+						categories={categories}
+						values={filterValues}
+						onApply={handleFilterApply}
+					/>
+				)}
 			</div>
 
 			{query && isLoading && (
