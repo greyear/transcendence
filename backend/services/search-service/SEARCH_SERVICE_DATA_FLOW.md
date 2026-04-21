@@ -533,7 +533,7 @@ Usually frontend does not need to send `limit`.
 GET /search/recipes?q=beef&limit=3
 ```
 
-If `limit` is missing, search-service asks Gemini to infer how many recipes the user seems to want. Inferred and explicit limits are capped at `5`. If inference fails, it defaults to `5`.
+If `limit` is missing, search-service returns up to `12` recipes. Explicit limits are still supported for smaller result sets and are capped at `12`.
 
 ### Step 1: Frontend sends search request to API gateway
 
@@ -597,17 +597,11 @@ File:
 Function:
 `search_recipes(...)`
 
-Function:
-`infer_result_limit(...)`
-
 What happens next:
-If `limit` was provided, it is used up to a maximum of `5`. If not, Gemini infers the result count from the full natural-language query.
+If `limit` was provided, it is used up to a maximum of `12`. If `limit` is missing, search-service defaults to `12`.
 
-Prompt-injection mitigation:
-`infer_result_limit(...)` JSON-encodes the user query and tells Gemini to treat it as untrusted data, not instructions.
-
-Fallback:
-If Gemini limit inference fails, the limit becomes `5`. If Gemini returns a number higher than `5`, search-service clamps it to `5`.
+Why:
+AI search is capped to keep Gemini embedding and summary work bounded. The service no longer calls Gemini just to infer the result count.
 
 ### Step 5: Search-service creates query embedding
 
@@ -862,16 +856,16 @@ Function:
 Behavior:
 Search-service still returns matching recipes with `summary_status: unavailable`.
 
-### Gemini result-count inference fails during search
+### Gemini summary generation fails during search
 
 File:
 `backend/services/search-service/app/main.py`
 
 Function:
-`infer_result_limit(...)`
+`generate_search_summary(...)`
 
 Behavior:
-Search-service defaults to `5` results.
+Search-service still returns matching recipes with `summary_status: unavailable`.
 
 ### Internal token is missing or wrong
 

@@ -1,16 +1,15 @@
 # Search Service Gemini Debugging
 
-Use this when search results, result-count inference, summaries, or reindexing fail in ways that mention Gemini.
+Use this when search results, summaries, or reindexing fail in ways that mention Gemini.
 
 ## What Uses Gemini
 
-Search-service uses Gemini in three different paths:
+Search-service uses Gemini in two different paths:
 
 - embeddings: `GEMINI_EMBED_MODEL`, used for reindexing recipes and embedding user search queries
-- result-count inference: `GEMINI_GEN_MODEL`, used when `limit` is omitted
 - summaries: `GEMINI_GEN_MODEL`, used after matching recipes are found
 
-Embeddings can work while generation fails. In that case search can still return recipe results, but `summary_status` may be `"unavailable"` and inferred limits may fall back to `5`.
+Embeddings can work while generation fails. In that case search can still return recipe results, but `summary_status` may be `"unavailable"`.
 
 ## Check Container Environment
 
@@ -53,7 +52,7 @@ except Exception as error:
 PY
 ```
 
-If this fails, summary generation and Gemini-based result-count inference will fail too.
+If this fails, summary generation will fail too.
 
 ## Test Embeddings Directly
 
@@ -84,13 +83,6 @@ For summary generation failures:
 ```bash
 docker compose logs --tail=250 search-service \
   | sed -n '/Gemini summary generation failed/,+100p'
-```
-
-For result-count inference failures:
-
-```bash
-docker compose logs --tail=250 search-service \
-  | sed -n '/Gemini limit inference failed/,+100p'
 ```
 
 For embedding failures:
