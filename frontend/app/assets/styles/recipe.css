@@ -17,7 +17,7 @@
 	padding: var(--space-m) var(--space-l);
 	border-radius: var(--radius-m);
 	background-color: var(--surface-card);
-	border: 1px solid var(--border-default, currentColor);
+	border: 1px solid var(--borders-default);
 	color: var(--text-primary);
 }
 
@@ -31,7 +31,7 @@
 	border: none;
 	color: inherit;
 	cursor: pointer;
-	font-size: var(--font-size-l);
+	font: inherit;
 	line-height: 1;
 	padding: 0;
 }
