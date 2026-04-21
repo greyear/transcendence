@@ -1,7 +1,7 @@
 import { Sparks } from "iconoir-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useOutletContext, useSearchParams } from "react-router";
 import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
 import { RecipeCard } from "~/components/cards/RecipeCard";
@@ -19,11 +19,13 @@ import {
 	type SearchFilterValues,
 } from "~/components/SearchFilterMenu";
 import { SortMenu } from "~/components/SortMenu";
+import type { LayoutOutletContext } from "~/layouts/layout";
 import "~/assets/styles/recipesGrid.css";
 import "~/assets/styles/usersGrid.css";
 import "~/assets/styles/search.css";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { useCategoryMap } from "~/composables/useCategoryMap";
+import { useFavoriteRecipes } from "~/composables/useFavoriteRecipes";
 import { useSortOptions } from "~/composables/useSortOptions";
 
 const FILTER_PARAM_BY_TYPE: Record<CategoryTypeCode, string> = {
@@ -87,7 +89,15 @@ const SearchPage = () => {
 	const { t } = useTranslation();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
+	const { isAuthenticated, openAuthModal } =
+		useOutletContext<LayoutOutletContext>();
 	const categories = useCategoryMap();
+	const {
+		favoriteIds,
+		pendingFavoriteIds,
+		isFavoritesLoading,
+		toggleFavorite,
+	} = useFavoriteRecipes(isAuthenticated);
 
 	const query = searchParams.get("q") ?? "";
 	const rawType = searchParams.get("type") ?? "recipes";
@@ -285,6 +295,17 @@ const SearchPage = () => {
 		navigate(`/search?${params.toString()}`);
 	};
 
+	const handleFavoriteClick = (recipeId: number) => {
+		if (!isAuthenticated) {
+			openAuthModal(() => {
+				void toggleFavorite(recipeId);
+			});
+			return;
+		}
+
+		void toggleFavorite(recipeId);
+	};
+
 	const handleFilterApply = (applied: SearchFilterValues) => {
 		setSearchParams(
 			(prev) => {
@@ -395,8 +416,11 @@ const SearchPage = () => {
 											description={description}
 											rating={rating_avg}
 											pictureUrl={picture_url}
-											isFavorited={false}
-											onFavoriteClick={() => {}}
+											isFavorited={favoriteIds.has(id)}
+											isFavoritePending={
+												isFavoritesLoading || pendingFavoriteIds.has(id)
+											}
+											onFavoriteClick={handleFavoriteClick}
 										/>
 									</li>
 								),
