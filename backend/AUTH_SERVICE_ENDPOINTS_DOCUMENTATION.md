@@ -1,4 +1,4 @@
-# Auth Service Endpoints Documentation
+# Auth service endpoints documentation
 
 ## Overview
 This document consolidates all authentication service endpoints, including implementation details, validation requirements, and usage patterns.
@@ -96,7 +96,7 @@ Token is also set as an `httpOnly` cookie named `token` (1 hour expiry).
 Token is also set as an `httpOnly` cookie named `token` (1 hour expiry).
 
 **Error Responses**:
-- `401 Unauthorized`: Wrong password; or account is Google Sign-In only
+- `401 Unauthorised`: Wrong password; or account is Google Sign-In only
 - `404 Not Found`: No user found with that email
 
 **Implementation Notes**:
@@ -139,7 +139,7 @@ Content-Type: application/json
 Token is also set as an `httpOnly` cookie named `token` (1 hour expiry).
 
 **Error Responses**:
-- `401 Unauthorized`: Missing or invalid Authorization header; payload missing from Google token; Google account has no email
+- `401 Unauthorised`: Missing or invalid Authorization header; payload missing from Google token; Google account has no email
 - `409 Conflict`: Email already registered with password login
 - `500 Internal Server Error`: `GOOGLE_CLIENT_ID` env variable not set; token verification failure
 
@@ -169,7 +169,7 @@ Authorization: Bearer <JWT Token>
 ```
 
 **Error Responses**:
-- `401 Unauthorized`: Missing, invalid, or expired token; user not found in database
+- `401 Unauthorised`: Missing, invalid, or expired token; user not found in database
 - `500 Internal Server Error`: User record has no ID
 
 **Implementation Notes**:

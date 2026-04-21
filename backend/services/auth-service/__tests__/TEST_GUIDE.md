@@ -1,6 +1,6 @@
-# Auth Service Test Suite Guide
+# Auth service test suite guide
 
-## BLUF
+## Bottom line up front
 
 | | |
 |---|---|
@@ -8,24 +8,24 @@
 | **Location** | `backend/services/auth-service/__tests__/` |
 | **Total tests** | 33 across 7 sections |
 | **Run** | `cd backend/services/auth-service/__tests__ && chmod +x test-auth.sh && ./test-auth.sh` |
-| **Clean DB** | `docker exec -it auth-mongo mongosh -u <user> -p <password>` → `use auth_db` → `db.usermodels.deleteMany({})` → `db.usercounters.deleteMany({})` |
+| **Clean database** | `docker exec -it auth-mongo mongosh -u <user> -p <password>` → `use auth_db` → `db.usermodels.deleteMany({})` → `db.usercounters.deleteMany({})` |
 | **Google token** | Refresh at [developers.google.com/oauthplayground](https://developers.google.com/oauthplayground) and paste into `GOOGLE_ID_TOKEN` at the top of `test-auth.sh` |
 | **Manual curls** | See [`curls2.txt`](./curls2.txt) |
 
 ---
 
-This guide explains how to use the `test-auth.sh` automated test suite to verify the authentication service functionality.
+This guide explains how to use the `test-auth.sh` automated test suite to verify authentication service functionality.
 
 ## Overview
 
 The test suite (`test-auth.sh`) performs comprehensive testing of:
-- **Normal Authentication**: User registration, login, and password changes
-- **Google Authentication**: Google Sign-In, user creation, and existing user login
-- **Cross-Auth Conflicts**: Ensuring proper handling of users registered via different auth methods
-- **Token Validation**: JWT token verification for both normal and Google auth
-- **Edge Cases**: Invalid inputs, duplicate accounts, missing credentials, etc.
+- **Normal authentication**: User registration, login, and password changes
+- **Google authentication**: Google Sign-In, user creation, and existing user login
+- **Cross-auth conflicts**: Ensuring proper handling of users registered via different authentication methods
+- **Token validation**: JWT token verification for both normal and Google authentication
+- **Edge cases**: Invalid inputs, duplicate accounts, missing credentials, etc.
 
-**Total Tests**: 33 test cases covering all major auth workflows
+**Total tests**: 33 test cases covering all major authentication workflows
 
 All tests use direct curl commands with JSON output parsing via `jq` for easy reading.
 
@@ -42,22 +42,20 @@ Before running the tests, ensure:
 
 2. **Auth service is accessible** at `https://localhost:8443/auth`
 
-3. **MongoDB is running** and accessible
-	```
-	docker exec -it auth-mongo mongosh -u <user> -p <password>
-	-
-	use auth_db
-	db.usermodels.find()
-	db.usercounters.find()
-	```
+3. **MongoDB is running** and accessible:
+   ```bash
+   docker exec -it auth-mongo mongosh -u <user> -p <password>
+   use auth_db
+   db.usermodels.find()
+   db.usercounters.find()
+   ```
 
 4. **Database is clean** (recommended for first run):
-   ```
-	docker exec -it auth-mongo mongosh -u <user> -p <password>
-	-
-	use auth_db
-	db.usermodels.deleteMany({})
-	db.usercounters.deleteMany({})
+   ```bash
+   docker exec -it auth-mongo mongosh -u <user> -p <password>
+   use auth_db
+   db.usermodels.deleteMany({})
+   db.usercounters.deleteMany({})
    ```
 
 5. **Required tools installed**:
@@ -68,11 +66,11 @@ Before running the tests, ensure:
 
 ---
 
-## Setting Up the Google Token
+## Setting up the Google token
 
 Google authentication tests require a valid Google ID token.
 
-### Getting a Google ID Token
+### Getting a Google ID token
 
 1. Visit [Google OAuth Playground](https://developers.google.com/oauthplayground)
 
@@ -84,13 +82,13 @@ Google authentication tests require a valid Google ID token.
 
 4. Enter **OAuth Client ID** and **OAuth Client secret**
 
-5. Click **Authorize APIs** and sign in with your Google account, authorise access to ft_transcendence if needed
+3. Click **Authorize APIs** and sign in with your Google account, and authorise access to ft_transcendence if prompted
 
-6. After authorization, follow the instructions in the **Step 2** section
+6. After authorisation, follow the instructions in the **Step 2** section
 
 7. Copy the **id_token**
 
-### Updating the Test Script
+### Updating the test script
 
 Edit `test-auth.sh` and replace the placeholder at the top of the file:
 
@@ -98,33 +96,33 @@ Edit `test-auth.sh` and replace the placeholder at the top of the file:
 GOOGLE_ID_TOKEN="insert token when needed"
 ```
 
-With your actual token
+with your actual token.
 
 > **Note**: Google ID tokens expire within an hour. If tests fail with "Token used too late" or similar errors, the token needs to be refreshed from Google OAuth Playground.
 
 ---
 
-## Running the Tests
+## Running the tests
 
-### Step 1: Navigate to the Tests Directory
+### Step 1: Navigate to the test directory
 
 ```bash
 cd backend/services/auth-service/__tests__
 ```
 
-### Step 2: Make the Script Executable if needed
+### Step 2: Make the script executable if needed
 
 ```bash
 chmod +x test-auth.sh
 ```
 
-### Step 3: Run the Test Suite
+### Step 3: Run the test suite
 
 ```bash
 ./test-auth.sh
 ```
 
-### Example Output
+### Example output
 
 ```
 ==========================================
@@ -177,18 +175,18 @@ Tests Complete
 
 ---
 
-## Understanding Test Results
+## Understanding test results
 
-### Reading Test Output
+### Reading test output
 
 Each test displays:
 1. A numbered test description (e.g., "1. Register new user - valid")
 2. The JSON response from the API formatted by `jq`
 
-### Evaluating Results
+### Evaluating results
 
 **Success indicators:**
-- Check the HTTP status codes in responses (201 for created, 200 for success, 401 for unauthorized, 409 for conflict, etc.)
+- Check the HTTP status codes in responses (201 for created, 200 for success, 401 for unauthorised, 409 for conflict, etc.)
 - Look for expected fields in the JSON response (e.g., "token", "id", "message")
 - For login/registration, presence of a "token" field indicates success
 
@@ -197,7 +195,7 @@ Each test displays:
 - Unexpected HTTP status codes (check actual status vs expected)
 - Missing expected fields in the response
 
-### Example: Reading a Failure
+### Example: Reading a failure
 
 If you see:
 ```
@@ -211,9 +209,9 @@ This indicates the test is working correctly — it properly rejected a duplicat
 
 ---
 
-## Test Sections Explained
+## Test sections explained
 
-### 1. Normal Registration Tests (Tests 1–6)
+### 1. Normal registration tests (Tests 1–6)
 
 Tests user registration with various scenarios:
 - Valid registration (should succeed with 201, email, id, and token)
@@ -223,7 +221,7 @@ Tests user registration with various scenarios:
 - Password missing uppercase (should fail with 422)
 - Missing email field (should fail with 422)
 
-### 2. Normal Login Tests (Tests 7–11)
+### 2. Normal login tests (Tests 7–11)
 
 Tests user login functionality:
 - Login by email (should succeed with token)
@@ -232,7 +230,7 @@ Tests user login functionality:
 - Missing email field (should fail with 404)
 - Token extraction for use in later tests
 
-### 3. Google Login Tests (Tests 12–15)
+### 3. Google login tests (Tests 12–15)
 
 Tests Google Sign-In:
 - Create new user with Google credentials (should succeed with 201 and token)
@@ -240,13 +238,13 @@ Tests Google Sign-In:
 - Missing token (should fail with 401)
 - Invalid token (should fail with 500)
 
-### 4. Cross-Auth Conflict Tests (Tests 16–21)
+### 4. Cross-authentication conflict tests (Tests 16–21)
 
-Comprehensive tests for interactions between normal and Google auth:
+Comprehensive tests for interactions between normal and Google authentication:
 - Google user attempts normal login with their email (should fail with 401)
 - Attempts to register normal user with Google user's existing email (should fail with 409)
 - Second registration attempt with same Google email (should fail with 409)
-- Normal user token sent to Google auth endpoint (should fail with 500)
+- Normal user token sent to Google authentication endpoint (should fail with 500)
 - Skipped: would require a Google account with the normal user's email
 - Google user attempts password change (should fail with 401)
 

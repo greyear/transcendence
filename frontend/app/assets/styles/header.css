@@ -74,6 +74,10 @@
 		width: var(--desktop-content-width);
 	}
 
+	.header-search {
+		width: 328px;
+	}
+
 	.header-bottom-row {
 		display: flex;
 		flex-direction: row;
