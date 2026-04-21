@@ -54,6 +54,7 @@
 		"error": "Failed to fetch recipe (status: {{status}}).",
 		"recipeNotFound": "Recipe not found.",
 		"rate": "Rate",
+		"review": "Review",
 		"ingredients": "Ingredients",
 		"noIngredientsAvailable": "No ingredients available for this recipe.",
 		"instructions": "Instructions",
@@ -63,20 +64,27 @@
 		"reviewsError": "Failed to fetch reviews (status: {{status}}).",
 		"noReviewsAvailable": "No reviews yet.",
 		"reviewAnonymous": "Deleted user",
-		"confirmDeleteFeedback": "Delete your review and rating?",
+		"confirmDeleteReview": "Delete your review?",
 		"deleteReviewError": "Failed to delete review (status: {{status}}).",
-		"deleteRatingError": "Review was deleted, but rating deletion failed (status: {{status}}).",
 		"step": "Step {{number}}"
 	},
 	"ratingModal": {
-		"title": "Share your thoughts about this recipe",
-		"rateRecipe": "Rate this recipe",
-		"describeRecipe": "Describe the recipe (optional)",
-		"emptyReviewHint": "Any previous feedback you saved for this recipe will be replaced by this one.",
+		"title": "Rate this recipe",
+		"rateRecipe": "Choose 1-5 stars",
 		"ratingOption": "{{value}} out of 5 stars",
-		"submit": "Save feedback",
+		"averageRatingHint": "Your rating contributes to the average rating shown across the site.",
+		"submit": "Save rating",
 		"submitting": "Saving...",
 		"genericError": "Could not submit your rating. Please try again.",
+		"networkError": "The request could not reach the server."
+	},
+	"reviewModal": {
+		"title": "Write a review",
+		"describeRecipe": "Describe the recipe",
+		"existingReviewHint": "Your review will be published on this recipe page. You can post more than one review for this recipe.",
+		"submit": "Save review",
+		"submitting": "Saving...",
+		"genericError": "Could not submit your review. Please try again.",
 		"networkError": "The request could not reach the server."
 	},
 	"usersPage": {
@@ -213,6 +221,7 @@
 		"closeAuthDialog": "Close authentication dialog",
 		"toProfilePage": "Go to profile page",
 		"closeRatingDialog": "Close rating dialog",
-		"deleteReview": "Delete review and rating"
+		"closeReviewDialog": "Close review dialog",
+		"deleteReview": "Delete review"
 	}
 }

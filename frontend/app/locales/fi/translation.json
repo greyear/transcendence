@@ -54,6 +54,7 @@
 		"error": "Reseptin haku epäonnistui (tila: {{status}}).",
 		"recipeNotFound": "Reseptiä ei löytynyt.",
 		"rate": "Arvioi",
+		"review": "Kirjoita arvostelu",
 		"ingredients": "Ainekset",
 		"noIngredientsAvailable": "Tälle reseptille ei ole saatavilla aineksia.",
 		"instructions": "Ohjeet",
@@ -63,20 +64,27 @@
 		"reviewsError": "Arvostelujen haku epäonnistui (tila: {{status}}).",
 		"noReviewsAvailable": "Arvosteluja ei vielä ole.",
 		"reviewAnonymous": "Poistettu käyttäjä",
-		"confirmDeleteFeedback": "Poistetaanko arvostelusi ja arvosanasi?",
+		"confirmDeleteReview": "Poistetaanko arvostelusi?",
 		"deleteReviewError": "Arvostelun poistaminen epäonnistui (tila: {{status}}).",
-		"deleteRatingError": "Arvostelu poistettiin, mutta arvosanan poistaminen epäonnistui (tila: {{status}}).",
 		"step": "Vaihe {{number}}"
 	},
 	"ratingModal": {
-		"title": "Kerro ajatuksesi tästä reseptistä",
-		"rateRecipe": "Arvioi tämä resepti",
-		"describeRecipe": "Kuvaile reseptiä (valinnainen)",
-		"emptyReviewHint": "Tämä palaute korvaa mahdollisen aiemman palautteesi tästä reseptistä.",
+		"title": "Arvioi tämä resepti",
+		"rateRecipe": "Anna 1-5 tähteä",
 		"ratingOption": "{{value}} tähteä viidestä",
-		"submit": "Tallenna palaute",
+		"averageRatingHint": "Arvosanasi vaikuttaa sivustolla näkyvään reseptien keskiarvoon.",
+		"submit": "Tallenna arvosana",
 		"submitting": "Tallennetaan...",
 		"genericError": "Arvion lähettäminen epäonnistui. Yritä uudelleen.",
+		"networkError": "Pyyntö ei tavoittanut palvelinta."
+	},
+	"reviewModal": {
+		"title": "Kirjoita arvostelu",
+		"describeRecipe": "Kuvaile reseptiä",
+		"existingReviewHint": "Arvostelusi julkaistaan tämän reseptin sivulla. Voit lisätä samalle reseptille useamman arvostelun.",
+		"submit": "Tallenna arvostelu",
+		"submitting": "Tallennetaan...",
+		"genericError": "Arvostelun lähettäminen epäonnistui. Yritä uudelleen.",
 		"networkError": "Pyyntö ei tavoittanut palvelinta."
 	},
 	"usersPage": {
@@ -213,6 +221,7 @@
 		"closeAuthDialog": "Sulje tunnistautumisikkuna",
 		"toProfilePage": "Siirry profiilisivulle",
 		"closeRatingDialog": "Sulje arviointi-ikkuna",
-		"deleteReview": "Poista arvostelu ja arvosana"
+		"closeReviewDialog": "Sulje arvosteluikkuna",
+		"deleteReview": "Poista arvostelu"
 	}
 }

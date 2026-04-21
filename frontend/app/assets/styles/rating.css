@@ -35,7 +35,7 @@
 .rating-field {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-s);
+	gap: var(--space-xl);
 }
 
 .rating-field-label {
@@ -45,7 +45,7 @@
 .rating-form {
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-xl);
+	gap: var(--space-l);
 }
 
 .rating-stars {
@@ -90,18 +90,6 @@
 	outline: 2px solid var(--icons-dark);
 	outline-offset: 2px;
 	border-radius: var(--radius-s);
-}
-
-.rating-textarea {
-	width: 100%;
-	min-height: 48px;
-	padding: var(--space-s);
-	border: 1px solid var(--borders-input);
-	border-radius: var(--radius-m);
-	background-color: var(--bg-main);
-	color: inherit;
-	font: inherit;
-	resize: vertical;
 }
 
 .rating-help-text {

@@ -21,21 +21,6 @@ const ApiResponseSchema = z.object({
 	message: z.string().optional(),
 });
 
-const ProfileResponseSchema = z.object({
-	data: z.object({
-		id: z.number(),
-	}),
-});
-
-const RecipeReviewSchema = z.object({
-	id: z.number(),
-	author_id: z.number().nullable(),
-});
-
-const RecipeReviewsResponseSchema = z.object({
-	data: z.array(RecipeReviewSchema),
-});
-
 export const RatingForm = ({
 	dialogRef,
 	onClose,
@@ -44,7 +29,6 @@ export const RatingForm = ({
 }: RatingFormProps) => {
 	const { t } = useTranslation();
 	const [rating, setRating] = useState(0);
-	const [review, setReview] = useState("");
 	const [error, setError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,104 +41,6 @@ export const RatingForm = ({
 		}
 
 		return parsed.data;
-	};
-
-	const getCurrentUserId = async () => {
-		const response = await fetch(`${API_BASE_URL}/profile`, {
-			credentials: "include",
-		});
-		if (!response.ok) {
-			return null;
-		}
-
-		const body: unknown = await response.json();
-		const parsed = ProfileResponseSchema.safeParse(body);
-
-		if (!parsed.success) {
-			return null;
-		}
-
-		return parsed.data.data.id;
-	};
-
-	const getExistingReviewIds = async (userId: number) => {
-		const response = await fetch(
-			`${API_BASE_URL}/recipes/${recipeId}/reviews`,
-			{
-				credentials: "include",
-			},
-		);
-		if (!response.ok) {
-			return [];
-		}
-
-		const body: unknown = await response.json();
-		const parsed = RecipeReviewsResponseSchema.safeParse(body);
-
-		if (!parsed.success) {
-			return [];
-		}
-
-		return parsed.data.data
-			.filter((reviewItem) => reviewItem.author_id === userId)
-			.map((reviewItem) => reviewItem.id);
-	};
-
-	const syncReview = async (trimmedReview: string) => {
-		const currentUserId = await getCurrentUserId();
-		if (currentUserId === null) {
-			setError(t("ratingModal.genericError"));
-			return false;
-		}
-
-		const existingReviewIds = await getExistingReviewIds(currentUserId);
-
-		if (!trimmedReview) {
-			if (existingReviewIds.length === 0) {
-				return true;
-			}
-
-			for (const existingReviewId of existingReviewIds) {
-				const deleteResponse = await fetch(
-					`${API_BASE_URL}/recipes/${recipeId}/reviews/${existingReviewId}`,
-					{
-						method: "DELETE",
-						credentials: "include",
-					},
-				);
-				const deleteData = await parseApiResponse(deleteResponse);
-
-				if (!deleteResponse.ok && deleteResponse.status !== 404) {
-					setError(deleteData.error ?? t("ratingModal.genericError"));
-					return false;
-				}
-			}
-
-			return true;
-		}
-
-		const existingReviewId = existingReviewIds[0] ?? null;
-		const reviewResponse = await fetch(
-			existingReviewId === null
-				? `${API_BASE_URL}/recipes/${recipeId}/reviews`
-				: `${API_BASE_URL}/recipes/${recipeId}/reviews/${existingReviewId}`,
-			{
-				method: existingReviewId === null ? "POST" : "PUT",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				credentials: "include",
-				body: JSON.stringify({ body: trimmedReview }),
-			},
-		);
-		const reviewData = await parseApiResponse(reviewResponse);
-
-		if (!reviewResponse.ok) {
-			setError(reviewData.error ?? t("ratingModal.genericError"));
-			return false;
-		}
-
-		return true;
 	};
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -202,13 +88,7 @@ export const RatingForm = ({
 				return;
 			}
 
-			const reviewSynced = await syncReview(review.trim());
-			if (!reviewSynced) {
-				return;
-			}
-
 			setRating(0);
-			setReview("");
 			await onSuccess?.();
 			onClose?.();
 		} catch (submitError) {
@@ -286,30 +166,13 @@ export const RatingForm = ({
 						</div>
 					</div>
 
-					<div className="rating-field">
-						<label
-							className="rating-field-label text-label"
-							htmlFor="rating-review"
-						>
-							{t("ratingModal.describeRecipe")}
-						</label>
-						<textarea
-							id="rating-review"
-							name="review"
-							className="rating-textarea"
-							rows={4}
-							maxLength={1000}
-							value={review}
-							onChange={(event) => setReview(event.target.value)}
-						/>
-						<p className="rating-help-text text-caption">
-							{t("ratingModal.emptyReviewHint")}
-						</p>
-					</div>
-
 					<div className="rating-status" aria-live="polite">
 						{error ? <p className="rating-error">{error}</p> : null}
 					</div>
+
+					<p className="rating-help-text text-caption">
+						{t("ratingModal.averageRatingHint")}
+					</p>
 
 					<MainButton
 						type="submit"

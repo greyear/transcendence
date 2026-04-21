@@ -7,6 +7,7 @@ import "../assets/styles/recipe.css";
 import { Reports, StarSolid, Trash } from "iconoir-react";
 import { IconButton } from "~/components/buttons/IconButton";
 import { RatingModal } from "~/components/rating/ratingModal";
+import { ReviewModal } from "~/components/review/reviewModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import type { LayoutOutletContext } from "~/layouts/layout";
@@ -34,7 +35,6 @@ type RecipeReview = {
 	id: number;
 	author_id: number | null;
 	username: string | null;
-	rating: number | null;
 	body: string;
 	created_at: string;
 };
@@ -64,14 +64,6 @@ const RecipeReviewSchema = z.object({
 	id: z.number(),
 	author_id: z.number().nullable(),
 	username: z.string().nullable(),
-	rating: z.coerce
-		.number()
-		.int()
-		.min(1)
-		.max(5)
-		.nullable()
-		.optional()
-		.default(null),
 	body: z.string(),
 	created_at: z.string(),
 });
@@ -165,6 +157,7 @@ const RecipePage = () => {
 		null,
 	);
 	const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+	const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 	const [reviews, setReviews] = useState<RecipeReview[]>([]);
 	const [areReviewsLoading, setAreReviewsLoading] = useState(true);
 	const [reviewsErrorStatus, setReviewsErrorStatus] = useState<
@@ -227,6 +220,10 @@ const RecipePage = () => {
 		setIsRatingModalOpen(false);
 	};
 
+	const onCloseReviewModal = () => {
+		setIsReviewModalOpen(false);
+	};
+
 	const onOpenRatingModal = () => {
 		if (!isAuthenticated) {
 			openAuthModal(() => {
@@ -236,6 +233,17 @@ const RecipePage = () => {
 		}
 
 		setIsRatingModalOpen(true);
+	};
+
+	const onOpenReviewModal = () => {
+		if (!isAuthenticated) {
+			openAuthModal(() => {
+				setIsReviewModalOpen(true);
+			});
+			return;
+		}
+
+		setIsReviewModalOpen(true);
 	};
 
 	const refreshRecipeData = async () => {
@@ -255,8 +263,8 @@ const RecipePage = () => {
 		setReviewActionError("");
 	};
 
-	const deleteFeedback = async (reviewId: number) => {
-		if (!id || !window.confirm(t("recipePage.confirmDeleteFeedback"))) {
+	const deleteReview = async (reviewId: number) => {
+		if (!id || !window.confirm(t("recipePage.confirmDeleteReview"))) {
 			return;
 		}
 
@@ -276,22 +284,6 @@ const RecipePage = () => {
 				setReviewActionError(
 					t("recipePage.deleteReviewError", { status: response.status }),
 				);
-				return;
-			}
-
-			const ratingResponse = await fetch(
-				`${API_BASE_URL}/recipes/${id}/rating`,
-				{
-					method: "DELETE",
-					credentials: "include",
-				},
-			);
-
-			if (!ratingResponse.ok && ratingResponse.status !== 404) {
-				setReviewActionError(
-					t("recipePage.deleteRatingError", { status: ratingResponse.status }),
-				);
-				await refreshRecipeData();
 				return;
 			}
 
@@ -500,7 +492,10 @@ const RecipePage = () => {
 					</div>
 				) : null}
 				<IconButton className="recipe-action" onClick={onOpenRatingModal}>
-					{t("recipePage.rate")} <Reports aria-hidden="true" />
+					{t("recipePage.rate")} <StarSolid aria-hidden="true" />
+				</IconButton>
+				<IconButton className="recipe-action" onClick={onOpenReviewModal}>
+					{t("recipePage.review")} <Reports aria-hidden="true" />
 				</IconButton>
 				<FavoriteButton
 					isFavorited={isFavorited}
@@ -596,12 +591,6 @@ const RecipePage = () => {
 													{review.username ?? t("recipePage.reviewAnonymous")}
 												</span>
 												<div className="recipe-page-review-meta-details">
-													{review.rating !== null ? (
-														<span className="recipe-page-review-rating text-body3">
-															({review.rating})
-															<StarSolid aria-hidden="true" />
-														</span>
-													) : null}
 													<time
 														className="recipe-page-review-date text-caption"
 														dateTime={review.created_at}
@@ -618,7 +607,7 @@ const RecipePage = () => {
 															className="recipe-page-review-delete"
 															aria-label={t("ariaLabels.deleteReview")}
 															disabled={deletingReviewId === review.id}
-															onClick={() => void deleteFeedback(review.id)}
+															onClick={() => void deleteReview(review.id)}
 														>
 															<Trash aria-hidden="true" />
 														</IconButton>
@@ -638,6 +627,12 @@ const RecipePage = () => {
 			<RatingModal
 				isOpen={isRatingModalOpen}
 				onClose={onCloseRatingModal}
+				onSuccess={refreshRecipeData}
+				recipeId={String(recipe.id)}
+			/>
+			<ReviewModal
+				isOpen={isReviewModalOpen}
+				onClose={onCloseReviewModal}
 				onSuccess={refreshRecipeData}
 				recipeId={String(recipe.id)}
 			/>
