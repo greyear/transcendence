@@ -107,6 +107,7 @@
 		"saving": "Tallennetaan...",
 		"saveSuccess": "Profiili tallennettu.",
 		"saveError": "Profiilin tallennus epäonnistui.",
+		"avatarSizeError": "Profiilikuvan on oltava enintään 5 Mt.",
 		"usernameRequired": "Käyttäjätunnus vaaditaan.",
 		"usernameTaken": "Käyttäjätunnus on jo käytössä.",
 		"changePassword": "Vaihda salasana",

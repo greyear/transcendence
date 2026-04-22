@@ -42,6 +42,7 @@ const PRESET_AVATAR_PATHS = Array.from(
 	{ length: 8 },
 	(_, index) => `/avatars/avatar-${index + 1}.jpeg`,
 );
+const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
 
 const ProfilePage = () => {
 	const { t } = useTranslation();
@@ -64,6 +65,7 @@ const ProfilePage = () => {
 	const [isSaving, setIsSaving] = useState(false);
 	const [profileMessage, setProfileMessage] = useState("");
 	const [profileError, setProfileError] = useState("");
+	const [avatarError, setAvatarError] = useState("");
 	const [authUser, setAuthUser] = useState<AuthUserData | null>(null);
 	const [isAuthUserLoading, setIsAuthUserLoading] = useState(true);
 	const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
@@ -205,8 +207,18 @@ const ProfilePage = () => {
 		avatarPreviewUrl ?? resolveMediaUrl(activeAvatarPath) ?? defaultAvatar;
 
 	const handleAvatarChange = (file: File | null) => {
+		if (file && file.size > MAX_AVATAR_SIZE_BYTES) {
+			if (avatarInputRef.current) {
+				avatarInputRef.current.value = "";
+			}
+			setProfileMessage("");
+			setAvatarError(t("profilePage.avatarSizeError"));
+			return;
+		}
+
 		setAvatarFile(file);
 		setSelectedAvatarPath(null);
+		setAvatarError("");
 		setProfileMessage("");
 		setProfileError("");
 
@@ -216,6 +228,7 @@ const ProfilePage = () => {
 	const handlePresetAvatarSelect = (avatarPath: string) => {
 		setSelectedAvatarPath(avatarPath);
 		setAvatarFile(null);
+		setAvatarError("");
 		setProfileMessage("");
 		setProfileError("");
 
@@ -249,6 +262,7 @@ const ProfilePage = () => {
 		}
 
 		setIsSaving(true);
+		setAvatarError("");
 		setProfileMessage("");
 		setProfileError("");
 
@@ -347,19 +361,20 @@ const ProfilePage = () => {
 	};
 
 	useEffect(() => {
-		if (!profileMessage && !profileError) {
+		if (!profileMessage && !profileError && !avatarError) {
 			return;
 		}
 
 		const timeoutId = window.setTimeout(() => {
 			setProfileMessage("");
 			setProfileError("");
+			setAvatarError("");
 		}, 5_000);
 
 		return () => {
 			window.clearTimeout(timeoutId);
 		};
-	}, [profileMessage, profileError]);
+	}, [avatarError, profileMessage, profileError]);
 
 	if (isProfileLoading) {
 		return <p className="profile-page-status">{t("profilePage.loading")}</p>;
@@ -465,6 +480,12 @@ const ProfilePage = () => {
 							>
 								{t("profilePage.uploadPhoto")}
 							</TextIconButton>
+
+							{avatarError ? (
+								<p className="profile-error" aria-live="polite">
+									{avatarError}
+								</p>
+							) : null}
 						</div>
 					) : null}
 				</div>

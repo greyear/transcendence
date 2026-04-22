@@ -107,6 +107,7 @@
 		"saving": "Saving...",
 		"saveSuccess": "Profile saved.",
 		"saveError": "Could not save profile.",
+		"avatarSizeError": "Profile photo must be 5 MB or smaller.",
 		"usernameRequired": "Username is required.",
 		"usernameTaken": "Username is already taken.",
 		"changePassword": "Change password",
