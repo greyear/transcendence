@@ -143,12 +143,12 @@ export const sequenceHeader = (req: Request) => {
 
 		const parts = authHeaders.split(" ");
 		if (parts.length !== 2) return null;
-		
+
 		if (parts[0].toLowerCase() !== "bearer") return null;
-		
+
 		const token = parts[1]?.trim();
 		if (!token) return null;
-		
+
 		return token;
 	} catch (error) {
 		console.error(error);
@@ -161,7 +161,8 @@ export const sequenceHeader = (req: Request) => {
 export const extractToken = (req: Request): string | null => {
 	try {
 		// Try cookie first
-		const cookieToken = typeof req.cookies?.token === "string" ? req.cookies.token : null;
+		const cookieToken =
+			typeof req.cookies?.token === "string" ? req.cookies.token : null;
 		if (cookieToken) {
 			return cookieToken;
 		}
@@ -216,7 +217,11 @@ export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 
 // Another middleware this time to validate JWT without userId check
 // Only for /logout at this time.
-export const validateJWT = (req: Request, res: Response, next: NextFunction) => {
+export const validateJWT = (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
 	const decodedJWT = fetchDecodeToken(req);
 	if (!decodedJWT) {
 		res.status(401).json({ error: "Invalid token" });

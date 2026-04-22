@@ -142,6 +142,14 @@ const getRecipeWithIngredientsQuery = `
 		r.spiciness,
 		r.author_id,
 		r.rating_avg,
+		r.rating_count,
+		(
+			SELECT rr.rating
+			FROM recipe_ratings rr
+			WHERE rr.recipe_id = r.id
+				AND rr.user_id = $3::int
+			LIMIT 1
+		) AS viewer_rating,
 		(
 			SELECT rm.url
 			FROM recipe_media rm
@@ -227,11 +235,13 @@ const getRecipeWithIngredientsById = async (
 	recipeId: number,
 	locale: SupportedLocale,
 	client?: PoolClient,
+	viewerUserId?: number,
 ): Promise<Recipe | null> => {
 	const db = client ?? pool;
 	const result = await db.query(getRecipeWithIngredientsQuery, [
 		recipeId,
 		locale,
+		viewerUserId ?? null,
 	]);
 
 	if (result.rows.length === 0) {
@@ -1288,7 +1298,7 @@ export const getRecipeById = async (
 			return { restricted: true };
 		}
 
-		return getRecipeWithIngredientsById(id, locale);
+		return getRecipeWithIngredientsById(id, locale, undefined, userId);
 	} catch (error) {
 		console.error("Database error in getRecipeById:", error);
 		throw error;
