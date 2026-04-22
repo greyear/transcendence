@@ -140,7 +140,7 @@ const UsersPage = () => {
 				tab={tab}
 			/>
 
-			<div className="users-page-pagination-row">
+			<div className="pagination-row">
 				<SortMenu
 					options={PER_PAGE_MENU_OPTIONS}
 					value={String(perPage)}

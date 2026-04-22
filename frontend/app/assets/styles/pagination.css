@@ -2,6 +2,21 @@
 	width: fit-content;
 }
 
+.pagination-row {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+	gap: var(--space-m);
+}
+
+@media (min-width: 1440px) {
+	.pagination-row {
+		flex-direction: row;
+		justify-content: space-between;
+	}
+}
+
 .pagination__list {
 	display: flex;
 	align-items: center;

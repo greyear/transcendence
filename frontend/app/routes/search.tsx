@@ -534,7 +534,7 @@ const SearchPage = () => {
 				</>
 			)}
 
-			<div className="search-page__pagination-row">
+			<div className="pagination-row">
 				<SortMenu
 					options={limitOptions}
 					value={String(limit)}
