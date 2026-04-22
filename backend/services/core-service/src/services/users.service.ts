@@ -31,9 +31,10 @@ const USER_SEARCH_LIMIT = 20;
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const doesUserExist = async (userId: number): Promise<boolean> => {
-	const result = await pool.query("SELECT id FROM users WHERE id = $1", [
-		userId,
-	]);
+	const result = await pool.query(
+		"SELECT id FROM users WHERE id = $1 AND is_deleted = false",
+		[userId],
+	);
 	return (result.rowCount ?? 0) > 0;
 };
 
@@ -80,7 +81,7 @@ export const getAllUsers = async (
 					COUNT(r.id)::int AS recipes_count
 				FROM users u
 				LEFT JOIN recipes r ON r.author_id = u.id
-				WHERE u.username ILIKE $1
+				WHERE u.is_deleted = false AND u.username ILIKE $1
 				GROUP BY u.id, u.username, u.avatar
 				ORDER BY
 					CASE WHEN u.username ILIKE $2 THEN 0 ELSE 1 END,
@@ -102,6 +103,7 @@ export const getAllUsers = async (
 				COUNT(r.id)::int AS recipes_count
 			FROM users u
 			LEFT JOIN recipes r ON r.author_id = u.id
+			WHERE u.is_deleted = false
 			GROUP BY u.id, u.username, u.avatar
 			ORDER BY u.id ASC
 		`);
@@ -141,7 +143,7 @@ export const getUserById = async (
 					WHERE r2.author_id = u.id
 				) AS recipes_count
 			FROM users u
-			WHERE u.id = $1
+			WHERE u.id = $1 AND u.is_deleted = false
 			LIMIT 1
 			`,
 			[userId, requesterId ?? null],
@@ -164,9 +166,10 @@ export const getUserById = async (
 };
 
 export const getFollowers = async (userId: number) => {
-	const userExists = await pool.query("SELECT id FROM users WHERE id = $1", [
-		userId,
-	]);
+	const userExists = await pool.query(
+		"SELECT id FROM users WHERE id = $1 AND is_deleted = false",
+		[userId],
+	);
 
 	if (userExists.rows.length === 0) {
 		throw new Error("User not found");
@@ -180,7 +183,7 @@ export const getFollowers = async (userId: number) => {
 			(SELECT COUNT(*) FROM recipes r WHERE r.author_id = u.id AND r.status = 'published') AS recipes_count
 		FROM users u
 		JOIN followers f ON u.id = f.user_id
-		WHERE f.followed_id = $1
+		WHERE f.followed_id = $1 AND u.is_deleted = false
 		ORDER BY u.username ASC`,
 		[userId],
 	);
@@ -189,9 +192,10 @@ export const getFollowers = async (userId: number) => {
 };
 
 export const getFollowing = async (userId: number) => {
-	const userExists = await pool.query("SELECT id FROM users WHERE id = $1", [
-		userId,
-	]);
+	const userExists = await pool.query(
+		"SELECT id FROM users WHERE id = $1 AND is_deleted = false",
+		[userId],
+	);
 
 	if (userExists.rows.length === 0) {
 		throw new Error("User not found");
@@ -205,7 +209,7 @@ export const getFollowing = async (userId: number) => {
 			(SELECT COUNT(*) FROM recipes r WHERE r.author_id = u.id AND r.status = 'published') AS recipes_count
 		FROM users u
 		JOIN followers f ON u.id = f.followed_id
-		WHERE f.user_id = $1
+		WHERE f.user_id = $1 AND u.is_deleted = false
 		ORDER BY u.username ASC`,
 		[userId],
 	);
@@ -229,6 +233,7 @@ export const getMyFriends = async (userId: number) => {
 		FROM users u
 		JOIN followers f1 ON f1.followed_id = u.id AND f1.user_id = $1
 		JOIN followers f2 ON f2.user_id = u.id AND f2.followed_id = $1
+		WHERE u.is_deleted = false
 		ORDER BY u.username ASC`,
 		[userId],
 	);

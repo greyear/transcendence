@@ -21,6 +21,10 @@ export type UpdateProfileResult =
 	| { success: true; profile: ProfileData }
 	| { success: false; reason: "not-found" | "username-taken" };
 
+export type DeleteProfileResult =
+	| { success: true }
+	| { success: false; reason: "not-found" };
+
 export type RegisterProfileResult = {
 	success: true;
 	profile: ProfileData;
@@ -129,6 +133,32 @@ export const registerProfile = async (
 		return { success: true, profile, created: true };
 	} catch (error) {
 		console.error("Database error in registerProfile:", error);
+		throw error;
+	}
+};
+
+/**
+ * Soft-delete a user account.
+ *
+ * Sets is_deleted = true for the given userId.
+ * The user will no longer appear in public listings or be fetchable by ID.
+ */
+export const deleteProfile = async (
+	userId: number,
+): Promise<DeleteProfileResult> => {
+	try {
+		const result = await pool.query(
+			`UPDATE users SET is_deleted = true, updated_at = now() WHERE id = $1 AND is_deleted = false`,
+			[userId],
+		);
+
+		if ((result.rowCount ?? 0) === 0) {
+			return { success: false, reason: "not-found" };
+		}
+
+		return { success: true };
+	} catch (error) {
+		console.error("Database error in deleteProfile:", error);
 		throw error;
 	}
 };
