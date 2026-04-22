@@ -460,9 +460,86 @@ export const getAllRecipesPaginated = async (
 	page: number,
 	perPage: number,
 	locale: SupportedLocale = DEFAULT_LOCALE,
+	search?: string,
 ): Promise<PaginatedResponse<RecipeListItem>> => {
 	try {
 		const offset = (page - 1) * perPage;
+		const normalizedSearch = search?.trim();
+
+		if (normalizedSearch) {
+			const [dataResult, countResult] = await Promise.all([
+				pool.query(
+					`
+					WITH searchable_recipes AS (
+						SELECT
+							id,
+							title,
+							description,
+							author_id,
+							rating_avg,
+							created_at,
+							to_tsvector(
+								'simple',
+								COALESCE(title->>$1, title->>'en', '') || ' ' ||
+								COALESCE(description->>$1, description->>'en', '') || ' ' ||
+								COALESCE(instructions->>$1, instructions->>'en', '')
+							) AS search_vector
+						FROM recipes
+						WHERE status = 'published'
+					)
+					SELECT
+						id,
+						COALESCE(title->>$1, title->>'en') AS title,
+						COALESCE(description->>$1, description->>'en') AS description,
+						author_id,
+						rating_avg,
+						(
+							SELECT rm.url
+							FROM recipe_media rm
+							WHERE rm.recipe_id = searchable_recipes.id AND rm.position = 0
+							LIMIT 1
+						) AS picture_url
+					FROM searchable_recipes
+					WHERE search_vector @@ websearch_to_tsquery('simple', $4)
+					ORDER BY
+						ts_rank(search_vector, websearch_to_tsquery('simple', $4)) DESC,
+						created_at DESC,
+						id DESC
+					LIMIT $2 OFFSET $3
+					`,
+					[locale, perPage, offset, normalizedSearch],
+				),
+				pool.query(
+					`
+					WITH searchable_recipes AS (
+						SELECT
+							to_tsvector(
+								'simple',
+								COALESCE(title->>$1, title->>'en', '') || ' ' ||
+								COALESCE(description->>$1, description->>'en', '') || ' ' ||
+								COALESCE(instructions->>$1, instructions->>'en', '')
+							) AS search_vector
+						FROM recipes
+						WHERE status = 'published'
+					)
+					SELECT COUNT(*)::int AS total
+					FROM searchable_recipes
+					WHERE search_vector @@ websearch_to_tsquery('simple', $2)
+					`,
+					[locale, normalizedSearch],
+				),
+			]);
+
+			const total_count = countResult.rows[0].total as number;
+			const total_pages = Math.ceil(total_count / perPage);
+			const data = parseRecipeRows(
+				dataResult.rows,
+				recipeListItemSchema,
+				"recipe",
+			);
+
+			return { data, total_count, total_pages, page, per_page: perPage };
+		}
 
 		const [dataResult, countResult] = await Promise.all([
 			pool.query(
