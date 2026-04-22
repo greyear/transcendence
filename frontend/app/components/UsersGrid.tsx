@@ -1,6 +1,6 @@
 import { UserCard } from "./cards/UserCard";
 import "../assets/styles/usersGrid.css";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
@@ -106,12 +106,19 @@ export const UsersGrid = ({
 
 	const isAuthGated = tabRequiresAuth(tab) && !isAuthenticated;
 
+	// Stash `onLoad` in a ref so an inline `(n) => ...` callback from a parent
+	// doesn't retrigger the fetch effect on every render.
+	const onLoadRef = useRef(onLoad);
+	useEffect(() => {
+		onLoadRef.current = onLoad;
+	}, [onLoad]);
+
 	useEffect(() => {
 		setErrorStatus(null);
 
 		if (isAuthGated) {
 			setUserList([]);
-			onLoad?.(0);
+			onLoadRef.current?.(0);
 			setIsLoading(false);
 			setErrorStatus("auth-required");
 			return;
@@ -138,13 +145,13 @@ export const UsersGrid = ({
 			})
 			.then((body) => {
 				if (body === null) {
-					onLoad?.(0);
+					onLoadRef.current?.(0);
 					setUserList([]);
 					return;
 				}
 				const parsed = UserListResponseSchema.safeParse(body);
 				const allUsers = parsed.success ? parsed.data.data : [];
-				onLoad?.(allUsers.length);
+				onLoadRef.current?.(allUsers.length);
 				setUserList(allUsers);
 			})
 			.catch((error: unknown) => {
@@ -154,7 +161,7 @@ export const UsersGrid = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [onLoad, tab, isAuthGated]);
+	}, [tab, isAuthGated]);
 
 	const sortedList = useMemo(
 		() => sortUsers(userList, sortValue),

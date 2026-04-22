@@ -56,8 +56,7 @@
 		"empty": "Reseptejä ei löytynyt.",
 		"error": "Reseptien haku epäonnistui (tila: {{status}}).",
 		"signInRequired": "Kirjaudu sisään nähdäksesi tämän listan.",
-		"favoritesForbidden": "Tämän käyttäjän suosikit näkyvät vain vastavuoroisille seuraajille.",
-		"favoritesSelf": "Omat suosikkisi löytyvät profiilistasi."
+		"favoritesForbidden": "Tämän käyttäjän suosikit näkyvät vain vastavuoroisille seuraajille."
 	},
 	"recipePage": {
 		"loading": "Ladataan...",
@@ -106,8 +105,6 @@
 		"title": "Haku",
 		"totalCount": "Tuloksia:",
 		"recipesTab": "Reseptit",
-		"usersTab": "Käyttäjät",
-		"perPage": "Per sivu",
 		"noResults": "Reseptejä ei löytynyt.",
 		"searching": "Haetaan reseptejä...",
 		"error": "Haku epäonnistui. Yritä uudelleen.",
@@ -354,7 +351,6 @@
 		"allRecipes": "Kaikki reseptit",
 		"allRecipesByUser": "Kaikki käyttäjän {{name}} reseptit",
 		"allFavoritesOfUser": "Kaikki käyttäjän {{name}} suosikit",
-		"backToProfile": "Takaisin profiiliin",
 		"allUsers": "Kaikki käyttäjät",
 		"profileAvatar": "Käyttäjän {{name}} profiilikuva",
 		"followUser": "Seuraa käyttäjää {{name}}",

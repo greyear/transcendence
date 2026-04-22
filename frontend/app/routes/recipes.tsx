@@ -63,7 +63,7 @@ type ScopedMode = "authoredBy" | "favoritesOf" | "global";
 
 const RecipesPage = () => {
 	const { t } = useTranslation();
-	const { isAuthenticated, currentUserId, openAuthModal, showNotice } =
+	const { isAuthenticated, isAuthResolved, currentUserId, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -131,7 +131,15 @@ const RecipesPage = () => {
 	// `tab` lives in the URL so it's shareable, refresh-safe, and survives
 	// re-renders from sibling URL params (sort, page).
 	const parsedTab = RecipesTabSchema.safeParse(searchParams.get("tab"));
-	const tab: RecipesTab = parsedTab.success ? parsedTab.data : "all";
+	const requestedTab: RecipesTab = parsedTab.success ? parsedTab.data : "all";
+	// Guests hitting ?tab=my via a bookmark shouldn't see FilterList highlight
+	// "All" while the grid renders a sign-in gate for "my" — collapse both to
+	// "all" so the UI stays coherent. Once they sign in, the URL still carries
+	// ?tab=my and the intent is restored.
+	const tab: RecipesTab =
+		!isAuthenticated && AUTH_REQUIRED_TABS.has(requestedTab)
+			? "all"
+			: requestedTab;
 
 	// Hide auth-only tabs for guests so they can't reach a state the grid
 	// would have to refuse to render. Direct URL hits to ?tab=my still get
@@ -177,9 +185,12 @@ const RecipesPage = () => {
 	const page = getCurrentPage(searchParams, totalPages);
 
 	// Self-favorites has no audience: the backend always 403s (you can't be a
-	// mutual follower of yourself). Send the viewer to their own profile.
+	// mutual follower of yourself). Send the viewer to their own profile —
+	// but wait for auth to resolve, otherwise the grid fires /favorites and
+	// flashes the 403 message to the owner before the redirect lands.
 	if (
 		mode === "favoritesOf" &&
+		isAuthResolved &&
 		currentUserId !== null &&
 		scopedFavoritesOf === currentUserId
 	) {
@@ -196,10 +207,7 @@ const RecipesPage = () => {
 	return (
 		<section className="recipes-page">
 			{isScoped && scopedSubjectId !== null ? (
-				<TextIconButton
-					to={`/user/${scopedSubjectId}`}
-					className="text-body2 recipes-page-back"
-				>
+				<TextIconButton to={`/user/${scopedSubjectId}`} className="text-body2">
 					<NavArrowLeft aria-hidden="true" />
 					{t("recipesPage.backToProfile")}
 				</TextIconButton>
@@ -239,20 +247,28 @@ const RecipesPage = () => {
 				</TextIconButton>
 			</div>
 
-			<RecipesGrid
-				page={page}
-				perPage={perPage}
-				onLoad={setTotalCount}
-				sortValue={sortValue}
-				isAuthenticated={isAuthenticated}
-				openAuthModal={openAuthModal}
-				showNotice={showNotice}
-				tab={tab}
-				userId={mode === "authoredBy" ? (scopedUserId ?? undefined) : undefined}
-				favoritesOfUserId={
-					mode === "favoritesOf" ? (scopedFavoritesOf ?? undefined) : undefined
-				}
-			/>
+			{mode === "favoritesOf" && !isAuthResolved ? (
+				<p className="recipes-grid-status">{t("recipesGrid.loading")}</p>
+			) : (
+				<RecipesGrid
+					page={page}
+					perPage={perPage}
+					onLoad={setTotalCount}
+					sortValue={sortValue}
+					isAuthenticated={isAuthenticated}
+					openAuthModal={openAuthModal}
+					showNotice={showNotice}
+					tab={tab}
+					userId={
+						mode === "authoredBy" ? (scopedUserId ?? undefined) : undefined
+					}
+					favoritesOfUserId={
+						mode === "favoritesOf"
+							? (scopedFavoritesOf ?? undefined)
+							: undefined
+					}
+				/>
+			)}
 
 			<div className="pagination-row">
 				<SortMenu

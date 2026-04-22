@@ -1,6 +1,6 @@
 import { RecipeCard } from "./cards/RecipeCard";
 import "../assets/styles/recipesGrid.css";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
@@ -133,16 +133,20 @@ export const RecipesGrid = ({
 	const isAuthGated =
 		!isAuthenticated &&
 		(favoritesOfUserId !== undefined || (!isScoped && tabRequiresAuth(tab)));
-	const isFavoritesEndpoint =
-		favoritesOfUserId !== undefined ||
-		(userId === undefined && tab === "saved");
+
+	// Stash `onLoad` in a ref so an inline `(n) => ...` callback from a parent
+	// doesn't retrigger the fetch effect on every render.
+	const onLoadRef = useRef(onLoad);
+	useEffect(() => {
+		onLoadRef.current = onLoad;
+	}, [onLoad]);
 
 	useEffect(() => {
 		setErrorStatus(null);
 
 		if (isAuthGated) {
 			setRecipeList([]);
-			onLoad?.(0);
+			onLoadRef.current?.(0);
 			setIsLoading(false);
 			setErrorStatus("auth-required");
 			return;
@@ -157,6 +161,9 @@ export const RecipesGrid = ({
 		const requiresCredentials =
 			favoritesOfUserId !== undefined ||
 			(userId === undefined && tabRequiresAuth(tab));
+		const isFavoritesEndpoint =
+			favoritesOfUserId !== undefined ||
+			(userId === undefined && tab === "saved");
 
 		fetch(endpoint, {
 			headers: { "X-Language": language },
@@ -172,7 +179,7 @@ export const RecipesGrid = ({
 			})
 			.then((body) => {
 				if (body === null) {
-					onLoad?.(0);
+					onLoadRef.current?.(0);
 					setRecipeList([]);
 					return;
 				}
@@ -199,7 +206,7 @@ export const RecipesGrid = ({
 						(a, b) => (b.rating_avg ?? 0) - (a.rating_avg ?? 0),
 					);
 				}
-				onLoad?.(allRecipes.length);
+				onLoadRef.current?.(allRecipes.length);
 				setRecipeList(allRecipes);
 			})
 			.catch((error: unknown) => {
@@ -209,15 +216,7 @@ export const RecipesGrid = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [
-		onLoad,
-		sort,
-		userId,
-		favoritesOfUserId,
-		tab,
-		isAuthGated,
-		isFavoritesEndpoint,
-	]);
+	}, [sort, userId, favoritesOfUserId, tab, isAuthGated]);
 
 	const sortedList = useMemo(
 		() => sortRecipes(recipeList, sortValue),

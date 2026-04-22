@@ -57,7 +57,14 @@ const UsersPage = () => {
 	const [perPage, setPerPage] = usePerPageParam();
 
 	const parsedTab = UsersTabSchema.safeParse(searchParams.get("tab"));
-	const tab: UsersTab = parsedTab.success ? parsedTab.data : "all";
+	const requestedTab: UsersTab = parsedTab.success ? parsedTab.data : "all";
+	// Guests hitting ?tab=followers via a bookmark shouldn't see FilterList
+	// highlight "All" while the grid renders a sign-in gate for "followers" —
+	// collapse both to "all" so the UI stays coherent.
+	const tab: UsersTab =
+		!isAuthenticated && AUTH_REQUIRED_TABS.has(requestedTab)
+			? "all"
+			: requestedTab;
 
 	// Hide auth-only tabs for guests; direct URL hits to ?tab=followers
 	// still get the in-grid sign-in prompt.
