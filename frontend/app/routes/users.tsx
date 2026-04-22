@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useOutletContext, useSearchParams } from "react-router";
 import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
@@ -66,42 +66,41 @@ const UsersPage = () => {
 			? "all"
 			: requestedTab;
 
-	// Hide auth-only tabs for guests; direct URL hits to ?tab=followers
-	// still get the in-grid sign-in prompt.
-	const tabsConfig = useMemo(
-		() =>
-			UsersTabSchema.options
-				.filter((value) => isAuthenticated || !AUTH_REQUIRED_TABS.has(value))
-				.map((value) => ({ value, label: t(TAB_LABEL_KEYS[value]) })),
-		[t, isAuthenticated],
-	);
-
-	const filterLabels = useMemo(
-		() => tabsConfig.map((entry) => entry.label),
-		[tabsConfig],
-	);
-
-	const activeLabel =
-		tabsConfig.find((entry) => entry.value === tab)?.label ??
-		tabsConfig[0].label;
-
-	const handleTabChange = (label: string) => {
-		const next = tabsConfig.find((entry) => entry.label === label);
-		if (!next) {
-			return;
-		}
-		setSearchParams(
-			(prev) => {
-				const params = new URLSearchParams(prev);
-				if (next.value === "all") {
-					params.delete("tab");
-				} else {
-					params.set("tab", next.value);
-				}
-				params.delete("page");
-				return params;
-			},
-			{ replace: true },
+	// Inline: the tab bar is only rendered for authenticated users, so
+	// skipping these allocations for guests is cheap and keeps the hook list
+	// above small. All three of `tabsConfig`, the label list, and the
+	// onFilterChange handler live inside `renderTabBar` because none of them
+	// are used anywhere else.
+	const renderTabBar = () => {
+		const tabsConfig = UsersTabSchema.options.map((value) => ({
+			value,
+			label: t(TAB_LABEL_KEYS[value]),
+		}));
+		const handleTabChange = (label: string) => {
+			const next = tabsConfig.find((entry) => entry.label === label);
+			if (!next) {
+				return;
+			}
+			setSearchParams(
+				(prev) => {
+					const params = new URLSearchParams(prev);
+					if (next.value === "all") {
+						params.delete("tab");
+					} else {
+						params.set("tab", next.value);
+					}
+					params.delete("page");
+					return params;
+				},
+				{ replace: true },
+			);
+		};
+		return (
+			<FilterList
+				filters={tabsConfig.map((entry) => entry.label)}
+				activeFilter={t(TAB_LABEL_KEYS[tab])}
+				onFilterChange={handleTabChange}
+			/>
 		);
 	};
 
@@ -120,13 +119,7 @@ const UsersPage = () => {
 				onSubmit={handleSearch}
 			/>
 
-			{isAuthenticated ? (
-				<FilterList
-					filters={filterLabels}
-					activeFilter={activeLabel}
-					onFilterChange={handleTabChange}
-				/>
-			) : null}
+			{isAuthenticated ? renderTabBar() : null}
 
 			<div className="users-page-controls">
 				<SortMenu options={sortOptions} value={sortValue} onChange={setSort} />
