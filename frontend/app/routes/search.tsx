@@ -110,6 +110,7 @@ const SearchPage = () => {
 	const sort = searchParams.get("sort") ?? "";
 	const limit = parseLimit(searchParams.get("limit"));
 	const aiEnabled = searchParams.get("ai") !== "0";
+	const isAiSearch = typeParam === "recipes" && aiEnabled;
 
 	const rawPage = Number(searchParams.get("page") ?? "1");
 	const page =
@@ -171,8 +172,7 @@ const SearchPage = () => {
 		params.set("type", typeParam);
 		params.set("limit", String(limit));
 		params.set("page", String(page));
-		const effectiveAi = typeParam === "recipes" && aiEnabled;
-		params.set("ai", effectiveAi ? "1" : "0");
+		params.set("ai", isAiSearch ? "1" : "0");
 		if (sort) {
 			params.set("sort", sort);
 		}
@@ -253,7 +253,7 @@ const SearchPage = () => {
 		limit,
 		page,
 		sort,
-		aiEnabled,
+		isAiSearch,
 		mealTypeFilters,
 		dishTypeFilters,
 		mainIngredientFilters,
@@ -429,12 +429,14 @@ const SearchPage = () => {
 
 					{results.data.length > 0 && (
 						<div className="search-page__pagination-row">
-							<SortMenu
-								options={limitOptions}
-								value={String(limit)}
-								onChange={handleLimitChange}
-								label={`${t("searchPage.perPage")}: ${limit}`}
-							/>
+							{!isAiSearch && (
+								<SortMenu
+									options={limitOptions}
+									value={String(limit)}
+									onChange={handleLimitChange}
+									label={`${t("searchPage.perPage")}: ${limit}`}
+								/>
+							)}
 							<Pagination
 								totalElementsCount={total}
 								elementsPerPage={limit}
