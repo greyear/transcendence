@@ -2,8 +2,11 @@ import { RecipeCard } from "./cards/RecipeCard";
 import "../assets/styles/recipesGrid.css";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { z } from "zod";
+import { MainButton } from "~/components/buttons/MainButton";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { useRelationSet } from "~/composables/useRelationSet";
+import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 
 type RecipeCardResponse = {
 	id: number;
@@ -12,6 +15,9 @@ type RecipeCardResponse = {
 	description: string | null;
 	rating_avg: number | null;
 };
+
+export const RecipesTabSchema = z.enum(["all", "my", "saved"]);
+export type RecipesTab = z.infer<typeof RecipesTabSchema>;
 
 type RecipesGridProps = {
 	isAuthenticated: boolean;
@@ -23,6 +29,49 @@ type RecipesGridProps = {
 	onLoad?: (totalCount: number) => void;
 	sort?: "top";
 	userId?: number;
+	tab?: RecipesTab;
+};
+
+// Permissive shape that covers /recipes, /users/:id/recipes (both include
+// picture_url and rating_avg) and /users/me/recipes (omits picture_url, may
+// carry an extra `status` field). Missing optional fields normalize to null.
+const RecipeListItemSchema = z
+	.object({
+		id: z.number(),
+		title: z.string(),
+		description: z.string().nullable(),
+		rating_avg: z.coerce.number().nullable().optional(),
+		picture_url: z.string().nullable().optional(),
+	})
+	.transform((row) => ({
+		id: row.id,
+		title: row.title,
+		description: row.description,
+		rating_avg: row.rating_avg ?? null,
+		picture_url: row.picture_url ?? null,
+	}));
+
+const RecipeListResponseSchema = z.object({
+	data: z.array(RecipeListItemSchema),
+});
+
+const tabRequiresAuth = (tab: RecipesTab): boolean =>
+	tab === "my" || tab === "saved";
+
+const resolveEndpoint = (
+	userId: number | undefined,
+	tab: RecipesTab,
+): string => {
+	if (userId !== undefined) {
+		return `${API_BASE_URL}/users/${userId}/recipes`;
+	}
+	if (tab === "my") {
+		return `${API_BASE_URL}/users/me/recipes`;
+	}
+	if (tab === "saved") {
+		return `${API_BASE_URL}/users/me/favorites`;
+	}
+	return `${API_BASE_URL}/recipes`;
 };
 
 const sortRecipes = (
@@ -50,14 +99,15 @@ export const RecipesGrid = ({
 	sort,
 	sortValue = "",
 	userId,
+	tab = "all",
 }: RecipesGridProps) => {
 	const { t, i18n } = useTranslation();
 	const language = i18n.resolvedLanguage ?? "en";
 	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
-	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
-		null,
-	);
+	const [errorStatus, setErrorStatus] = useState<
+		number | "unknown" | "auth-required" | null
+	>(null);
 
 	const {
 		ids: favoriteIds,
@@ -69,29 +119,72 @@ export const RecipesGrid = ({
 		openAuthModal,
 		listEndpoint: "/users/me/favorites",
 		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
-		onAlreadyMember: () => showNotice(t("notices.alreadyFavorited")),
 	});
 
+	// `userId` (foreign-profile mode) takes precedence over the viewer-scoped
+	// tabs, so the auth gate only applies when no userId is set.
+	const isAuthGated =
+		userId === undefined && tabRequiresAuth(tab) && !isAuthenticated;
+	const isFavoritesEndpoint = userId === undefined && tab === "saved";
+
 	useEffect(() => {
-		setIsLoading(true);
 		setErrorStatus(null);
 
-		const endpoint =
-			userId !== undefined
-				? `${API_BASE_URL}/users/${userId}/recipes`
-				: `${API_BASE_URL}/recipes`;
+		if (isAuthGated) {
+			setRecipeList([]);
+			onLoad?.(0);
+			setIsLoading(false);
+			setErrorStatus("auth-required");
+			return;
+		}
+
+		setIsLoading(true);
+
+		const endpoint = resolveEndpoint(userId, tab);
+		// /users/me/* require the auth cookie. The other endpoints don't, but
+		// passing credentials is harmless — keep the original no-credentials path
+		// for them to minimize surface area.
+		const requiresCredentials = userId === undefined && tabRequiresAuth(tab);
+
 		fetch(endpoint, {
 			headers: { "X-Language": language },
+			...(requiresCredentials ? { credentials: "include" } : {}),
 		})
-			.then((res) => {
+			.then(async (res) => {
 				if (!res.ok) {
 					setErrorStatus(res.status);
-					return { data: [] };
+					return null;
 				}
-				return res.json();
+				const body: unknown = await res.json();
+				return body;
 			})
 			.then((body) => {
-				let allRecipes: RecipeCardResponse[] = body.data ?? [];
+				if (body === null) {
+					onLoad?.(0);
+					setRecipeList([]);
+					return;
+				}
+
+				let allRecipes: RecipeCardResponse[];
+
+				if (isFavoritesEndpoint) {
+					const parsed = FavoriteRecipesResponseSchema.safeParse(body);
+					const rows = parsed.success ? parsed.data.data : [];
+					// /users/me/favorites returns {id, title, description, avatar}.
+					// `avatar` is the *author's* avatar (see TODO(favorites-owner) in
+					// user.tsx), not the recipe thumbnail, so we deliberately drop it
+					// instead of piping it in as picture_url.
+					allRecipes = rows.map((row) => ({
+						id: row.id,
+						title: row.title,
+						description: row.description,
+						picture_url: null,
+						rating_avg: null,
+					}));
+				} else {
+					const parsed = RecipeListResponseSchema.safeParse(body);
+					allRecipes = parsed.success ? parsed.data.data : [];
+				}
 
 				if (sort === "top") {
 					allRecipes = [...allRecipes].sort(
@@ -108,7 +201,7 @@ export const RecipesGrid = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [language, onLoad, sort, userId]);
+	}, [language, onLoad, sort, userId, tab, isAuthGated, isFavoritesEndpoint]);
 
 	const sortedList = useMemo(
 		() => sortRecipes(recipeList, sortValue),
@@ -120,6 +213,17 @@ export const RecipesGrid = ({
 
 	if (isLoading) {
 		return <p className="recipes-grid-status">{t("recipesGrid.loading")}</p>;
+	}
+
+	if (errorStatus === "auth-required") {
+		return (
+			<div className="recipes-grid-status">
+				<p>{t("recipesGrid.signInRequired")}</p>
+				<MainButton onClick={() => openAuthModal()}>
+					{t("common.signInButton")}
+				</MainButton>
+			</div>
+		);
 	}
 
 	if (errorStatus !== null) {

@@ -4,7 +4,11 @@ import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
 import { Pagination } from "~/components/pagination/Pagination";
-import { UsersGrid } from "~/components/UsersGrid";
+import {
+	UsersGrid,
+	type UsersTab,
+	UsersTabSchema,
+} from "~/components/UsersGrid";
 import "~/assets/styles/users.css";
 import { Filter } from "iconoir-react";
 import { useTranslation } from "react-i18next";
@@ -21,9 +25,8 @@ const UsersPage = () => {
 	const { t } = useTranslation();
 	const { isAuthenticated, currentUserId, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
-	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
 	const [totalCount, setTotalCount] = useState(0);
-	const [searchParams] = useSearchParams();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
 
 	const handleSearch = (q: string) => {
@@ -34,14 +37,48 @@ const UsersPage = () => {
 	const sortOptions = useSortOptions("users");
 	const [sortValue, setSort] = useSortParam(sortOptions[0].value);
 
-	const filters = useMemo(
-		() => [
-			t("usersPage.tabAll"),
-			t("usersPage.tabFollowers"),
-			t("usersPage.tabFollowing"),
-		],
-		[t],
+	const parsedTab = UsersTabSchema.safeParse(searchParams.get("tab"));
+	const tab: UsersTab = parsedTab.success ? parsedTab.data : "all";
+
+	const tabsConfig = useMemo((): { value: UsersTab; label: string }[] => {
+		const all = [
+			{ value: "all" as const, label: t("usersPage.tabAll") },
+			{ value: "followers" as const, label: t("usersPage.tabFollowers") },
+			{ value: "following" as const, label: t("usersPage.tabFollowing") },
+		];
+		// Hide auth-only tabs for guests; direct URL hits to ?tab=followers
+		// still get the in-grid sign-in prompt.
+		return isAuthenticated ? all : all.filter((entry) => entry.value === "all");
+	}, [t, isAuthenticated]);
+
+	const filterLabels = useMemo(
+		() => tabsConfig.map((entry) => entry.label),
+		[tabsConfig],
 	);
+
+	const activeLabel =
+		tabsConfig.find((entry) => entry.value === tab)?.label ??
+		tabsConfig[0].label;
+
+	const handleTabChange = (label: string) => {
+		const next = tabsConfig.find((entry) => entry.label === label);
+		if (!next) {
+			return;
+		}
+		setSearchParams(
+			(prev) => {
+				const params = new URLSearchParams(prev);
+				if (next.value === "all") {
+					params.delete("tab");
+				} else {
+					params.set("tab", next.value);
+				}
+				params.delete("page");
+				return params;
+			},
+			{ replace: true },
+		);
+	};
 
 	const totalPages = Math.max(1, Math.ceil(totalCount / PER_PAGE));
 	const page = getCurrentPage(searchParams, totalPages);
@@ -59,11 +96,9 @@ const UsersPage = () => {
 			/>
 
 			<FilterList
-				filters={filters}
-				activeFilter={filters[activeFilterIndex]}
-				onFilterChange={(filter) =>
-					setActiveFilterIndex(filters.indexOf(filter))
-				}
+				filters={filterLabels}
+				activeFilter={activeLabel}
+				onFilterChange={handleTabChange}
 			/>
 
 			<div className="users-page-controls">
@@ -84,6 +119,7 @@ const UsersPage = () => {
 				currentUserId={currentUserId}
 				openAuthModal={openAuthModal}
 				showNotice={showNotice}
+				tab={tab}
 			/>
 
 			<Pagination

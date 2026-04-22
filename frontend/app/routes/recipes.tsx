@@ -5,7 +5,11 @@ import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
 import { Pagination } from "~/components/pagination/Pagination";
-import { RecipesGrid } from "~/components/RecipesGrid";
+import {
+	RecipesGrid,
+	type RecipesTab,
+	RecipesTabSchema,
+} from "~/components/RecipesGrid";
 import "~/assets/styles/recipes.css";
 import { Filter } from "iconoir-react";
 import { useTranslation } from "react-i18next";
@@ -23,9 +27,8 @@ const RecipesPage = () => {
 	const { t } = useTranslation();
 	const { isAuthenticated, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
-	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
 	const [totalCount, setTotalCount] = useState(0);
-	const [searchParams] = useSearchParams();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
 
 	const handleSearch = (q: string) => {
@@ -38,14 +41,52 @@ const RecipesPage = () => {
 
 	const [sortValue, setSort] = useSortParam(DEFAULT_SORT);
 
-	const filters = useMemo(
-		() => [
-			t("recipesPage.tabAll"),
-			t("recipesPage.tabMy"),
-			t("recipesPage.tabSaved"),
-		],
-		[t],
+	// `tab` lives in the URL so it's shareable, refresh-safe, and survives
+	// re-renders from sibling URL params (sort, page).
+	const parsedTab = RecipesTabSchema.safeParse(searchParams.get("tab"));
+	const tab: RecipesTab = parsedTab.success ? parsedTab.data : "all";
+
+	const tabsConfig = useMemo((): { value: RecipesTab; label: string }[] => {
+		const all = [
+			{ value: "all" as const, label: t("recipesPage.tabAll") },
+			{ value: "my" as const, label: t("recipesPage.tabMy") },
+			{ value: "saved" as const, label: t("recipesPage.tabSaved") },
+		];
+		// Hide auth-only tabs for guests so they can't reach a state the grid
+		// would have to refuse to render. Direct URL hits to ?tab=my still get
+		// the in-grid sign-in prompt.
+		return isAuthenticated ? all : all.filter((entry) => entry.value === "all");
+	}, [t, isAuthenticated]);
+
+	const filterLabels = useMemo(
+		() => tabsConfig.map((entry) => entry.label),
+		[tabsConfig],
 	);
+
+	const activeLabel =
+		tabsConfig.find((entry) => entry.value === tab)?.label ??
+		tabsConfig[0].label;
+
+	const handleTabChange = (label: string) => {
+		const next = tabsConfig.find((entry) => entry.label === label);
+		if (!next) {
+			return;
+		}
+		setSearchParams(
+			(prev) => {
+				const params = new URLSearchParams(prev);
+				if (next.value === "all") {
+					params.delete("tab");
+				} else {
+					params.set("tab", next.value);
+				}
+				params.delete("page");
+				return params;
+			},
+			{ replace: true },
+		);
+	};
+
 	const totalPages = Math.max(1, Math.ceil(totalCount / PER_PAGE));
 	const page = getCurrentPage(searchParams, totalPages);
 
@@ -67,11 +108,9 @@ const RecipesPage = () => {
 			/>
 
 			<FilterList
-				filters={filters}
-				activeFilter={filters[activeFilterIndex]}
-				onFilterChange={(filter) =>
-					setActiveFilterIndex(filters.indexOf(filter))
-				}
+				filters={filterLabels}
+				activeFilter={activeLabel}
+				onFilterChange={handleTabChange}
 			/>
 
 			<div className="recipes-page-controls">
@@ -91,6 +130,7 @@ const RecipesPage = () => {
 				isAuthenticated={isAuthenticated}
 				openAuthModal={openAuthModal}
 				showNotice={showNotice}
+				tab={tab}
 			/>
 
 			<Pagination

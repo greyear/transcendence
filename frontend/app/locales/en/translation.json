@@ -51,7 +51,8 @@
 	"recipesGrid": {
 		"loading": "Loading recipes...",
 		"empty": "No recipes found.",
-		"error": "Failed to fetch recipes (status: {{status}})."
+		"error": "Failed to fetch recipes (status: {{status}}).",
+		"signInRequired": "Sign in to view this list."
 	},
 	"recipePage": {
 		"loading": "Loading...",
@@ -198,7 +199,8 @@
 	"usersGrid": {
 		"loading": "Loading users...",
 		"empty": "No users found.",
-		"error": "Failed to fetch users (status: {{status}})."
+		"error": "Failed to fetch users (status: {{status}}).",
+		"signInRequired": "Sign in to view this list."
 	},
 	"userCard": {
 		"recipes": "recipes",
