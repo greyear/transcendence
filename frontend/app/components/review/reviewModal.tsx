@@ -1,32 +1,29 @@
 import { useRef } from "react";
 import { Modal } from "~/components/Modal";
-import { RatingForm } from "./ratingForm";
+import { ReviewForm } from "./reviewForm";
 
-type RatingModalProps = {
+type ReviewModalProps = {
 	isOpen: boolean;
 	onClose: () => void;
 	onSuccess?: () => void | Promise<void>;
 	recipeId: string;
-	initialRating: number | null;
 };
 
-export const RatingModal = ({
+export const ReviewModal = ({
 	isOpen,
 	onClose,
 	onSuccess,
 	recipeId,
-	initialRating,
-}: RatingModalProps) => {
+}: ReviewModalProps) => {
 	const dialogRef = useRef<HTMLElement>(null);
 
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} dialogRef={dialogRef}>
-			<RatingForm
+			<ReviewForm
 				dialogRef={dialogRef}
 				onClose={onClose}
 				onSuccess={onSuccess}
 				recipeId={recipeId}
-				initialRating={initialRating}
 			/>
 		</Modal>
 	);

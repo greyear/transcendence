@@ -9,6 +9,7 @@ import "~/assets/styles/profile.css";
 import { ChangePasswordModal } from "~/components/auth/ChangePasswordModal";
 import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
+import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { InputField } from "~/components/inputs/InputField";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
@@ -17,11 +18,13 @@ import type { LayoutOutletContext } from "~/layouts/layout";
 type AuthUserData = {
 	id: number;
 	email: string;
+	isGoog: boolean;
 };
 
 const AuthMeResponseSchema = z.object({
 	id: z.number(),
 	email: z.string(),
+	isGoog: z.boolean(),
 });
 
 type ProfileData = {
@@ -70,6 +73,9 @@ const ProfilePage = () => {
 	const [isAuthUserLoading, setIsAuthUserLoading] = useState(true);
 	const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] =
 		useState(false);
+	const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] =
+		useState(false);
+	const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
 	const onCloseChangePasswordModal = () => {
 		setIsChangePasswordModalOpen(false);
@@ -111,11 +117,14 @@ const ProfilePage = () => {
 				return res.json();
 			})
 			.then((body: unknown | null) => {
-				if (ignore || body === null) return;
+				if (ignore || body === null) {
+					return;
+				}
 
 				const parsed = AuthMeResponseSchema.safeParse(body);
-				if (!parsed.success) return;
-
+				if (!parsed.success) {
+					return;
+				}
 				setAuthUser(parsed.data);
 			})
 			.catch((error: unknown) => {
@@ -309,11 +318,7 @@ const ProfilePage = () => {
 			setProfileError(t("profilePage.accountUnavailable"));
 			return;
 		}
-
-		const confirmed = window.confirm(t("profilePage.confirmDeleteAccount"));
-		if (!confirmed) {
-			return;
-		}
+		setIsDeletingAccount(true);
 
 		try {
 			const response = await fetch(`${API_BASE_URL}/auth/delete`, {
@@ -337,6 +342,9 @@ const ProfilePage = () => {
 		} catch (error) {
 			console.error(error);
 			setProfileError(t("profilePage.errorDeletingProfile"));
+		} finally {
+			setIsDeletingAccount(false);
+			setIsDeleteAccountModalOpen(false);
 		}
 	};
 
@@ -537,17 +545,19 @@ const ProfilePage = () => {
 			</form>
 
 			<div className="profile-page-actions">
-				<TextIconButton onClick={onOpenChangePasswordModal} size="body2">
-					{t("profilePage.changePassword")}
-				</TextIconButton>
+				{authUser?.isGoog === false && (
+					<TextIconButton onClick={onOpenChangePasswordModal} size="body2">
+						{t("profilePage.changePassword")}
+					</TextIconButton>
+				)}
 				<TextIconButton onClick={handleLogOut} size="body2">
 					{t("profilePage.logout")}
 				</TextIconButton>
 				<TextIconButton
 					className="action-delete-account"
-					onClick={handleDeleteAccount}
+					onClick={() => setIsDeleteAccountModalOpen(true)}
 					size="body2"
-					disabled={isAuthUserLoading}
+					disabled={!authUser?.id || isAuthUserLoading || isDeletingAccount}
 				>
 					{t("profilePage.deleteAccount")}
 				</TextIconButton>
@@ -557,6 +567,20 @@ const ProfilePage = () => {
 				onClose={onCloseChangePasswordModal}
 				onSuccess={onChangePasswordSuccess}
 				userId={authUser?.id ?? null}
+			/>
+			<ConfirmationModal
+				isOpen={isDeleteAccountModalOpen}
+				onClose={() => {
+					if (isDeletingAccount) {
+						return;
+					}
+
+					setIsDeleteAccountModalOpen(false);
+				}}
+				onConfirm={handleDeleteAccount}
+				title={t("profilePage.confirmDeleteAccount")}
+				confirmLabel={t("profilePage.deleteAccount")}
+				isConfirming={isDeletingAccount}
 			/>
 		</section>
 	);

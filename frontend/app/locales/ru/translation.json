@@ -1,5 +1,6 @@
 {
 	"common": {
+		"cancel": "Отмена",
 		"signInButton": "Войти",
 		"searchPlaceholder": "Поиск...",
 		"sortButton": "Сортировать",
@@ -54,20 +55,43 @@
 		"error": "Не удалось загрузить рецепт (статус: {{status}}).",
 		"recipeNotFound": "Рецепт не найден.",
 		"rate": "Оценить",
+		"review": "Оставить отзыв",
 		"ingredients": "Ингредиенты",
 		"noIngredientsAvailable": "Для этого рецепта нет доступных ингредиентов.",
 		"instructions": "Шаги",
 		"noInstructionsAvailable": "Для этого рецепта шаги не добавлены.",
+		"reviews": "Отзывы",
+		"reviewsLoading": "Загрузка отзывов...",
+		"reviewsError": "Не удалось загрузить отзывы (статус: {{status}}).",
+		"noReviewsAvailable": "Отзывов пока нет.",
+		"reviewAnonymous": "Удаленный пользователь",
+		"confirmDeleteReview": "Удалить ваш отзыв?",
+		"deleteReviewError": "Не удалось удалить отзыв (статус: {{status}}).",
 		"step": "Шаг {{number}}",
-		"share": "Поделиться",
 		"pictureUploadFailedWarning": "Рецепт создан, но загрузить фото не удалось. Используется стандартное изображение — можно попробовать добавить фото позже."
 	},
 	"ratingModal": {
-		"title": "Поделитесь впечатлениями об этом рецепте",
-		"rateRecipe": "Оцените этот рецепт",
-		"describeRecipe": "Опишите рецепт (необязательно)",
+		"title": "Оцените этот рецепт",
+		"rateRecipe": "Поставьте 1-5 звезд",
 		"ratingOption": "{{value}} из 5 звезд",
-		"submit": "Отправить"
+		"averageRatingHint": "Ваша оценка влияет на средний рейтинг рецептов, который показывается на сайте.",
+		"submit": "Сохранить оценку",
+		"submitting": "Сохранение...",
+		"genericError": "Не удалось отправить оценку. Попробуйте еще раз.",
+		"networkError": "Запрос не смог дойти до сервера.",
+		"deleteRating": "Удалить вашу оценку",
+		"deleting": "Удаление...",
+		"updateRating": "Обновить вашу оценку",
+		"updatingRating": "Обновление..."
+	},
+	"reviewModal": {
+		"title": "Напишите отзыв",
+		"describeRecipe": "Опишите рецепт",
+		"existingReviewHint": "Ваш отзыв будет опубликован под вашим именем пользователя. Вы можете оставить больше одного отзыва.",
+		"submit": "Сохранить отзыв",
+		"submitting": "Сохранение...",
+		"genericError": "Не удалось отправить отзыв. Попробуйте еще раз.",
+		"networkError": "Запрос не смог дойти до сервера."
 	},
 	"searchPage": {
 		"title": "Поиск",
@@ -322,11 +346,12 @@
 		"unfollowUser": "Отписаться от {{name}}",
 		"openMyProfile": "Открыть мой профиль",
 		"sortBy": "Сортировать по",
-		"shareRecipe": "Поделиться рецептом",
 		"ingredientsAndInstructions": "Ингредиенты и инструкции рецепта",
 		"closeAuthDialog": "Закрыть окно аутентификации",
 		"toProfilePage": "Перейти на страницу профиля",
 		"closeRatingDialog": "Закрыть окно оценки",
+		"closeReviewDialog": "Закрыть окно отзыва",
+		"deleteReview": "Удалить отзыв",
 		"dismissWarning": "Скрыть уведомление"
 	},
 	"recipeCreateValidation": {

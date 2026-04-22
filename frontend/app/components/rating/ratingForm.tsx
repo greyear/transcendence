@@ -1,30 +1,151 @@
 import "~/assets/styles/rating.css";
 import { StarSolid, Xmark } from "iconoir-react";
-import { type FormEvent, type RefObject, useState } from "react";
+import { type FormEvent, type RefObject, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
 import { MainButton } from "~/components/buttons/MainButton";
+import { API_BASE_URL } from "~/composables/apiBaseUrl";
 
 type RatingFormProps = {
 	dialogRef?: RefObject<HTMLElement | null>;
 	onClose?: () => void;
+	onSuccess?: () => void | Promise<void>;
+	recipeId: string;
+	initialRating: number | null;
 };
 
 const RATING_VALUES = [1, 2, 3, 4, 5] as const;
 
-export const RatingForm = ({ dialogRef, onClose }: RatingFormProps) => {
-	const { t } = useTranslation();
-	const [rating, setRating] = useState(0);
-	const [review, setReview] = useState("");
+const ApiResponseSchema = z.object({
+	error: z.string().optional(),
+	message: z.string().optional(),
+});
 
-	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+export const RatingForm = ({
+	dialogRef,
+	onClose,
+	onSuccess,
+	recipeId,
+	initialRating,
+}: RatingFormProps) => {
+	const { t } = useTranslation();
+	const [rating, setRating] = useState(initialRating ?? 0);
+	const [error, setError] = useState("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
+
+	useEffect(() => {
+		setRating(initialRating ?? 0);
+		setError("");
+	}, [initialRating]);
+
+	const parseApiResponse = async (response: Response) => {
+		const body: unknown = await response.json();
+		const parsed = ApiResponseSchema.safeParse(body);
+
+		if (!parsed.success) {
+			return {};
+		}
+
+		return parsed.data;
+	};
+
+	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
-		if (rating === 0) {
+		if (rating === 0 || isDeleting) {
 			return;
 		}
 
-		// TODO: Add submit logic
+		setError("");
+		setIsSubmitting(true);
+
+		try {
+			const payload = JSON.stringify({ rating });
+			let ratingResponse = await fetch(
+				`${API_BASE_URL}/recipes/${recipeId}/rating`,
+				{
+					method: initialRating === null ? "POST" : "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					credentials: "include",
+					body: payload,
+				},
+			);
+			let ratingData = await parseApiResponse(ratingResponse);
+
+			if (ratingResponse.status === 409 && initialRating === null) {
+				ratingResponse = await fetch(
+					`${API_BASE_URL}/recipes/${recipeId}/rating`,
+					{
+						method: "PUT",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						credentials: "include",
+						body: payload,
+					},
+				);
+				ratingData = await parseApiResponse(ratingResponse);
+			}
+
+			if (!ratingResponse.ok) {
+				setError(ratingData.error ?? t("ratingModal.genericError"));
+				return;
+			}
+
+			await onSuccess?.();
+			onClose?.();
+		} catch (submitError) {
+			console.error(submitError);
+			setError(
+				submitError instanceof TypeError
+					? t("ratingModal.networkError")
+					: t("ratingModal.genericError"),
+			);
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
+
+	const handleDelete = async () => {
+		if (initialRating === null || isSubmitting) {
+			return;
+		}
+
+		setError("");
+		setIsDeleting(true);
+
+		try {
+			const response = await fetch(
+				`${API_BASE_URL}/recipes/${recipeId}/rating`,
+				{
+					method: "DELETE",
+					credentials: "include",
+				},
+			);
+			const responseData = await parseApiResponse(response);
+
+			if (!response.ok) {
+				setError(responseData.error ?? t("ratingModal.genericError"));
+				return;
+			}
+
+			setRating(0);
+			await onSuccess?.();
+			onClose?.();
+		} catch (deleteError) {
+			console.error(deleteError);
+			setError(
+				deleteError instanceof TypeError
+					? t("ratingModal.networkError")
+					: t("ratingModal.genericError"),
+			);
+		} finally {
+			setIsDeleting(false);
+		}
 	};
 
 	return (
@@ -90,30 +211,42 @@ export const RatingForm = ({ dialogRef, onClose }: RatingFormProps) => {
 						</div>
 					</div>
 
-					<div className="rating-field">
-						<label
-							className="rating-field-label text-label"
-							htmlFor="rating-review"
-						>
-							{t("ratingModal.describeRecipe")}
-						</label>
-						<textarea
-							id="rating-review"
-							name="review"
-							className="rating-textarea"
-							rows={4}
-							value={review}
-							onChange={(event) => setReview(event.target.value)}
-						/>
+					<div className="rating-status" aria-live="polite">
+						{error ? <p className="rating-error">{error}</p> : null}
 					</div>
 
-					<MainButton
-						type="submit"
-						className="rating-submit"
-						disabled={rating === 0}
-					>
-						{t("ratingModal.submit")}
-					</MainButton>
+					<p className="rating-help-text text-caption">
+						{t("ratingModal.averageRatingHint")}
+					</p>
+
+					<div className="rating-actions">
+						<MainButton
+							type="submit"
+							className="rating-submit"
+							disabled={rating === 0 || isSubmitting || isDeleting}
+						>
+							{initialRating !== null
+								? isSubmitting
+									? t("ratingModal.updatingRating")
+									: t("ratingModal.updateRating")
+								: isSubmitting
+									? t("ratingModal.submitting")
+									: t("ratingModal.submit")}
+						</MainButton>
+						{initialRating !== null ? (
+							<MainButton
+								type="button"
+								className="rating-delete"
+								variant="danger"
+								disabled={isSubmitting || isDeleting}
+								onClick={() => void handleDelete()}
+							>
+								{isDeleting
+									? t("ratingModal.deleting")
+									: t("ratingModal.deleteRating")}
+							</MainButton>
+						) : null}
+					</div>
 				</form>
 			</div>
 		</section>

@@ -79,6 +79,10 @@
 	font-weight: var(--fw-label);
 }
 
+.recipe-rating-count {
+	margin-left: var(--space-xs);
+}
+
 .recipe-rating-display svg {
 	width: var(--icon-size);
 	height: var(--icon-size);
@@ -100,10 +104,6 @@
 
 .icon-button.recipe-action svg {
 	color: var(--icons-dark);
-}
-
-.recipe-action-label {
-	display: none;
 }
 
 .recipe-page-hero-media {
@@ -150,12 +150,89 @@
 	color: var(--text-secondary);
 }
 
+.recipe-page-reviews-list {
+	gap: var(--space-m);
+}
+
+.recipe-page-review-card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-s);
+	padding: var(--space-m);
+	border: 1px solid var(--borders-input);
+	border-radius: var(--radius-m);
+	background-color: var(--surface-card);
+}
+
+.recipe-page-review-meta {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-m);
+	flex-wrap: wrap;
+	min-width: 0;
+}
+
+.recipe-page-review-meta-details {
+	display: inline-flex;
+	align-items: center;
+	column-gap: var(--space-m);
+	flex: 0 0 auto;
+}
+
+.recipe-page-review-body {
+	display: flex;
+	align-items: center;
+	gap: var(--space-m);
+}
+
+.recipe-page-review-body p {
+	flex: 1 1 auto;
+	min-width: 0;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+.recipe-page-review-action {
+	width: var(--icon-button-size);
+	height: var(--icon-button-size);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 var(--icon-button-size);
+}
+
+.recipe-page-review-author {
+	color: var(--text-secondary);
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.recipe-page-review-date {
+	color: var(--text-secondary);
+}
+
+.icon-button.recipe-page-review-delete {
+	background-color: transparent;
+	border: none;
+	flex-shrink: 0;
+}
+
+.icon-button.recipe-page-review-delete svg {
+	color: var(--surface-error);
+}
+
+.recipe-page-review-error {
+	color: var(--surface-error);
+	margin: 0;
+}
+
 @media (min-width: 768px) {
 	.recipe-page-hero {
 		--recipe-image-size: 352px;
-	}
-	.recipe-action-label {
-		display: inline;
 	}
 }
 

@@ -1,5 +1,6 @@
 {
 	"common": {
+		"cancel": "Peruuta",
 		"signInButton": "Kirjaudu",
 		"searchPlaceholder": "Hae...",
 		"sortButton": "Järjestä",
@@ -54,20 +55,43 @@
 		"error": "Reseptin haku epäonnistui (tila: {{status}}).",
 		"recipeNotFound": "Reseptiä ei löytynyt.",
 		"rate": "Arvioi",
+		"review": "Kirjoita arvostelu",
 		"ingredients": "Ainekset",
 		"noIngredientsAvailable": "Tälle reseptille ei ole saatavilla aineksia.",
 		"instructions": "Ohjeet",
 		"noInstructionsAvailable": "Tälle reseptille ei ole saatavilla ohjeita.",
+		"reviews": "Arvostelut",
+		"reviewsLoading": "Ladataan arvosteluja...",
+		"reviewsError": "Arvostelujen haku epäonnistui (tila: {{status}}).",
+		"noReviewsAvailable": "Arvosteluja ei vielä ole.",
+		"reviewAnonymous": "Poistettu käyttäjä",
+		"confirmDeleteReview": "Poistetaanko arvostelusi?",
+		"deleteReviewError": "Arvostelun poistaminen epäonnistui (tila: {{status}}).",
 		"step": "Vaihe {{number}}",
-		"share": "Jaa",
 		"pictureUploadFailedWarning": "Resepti luotiin, mutta kuvan lataus epäonnistui. Käytössä on oletuskuva — voit yrittää lisätä kuvan myöhemmin uudelleen."
 	},
 	"ratingModal": {
-		"title": "Kerro ajatuksesi tästä reseptistä",
-		"rateRecipe": "Arvioi tämä resepti",
-		"describeRecipe": "Kuvaile reseptiä (valinnainen)",
+		"title": "Arvioi tämä resepti",
+		"rateRecipe": "Anna 1-5 tähteä",
 		"ratingOption": "{{value}} tähteä viidestä",
-		"submit": "Lähetä"
+		"averageRatingHint": "Arvosanasi vaikuttaa sivustolla näkyvään reseptien keskiarvoon.",
+		"submit": "Tallenna arvosana",
+		"submitting": "Tallennetaan...",
+		"genericError": "Arvion lähettäminen epäonnistui. Yritä uudelleen.",
+		"networkError": "Pyyntö ei tavoittanut palvelinta.",
+		"deleteRating": "Poista arvosanasi",
+		"deleting": "Poistetaan...",
+		"updateRating": "Päivitä arvosanasi",
+		"updatingRating": "Päivitetään..."
+	},
+	"reviewModal": {
+		"title": "Kirjoita arvostelu",
+		"describeRecipe": "Kuvaile reseptiä",
+		"existingReviewHint": "Arvostelusi julkaistaan käyttäjänimelläsi. Voit lisätä useamman arvostelun.",
+		"submit": "Tallenna arvostelu",
+		"submitting": "Tallennetaan...",
+		"genericError": "Arvostelun lähettäminen epäonnistui. Yritä uudelleen.",
+		"networkError": "Pyyntö ei tavoittanut palvelinta."
 	},
 	"searchPage": {
 		"title": "Haku",
@@ -322,11 +346,12 @@
 		"unfollowUser": "Lopeta käyttäjän {{name}} seuraaminen",
 		"openMyProfile": "Avaa oma profiili",
 		"sortBy": "Järjestä",
-		"shareRecipe": "Jaa resepti",
 		"ingredientsAndInstructions": "Reseptin ainekset ja ohjeet",
 		"closeAuthDialog": "Sulje tunnistautumisikkuna",
 		"toProfilePage": "Siirry profiilisivulle",
 		"closeRatingDialog": "Sulje arviointi-ikkuna",
+		"closeReviewDialog": "Sulje arvosteluikkuna",
+		"deleteReview": "Poista arvostelu",
 		"dismissWarning": "Sulje ilmoitus"
 	},
 	"recipeCreateValidation": {
