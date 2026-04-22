@@ -2,7 +2,7 @@ import { NavArrowDown } from "iconoir-react";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useOutletContext } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
 import { z } from "zod";
 import defaultAvatar from "~/assets/images/default-avatar.jpeg";
 import "~/assets/styles/profile.css";
@@ -45,7 +45,8 @@ const PRESET_AVATAR_PATHS = Array.from(
 
 const ProfilePage = () => {
 	const { t } = useTranslation();
-	const { isAuthenticated, openAuthModal } =
+	const navigate = useNavigate();
+	const { isAuthenticated, openAuthModal, resetAuthState } =
 		useOutletContext<LayoutOutletContext>();
 	const [profile, setProfile] = useState<ProfileData | null>(null);
 	const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -209,10 +210,6 @@ const ProfilePage = () => {
 		setProfileMessage("");
 		setProfileError("");
 
-		if (avatarPreviewUrl) {
-			URL.revokeObjectURL(avatarPreviewUrl);
-		}
-
 		setAvatarPreviewUrl(file ? URL.createObjectURL(file) : null);
 	};
 
@@ -226,10 +223,7 @@ const ProfilePage = () => {
 			avatarInputRef.current.value = "";
 		}
 
-		if (avatarPreviewUrl) {
-			URL.revokeObjectURL(avatarPreviewUrl);
-			setAvatarPreviewUrl(null);
-		}
+		setAvatarPreviewUrl(null);
 	};
 
 	const handleProfileSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -286,16 +280,69 @@ const ProfilePage = () => {
 			setAvatarFile(null);
 			setSelectedAvatarPath(null);
 			setIsAvatarPickerOpen(false);
-			if (avatarPreviewUrl) {
-				URL.revokeObjectURL(avatarPreviewUrl);
-				setAvatarPreviewUrl(null);
-			}
+			setAvatarPreviewUrl(null);
 			setProfileMessage(t("profilePage.saveSuccess"));
 		} catch (error) {
 			console.error(error);
 			setProfileError(t("profilePage.saveError"));
 		} finally {
 			setIsSaving(false);
+		}
+	};
+
+	const handleDeleteAccount = async () => {
+		if (!authUser?.id) {
+			setProfileError(t("profilePage.accountUnavailable"));
+			return;
+		}
+
+		const confirmed = window.confirm(t("profilePage.confirmDeleteAccount"));
+		if (!confirmed) {
+			return;
+		}
+
+		try {
+			const response = await fetch(`${API_BASE_URL}/auth/delete`, {
+				method: "DELETE",
+				credentials: "include",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					userId: authUser.id,
+				}),
+			});
+
+			if (!response.ok) {
+				setProfileError(t("profilePage.errorDeletingProfile"));
+				return;
+			}
+
+			resetAuthState();
+			navigate("/", { replace: true });
+		} catch (error) {
+			console.error(error);
+			setProfileError(t("profilePage.errorDeletingProfile"));
+		}
+	};
+
+	const handleLogOut = async () => {
+		try {
+			const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+				method: "POST",
+				credentials: "include",
+			});
+
+			if (!response.ok) {
+				setProfileError(t("profilePage.errorLoggingOut"));
+				return;
+			}
+
+			resetAuthState();
+			navigate("/", { replace: true });
+		} catch (error) {
+			console.error(error);
+			setProfileError(t("profilePage.errorLoggingOut"));
 		}
 	};
 
@@ -335,70 +382,6 @@ const ProfilePage = () => {
 	if (!profile) {
 		return <p className="profile-page-status">{t("profilePage.notFound")}</p>;
 	}
-
-	const handleDeleteAccount = async () => {
-		if (!authUser?.id) {
-			setProfileError(t("profilePage.emailUnavailable"));
-			return;
-		}
-
-		const confirmed = window.confirm(t("profilePage.confirmDeleteAccount"));
-		if (!confirmed) {
-			return;
-		}
-
-		try {
-			const response = await fetch(`${API_BASE_URL}/auth/delete`, {
-				method: "DELETE",
-				credentials: "include",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					userId: authUser.id,
-				}),
-			});
-
-			if (!response.ok) {
-				setProfileError(t("profilePage.errorDeletingProfile"));
-				return;
-			}
-
-			window.location.href = "/";
-		} catch (error) {
-			console.error(error);
-			setProfileError(t("profilePage.errorDeletingProfile"));
-		}
-	};
-
-	const handleLogOut = async () => {
-		if (!authUser?.id) {
-			setProfileError(t("profilePage.emailUnavailable"));
-			return;
-		}
-		try {
-			const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-				method: "POST",
-				credentials: "include",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					userId: authUser.id,
-				}),
-			});
-
-			if (!response.ok) {
-				setProfileError(t("profilePage.errorLoggingOut"));
-				return;
-			}
-
-			window.location.href = "/";
-		} catch (error) {
-			console.error(error);
-			setProfileError(t("profilePage.errorLoggingOut"));
-		}
-	};
 
 	return (
 		<section className="profile-page">
@@ -462,7 +445,7 @@ const ProfilePage = () => {
 												onClick={() => handlePresetAvatarSelect(avatarPath)}
 											>
 												<img
-													src={resolveMediaUrl(avatarPath) ?? ""}
+													src={resolveMediaUrl(avatarPath) ?? defaultAvatar}
 													alt=""
 													aria-hidden="true"
 												/>
@@ -543,6 +526,7 @@ const ProfilePage = () => {
 					className="action-delete-account"
 					onClick={handleDeleteAccount}
 					size="body2"
+					disabled={isAuthUserLoading}
 				>
 					{t("profilePage.deleteAccount")}
 				</TextIconButton>
@@ -551,7 +535,7 @@ const ProfilePage = () => {
 				isOpen={isChangePasswordModalOpen}
 				onClose={onCloseChangePasswordModal}
 				onSuccess={onChangePasswordSuccess}
-				userId={profile.id}
+				userId={authUser?.id ?? null}
 			/>
 		</section>
 	);

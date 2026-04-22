@@ -102,6 +102,7 @@
 		"usernameHint": "Käytä 1-32 merkkiä.",
 		"emailLoading": "Ladataan sähköpostia...",
 		"emailUnavailable": "Sähköposti ei ole saatavilla",
+		"accountUnavailable": "Tiliäsi ei voitu tunnistaa.",
 		"save": "Tallenna muutokset",
 		"saving": "Tallennetaan...",
 		"saveSuccess": "Profiili tallennettu.",

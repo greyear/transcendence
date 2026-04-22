@@ -95,7 +95,7 @@
 	display: grid;
 	grid-template-columns: repeat(
 			auto-fit,
-			minmax(var(--preset-avatar-size), var(--preset-avatar-size))
+			var(--preset-avatar-size)
 		);
 	gap: var(--space-s);
 	justify-content: center;

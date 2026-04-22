@@ -1,11 +1,11 @@
 import { Xmark } from "iconoir-react";
 import { type FormEvent, type RefObject, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { z } from "zod";
 import "~/assets/styles/auth.css";
 import { IconButton } from "~/components/buttons/IconButton";
 import { MainButton } from "~/components/buttons/MainButton";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { readAuthError } from "~/schemas/auth";
 import { InputField } from "../inputs/InputField";
 
 type ChangePasswordFormProps = {
@@ -13,17 +13,6 @@ type ChangePasswordFormProps = {
 	onClose?: () => void;
 	onSuccess?: () => void;
 	userId: number | null;
-};
-
-const AuthErrorResponseSchema = z.object({
-	error: z.string().optional(),
-});
-
-const readAuthError = async (response: Response) => {
-	const body: unknown = await response.json().catch(() => null);
-	const parsed = AuthErrorResponseSchema.safeParse(body);
-
-	return parsed.success ? parsed.data.error : undefined;
 };
 
 export const ChangePasswordForm = ({

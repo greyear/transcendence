@@ -102,6 +102,7 @@
 		"usernameHint": "Use 1-32 characters.",
 		"emailLoading": "Loading email...",
 		"emailUnavailable": "Email unavailable",
+		"accountUnavailable": "Could not identify your account.",
 		"save": "Save changes",
 		"saving": "Saving...",
 		"saveSuccess": "Profile saved.",

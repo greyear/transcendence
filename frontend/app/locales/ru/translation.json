@@ -102,6 +102,7 @@
 		"usernameHint": "Используйте 1-32 символа.",
 		"emailLoading": "Загрузка email...",
 		"emailUnavailable": "Email недоступен",
+		"accountUnavailable": "Не удалось определить ваш аккаунт.",
 		"save": "Сохранить изменения",
 		"saving": "Сохранение...",
 		"saveSuccess": "Профиль сохранен.",
