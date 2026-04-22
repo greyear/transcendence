@@ -1,5 +1,5 @@
 .confirmation-card {
-	width: min(100%, 520px);
+	width: min(100%, 800px);
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-xl);

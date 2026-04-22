@@ -545,11 +545,11 @@ const ProfilePage = () => {
 			</form>
 
 			<div className="profile-page-actions">
-				{authUser?.isGoog === false &&
+				{authUser?.isGoog === false && (
 					<TextIconButton onClick={onOpenChangePasswordModal} size="body2">
 						{t("profilePage.changePassword")}
 					</TextIconButton>
-				}
+				)}
 				<TextIconButton onClick={handleLogOut} size="body2">
 					{t("profilePage.logout")}
 				</TextIconButton>
