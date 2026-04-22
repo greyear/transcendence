@@ -26,6 +26,7 @@ import {
 	extractUser,
 } from "../middleware/extractUser.js";
 import {
+	deleteProfile,
 	getProfile,
 	registerProfile,
 	updateProfile,
@@ -217,6 +218,40 @@ const updateProfileHandler = async (
 	}
 };
 
+/**
+ * POST /profile/delete  – soft-delete a user account
+ *
+ * Internal endpoint (called by auth-service on account deletion).
+ * Body: { userId: number }
+ * Sets is_deleted = true; the user disappears from all public listings.
+ */
+const deleteProfileHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		const validation = validateRegisterProfileInput(req.body);
+		if (!validation.valid) {
+			const error: CustomError = new Error(validation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const result = await deleteProfile(validation.value.id);
+
+		if (!result.success) {
+			const error: CustomError = new Error("User not found");
+			error.statusCode = 404;
+			throw error;
+		}
+
+		res.status(200).json({ message: "Profile deleted" });
+	} catch (error) {
+		next(error);
+	}
+};
+
 // ── Route registration ────────────────────────────────────────────────────────
 
 profileRouter.post("/register", registerProfileHandler);
@@ -224,6 +259,8 @@ profileRouter.get("/", getProfileHandler);
 
 // avatarUpload.single("avatar") processes the multipart field named "avatar"
 // It runs before the handler, so req.file is available if a file was uploaded
+profileRouter.post("/delete", deleteProfileHandler);
+
 profileRouter.put(
 	"/",
 	extractUser,
