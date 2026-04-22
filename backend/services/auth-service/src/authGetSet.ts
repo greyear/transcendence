@@ -11,6 +11,9 @@ import * as help from "./authHelpers.js";
 
 export const authGetSet = Router();
 
+const CORE_SERVICE_URL =
+	process.env.CORE_SERVICE_URL || "http://core-service:3002";
+
 /*
 	Delete user endpoint
 		1. Attempt to validate JWT from header
@@ -32,6 +35,20 @@ authGetSet.delete(
 			if (!userDocument) {
 				res.status(404).json({ error: "User not found" });
 				return;
+			}
+
+			try {
+				const fetchRes = await fetch(`${CORE_SERVICE_URL}/profile/delete`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ id: userId }),
+				});
+				if (!fetchRes.ok) {
+					console.error(`Core delete of user ${userId} failed with status ${fetchRes.status}`);
+				}
+
+			} catch (error) {
+				console.error(`Failed to delete core profile for user ${userId}:`, error);
 			}
 
 			res.json({ message: "User deleted" });
