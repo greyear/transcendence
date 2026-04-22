@@ -26,7 +26,7 @@ export const usersRouter = Router();
 
 const getUsersHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		const response = await fetch(`${CORE_SERVICE_URL}/users`, {
+		const response = await fetch(withForwardedQuery(req, "/users"), {
 			headers: getInternalHeaders(req),
 			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 		});

@@ -52,6 +52,13 @@ describe("Users Routes", () => {
 		await pool.query(
 			`INSERT INTO users (id, username, role, status) VALUES (3, 'user_three', 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
 		);
+		await pool.query(
+			`INSERT INTO users (id, username, role, status)
+			 SELECT 11000 + gs, 'search_cap_' || lpad(gs::text, 2, '0'), 'user', 'offline'
+			 FROM generate_series(1, 25) AS gs
+			 ON CONFLICT (id) DO UPDATE
+			 SET username = EXCLUDED.username, role = EXCLUDED.role, status = EXCLUDED.status`,
+		);
 		// User 2 follows User 1
 		await pool.query(
 			`INSERT INTO followers (user_id, followed_id) VALUES (2, 1) ON CONFLICT DO NOTHING`,
@@ -83,6 +90,51 @@ describe("Users Routes", () => {
 				expect(response.body.data[0]).not.toHaveProperty("status");
 				expect(response.body.data[0]).not.toHaveProperty("role");
 			}
+		});
+
+		it("should filter users by partial username query", async () => {
+			const response = await request(app).get("/users?q=search_cap_01");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body).toHaveProperty("count", 1);
+			expect(response.body.data).toHaveLength(1);
+			expect(response.body.data[0]).toHaveProperty("username", "search_cap_01");
+			expect(response.body.data[0]).not.toHaveProperty("status");
+			expect(response.body.data[0]).not.toHaveProperty("role");
+		});
+
+		it("should search users case-insensitively and cap results to 20", async () => {
+			const response = await request(app).get("/users?q=SEARCH_CAP_");
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("data");
+			expect(response.body).toHaveProperty("count", 20);
+			expect(response.body.data).toHaveLength(20);
+			expect(
+				response.body.data.every((user: { username: string }) =>
+					user.username.toLowerCase().includes("search_cap_"),
+				),
+			).toBe(true);
+		});
+
+		it("should return an empty list when no username matches the query", async () => {
+			const response = await request(app).get(
+				"/users?q=no_such_user_for_search",
+			);
+
+			expect(response.status).toBe(200);
+			expect(response.body).toEqual({ data: [], count: 0 });
+		});
+
+		it("should return 400 when the search query is too long", async () => {
+			const response = await request(app).get(`/users?q=${"a".repeat(33)}`);
+
+			expect(response.status).toBe(400);
+			expect(response.body).toHaveProperty(
+				"error",
+				"Search query must be 32 characters or less",
+			);
 		});
 	});
 
@@ -629,6 +681,7 @@ describe("Users Routes", () => {
 			await pool.query(
 				`DELETE FROM users WHERE id IN (2, 3, 10001, 10002, 10003, 10004)`,
 			);
+			await pool.query(`DELETE FROM users WHERE id BETWEEN 11001 AND 11025`);
 		} catch (error) {
 			console.error("Cleanup failed:", error);
 		}
