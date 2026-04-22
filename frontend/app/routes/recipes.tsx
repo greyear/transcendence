@@ -1,5 +1,13 @@
-import { useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { Filter, NavArrowLeft } from "iconoir-react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+	Navigate,
+	useNavigate,
+	useOutletContext,
+	useSearchParams,
+} from "react-router";
+import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
 import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
@@ -11,11 +19,9 @@ import {
 	RecipesTabSchema,
 } from "~/components/RecipesGrid";
 import "~/assets/styles/recipes.css";
-import { Filter } from "iconoir-react";
-import { useTranslation } from "react-i18next";
-import { useOutletContext } from "react-router";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SortMenu } from "~/components/SortMenu";
+import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { getCurrentPage } from "~/composables/getCurrentPage";
 import {
 	PER_PAGE_OPTIONS,
@@ -38,13 +44,78 @@ const TAB_LABEL_KEYS: Record<RecipesTab, string> = {
 
 const AUTH_REQUIRED_TABS: ReadonlySet<RecipesTab> = new Set(["my", "saved"]);
 
+const parsePositiveInt = (value: string | null): number | null => {
+	if (value === null) {
+		return null;
+	}
+	const n = Number(value);
+	return Number.isInteger(n) && n > 0 ? n : null;
+};
+
+const ScopedUserResponseSchema = z.object({
+	data: z.object({
+		id: z.number(),
+		username: z.string(),
+	}),
+});
+
+type ScopedMode = "authoredBy" | "favoritesOf" | "global";
+
 const RecipesPage = () => {
 	const { t } = useTranslation();
-	const { isAuthenticated, openAuthModal, showNotice } =
+	const { isAuthenticated, currentUserId, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
+
+	const scopedUserId = parsePositiveInt(searchParams.get("userId"));
+	const scopedFavoritesOf = parsePositiveInt(searchParams.get("favoritesOf"));
+
+	// Mutually exclusive — favoritesOf wins if both are somehow present.
+	const mode: ScopedMode =
+		scopedFavoritesOf !== null
+			? "favoritesOf"
+			: scopedUserId !== null
+				? "authoredBy"
+				: "global";
+	const isScoped = mode !== "global";
+	const scopedSubjectId =
+		mode === "favoritesOf" ? scopedFavoritesOf : scopedUserId;
+
+	const [scopedUsername, setScopedUsername] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (scopedSubjectId === null) {
+			setScopedUsername(null);
+			return;
+		}
+		let ignore = false;
+		fetch(`${API_BASE_URL}/users/${scopedSubjectId}`, {
+			credentials: "include",
+		})
+			.then(async (res) => {
+				if (!res.ok) {
+					return null;
+				}
+				const body: unknown = await res.json();
+				const parsed = ScopedUserResponseSchema.safeParse(body);
+				return parsed.success ? parsed.data.data.username : null;
+			})
+			.then((username) => {
+				if (!ignore) {
+					setScopedUsername(username);
+				}
+			})
+			.catch(() => {
+				if (!ignore) {
+					setScopedUsername(null);
+				}
+			});
+		return () => {
+			ignore = true;
+		};
+	}, [scopedSubjectId]);
 
 	const handleSearch = (q: string) => {
 		const params = new URLSearchParams({ q, type: "recipes" });
@@ -105,15 +176,44 @@ const RecipesPage = () => {
 	const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
 	const page = getCurrentPage(searchParams, totalPages);
 
+	// Self-favorites has no audience: the backend always 403s (you can't be a
+	// mutual follower of yourself). Send the viewer to their own profile.
+	if (
+		mode === "favoritesOf" &&
+		currentUserId !== null &&
+		scopedFavoritesOf === currentUserId
+	) {
+		return <Navigate to="/profile" replace />;
+	}
+
+	const title =
+		mode === "favoritesOf" && scopedUsername
+			? t("recipesPage.titleFavoritesOf", { username: scopedUsername })
+			: mode === "authoredBy" && scopedUsername
+				? t("recipesPage.titleAuthoredBy", { username: scopedUsername })
+				: t("recipesPage.title");
+
 	return (
 		<section className="recipes-page">
+			{isScoped && scopedSubjectId !== null ? (
+				<TextIconButton
+					to={`/user/${scopedSubjectId}`}
+					className="text-body2 recipes-page-back"
+				>
+					<NavArrowLeft aria-hidden="true" />
+					{t("recipesPage.backToProfile")}
+				</TextIconButton>
+			) : null}
+
 			<PageHeader
-				title={t("recipesPage.title")}
+				title={title}
 				totalLabel={`${t("recipesPage.totalCount")} ${totalCount}`}
 				action={
-					<MainButton to="/recipes/create">
-						{t("recipesPage.createButton")}
-					</MainButton>
+					isScoped ? undefined : (
+						<MainButton to="/recipes/create">
+							{t("recipesPage.createButton")}
+						</MainButton>
+					)
 				}
 			/>
 
@@ -122,11 +222,13 @@ const RecipesPage = () => {
 				onSubmit={handleSearch}
 			/>
 
-			<FilterList
-				filters={filterLabels}
-				activeFilter={activeLabel}
-				onFilterChange={handleTabChange}
-			/>
+			{!isScoped ? (
+				<FilterList
+					filters={filterLabels}
+					activeFilter={activeLabel}
+					onFilterChange={handleTabChange}
+				/>
+			) : null}
 
 			<div className="recipes-page-controls">
 				<SortMenu options={sortOptions} value={sortValue} onChange={setSort} />
@@ -146,6 +248,10 @@ const RecipesPage = () => {
 				openAuthModal={openAuthModal}
 				showNotice={showNotice}
 				tab={tab}
+				userId={mode === "authoredBy" ? (scopedUserId ?? undefined) : undefined}
+				favoritesOfUserId={
+					mode === "favoritesOf" ? (scopedFavoritesOf ?? undefined) : undefined
+				}
 			/>
 
 			<div className="recipes-page-pagination-row">

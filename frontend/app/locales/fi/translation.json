@@ -47,13 +47,18 @@
 		"createButton": "Luo uusi",
 		"tabAll": "Kaikki",
 		"tabMy": "Omat reseptit",
-		"tabSaved": "Tallennetut"
+		"tabSaved": "Tallennetut",
+		"titleAuthoredBy": "Käyttäjän {{username}} reseptit",
+		"titleFavoritesOf": "Käyttäjän {{username}} suosikit",
+		"backToProfile": "Takaisin profiiliin"
 	},
 	"recipesGrid": {
 		"loading": "Ladataan reseptejä...",
 		"empty": "Reseptejä ei löytynyt.",
 		"error": "Reseptien haku epäonnistui (tila: {{status}}).",
-		"signInRequired": "Kirjaudu sisään nähdäksesi tämän listan."
+		"signInRequired": "Kirjaudu sisään nähdäksesi tämän listan.",
+		"favoritesForbidden": "Tämän käyttäjän suosikit näkyvät vain vastavuoroisille seuraajille.",
+		"favoritesSelf": "Omat suosikkisi löytyvät profiilistasi."
 	},
 	"recipePage": {
 		"loading": "Ladataan...",
@@ -348,6 +353,9 @@
 		"goHome": "Siirry etusivulle",
 		"toggleMenu": "Vaihda valikon tila",
 		"allRecipes": "Kaikki reseptit",
+		"allRecipesByUser": "Kaikki käyttäjän {{name}} reseptit",
+		"allFavoritesOfUser": "Kaikki käyttäjän {{name}} suosikit",
+		"backToProfile": "Takaisin profiiliin",
 		"allUsers": "Kaikki käyttäjät",
 		"profileAvatar": "Käyttäjän {{name}} profiilikuva",
 		"followUser": "Seuraa käyttäjää {{name}}",

@@ -29,6 +29,7 @@ type RecipesGridProps = {
 	onLoad?: (totalCount: number) => void;
 	sort?: "top";
 	userId?: number;
+	favoritesOfUserId?: number;
 	tab?: RecipesTab;
 };
 
@@ -59,9 +60,13 @@ const tabRequiresAuth = (tab: RecipesTab): boolean =>
 	tab === "my" || tab === "saved";
 
 const resolveEndpoint = (
+	favoritesOfUserId: number | undefined,
 	userId: number | undefined,
 	tab: RecipesTab,
 ): string => {
+	if (favoritesOfUserId !== undefined) {
+		return `${API_BASE_URL}/users/${favoritesOfUserId}/favorites`;
+	}
 	if (userId !== undefined) {
 		return `${API_BASE_URL}/users/${userId}/recipes`;
 	}
@@ -99,6 +104,7 @@ export const RecipesGrid = ({
 	sort,
 	sortValue = "",
 	userId,
+	favoritesOfUserId,
 	tab = "all",
 }: RecipesGridProps) => {
 	const { t, i18n } = useTranslation();
@@ -121,11 +127,15 @@ export const RecipesGrid = ({
 		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
 	});
 
-	// `userId` (foreign-profile mode) takes precedence over the viewer-scoped
-	// tabs, so the auth gate only applies when no userId is set.
+	// Resolution order: favoritesOfUserId > userId > tab. The first two pin the
+	// list to a foreign subject; tabs are only viewer-scoped.
+	const isScoped = favoritesOfUserId !== undefined || userId !== undefined;
 	const isAuthGated =
-		userId === undefined && tabRequiresAuth(tab) && !isAuthenticated;
-	const isFavoritesEndpoint = userId === undefined && tab === "saved";
+		!isAuthenticated &&
+		(favoritesOfUserId !== undefined || (!isScoped && tabRequiresAuth(tab)));
+	const isFavoritesEndpoint =
+		favoritesOfUserId !== undefined ||
+		(userId === undefined && tab === "saved");
 
 	useEffect(() => {
 		setErrorStatus(null);
@@ -140,11 +150,13 @@ export const RecipesGrid = ({
 
 		setIsLoading(true);
 
-		const endpoint = resolveEndpoint(userId, tab);
-		// /users/me/* require the auth cookie. The other endpoints don't, but
-		// passing credentials is harmless — keep the original no-credentials path
-		// for them to minimize surface area.
-		const requiresCredentials = userId === undefined && tabRequiresAuth(tab);
+		const endpoint = resolveEndpoint(favoritesOfUserId, userId, tab);
+		// /users/me/* and /users/:id/favorites require the auth cookie. The other
+		// endpoints don't, but passing credentials is harmless — keep the original
+		// no-credentials path for them to minimize surface area.
+		const requiresCredentials =
+			favoritesOfUserId !== undefined ||
+			(userId === undefined && tabRequiresAuth(tab));
 
 		fetch(endpoint, {
 			headers: { "X-Language": language },
@@ -197,7 +209,15 @@ export const RecipesGrid = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [language, onLoad, sort, userId, tab, isAuthGated, isFavoritesEndpoint]);
+	}, [
+		onLoad,
+		sort,
+		userId,
+		favoritesOfUserId,
+		tab,
+		isAuthGated,
+		isFavoritesEndpoint,
+	]);
 
 	const sortedList = useMemo(
 		() => sortRecipes(recipeList, sortValue),
@@ -223,6 +243,13 @@ export const RecipesGrid = ({
 	}
 
 	if (errorStatus !== null) {
+		if (favoritesOfUserId !== undefined && errorStatus === 403) {
+			return (
+				<p className="recipes-grid-status">
+					{t("recipesGrid.favoritesForbidden")}
+				</p>
+			);
+		}
 		return (
 			<p className="recipes-grid-status">
 				{t("recipesGrid.error", { status: errorStatus })}

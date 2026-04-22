@@ -47,13 +47,18 @@
 		"createButton": "Создать",
 		"tabAll": "Все",
 		"tabMy": "Мои рецепты",
-		"tabSaved": "Сохраненные рецепты"
+		"tabSaved": "Сохраненные рецепты",
+		"titleAuthoredBy": "Рецепты пользователя {{username}}",
+		"titleFavoritesOf": "Избранное пользователя {{username}}",
+		"backToProfile": "Назад в профиль"
 	},
 	"recipesGrid": {
 		"loading": "Загрузка рецептов...",
 		"empty": "Рецепты не найдены.",
 		"error": "Не удалось загрузить рецепты (статус: {{status}}).",
-		"signInRequired": "Войдите, чтобы увидеть этот список."
+		"signInRequired": "Войдите, чтобы увидеть этот список.",
+		"favoritesForbidden": "Избранное этого пользователя видно только взаимным подписчикам.",
+		"favoritesSelf": "Ваше избранное доступно в вашем профиле."
 	},
 	"recipePage": {
 		"loading": "Загрузка...",
@@ -348,6 +353,9 @@
 		"goHome": "Перейти на главную страницу",
 		"toggleMenu": "Переключить меню",
 		"allRecipes": "Все рецепты",
+		"allRecipesByUser": "Все рецепты пользователя {{name}}",
+		"allFavoritesOfUser": "Всё избранное пользователя {{name}}",
+		"backToProfile": "Назад в профиль",
 		"allUsers": "Все авторы",
 		"profileAvatar": "Аватар пользователя {{name}}",
 		"followUser": "Подписаться на {{name}}",

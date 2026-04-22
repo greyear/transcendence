@@ -47,13 +47,18 @@
 		"createButton": "Create new",
 		"tabAll": "All",
 		"tabMy": "My recipes",
-		"tabSaved": "Saved recipes"
+		"tabSaved": "Saved recipes",
+		"titleAuthoredBy": "Recipes by {{username}}",
+		"titleFavoritesOf": "{{username}}'s favorites",
+		"backToProfile": "Back to profile"
 	},
 	"recipesGrid": {
 		"loading": "Loading recipes...",
 		"empty": "No recipes found.",
 		"error": "Failed to fetch recipes (status: {{status}}).",
-		"signInRequired": "Sign in to view this list."
+		"signInRequired": "Sign in to view this list.",
+		"favoritesForbidden": "This user's favorites are only visible to mutual followers.",
+		"favoritesSelf": "Your favorites are on your profile."
 	},
 	"recipePage": {
 		"loading": "Loading...",
@@ -348,6 +353,9 @@
 		"goHome": "Go to homepage",
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
+		"allRecipesByUser": "All recipes by {{name}}",
+		"allFavoritesOfUser": "All favorites of {{name}}",
+		"backToProfile": "Back to profile",
 		"allUsers": "All users",
 		"profileAvatar": "Avatar of {{name}}",
 		"followUser": "Follow {{name}}",
