@@ -86,7 +86,7 @@
 	"reviewModal": {
 		"title": "Kirjoita arvostelu",
 		"describeRecipe": "Kuvaile reseptiä",
-		"existingReviewHint": "Arvostelusi julkaistaan tämän reseptin sivulla käyttäjänimelläsi. Voit lisätä samalle reseptille useamman arvostelun.",
+		"existingReviewHint": "Arvostelusi julkaistaan käyttäjänimelläsi. Voit lisätä useamman arvostelun.",
 		"submit": "Tallenna arvostelu",
 		"submitting": "Tallennetaan...",
 		"genericError": "Arvostelun lähettäminen epäonnistui. Yritä uudelleen.",

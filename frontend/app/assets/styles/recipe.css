@@ -79,6 +79,10 @@
 	font-weight: var(--fw-label);
 }
 
+.recipe-rating-count {
+	margin-left: var(--space-xs);
+}
+
 .recipe-rating-display svg {
 	width: var(--icon-size);
 	height: var(--icon-size);

@@ -26,6 +26,7 @@ type Recipe = {
 	title: string;
 	description: string | null;
 	rating_avg: number | null;
+	rating_count: number;
 	viewer_rating: number | null;
 	picture_url: string | null;
 	ingredients: RecipeIngredient[];
@@ -52,6 +53,7 @@ const RecipeSchema = z.object({
 	title: z.string(),
 	description: z.string().nullable(),
 	rating_avg: z.coerce.number().nullable(),
+	rating_count: z.coerce.number().optional().default(0),
 	viewer_rating: z.coerce.number().nullable().optional().default(null),
 	picture_url: z.string().nullable(),
 	ingredients: z.array(RecipeIngredientSchema).optional().default([]),
@@ -517,13 +519,14 @@ const RecipePage = () => {
 				</div>
 			</section>
 
-			<div className="recipe-page-actions">
-				{recipe.rating_avg !== null ? (
-					<div className="recipe-rating-display text-label">
-						<span>{recipe.rating_avg.toFixed(1)}</span>
-						<StarSolid aria-hidden="true" />
-					</div>
-				) : null}
+				<div className="recipe-page-actions">
+					{recipe.rating_avg !== null ? (
+						<div className="recipe-rating-display text-label">
+							<span>{recipe.rating_avg.toFixed(1)}</span>
+							<StarSolid aria-hidden="true" />
+							<span className="recipe-rating-count">({recipe.rating_count})</span>
+						</div>
+					) : null}
 				<IconButton className="recipe-action" onClick={onOpenRatingModal}>
 					{t("recipePage.rate")} <StarSolid aria-hidden="true" />
 				</IconButton>
