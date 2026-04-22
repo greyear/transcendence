@@ -49,3 +49,9 @@
 .search-filter-menu__label {
 	color: var(--text-secondary);
 }
+
+@media (min-width: 1440px) {
+	.search-filter-menu__dropdown {
+		width: 1248px;
+	}
+}
