@@ -49,17 +49,7 @@
 	display: none;
 }
 
-.home-page-view-button {
-	align-self: center;
-	width: 100%;
-	max-width: 460px;
-}
-
 @media (min-width: 768px) {
-	.home-page-view-button {
-		width: 340px;
-	}
-
 	.home-page-cooks-actions {
 		gap: var(--space-l);
 	}
@@ -80,9 +70,5 @@
 	.home-page-hero-overlay {
 		padding-left: calc((100vw - var(--desktop-content-width)) / 2);
 		padding-right: calc((100vw - var(--desktop-content-width)) / 2);
-	}
-
-	.home-page-view-button {
-		width: 460px;
 	}
 }

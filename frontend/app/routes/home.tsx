@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { IconButton } from "~/components/buttons/IconButton";
-import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { CooksRow, type CooksRowHandle } from "~/components/CooksRow";
 import { RecipesGrid } from "~/components/RecipesGrid";
@@ -35,10 +34,6 @@ const HomePage = () => {
 					<p className="text-caption">{t("homePage.heroDescription")}</p>
 				</div>
 			</header>
-
-			<MainButton className="home-page-view-button text-label" to="/recipes">
-				{t("homePage.viewAllRecipes")}
-			</MainButton>
 
 			<section
 				className="home-page-recipes-section"
