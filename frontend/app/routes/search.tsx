@@ -25,7 +25,7 @@ import "~/assets/styles/usersGrid.css";
 import "~/assets/styles/search.css";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { useCategoryMap } from "~/composables/useCategoryMap";
-import { useFavoriteRecipes } from "~/composables/useFavoriteRecipes";
+import { useRelationSet } from "~/composables/useRelationSet";
 import { useSortOptions } from "~/composables/useSortOptions";
 
 const FILTER_PARAM_BY_TYPE: Record<CategoryTypeCode, string> = {
@@ -93,11 +93,16 @@ const SearchPage = () => {
 		useOutletContext<LayoutOutletContext>();
 	const categories = useCategoryMap();
 	const {
-		favoriteIds,
-		pendingFavoriteIds,
-		isFavoritesLoading,
-		toggleFavorite,
-	} = useFavoriteRecipes(isAuthenticated);
+		ids: favoriteIds,
+		pendingIds: pendingFavoriteIds,
+		isListLoading: isFavoritesLoading,
+		handleToggle: handleFavoriteClick,
+	} = useRelationSet({
+		isAuthenticated,
+		openAuthModal,
+		listEndpoint: "/users/me/favorites",
+		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
+	});
 
 	const query = searchParams.get("q") ?? "";
 	const rawType = searchParams.get("type") ?? "recipes";
@@ -293,17 +298,6 @@ const SearchPage = () => {
 			params.delete("ai");
 		}
 		navigate(`/search?${params.toString()}`);
-	};
-
-	const handleFavoriteClick = (recipeId: number) => {
-		if (!isAuthenticated) {
-			openAuthModal(() => {
-				void toggleFavorite(recipeId);
-			});
-			return;
-		}
-
-		void toggleFavorite(recipeId);
 	};
 
 	const handleFilterApply = (applied: SearchFilterValues) => {
