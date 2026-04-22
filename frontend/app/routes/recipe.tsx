@@ -519,14 +519,14 @@ const RecipePage = () => {
 				</div>
 			</section>
 
-				<div className="recipe-page-actions">
-					{recipe.rating_avg !== null ? (
-						<div className="recipe-rating-display text-label">
-							<span>{recipe.rating_avg.toFixed(1)}</span>
-							<StarSolid aria-hidden="true" />
-							<span className="recipe-rating-count">({recipe.rating_count})</span>
-						</div>
-					) : null}
+			<div className="recipe-page-actions">
+				{recipe.rating_avg !== null ? (
+					<div className="recipe-rating-display text-label">
+						<span>{recipe.rating_avg.toFixed(1)}</span>
+						<StarSolid aria-hidden="true" />
+						<span className="recipe-rating-count">({recipe.rating_count})</span>
+					</div>
+				) : null}
 				<IconButton className="recipe-action" onClick={onOpenRatingModal}>
 					{t("recipePage.rate")} <StarSolid aria-hidden="true" />
 				</IconButton>
