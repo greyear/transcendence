@@ -168,8 +168,9 @@ authGetSet.get(
 				return;
 			}
 			const email = userDocument.get("email");
+			const isGoog = userDocument.get("googleID") ? true : false;
 
-			res.status(200).json({ id: userId, email });
+			res.status(200).json({ id: userId, email, isGoog });
 		} catch (error) {
 			next(error);
 		}
