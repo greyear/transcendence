@@ -97,6 +97,17 @@
 	color: var(--text-secondary);
 }
 
+.rating-actions {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-m);
+	width: 100%;
+}
+
+.rating-actions .main-button {
+	width: 100%;
+}
+
 .rating-status {
 	min-height: 24px;
 }

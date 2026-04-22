@@ -77,7 +77,11 @@
 		"submit": "Tallenna arvosana",
 		"submitting": "Tallennetaan...",
 		"genericError": "Arvion lähettäminen epäonnistui. Yritä uudelleen.",
-		"networkError": "Pyyntö ei tavoittanut palvelinta."
+		"networkError": "Pyyntö ei tavoittanut palvelinta.",
+		"deleteRating": "Poista arvosanasi",
+		"deleting": "Poistetaan...",
+		"updateRating": "Päivitä arvosanasi",
+		"updatingRating": "Päivitetään..."
 	},
 	"reviewModal": {
 		"title": "Kirjoita arvostelu",

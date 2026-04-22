@@ -1,6 +1,6 @@
 import "~/assets/styles/rating.css";
 import { StarSolid, Xmark } from "iconoir-react";
-import { type FormEvent, type RefObject, useState } from "react";
+import { type FormEvent, type RefObject, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
@@ -12,6 +12,7 @@ type RatingFormProps = {
 	onClose?: () => void;
 	onSuccess?: () => void | Promise<void>;
 	recipeId: string;
+	initialRating: number | null;
 };
 
 const RATING_VALUES = [1, 2, 3, 4, 5] as const;
@@ -26,11 +27,18 @@ export const RatingForm = ({
 	onClose,
 	onSuccess,
 	recipeId,
+	initialRating,
 }: RatingFormProps) => {
 	const { t } = useTranslation();
-	const [rating, setRating] = useState(0);
+	const [rating, setRating] = useState(initialRating ?? 0);
 	const [error, setError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isDeleting, setIsDeleting] = useState(false);
+
+	useEffect(() => {
+		setRating(initialRating ?? 0);
+		setError("");
+	}, [initialRating]);
 
 	const parseApiResponse = async (response: Response) => {
 		const body: unknown = await response.json();
@@ -46,7 +54,7 @@ export const RatingForm = ({
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
-		if (rating === 0) {
+		if (rating === 0 || isDeleting) {
 			return;
 		}
 
@@ -58,7 +66,7 @@ export const RatingForm = ({
 			let ratingResponse = await fetch(
 				`${API_BASE_URL}/recipes/${recipeId}/rating`,
 				{
-					method: "POST",
+					method: initialRating === null ? "POST" : "PUT",
 					headers: {
 						"Content-Type": "application/json",
 					},
@@ -68,7 +76,7 @@ export const RatingForm = ({
 			);
 			let ratingData = await parseApiResponse(ratingResponse);
 
-			if (ratingResponse.status === 409) {
+			if (ratingResponse.status === 409 && initialRating === null) {
 				ratingResponse = await fetch(
 					`${API_BASE_URL}/recipes/${recipeId}/rating`,
 					{
@@ -88,7 +96,6 @@ export const RatingForm = ({
 				return;
 			}
 
-			setRating(0);
 			await onSuccess?.();
 			onClose?.();
 		} catch (submitError) {
@@ -100,6 +107,44 @@ export const RatingForm = ({
 			);
 		} finally {
 			setIsSubmitting(false);
+		}
+	};
+
+	const handleDelete = async () => {
+		if (initialRating === null || isSubmitting) {
+			return;
+		}
+
+		setError("");
+		setIsDeleting(true);
+
+		try {
+			const response = await fetch(
+				`${API_BASE_URL}/recipes/${recipeId}/rating`,
+				{
+					method: "DELETE",
+					credentials: "include",
+				},
+			);
+			const responseData = await parseApiResponse(response);
+
+			if (!response.ok) {
+				setError(responseData.error ?? t("ratingModal.genericError"));
+				return;
+			}
+
+			setRating(0);
+			await onSuccess?.();
+			onClose?.();
+		} catch (deleteError) {
+			console.error(deleteError);
+			setError(
+				deleteError instanceof TypeError
+					? t("ratingModal.networkError")
+					: t("ratingModal.genericError"),
+			);
+		} finally {
+			setIsDeleting(false);
 		}
 	};
 
@@ -174,15 +219,34 @@ export const RatingForm = ({
 						{t("ratingModal.averageRatingHint")}
 					</p>
 
-					<MainButton
-						type="submit"
-						className="rating-submit"
-						disabled={rating === 0 || isSubmitting}
-					>
-						{isSubmitting
-							? t("ratingModal.submitting")
-							: t("ratingModal.submit")}
-					</MainButton>
+					<div className="rating-actions">
+						<MainButton
+							type="submit"
+							className="rating-submit"
+							disabled={rating === 0 || isSubmitting || isDeleting}
+						>
+							{initialRating !== null
+								? isSubmitting
+									? t("ratingModal.updatingRating")
+									: t("ratingModal.updateRating")
+								: isSubmitting
+									? t("ratingModal.submitting")
+									: t("ratingModal.submit")}
+						</MainButton>
+						{initialRating !== null ? (
+							<MainButton
+								type="button"
+								className="rating-delete"
+								variant="danger"
+								disabled={isSubmitting || isDeleting}
+								onClick={() => void handleDelete()}
+							>
+								{isDeleting
+									? t("ratingModal.deleting")
+									: t("ratingModal.deleteRating")}
+							</MainButton>
+						) : null}
+					</div>
 				</form>
 			</div>
 		</section>

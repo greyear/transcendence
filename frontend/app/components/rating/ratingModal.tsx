@@ -7,6 +7,7 @@ type RatingModalProps = {
 	onClose: () => void;
 	onSuccess?: () => void | Promise<void>;
 	recipeId: string;
+	initialRating: number | null;
 };
 
 export const RatingModal = ({
@@ -14,6 +15,7 @@ export const RatingModal = ({
 	onClose,
 	onSuccess,
 	recipeId,
+	initialRating,
 }: RatingModalProps) => {
 	const dialogRef = useRef<HTMLElement>(null);
 
@@ -24,6 +26,7 @@ export const RatingModal = ({
 				onClose={onClose}
 				onSuccess={onSuccess}
 				recipeId={recipeId}
+				initialRating={initialRating}
 			/>
 		</Modal>
 	);

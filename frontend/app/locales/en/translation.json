@@ -77,7 +77,11 @@
 		"submit": "Save rating",
 		"submitting": "Saving...",
 		"genericError": "Could not submit your rating. Please try again.",
-		"networkError": "The request could not reach the server."
+		"networkError": "The request could not reach the server.",
+		"deleteRating": "Delete your rating",
+		"deleting": "Deleting...",
+		"updateRating": "Update your rating",
+		"updatingRating": "Updating..."
 	},
 	"reviewModal": {
 		"title": "Write a review",

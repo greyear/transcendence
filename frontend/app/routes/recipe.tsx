@@ -26,6 +26,7 @@ type Recipe = {
 	title: string;
 	description: string | null;
 	rating_avg: number | null;
+	viewer_rating: number | null;
 	picture_url: string | null;
 	ingredients: RecipeIngredient[];
 	instructions: string[];
@@ -51,6 +52,7 @@ const RecipeSchema = z.object({
 	title: z.string(),
 	description: z.string().nullable(),
 	rating_avg: z.coerce.number().nullable(),
+	viewer_rating: z.coerce.number().nullable().optional().default(null),
 	picture_url: z.string().nullable(),
 	ingredients: z.array(RecipeIngredientSchema).optional().default([]),
 	instructions: z.array(z.string()).optional().default([]),
@@ -88,9 +90,14 @@ type FetchRecipeReviewsResult = {
 	reviews: RecipeReview[];
 };
 
-const fetchRecipeById = async (id: string): Promise<FetchRecipeResult> => {
+const fetchRecipeById = async (
+	id: string,
+	isAuthenticated: boolean,
+): Promise<FetchRecipeResult> => {
 	try {
-		const response = await fetch(`${API_BASE_URL}/recipes/${id}`);
+		const response = await fetch(`${API_BASE_URL}/recipes/${id}`, {
+			credentials: isAuthenticated ? "include" : "omit",
+		});
 		if (!response.ok) {
 			return { errorStatus: response.status, recipe: null };
 		}
@@ -261,7 +268,7 @@ const RecipePage = () => {
 		}
 
 		const [recipeResult, reviewsResult] = await Promise.all([
-			fetchRecipeById(id),
+			fetchRecipeById(id, isAuthenticated),
 			fetchRecipeReviews(id),
 		]);
 
@@ -318,9 +325,9 @@ const RecipePage = () => {
 		setErrorStatus(null);
 		setRecipe(null);
 
-		// TODO: send credentials so the server can tell us if the recipe belongs
-		// to the current user (needed to show the edit button below).
-		void fetchRecipeById(id)
+		// TODO: expose ownership in the recipe response so we can show an edit
+		// button only for the recipe author.
+		void fetchRecipeById(id, isAuthenticated)
 			.then(({ errorStatus, recipe }) => {
 				setErrorStatus(errorStatus);
 				setRecipe(recipe);
@@ -328,7 +335,7 @@ const RecipePage = () => {
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [id]);
+	}, [id, isAuthenticated]);
 
 	useEffect(() => {
 		if (!isAuthenticated) {
@@ -656,6 +663,7 @@ const RecipePage = () => {
 				onClose={onCloseRatingModal}
 				onSuccess={refreshRecipeData}
 				recipeId={String(recipe.id)}
+				initialRating={recipe.viewer_rating}
 			/>
 			<ReviewModal
 				isOpen={isReviewModalOpen}
