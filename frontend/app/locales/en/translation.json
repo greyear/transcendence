@@ -147,6 +147,7 @@
 		"googleTokenError": "Google did not return a sign-in token.",
 		"googleMissingClientId": "Google client ID is not configured.",
 		"googleUnavailable": "Google sign-in is not available.",
+		"orDivider": "or",
 		"signupSubmittingButton": "Creating account...",
 		"signupSuccess": "Account created. You are signed in.",
 		"toggleSignupPrompt": "Need an account? Create one",

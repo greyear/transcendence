@@ -147,6 +147,7 @@
 		"googleTokenError": "Google ei palauttanut kirjautumistunnusta.",
 		"googleMissingClientId": "Googlen asiakastunnusta ei ole määritetty.",
 		"googleUnavailable": "Google-kirjautuminen ei ole saatavilla.",
+		"orDivider": "tai",
 		"signupSubmittingButton": "Luodaan tiliä...",
 		"signupSuccess": "Tili luotu. Olet kirjautunut sisään.",
 		"toggleSignupPrompt": "Tarvitsetko tilin? Luo sellainen",

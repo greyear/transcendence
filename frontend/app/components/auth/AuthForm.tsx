@@ -1,4 +1,4 @@
-import { Google, Xmark } from "iconoir-react";
+import { Xmark } from "iconoir-react";
 import {
 	type FormEvent,
 	type RefObject,
@@ -36,8 +36,9 @@ declare global {
 						options: {
 							theme: "outline";
 							size: "large";
-							text: "signin_with" | "signup_with";
+							text: "signin_with" | "signup_with" | "continue_with" | "signin";
 							width: number;
+							locale?: string;
 						},
 					) => void;
 				};
@@ -55,6 +56,7 @@ type AuthFormProps = {
 
 const GOOGLE_IDENTITY_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
 const GOOGLE_BUTTON_MIN_WIDTH = 240;
+const GOOGLE_BUTTON_MAX_WIDTH = 400;
 const GOOGLE_CLIENT_ID_PLACEHOLDER =
 	"123456789012-abc123def456gh789ijklmn0pqrstuvw.apps.googleusercontent.com";
 
@@ -109,7 +111,7 @@ export const AuthForm = ({
 	onClose,
 	onSuccess,
 }: AuthFormProps) => {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
 	const googleButtonRef = useRef<HTMLDivElement | null>(null);
 	const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 	const googleMissingClientId =
@@ -121,7 +123,6 @@ export const AuthForm = ({
 	const [message, setMessage] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isGoogleReady, setIsGoogleReady] = useState(false);
-	const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
 	const handleGoogleCredential = useCallback(
 		async (googleResponse: GoogleCredentialResponse) => {
@@ -132,8 +133,6 @@ export const AuthForm = ({
 				setError(t("authModal.googleTokenError"));
 				return;
 			}
-
-			setIsGoogleSubmitting(true);
 
 			try {
 				const response = await fetch(`${API_BASE_URL}/auth/google`, {
@@ -162,8 +161,6 @@ export const AuthForm = ({
 						? t("authModal.networkError")
 						: t("authModal.genericError"),
 				);
-			} finally {
-				setIsGoogleSubmitting(false);
 			}
 		},
 		[onSuccess, t],
@@ -193,13 +190,17 @@ export const AuthForm = ({
 				buttonContainer.replaceChildren();
 				const buttonWidth = Math.max(
 					GOOGLE_BUTTON_MIN_WIDTH,
-					Math.floor(buttonContainer.clientWidth),
+					Math.min(
+						GOOGLE_BUTTON_MAX_WIDTH,
+						Math.floor(buttonContainer.clientWidth),
+					),
 				);
 				window.google.accounts.id.renderButton(buttonContainer, {
 					theme: "outline",
 					size: "large",
-					text: mode === "login" ? "signin_with" : "signup_with",
+					text: "continue_with",
 					width: buttonWidth,
+					locale: i18n.resolvedLanguage ?? undefined,
 				});
 				setIsGoogleReady(true);
 			})
@@ -214,7 +215,7 @@ export const AuthForm = ({
 			isCurrent = false;
 			buttonContainer.replaceChildren();
 		};
-	}, [googleMissingClientId, handleGoogleCredential, mode, t]);
+	}, [googleMissingClientId, handleGoogleCredential, i18n.resolvedLanguage, t]);
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
@@ -274,15 +275,7 @@ export const AuthForm = ({
 		setPassword("");
 	};
 
-	const canUseGoogleButton =
-		isGoogleReady && !isGoogleSubmitting && !googleMissingClientId;
-	const googleButtonLabel = googleMissingClientId
-		? t("authModal.googleMissingClientId")
-		: isGoogleSubmitting
-			? t("authModal.googleSubmittingButton")
-			: mode === "login"
-				? t("authModal.googleLoginButton")
-				: t("authModal.googleSignupButton");
+	const canUseGoogleButton = isGoogleReady && !googleMissingClientId;
 
 	return (
 		<section
@@ -315,6 +308,7 @@ export const AuthForm = ({
 			<form className="auth-form" onSubmit={handleSubmit}>
 				<div className="auth-fields">
 					<InputField
+						key={`email-${mode}`}
 						id="email"
 						type="email"
 						placeholder={t("authModal.emailLabel")}
@@ -326,6 +320,7 @@ export const AuthForm = ({
 					/>
 
 					<InputField
+						key={`password-${mode}`}
 						id="password"
 						type="password"
 						placeholder={t("authModal.passwordLabel")}
@@ -372,19 +367,11 @@ export const AuthForm = ({
 								: t("authModal.signupButton")}
 					</MainButton>
 
-					<div className="auth-google-button-shell">
-						<button
-							type="button"
-							className="main-button inverted auth-social-button"
-							data-google-ready={canUseGoogleButton}
-							disabled
-							tabIndex={canUseGoogleButton ? -1 : undefined}
-							aria-hidden={canUseGoogleButton ? true : undefined}
-						>
-							<Google className="auth-social-google" />
-							<span>{googleButtonLabel}</span>
-						</button>
+					<div className="auth-divider" aria-hidden="true">
+						<span>{t("authModal.orDivider")}</span>
+					</div>
 
+					<div className="auth-google-button-shell">
 						<div
 							ref={googleButtonRef}
 							className="auth-google-render-target"
