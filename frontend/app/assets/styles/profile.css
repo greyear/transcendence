@@ -93,10 +93,7 @@
 
 .profile-avatar-options-grid {
 	display: grid;
-	grid-template-columns: repeat(
-			auto-fit,
-			var(--preset-avatar-size)
-		);
+	grid-template-columns: repeat(auto-fit, var(--preset-avatar-size));
 	gap: var(--space-s);
 	justify-content: center;
 	width: min(100%, calc(var(--preset-avatar-size) * 4 + var(--space-s) * 3));
