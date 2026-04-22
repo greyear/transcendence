@@ -18,11 +18,13 @@ import type { LayoutOutletContext } from "~/layouts/layout";
 type AuthUserData = {
 	id: number;
 	email: string;
+	isGoog: boolean;
 };
 
 const AuthMeResponseSchema = z.object({
 	id: z.number(),
 	email: z.string(),
+	isGoog: z.boolean(),
 });
 
 type ProfileData = {
@@ -115,11 +117,14 @@ const ProfilePage = () => {
 				return res.json();
 			})
 			.then((body: unknown | null) => {
-				if (ignore || body === null) return;
+				if (ignore || body === null) {
+					return;
+				}
 
 				const parsed = AuthMeResponseSchema.safeParse(body);
-				if (!parsed.success) return;
-
+				if (!parsed.success) {
+					return;
+				}
 				setAuthUser(parsed.data);
 			})
 			.catch((error: unknown) => {
@@ -540,9 +545,11 @@ const ProfilePage = () => {
 			</form>
 
 			<div className="profile-page-actions">
-				<TextIconButton onClick={onOpenChangePasswordModal} size="body2">
-					{t("profilePage.changePassword")}
-				</TextIconButton>
+				{authUser?.isGoog === false &&
+					<TextIconButton onClick={onOpenChangePasswordModal} size="body2">
+						{t("profilePage.changePassword")}
+					</TextIconButton>
+				}
 				<TextIconButton onClick={handleLogOut} size="body2">
 					{t("profilePage.logout")}
 				</TextIconButton>
