@@ -15,11 +15,29 @@ import { useTranslation } from "react-i18next";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SortMenu } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";
+import {
+	PER_PAGE_OPTIONS,
+	usePerPageParam,
+} from "~/composables/usePerPageParam";
 import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
 import type { LayoutOutletContext } from "~/layouts/layout";
 
-const PER_PAGE = 12;
+const PER_PAGE_MENU_OPTIONS = PER_PAGE_OPTIONS.map((n) => ({
+	label: String(n),
+	value: String(n),
+}));
+
+const TAB_LABEL_KEYS: Record<UsersTab, string> = {
+	all: "usersPage.tabAll",
+	followers: "usersPage.tabFollowers",
+	following: "usersPage.tabFollowing",
+};
+
+const AUTH_REQUIRED_TABS: ReadonlySet<UsersTab> = new Set([
+	"followers",
+	"following",
+]);
 
 const UsersPage = () => {
 	const { t } = useTranslation();
@@ -36,20 +54,20 @@ const UsersPage = () => {
 
 	const sortOptions = useSortOptions("users");
 	const [sortValue, setSort] = useSortParam(sortOptions[0].value);
+	const [perPage, setPerPage] = usePerPageParam();
 
 	const parsedTab = UsersTabSchema.safeParse(searchParams.get("tab"));
 	const tab: UsersTab = parsedTab.success ? parsedTab.data : "all";
 
-	const tabsConfig = useMemo((): { value: UsersTab; label: string }[] => {
-		const all = [
-			{ value: "all" as const, label: t("usersPage.tabAll") },
-			{ value: "followers" as const, label: t("usersPage.tabFollowers") },
-			{ value: "following" as const, label: t("usersPage.tabFollowing") },
-		];
-		// Hide auth-only tabs for guests; direct URL hits to ?tab=followers
-		// still get the in-grid sign-in prompt.
-		return isAuthenticated ? all : all.filter((entry) => entry.value === "all");
-	}, [t, isAuthenticated]);
+	// Hide auth-only tabs for guests; direct URL hits to ?tab=followers
+	// still get the in-grid sign-in prompt.
+	const tabsConfig = useMemo(
+		() =>
+			UsersTabSchema.options
+				.filter((value) => isAuthenticated || !AUTH_REQUIRED_TABS.has(value))
+				.map((value) => ({ value, label: t(TAB_LABEL_KEYS[value]) })),
+		[t, isAuthenticated],
+	);
 
 	const filterLabels = useMemo(
 		() => tabsConfig.map((entry) => entry.label),
@@ -80,7 +98,7 @@ const UsersPage = () => {
 		);
 	};
 
-	const totalPages = Math.max(1, Math.ceil(totalCount / PER_PAGE));
+	const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
 	const page = getCurrentPage(searchParams, totalPages);
 
 	return (
@@ -112,7 +130,7 @@ const UsersPage = () => {
 
 			<UsersGrid
 				page={page}
-				perPage={PER_PAGE}
+				perPage={perPage}
 				sortValue={sortValue}
 				onLoad={setTotalCount}
 				isAuthenticated={isAuthenticated}
@@ -122,11 +140,19 @@ const UsersPage = () => {
 				tab={tab}
 			/>
 
-			<Pagination
-				totalElementsCount={totalCount}
-				elementsPerPage={PER_PAGE}
-				totalPagesCount={totalPages}
-			/>
+			<div className="users-page-pagination-row">
+				<SortMenu
+					options={PER_PAGE_MENU_OPTIONS}
+					value={String(perPage)}
+					onChange={(value) => setPerPage(Number(value))}
+					label={`${t("common.perPage")}: ${perPage}`}
+				/>
+				<Pagination
+					totalElementsCount={totalCount}
+					elementsPerPage={perPage}
+					totalPagesCount={totalPages}
+				/>
+			</div>
 		</section>
 	);
 };

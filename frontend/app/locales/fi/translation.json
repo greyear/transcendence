@@ -10,6 +10,7 @@
 		"sortButton": "Järjestä",
 		"filterButton": "Suodata",
 		"applyButton": "Käytä",
+		"perPage": "Sivua kohti",
 		"sortOptions": {
 			"nameAsc": "Nimi A→Ö",
 			"nameDesc": "Nimi Ö→А",

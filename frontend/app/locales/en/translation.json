@@ -10,6 +10,7 @@
 		"sortButton": "Sort",
 		"filterButton": "Filter",
 		"applyButton": "Apply",
+		"perPage": "Per page",
 		"sortOptions": {
 			"nameAsc": "Name A→Z",
 			"nameDesc": "Name Z→A",

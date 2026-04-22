@@ -17,11 +17,26 @@ import { useOutletContext } from "react-router";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SortMenu } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";
+import {
+	PER_PAGE_OPTIONS,
+	usePerPageParam,
+} from "~/composables/usePerPageParam";
 import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
 import type { LayoutOutletContext } from "~/layouts/layout";
 
-const PER_PAGE = 12;
+const PER_PAGE_MENU_OPTIONS = PER_PAGE_OPTIONS.map((n) => ({
+	label: String(n),
+	value: String(n),
+}));
+
+const TAB_LABEL_KEYS: Record<RecipesTab, string> = {
+	all: "recipesPage.tabAll",
+	my: "recipesPage.tabMy",
+	saved: "recipesPage.tabSaved",
+};
+
+const AUTH_REQUIRED_TABS: ReadonlySet<RecipesTab> = new Set(["my", "saved"]);
 
 const RecipesPage = () => {
 	const { t } = useTranslation();
@@ -40,23 +55,23 @@ const RecipesPage = () => {
 	const DEFAULT_SORT = sortOptions[0].value;
 
 	const [sortValue, setSort] = useSortParam(DEFAULT_SORT);
+	const [perPage, setPerPage] = usePerPageParam();
 
 	// `tab` lives in the URL so it's shareable, refresh-safe, and survives
 	// re-renders from sibling URL params (sort, page).
 	const parsedTab = RecipesTabSchema.safeParse(searchParams.get("tab"));
 	const tab: RecipesTab = parsedTab.success ? parsedTab.data : "all";
 
-	const tabsConfig = useMemo((): { value: RecipesTab; label: string }[] => {
-		const all = [
-			{ value: "all" as const, label: t("recipesPage.tabAll") },
-			{ value: "my" as const, label: t("recipesPage.tabMy") },
-			{ value: "saved" as const, label: t("recipesPage.tabSaved") },
-		];
-		// Hide auth-only tabs for guests so they can't reach a state the grid
-		// would have to refuse to render. Direct URL hits to ?tab=my still get
-		// the in-grid sign-in prompt.
-		return isAuthenticated ? all : all.filter((entry) => entry.value === "all");
-	}, [t, isAuthenticated]);
+	// Hide auth-only tabs for guests so they can't reach a state the grid
+	// would have to refuse to render. Direct URL hits to ?tab=my still get
+	// the in-grid sign-in prompt.
+	const tabsConfig = useMemo(
+		() =>
+			RecipesTabSchema.options
+				.filter((value) => isAuthenticated || !AUTH_REQUIRED_TABS.has(value))
+				.map((value) => ({ value, label: t(TAB_LABEL_KEYS[value]) })),
+		[t, isAuthenticated],
+	);
 
 	const filterLabels = useMemo(
 		() => tabsConfig.map((entry) => entry.label),
@@ -87,7 +102,7 @@ const RecipesPage = () => {
 		);
 	};
 
-	const totalPages = Math.max(1, Math.ceil(totalCount / PER_PAGE));
+	const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
 	const page = getCurrentPage(searchParams, totalPages);
 
 	return (
@@ -124,7 +139,7 @@ const RecipesPage = () => {
 
 			<RecipesGrid
 				page={page}
-				perPage={PER_PAGE}
+				perPage={perPage}
 				onLoad={setTotalCount}
 				sortValue={sortValue}
 				isAuthenticated={isAuthenticated}
@@ -133,11 +148,19 @@ const RecipesPage = () => {
 				tab={tab}
 			/>
 
-			<Pagination
-				totalElementsCount={totalCount}
-				elementsPerPage={PER_PAGE}
-				totalPagesCount={totalPages}
-			/>
+			<div className="recipes-page-pagination-row">
+				<SortMenu
+					options={PER_PAGE_MENU_OPTIONS}
+					value={String(perPage)}
+					onChange={(value) => setPerPage(Number(value))}
+					label={`${t("common.perPage")}: ${perPage}`}
+				/>
+				<Pagination
+					totalElementsCount={totalCount}
+					elementsPerPage={perPage}
+					totalPagesCount={totalPages}
+				/>
+			</div>
 		</section>
 	);
 };

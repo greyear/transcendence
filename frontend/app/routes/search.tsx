@@ -533,6 +533,20 @@ const SearchPage = () => {
 					)}
 				</>
 			)}
+
+			<div className="search-page__pagination-row">
+				<SortMenu
+					options={limitOptions}
+					value={String(limit)}
+					onChange={handleLimitChange}
+					label={`${t("common.perPage")}: ${limit}`}
+				/>
+				<Pagination
+					totalElementsCount={total}
+					elementsPerPage={limit}
+					totalPagesCount={totalPages}
+				/>
+			</div>
 		</section>
 	);
 };

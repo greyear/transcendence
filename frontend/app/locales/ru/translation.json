@@ -10,6 +10,7 @@
 		"sortButton": "Сортировать",
 		"filterButton": "Фильтры",
 		"applyButton": "Применить",
+		"perPage": "На странице",
 		"sortOptions": {
 			"nameAsc": "Имя: А→Я",
 			"nameDesc": "Имя: Я→А",

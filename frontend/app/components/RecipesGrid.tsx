@@ -170,15 +170,11 @@ export const RecipesGrid = ({
 				if (isFavoritesEndpoint) {
 					const parsed = FavoriteRecipesResponseSchema.safeParse(body);
 					const rows = parsed.success ? parsed.data.data : [];
-					// /users/me/favorites returns {id, title, description, avatar}.
-					// `avatar` is the *author's* avatar (see TODO(favorites-owner) in
-					// user.tsx), not the recipe thumbnail, so we deliberately drop it
-					// instead of piping it in as picture_url.
 					allRecipes = rows.map((row) => ({
 						id: row.id,
 						title: row.title,
 						description: row.description,
-						picture_url: null,
+						picture_url: row.picture_url,
 						rating_avg: null,
 					}));
 				} else {
