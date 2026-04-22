@@ -120,11 +120,13 @@ const UsersPage = () => {
 				onSubmit={handleSearch}
 			/>
 
-			<FilterList
-				filters={filterLabels}
-				activeFilter={activeLabel}
-				onFilterChange={handleTabChange}
-			/>
+			{isAuthenticated ? (
+				<FilterList
+					filters={filterLabels}
+					activeFilter={activeLabel}
+					onFilterChange={handleTabChange}
+				/>
+			) : null}
 
 			<div className="users-page-controls">
 				<SortMenu options={sortOptions} value={sortValue} onChange={setSort} />

@@ -230,7 +230,7 @@ const RecipesPage = () => {
 				onSubmit={handleSearch}
 			/>
 
-			{!isScoped ? (
+			{!isScoped && isAuthenticated ? (
 				<FilterList
 					filters={filterLabels}
 					activeFilter={activeLabel}
