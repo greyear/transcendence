@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import userPhoto from "../../assets/images/user-photo.jpg";
+import defaultAvatar from "../../assets/images/default-avatar.jpeg";
 import "../../assets/styles/userCard.css";
 import { Link, useNavigate } from "react-router";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
@@ -33,7 +33,7 @@ export const UserCard = ({
 }: UserCardProps) => {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
-	const avatarSrc = resolveMediaUrl(avatar) ?? userPhoto;
+	const avatarSrc = resolveMediaUrl(avatar) ?? defaultAvatar;
 
 	const onFollowClick = (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
 		e.stopPropagation();

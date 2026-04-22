@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router";
 import { z } from "zod";
 import { AuthModal } from "~/components/auth/AuthModal";
@@ -14,6 +14,7 @@ export type LayoutOutletContext = {
 		onCancelAction?: () => void,
 	) => void;
 	currentUserId: number | null;
+	resetAuthState: () => void;
 };
 
 const ProfileIdSchema = z.object({ data: z.object({ id: z.number() }) });
@@ -25,6 +26,11 @@ const Layout = () => {
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 	const authSuccessActionRef = useRef<(() => void) | null>(null);
 	const authCancelActionRef = useRef<(() => void) | null>(null);
+	const resetAuthState = useCallback(() => {
+		setIsAuthenticated(false);
+		setCurrentUserId(null);
+	}, []);
+
 	const openAuthModal = (
 		onSuccessAction?: () => void,
 		onCancelAction?: () => void,
@@ -42,8 +48,7 @@ const Layout = () => {
 				});
 
 				if (!response.ok) {
-					setIsAuthenticated(false);
-					setCurrentUserId(null);
+					resetAuthState();
 					return;
 				}
 
@@ -52,7 +57,7 @@ const Layout = () => {
 				const parsed = ProfileIdSchema.safeParse(body);
 				setCurrentUserId(parsed.success ? parsed.data.data.id : null);
 			} catch {
-				setIsAuthenticated(false);
+				resetAuthState();
 			} finally {
 				// Note: do NOT reset currentUserId here — the success branch above
 				// sets it to the signed-in user's id, and a blanket reset in finally
@@ -63,7 +68,7 @@ const Layout = () => {
 		};
 
 		void restoreAuthState();
-	}, []);
+	}, [resetAuthState]);
 
 	useEffect(() => {
 		if (!isAuthenticated) {
@@ -77,8 +82,7 @@ const Layout = () => {
 					credentials: "include",
 				});
 				if (response.status === 401) {
-					setIsAuthenticated(false);
-					setCurrentUserId(null);
+					resetAuthState();
 				}
 			} catch (error) {
 				console.error(`Heartbeat failed: ${error}`);
@@ -88,7 +92,7 @@ const Layout = () => {
 		void sendHeartbeat();
 		const interval = setInterval(() => void sendHeartbeat(), 30_000);
 		return () => clearInterval(interval);
-	}, [isAuthenticated]);
+	}, [isAuthenticated, resetAuthState]);
 
 	return (
 		<div className="app-shell">
@@ -103,6 +107,7 @@ const Layout = () => {
 						isAuthResolved,
 						currentUserId,
 						openAuthModal,
+						resetAuthState,
 					}}
 				/>
 			</main>
