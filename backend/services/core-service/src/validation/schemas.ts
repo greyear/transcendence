@@ -285,13 +285,13 @@ export const recipeListItemSchema = z.object({
 
 /**
  * Zod schema for FavoriteRecipeListItem - list view for current user's favorites
- * Includes author avatar and omits rating_avg
+ * Includes recipe picture URL and omits rating_avg
  */
 export const favoriteRecipeListItemSchema = z.object({
 	id: z.number().int().positive(),
 	title: z.string(),
 	description: z.string().nullable(),
-	avatar: z.string().nullable(),
+	picture_url: z.string().nullable(),
 });
 
 /**
