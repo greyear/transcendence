@@ -7,8 +7,8 @@
 
 import { app } from "./app.js";
 
-// PORT from environment variable or default 3000
-const port = process.env.PORT || 3000;
+// PORT_GATEWAY from environment variable or default 3000
+const port = process.env.PORT_GATEWAY || 3000;
 
 // Start server
 app.listen(port, () => {

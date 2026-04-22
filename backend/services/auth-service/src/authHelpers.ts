@@ -101,7 +101,7 @@ export const generateToken = (
 ) => {
 	const JWTSecret = process.env.JWT_SECRET;
 	if (!JWTSecret) {
-		throw new Error("JWTSecret env variable is not set");
+		throw new Error("Missing JWT_SECRET in environment variables");
 	}
 
 	const payload = {
@@ -122,7 +122,7 @@ export const decodeToken = (token: string) => {
 	try {
 		const JWTSecret = process.env.JWT_SECRET;
 		if (!JWTSecret) {
-			throw new Error("JWTSecret env variable is not set");
+			throw new Error("Missing JWT_SECRET in environment variables");
 		}
 
 		const decoded = jwt.verify(token, JWTSecret);
@@ -139,25 +139,52 @@ export const decodeToken = (token: string) => {
 export const sequenceHeader = (req: Request) => {
 	try {
 		const authHeaders = req.headers.authorization;
-		if (!authHeaders) return null;
+		if (!authHeaders || typeof authHeaders !== "string") return null;
 
-		const testToken = authHeaders.split(" ");
-		return testToken[1];
+		const parts = authHeaders.split(" ");
+		if (parts.length !== 2) return null;
+
+		if (parts[0].toLowerCase() !== "bearer") return null;
+
+		const token = parts[1]?.trim();
+		if (!token) return null;
+
+		return token;
 	} catch (error) {
 		console.error(error);
 		return null;
 	}
 };
 
-//Take req.headers.authorization and output a decoded JWT if possible
-//Uses decodeToken() and sequenceHeader()
+// Extract token from either cookie or Authorization header
+// Prefers cookie if present, falls back to Authorization header
+export const extractToken = (req: Request): string | null => {
+	try {
+		// Try cookie first
+		const cookieToken =
+			typeof req.cookies?.token === "string" ? req.cookies.token : null;
+		if (cookieToken) {
+			return cookieToken;
+		}
+
+		// Fall back to Authorization header
+		const headerToken = sequenceHeader(req);
+		return headerToken;
+	} catch (error) {
+		console.error(error);
+		return null;
+	}
+};
+
+//Take req.cookies or req.headers.authorization and output a decoded JWT if possible
+//Uses decodeToken() and extractToken()
 export const fetchDecodeToken = (req: Request): AppJwtPayload | null => {
 	try {
-		const tokenHeader = sequenceHeader(req);
-		if (!tokenHeader) {
-			throw Error("Given header does not contain a parseable token");
+		const token = extractToken(req);
+		if (!token) {
+			throw Error("No token found in cookies or Authorization header");
 		}
-		const decoded = decodeToken(tokenHeader);
+		const decoded = decodeToken(token);
 		if (!decoded) {
 			throw Error("Whatever was given was not a token");
 		}
@@ -181,6 +208,23 @@ export const compareJWT = (req: Request, res: Response, next: NextFunction) => {
 	}
 	if (decodedJWT.userId !== parseInt(req.body.userId, 10)) {
 		res.status(401).json({ error: "Incorrect token" });
+		return;
+	}
+
+	req.decodedJWT = decodedJWT;
+	next();
+};
+
+// Another middleware this time to validate JWT without userId check
+// Only for /logout at this time.
+export const validateJWT = (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	const decodedJWT = fetchDecodeToken(req);
+	if (!decodedJWT) {
+		res.status(401).json({ error: "Invalid token" });
 		return;
 	}
 

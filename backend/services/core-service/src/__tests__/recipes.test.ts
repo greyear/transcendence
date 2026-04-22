@@ -47,8 +47,59 @@ describe("Recipes Routes", () => {
 		expect(response.body).toHaveProperty("data");
 		expect(response.body.data).toHaveProperty("id", 1);
 		expect(response.body.data).toHaveProperty("title");
+		expect(response.body.data).toHaveProperty("rating_count");
+		expect(response.body.data).toHaveProperty("viewer_rating", null);
 		expect(Array.isArray(response.body.data.ingredients)).toBe(true);
 		expect(Array.isArray(response.body.data.categories)).toBe(true);
+	});
+
+	it("should return viewer_rating for authenticated user on GET /recipes/:id", async () => {
+		const userId = 7011;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[userId, "viewer_rating_user"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Viewer Rating Test', 'fi', 'Viewer Rating Test', 'ru', 'Viewer Rating Test'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step 1']), 'fi', to_jsonb(ARRAY['step 1']), 'ru', to_jsonb(ARRAY['step 1'])),
+					'published',
+					$1
+				 ) RETURNING id`,
+				[userId],
+			);
+			recipeId = recipeResult.rows[0].id as number;
+
+			const createRatingResponse = await request(app)
+				.post(`/recipes/${recipeId}/rating`)
+				.set("X-User-Id", String(userId))
+				.send({ rating: 5 });
+
+			expect(createRatingResponse.status).toBe(201);
+
+			const authResponse = await request(app)
+				.get(`/recipes/${recipeId}`)
+				.set("X-User-Id", String(userId));
+
+			expect(authResponse.status).toBe(200);
+			expect(authResponse.body.data).toHaveProperty("viewer_rating", 5);
+			expect(authResponse.body.data).toHaveProperty("rating_count", 1);
+
+			const guestResponse = await request(app).get(`/recipes/${recipeId}`);
+			expect(guestResponse.status).toBe(200);
+			expect(guestResponse.body.data).toHaveProperty("viewer_rating", null);
+			expect(guestResponse.body.data).toHaveProperty("rating_count", 1);
+		} finally {
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id = $1`, [userId]);
+		}
 	});
 
 	/**
@@ -231,7 +282,7 @@ describe("Recipes Routes", () => {
 
 			expect(response.status).toBe(201);
 			expect(response.body).toHaveProperty("data");
-			expect(response.body.data).toHaveProperty("status", "draft");
+			expect(response.body.data).toHaveProperty("status", "published");
 			expect(response.body.data).toHaveProperty("author_id", userId);
 			expect(Array.isArray(response.body.data.ingredients)).toBe(true);
 			expect(response.body.data.ingredients).toHaveLength(1);
@@ -1969,9 +2020,21 @@ describe("Recipes Routes", () => {
 		expect(response.status).toBe(200);
 		expect(response.body).toHaveProperty("meal_time");
 		expect(Array.isArray(response.body.meal_time)).toBe(true);
-		expect(response.body.meal_time).toEqual(
+		const codes = response.body.meal_time.map(
+			(item: { code: string }) => item.code,
+		);
+		expect(codes).toEqual(
 			expect.arrayContaining(["breakfast", "lunch", "dinner", "snack"]),
 		);
+		for (const item of response.body.meal_time) {
+			expect(item).toEqual(
+				expect.objectContaining({
+					id: expect.any(Number),
+					code: expect.any(String),
+					name: expect.any(String),
+				}),
+			);
+		}
 	});
 
 	it("should return dish_type categories for GET /recipes/dish_type", async () => {
@@ -1998,9 +2061,21 @@ describe("Recipes Routes", () => {
 		expect(response.status).toBe(200);
 		expect(response.body).toHaveProperty("cuisine");
 		expect(Array.isArray(response.body.cuisine)).toBe(true);
-		expect(response.body.cuisine).toEqual(
+		const codes = response.body.cuisine.map(
+			(item: { code: string }) => item.code,
+		);
+		expect(codes).toEqual(
 			expect.arrayContaining(["italian", "asian", "finnish"]),
 		);
+		for (const item of response.body.cuisine) {
+			expect(item).toEqual(
+				expect.objectContaining({
+					id: expect.any(Number),
+					code: expect.any(String),
+					name: expect.any(String),
+				}),
+			);
+		}
 	});
 
 	it("should return empty array for unknown category type", async () => {
@@ -2024,5 +2099,25 @@ describe("Recipes Routes", () => {
 			(i: { name: string }) => i.name,
 		);
 		expect(names).toEqual([...names].sort());
+	});
+
+	it("should return units list for GET /recipes/units", async () => {
+		const response = await request(app).get("/recipes/units");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("units");
+		expect(Array.isArray(response.body.units)).toBe(true);
+		expect(response.body.units.length).toBeGreaterThan(0);
+		for (const unit of response.body.units) {
+			expect(unit).toEqual(
+				expect.objectContaining({
+					code: expect.any(String),
+					kind: expect.any(String),
+				}),
+			);
+			expect(["mass", "volume", "portion"]).toContain(unit.kind);
+		}
+		const codes = response.body.units.map((u: { code: string }) => u.code);
+		expect(codes).toEqual(expect.arrayContaining(["g", "kg", "ml", "tsp"]));
 	});
 });

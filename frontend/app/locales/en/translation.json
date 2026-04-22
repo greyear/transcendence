@@ -66,7 +66,8 @@
 		"reviewAnonymous": "Deleted user",
 		"confirmDeleteReview": "Delete your review?",
 		"deleteReviewError": "Failed to delete review (status: {{status}}).",
-		"step": "Step {{number}}"
+		"step": "Step {{number}}",
+		"pictureUploadFailedWarning": "Recipe created, but the photo could not be uploaded. A default image is being used — you can try adding a photo again later."
 	},
 	"ratingModal": {
 		"title": "Rate this recipe",
@@ -121,6 +122,18 @@
 		"favoritesNotFound": "Favorites not found.",
 		"favoritesTitle": "My favorites"
 	},
+	"userProfilePage": {
+		"loading": "Loading user...",
+		"error": "Failed to load user (status: {{status}}).",
+		"notFound": "User not found.",
+		"online": "Online",
+		"offline": "Offline",
+		"follow": "Follow",
+		"unfollow": "Unfollow",
+		"authoredRecipes": "Authored recipes",
+		"favoriteRecipes": "Favorite recipes",
+		"all": "All"
+	},
 	"authModal": {
 		"title": "Log in",
 		"signupTitle": "Create an account",
@@ -152,7 +165,8 @@
 	"userCard": {
 		"recipes": "recipes",
 		"follow": "Follow",
-		"unfollow": "Unfollow"
+		"unfollow": "Unfollow",
+		"profile": "Profile"
 	},
 	"privacyPage": {
 		"title": "Privacy Policy",
@@ -201,6 +215,72 @@
 		"contactTitle": "Contact",
 		"contactText": "If you have any questions about these terms, contact us at msavelie@student.hive.fi."
 	},
+	"formValidation": {
+		"required": "This field is required.",
+		"invalidEmail": "Please enter a valid email address.",
+		"tooShort": "Please enter at least {{count}} characters.",
+		"tooLong": "Please enter no more than {{count}} characters.",
+		"patternMismatch": "Please match the requested format."
+	},
+	"recipeCreatePage": {
+		"title": "Add a Recipe",
+		"subtitle": "Know the recipe that is worth to be famous? Share it with us <3",
+		"recipeTitleLabel": "Recipe Title",
+		"recipeTitlePlaceholder": "Recipe Title",
+		"descriptionLabel": "Short Description",
+		"descriptionPlaceholder": "Describe your recipe in a way that makes mouths water.",
+		"servingsLabel": "Servings",
+		"servingsPlaceholder": "e.g. 2",
+		"spicinessLabel": "Spiciness",
+		"spicinessPlaceholder": "0 to 3",
+		"prepTimeLegend": "Prep Time",
+		"cookTimeLegend": "Cook Time",
+		"hoursPlaceholder": "hours",
+		"minutesPlaceholder": "minutes",
+		"ingredientsHeading": "Ingredients",
+		"instructionsHeading": "Instructions",
+		"ingredientNamePlaceholder": "Ingredient name",
+		"ingredientAmountPlaceholder": "Amount",
+		"ingredientUnitPlaceholder": "Unit",
+		"instructionPlaceholder": "Describe this step…",
+		"addIngredient": "+ Add ingredient",
+		"addStep": "+ Add step",
+		"addPhoto": "Add a photo",
+		"recipePreview": "Recipe preview",
+		"submitButton": "Create",
+		"submittingButton": "Creating...",
+		"createSuccess": "Recipe created.",
+		"createError": "Failed to create recipe (status: {{status}}).",
+		"networkError": "Could not reach the server. Please try again.",
+		"genericError": "Please fix the errors above.",
+		"categoryPlaceholder": "Select one",
+		"categoriesPlaceholder": "Select one or more",
+		"categoryTypeLabel": {
+			"meal_time": "Meal time",
+			"dish_type": "Dish type",
+			"main_ingredient": "Main ingredient",
+			"cuisine": "Cuisine"
+		}
+	},
+	"recipeCreateAria": {
+		"addPhoto": "Add a recipe photo",
+		"prepHours": "Prep time hours",
+		"prepMinutes": "Prep time minutes",
+		"cookHours": "Cook time hours",
+		"cookMinutes": "Cook time minutes",
+		"ingredientsList": "Ingredients list",
+		"instructionsList": "Instructions list",
+		"ingredientName": "Ingredient {{number}} name",
+		"ingredientAmount": "Ingredient {{number}} amount",
+		"ingredientUnit": "Ingredient {{number}} unit",
+		"ingredientLegend": "Ingredient {{number}}",
+		"removeIngredient": "Remove ingredient {{number}}",
+		"reorderIngredient": "Reorder ingredient {{number}}",
+		"stepLabel": "Step {{number}}",
+		"stepDescription": "Step {{number}} description",
+		"removeStep": "Remove step {{number}}",
+		"reorderStep": "Reorder step {{number}}"
+	},
 	"ariaLabels": {
 		"addToFavorites": "Add to favorites",
 		"removeFromFavorites": "Remove from favorites",
@@ -230,12 +310,46 @@
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
 		"allUsers": "All users",
+		"profileAvatar": "Avatar of {{name}}",
+		"followUser": "Follow {{name}}",
+		"unfollowUser": "Unfollow {{name}}",
+		"openMyProfile": "Open my profile",
 		"sortBy": "Sort by",
 		"ingredientsAndInstructions": "Recipe ingredients and instructions",
 		"closeAuthDialog": "Close authentication dialog",
 		"toProfilePage": "Go to profile page",
 		"closeRatingDialog": "Close rating dialog",
 		"closeReviewDialog": "Close review dialog",
-		"deleteReview": "Delete review"
+		"deleteReview": "Delete review",
+		"dismissWarning": "Dismiss warning"
+	},
+	"recipeCreateValidation": {
+		"titleRequired": "Recipe title is required",
+		"descriptionRequired": "Description is required",
+		"descriptionMax": "Description must be at most {{count}} characters",
+		"servingsRequired": "Servings is required",
+		"servingsInt": "Servings must be a whole number",
+		"servingsPositive": "Servings must be a positive integer",
+		"spicinessRequired": "Spiciness is required",
+		"spicinessInt": "Spiciness must be a whole number",
+		"spicinessRange": "Spiciness must be between 0 and 3",
+		"prepHoursRequired": "Prep hours is required",
+		"prepMinutesRequired": "Prep minutes is required",
+		"cookHoursRequired": "Cook hours is required",
+		"cookMinutesRequired": "Cook minutes is required",
+		"hoursInt": "Hours must be a whole number",
+		"hoursNonneg": "Hours must be 0 or more",
+		"minutesInt": "Minutes must be a whole number",
+		"minutesRange": "Minutes must be between 0 and 59",
+		"amountRequired": "Ingredient amount is required",
+		"amountPositive": "Ingredient amount must be positive",
+		"ingredientRequired": "Ingredient is required",
+		"unitRequired": "Ingredient unit is required",
+		"ingredientsMin": "At least one ingredient is required",
+		"ingredientsUnique": "Ingredients must be unique",
+		"stepRequired": "Step text is required",
+		"instructionsMin": "At least one instruction step is required",
+		"prepTimeNonneg": "Prep time must be 0 or more",
+		"cookTimePositive": "Cook time must be greater than 0"
 	}
 }

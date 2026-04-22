@@ -74,9 +74,9 @@ async function registerCoreProfile(id: number): Promise<void> {
 
 // Connection part
 // Fetch env or throw.
-const MONGO_AUTH_URI = process.env.MONGODB_URI || process.env.MONGODB_AUTH_URI;
+const MONGO_AUTH_URI = process.env.MONGODB_AUTH_URI;
 if (!MONGO_AUTH_URI) {
-	throw new Error("MONGODB_URI or MONGODB_AUTH_URI env variable is not set");
+	throw new Error("Missing MONGODB_AUTH_URI in environment variables");
 }
 
 // Connect to MongoDB
@@ -387,6 +387,29 @@ authRouter.post(
 			} else {
 				next(error);
 			}
+		}
+	},
+);
+
+/*
+	Logout user by clearing the authentication token cookie.
+		1. Clear the "token" cookie.
+		2. Return a success message.
+*/
+authRouter.post(
+	"/logout",
+	help.validateJWT,
+	async (_req: Request, res: Response, next: NextFunction) => {
+		try {
+			res.clearCookie("token", {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+			});
+
+			res.status(200).json({ message: "Logout successful" });
+		} catch (error) {
+			next(error);
 		}
 	},
 );

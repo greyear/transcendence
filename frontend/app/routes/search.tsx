@@ -47,7 +47,7 @@ type SearchRecipeItem = {
 	id: number;
 	title: string;
 	description: string;
-	rating_avg: string;
+	rating_avg: number | null;
 };
 
 type SearchUserItem = {
@@ -141,7 +141,7 @@ const SearchPage = () => {
 						id: item.recipe_id,
 						title: item.title,
 						description: item.description ?? "",
-						rating_avg: "",
+						rating_avg: null,
 					})),
 				});
 			})
@@ -280,11 +280,16 @@ const SearchPage = () => {
 						<ul className="recipe-card-list">
 							{results.data.map(({ id, title, description, rating_avg }) => (
 								<li key={id}>
+									{/* TODO(favorites-owner): wire isFavorited + onFavoriteClick
+									    to the viewer's /users/me/favorites state so the star
+									    reflects and mutates the real favorite set. */}
 									<RecipeCard
 										id={id}
 										title={title}
 										description={description}
 										rating={rating_avg}
+										isFavorited={false}
+										onFavoriteClick={() => {}}
 									/>
 								</li>
 							))}

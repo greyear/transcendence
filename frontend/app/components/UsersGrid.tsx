@@ -3,6 +3,7 @@ import "../assets/styles/usersGrid.css";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { useRelationSet } from "~/composables/useRelationSet";
 
 type UserCardResponse = {
 	id: number;
@@ -12,6 +13,9 @@ type UserCardResponse = {
 };
 
 type UsersGridProps = {
+	isAuthenticated: boolean;
+	currentUserId: number | null;
+	openAuthModal: (onSuccessAction?: () => void) => void;
 	sortValue?: string;
 	page?: number;
 	perPage?: number;
@@ -39,6 +43,9 @@ const sortUsers = (
 };
 
 export const UsersGrid = ({
+	isAuthenticated,
+	currentUserId,
+	openAuthModal,
 	page = 1,
 	perPage = 12,
 	onLoad,
@@ -50,6 +57,18 @@ export const UsersGrid = ({
 	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
 		null,
 	);
+
+	const {
+		ids: followingIds,
+		pendingIds: pendingFollowIds,
+		isListLoading: isFollowingLoading,
+		handleToggle: handleFollowToggle,
+	} = useRelationSet({
+		isAuthenticated,
+		openAuthModal,
+		listEndpoint: "/users/me/following",
+		itemEndpoint: (userId) => `/users/${userId}/follow`,
+	});
 
 	useEffect(() => {
 		fetch(`${API_BASE_URL}/users`)
@@ -109,6 +128,10 @@ export const UsersGrid = ({
 						name={username}
 						avatar={avatar}
 						recipeCount={recipes_count}
+						isFollowing={followingIds.has(id)}
+						isFollowPending={isFollowingLoading || pendingFollowIds.has(id)}
+						onFollowToggle={handleFollowToggle}
+						isOwnCard={currentUserId === id}
 					/>
 				</li>
 			))}

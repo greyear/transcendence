@@ -1,6 +1,11 @@
 import type { DropResult } from "@hello-pangea/dnd";
 import { DragDropContext, Draggable } from "@hello-pangea/dnd";
-import type { IngredientRow } from "~/components/recipe/RecipeIngredientRow";
+import { useTranslation } from "react-i18next";
+import type {
+	IngredientOption,
+	IngredientRow,
+	UnitOption,
+} from "~/components/recipe/RecipeIngredientRow";
 import {
 	createIngredient,
 	RecipeIngredientRow,
@@ -9,13 +14,18 @@ import { RecipeSortableList } from "~/components/recipe/RecipeSortableList";
 
 type RecipeIngredientSectionProps = {
 	rows: IngredientRow[];
+	ingredientOptions: IngredientOption[];
+	unitOptions: UnitOption[];
 	onChange: (rows: IngredientRow[]) => void;
 };
 
 export const RecipeIngredientSection = ({
 	rows,
+	ingredientOptions,
+	unitOptions,
 	onChange,
 }: RecipeIngredientSectionProps) => {
+	const { t } = useTranslation();
 	const handleDragEnd = (result: DropResult) => {
 		if (!result.destination) {
 			return;
@@ -47,7 +57,7 @@ export const RecipeIngredientSection = ({
 			aria-labelledby="ingredients-heading"
 		>
 			<h2 id="ingredients-heading" className="recipe-create-label">
-				Ingredients{" "}
+				{t("recipeCreatePage.ingredientsHeading")}{" "}
 				<span className="recipe-create-required" aria-hidden="true">
 					*
 				</span>
@@ -57,7 +67,7 @@ export const RecipeIngredientSection = ({
 					droppableId="ingredients"
 					type="ingredients"
 					className="recipe-create-list"
-					ariaLabel="Ingredients list"
+					ariaLabel={t("recipeCreateAria.ingredientsList")}
 				>
 					{rows.map((row, index) => (
 						<Draggable key={row.id} draggableId={row.id} index={index}>
@@ -65,6 +75,8 @@ export const RecipeIngredientSection = ({
 								<RecipeIngredientRow
 									provided={provided}
 									ingredient={row}
+									ingredientOptions={ingredientOptions}
+									unitOptions={unitOptions}
 									index={index}
 									isOnly={rows.length === 1}
 									onChange={(patch) => handleChange(row.id, patch)}
@@ -80,7 +92,7 @@ export const RecipeIngredientSection = ({
 				className="recipe-add-button text-body3"
 				onClick={handleAdd}
 			>
-				+ Add ingredient
+				{t("recipeCreatePage.addIngredient")}
 			</button>
 		</section>
 	);
