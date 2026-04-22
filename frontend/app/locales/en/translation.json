@@ -74,6 +74,7 @@
 		"title": "Search",
 		"totalCount": "Results:",
 		"recipesTab": "Recipes",
+		"usersTab": "Users",
 		"perPage": "Per page",
 		"noResults": "No matching recipes found.",
 		"searching": "Searching recipes...",

@@ -35,16 +35,16 @@ const FILTER_PARAM_BY_TYPE: Record<CategoryTypeCode, string> = {
 	cuisine: "cuisine",
 };
 
-const SEARCH_MAX_LIMIT = 5;
-const DEFAULT_LIMIT = 5;
-const LIMIT_OPTIONS = [5, 12, 24, 36, 48];
+const LIMIT_OPTIONS = [12, 24, 36, 48];
+const DEFAULT_LIMIT = LIMIT_OPTIONS[0];
 
 const parseLimit = (raw: string | null): number => {
 	const parsed = Number(raw);
-	if (!Number.isFinite(parsed) || parsed < 1) {
+	if (!Number.isFinite(parsed)) {
 		return DEFAULT_LIMIT;
 	}
-	return Math.min(Math.trunc(parsed), SEARCH_MAX_LIMIT);
+	const truncated = Math.trunc(parsed);
+	return LIMIT_OPTIONS.includes(truncated) ? truncated : DEFAULT_LIMIT;
 };
 
 const SearchRecipesApiItemSchema = z.object({
@@ -401,9 +401,6 @@ const SearchPage = () => {
 							{results.data.map(
 								({ id, title, description, rating_avg, picture_url }) => (
 									<li key={id}>
-										{/* TODO(favorites-owner): wire isFavorited + onFavoriteClick
-									    to the viewer's /users/me/favorites state so the star
-									    reflects and mutates the real favorite set. */}
 										<RecipeCard
 											id={id}
 											title={title}
