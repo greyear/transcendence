@@ -33,7 +33,7 @@ const FavoritesResponseSchema = z.object({
 			id: z.number(),
 			title: z.string(),
 			description: z.string().nullable(),
-			avatar: z.string().nullable(),
+			picture_url: z.string().nullable(),
 		}),
 	),
 });
@@ -290,16 +290,12 @@ const UserPage = () => {
 						<ul className="recipe-card-list">
 							{favorites.slice(0, recipesPerPage).map((recipe) => (
 								<li key={recipe.id}>
-									{/* TODO(favorites-owner): GET /users/:id/favorites returns the
-									    author avatar (u.avatar), not the recipe thumbnail — update the
-									    backend query to select picture_url from recipe_media, then
-									    replace pictureUrl below. */}
 									<RecipeCard
 										id={recipe.id}
 										title={recipe.title}
 										description={recipe.description}
 										rating={null}
-										pictureUrl={recipe.avatar}
+										pictureUrl={recipe.picture_url}
 										isFavorited={favoriteIds.has(recipe.id)}
 										isFavoritePending={
 											isFavoritesLoading || pendingFavoriteIds.has(recipe.id)
