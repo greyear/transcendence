@@ -34,7 +34,8 @@ const getAuthHeaders = (req: Request): Record<string, string> => {
 	}
 
 	// Then try cookie
-	const cookieToken = typeof req.cookies?.token === "string" ? req.cookies.token : null;
+	const cookieToken =
+		typeof req.cookies?.token === "string" ? req.cookies.token : null;
 	if (cookieToken) {
 		headers.authorization = `Bearer ${cookieToken}`;
 		return headers;

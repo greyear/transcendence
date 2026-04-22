@@ -30,6 +30,22 @@ jobs:
           mkdir certs
           make certs
 
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          MONGODB_AUTH_URI=${{ secrets.MONGODB_AUTH_URI }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          SEARCH_SERVICE_URL=${{ secrets.SEARCH_SERVICE_URL }}
+          SEARCH_REINDEX_TIMEOUT_MS=${{ secrets.SEARCH_REINDEX_TIMEOUT_MS }}
+          TRANSLATION_API_URL=${{ secrets.TRANSLATION_API_URL }}
+          TRANSLATION_TIMEOUT_MS=${{ secrets.TRANSLATION_TIMEOUT_MS }}
+          CORE_SERVICE_TIMEOUT_MS=${{ secrets.CORE_SERVICE_TIMEOUT_MS }}
+          GEMINI_GEN_MODEL=${{ secrets.GEMINI_GEN_MODEL }}
+          MONGO_ROOT_USERNAME=${{ secrets.MONGO_ROOT_USERNAME }}
+          MONGO_ROOT_PASSWORD=${{ secrets.MONGO_ROOT_PASSWORD }}
+          EOF
+
       - name: Start services with docker compose
         run: docker compose up -d
 

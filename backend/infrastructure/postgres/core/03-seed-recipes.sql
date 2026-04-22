@@ -484,20 +484,17 @@ WITH seeded_media(title_en, image_url) AS (
     ('Chocolate Lava Cakes', '/recipe-pictures/recipe-19.jpeg'),
     ('Overnight Oats', '/recipe-pictures/recipe-20.jpeg')
 )
-MERGE INTO recipe_media rm
-USING (
-  SELECT
-    r.id AS recipe_id,
-    sm.image_url
-  FROM recipes r
-  JOIN seeded_media sm ON COALESCE(r.title->>'en', '') = sm.title_en
-) src
-ON rm.recipe_id = src.recipe_id AND rm.position = 0
-WHEN MATCHED THEN
-  UPDATE SET type = 'image', url = src.image_url
-WHEN NOT MATCHED THEN
-  INSERT (recipe_id, type, url, position)
-  VALUES (src.recipe_id, 'image', src.image_url, 0);
+INSERT INTO recipe_media (recipe_id, type, url, position)
+SELECT
+  r.id AS recipe_id,
+  'image' AS type,
+  sm.image_url AS url,
+  0 AS position
+FROM recipes r
+JOIN seeded_media sm ON COALESCE(r.title->>'en', '') = sm.title_en
+ON CONFLICT (recipe_id, position) DO UPDATE
+SET type = EXCLUDED.type,
+    url = EXCLUDED.url;
 
 WITH seeded_recipe_ingredients(title_en, ingredient_name, amount, unit) AS (
   VALUES

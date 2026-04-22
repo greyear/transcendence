@@ -8,12 +8,12 @@ import {
 	useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
 import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { InputField } from "~/components/inputs/InputField";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { readAuthError } from "~/schemas/auth";
 import "~/assets/styles/auth.css";
 
 type AuthMode = "login" | "signup";
@@ -57,10 +57,6 @@ const GOOGLE_IDENTITY_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
 const GOOGLE_BUTTON_MIN_WIDTH = 240;
 const GOOGLE_CLIENT_ID_PLACEHOLDER =
 	"123456789012-abc123def456gh789ijklmn0pqrstuvw.apps.googleusercontent.com";
-
-const AuthErrorResponseSchema = z.object({
-	error: z.string().optional(),
-});
 
 const loadGoogleIdentityScript = () =>
 	new Promise<void>((resolve, reject) => {
@@ -106,13 +102,6 @@ const loadGoogleIdentityScript = () =>
 		};
 		document.head.appendChild(script);
 	});
-
-const readAuthError = async (response: Response) => {
-	const body: unknown = await response.json().catch(() => null);
-	const parsed = AuthErrorResponseSchema.safeParse(body);
-
-	return parsed.success ? parsed.data.error : undefined;
-};
 
 export const AuthForm = ({
 	initialMode = "login",
