@@ -1,5 +1,6 @@
 {
 	"common": {
+		"cancel": "Cancel",
 		"signInButton": "Sign In",
 		"searchPlaceholder": "Search for...",
 		"sortButton": "Sort",

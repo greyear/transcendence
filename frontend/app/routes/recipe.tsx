@@ -6,6 +6,7 @@ import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.css";
 import { Reports, StarSolid, Trash } from "iconoir-react";
 import { IconButton } from "~/components/buttons/IconButton";
+import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { RatingModal } from "~/components/rating/ratingModal";
 import { ReviewModal } from "~/components/review/reviewModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
@@ -182,6 +183,9 @@ const RecipePage = () => {
 		number | "unknown" | null
 	>(null);
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+	const [reviewIdPendingDelete, setReviewIdPendingDelete] = useState<
+		number | null
+	>(null);
 	const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null);
 	const [reviewActionError, setReviewActionError] = useState("");
 	const [isFavorited, setIsFavorited] = useState(false);
@@ -264,6 +268,14 @@ const RecipePage = () => {
 		setIsReviewModalOpen(true);
 	};
 
+	const onCloseDeleteReviewModal = () => {
+		if (deletingReviewId !== null) {
+			return;
+		}
+
+		setReviewIdPendingDelete(null);
+	};
+
 	const refreshRecipeData = async () => {
 		if (!id) {
 			return;
@@ -282,7 +294,7 @@ const RecipePage = () => {
 	};
 
 	const deleteReview = async (reviewId: number) => {
-		if (!id || !window.confirm(t("recipePage.confirmDeleteReview"))) {
+		if (!id) {
 			return;
 		}
 
@@ -313,6 +325,7 @@ const RecipePage = () => {
 			);
 		} finally {
 			setDeletingReviewId(null);
+			setReviewIdPendingDelete(null);
 		}
 	};
 
@@ -386,6 +399,7 @@ const RecipePage = () => {
 			setReviews([]);
 			setReviewsErrorStatus("unknown");
 			setAreReviewsLoading(false);
+			setReviewIdPendingDelete(null);
 			return;
 		}
 
@@ -644,7 +658,9 @@ const RecipePage = () => {
 															className="recipe-page-review-delete"
 															aria-label={t("ariaLabels.deleteReview")}
 															disabled={deletingReviewId === review.id}
-															onClick={() => void deleteReview(review.id)}
+															onClick={() =>
+																setReviewIdPendingDelete(review.id)
+															}
 														>
 															<Trash aria-hidden="true" />
 														</IconButton>
@@ -673,6 +689,18 @@ const RecipePage = () => {
 				onClose={onCloseReviewModal}
 				onSuccess={refreshRecipeData}
 				recipeId={String(recipe.id)}
+			/>
+			<ConfirmationModal
+				isOpen={reviewIdPendingDelete !== null}
+				onClose={onCloseDeleteReviewModal}
+				onConfirm={() =>
+					reviewIdPendingDelete === null
+						? undefined
+						: deleteReview(reviewIdPendingDelete)
+				}
+				title={t("recipePage.confirmDeleteReview")}
+				confirmLabel={t("ariaLabels.deleteReview")}
+				isConfirming={deletingReviewId !== null}
 			/>
 		</section>
 	);

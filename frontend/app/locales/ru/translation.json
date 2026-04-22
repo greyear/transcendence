@@ -1,5 +1,6 @@
 {
 	"common": {
+		"cancel": "Отмена",
 		"signInButton": "Войти",
 		"searchPlaceholder": "Поиск...",
 		"sortButton": "Сортировать",

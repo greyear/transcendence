@@ -1,0 +1,39 @@
+.confirmation-card {
+	width: min(100%, 520px);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xl);
+	padding: var(--space-xl);
+	border-radius: var(--radius-l);
+	background-color: var(--surface-card);
+	border: 1px solid var(--borders-input);
+	box-shadow: var(--shadow-effect);
+}
+
+.confirmation-card-body {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-s);
+}
+
+.confirmation-modal-title {
+	margin: 0;
+	font-size: var(--fs-h2);
+	line-height: var(--lh-h2);
+	font-weight: var(--fw-h2);
+}
+
+.confirmation-modal-description {
+	margin: 0;
+	color: var(--text-secondary);
+}
+
+.confirmation-modal-actions {
+	display: flex;
+	flex-direction: column-reverse;
+	gap: var(--space-m);
+}
+
+.confirmation-modal-actions .main-button {
+	width: 100%;
+}

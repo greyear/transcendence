@@ -1,5 +1,6 @@
 {
 	"common": {
+		"cancel": "Peruuta",
 		"signInButton": "Kirjaudu",
 		"searchPlaceholder": "Hae...",
 		"sortButton": "Järjestä",
