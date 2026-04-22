@@ -1025,10 +1025,14 @@ export const getMyFavoriteRecipes = async (
 		r.id,
 		COALESCE(r.title->>$2, r.title->>'en') AS title,
 		COALESCE(r.description->>$2, r.description->>'en') AS description,
-		u.avatar
+		(
+			SELECT rm.url
+			FROM recipe_media rm
+			WHERE rm.recipe_id = r.id AND rm.position = 0
+			LIMIT 1
+		) AS picture_url
       FROM favorites f
       JOIN recipes r ON r.id = f.recipe_id
-      LEFT JOIN users u ON u.id = r.author_id
       WHERE f.user_id = $1 AND r.status = 'published'
       ORDER BY f.created_at DESC
     `;
@@ -1075,10 +1079,14 @@ export const getFavoriteRecipesByUserId = async (
 		r.id,
 		COALESCE(r.title->>$2, r.title->>'en') AS title,
 		COALESCE(r.description->>$2, r.description->>'en') AS description,
-		u.avatar
+		(
+			SELECT rm.url
+			FROM recipe_media rm
+			WHERE rm.recipe_id = r.id AND rm.position = 0
+			LIMIT 1
+		) AS picture_url
       FROM favorites f
       JOIN recipes r ON r.id = f.recipe_id
-      LEFT JOIN users u ON u.id = r.author_id
       WHERE f.user_id = $1 AND r.status = 'published'
       ORDER BY f.created_at DESC
     `;
