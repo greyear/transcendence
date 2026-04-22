@@ -12,6 +12,7 @@ interface TextButtonProps {
 	className?: string;
 	variant?: TextButtonVariant;
 	selected?: boolean;
+	disabled?: boolean;
 }
 
 export const TextIconButton = ({
@@ -22,17 +23,27 @@ export const TextIconButton = ({
 	variant = "primary",
 	className = "",
 	selected = false,
+	disabled = false,
 }: TextButtonProps) => {
 	const combinedClasses =
-		`text-button text-button--${size} ${variant} ${selected ? "text-selected" : ""} ${className}`.trim();
+		`text-button text-button--${size} ${variant} ${selected ? "text-selected" : ""} ${disabled ? "is-disabled" : ""} ${className}`.trim();
 
 	if (to) {
 		return (
 			<Link
 				to={to}
 				className={combinedClasses}
-				onClick={onClick}
+				onClick={(event) => {
+					if (disabled) {
+						event.preventDefault();
+						return;
+					}
+
+					onClick?.();
+				}}
 				aria-pressed={selected}
+				aria-disabled={disabled}
+				tabIndex={disabled ? -1 : undefined}
 			>
 				{children}
 			</Link>
@@ -45,6 +56,7 @@ export const TextIconButton = ({
 			onClick={onClick}
 			className={combinedClasses}
 			aria-pressed={selected}
+			disabled={disabled}
 		>
 			{children}
 		</button>

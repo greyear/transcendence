@@ -34,6 +34,164 @@ describe("Recipes Routes", () => {
 		expect(Array.isArray(response.body.data)).toBe(true);
 	});
 
+	it("should filter recipes by query for GET /recipes?q=", async () => {
+		const authorId = 12050;
+		let recipeId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status)
+				 VALUES ($1, $2, 'user', 'offline')
+				 ON CONFLICT (id) DO NOTHING`,
+				[authorId, "recipe_search_owner"],
+			);
+
+			const recipeResult = await pool.query(
+				`
+				INSERT INTO recipes (
+					title,
+					description,
+					instructions,
+					servings,
+					spiciness,
+					author_id,
+					status
+				)
+				VALUES ($1::jsonb, $2::jsonb, $3::jsonb, 2, 0, $4, 'published')
+				RETURNING id
+				`,
+				[
+					JSON.stringify({
+						en: "Zzrecipekeyword lentil stew",
+						fi: "Zzrecipekeyword linssimuhennos",
+						ru: "Zzrecipekeyword lentil stew",
+					}),
+					JSON.stringify({
+						en: "A unique recipe search test marker.",
+						fi: "A unique recipe search test marker.",
+						ru: "A unique recipe search test marker.",
+					}),
+					JSON.stringify({
+						en: ["Simmer until the zzrecipekeyword stew thickens"],
+						fi: ["Simmer until the zzrecipekeyword stew thickens"],
+						ru: ["Simmer until the zzrecipekeyword stew thickens"],
+					}),
+					authorId,
+				],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const response = await request(app).get(
+				"/recipes?q=zzrecipekeyword&limit=12",
+			);
+
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("total_count", 1);
+			expect(response.body).toHaveProperty("per_page", 12);
+			expect(response.body.data).toHaveLength(1);
+			expect(response.body.data[0]).toHaveProperty("id", recipeId);
+			expect(response.body.data[0]).toHaveProperty(
+				"title",
+				"Zzrecipekeyword lentil stew",
+			);
+		} finally {
+			if (recipeId !== null) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id = $1`, [authorId]);
+		}
+	});
+
+	it("should use limit as recipe search page size", async () => {
+		const authorId = 12051;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status)
+				 VALUES ($1, $2, 'user', 'offline')
+				 ON CONFLICT (id) DO NOTHING`,
+				[authorId, "recipe_search_limit_owner"],
+			);
+
+			await pool.query(
+				`
+				INSERT INTO recipes (
+					title,
+					description,
+					instructions,
+					servings,
+					spiciness,
+					author_id,
+					status
+				)
+				SELECT
+					jsonb_build_object(
+						'en', 'Zzlimitkeyword recipe ' || gs,
+						'fi', 'Zzlimitkeyword recipe ' || gs,
+						'ru', 'Zzlimitkeyword recipe ' || gs
+					),
+					jsonb_build_object(
+						'en', 'Search limit test recipe',
+						'fi', 'Search limit test recipe',
+						'ru', 'Search limit test recipe'
+					),
+					jsonb_build_object(
+						'en', ARRAY['Cook zzlimitkeyword recipe ' || gs],
+						'fi', ARRAY['Cook zzlimitkeyword recipe ' || gs],
+						'ru', ARRAY['Cook zzlimitkeyword recipe ' || gs]
+					),
+					2,
+					0,
+					$1,
+					'published'
+				FROM generate_series(1, 13) AS gs
+				`,
+				[authorId],
+			);
+
+			const response = await request(app).get(
+				"/recipes?q=zzlimitkeyword&limit=13&page=1",
+			);
+
+			expect(response.status).toBe(200);
+			expect(response.body).toMatchObject({
+				total_count: 13,
+				total_pages: 1,
+				page: 1,
+				per_page: 13,
+			});
+			expect(response.body.data).toHaveLength(13);
+		} finally {
+			await pool.query(`DELETE FROM recipes WHERE author_id = $1`, [authorId]);
+			await pool.query(`DELETE FROM users WHERE id = $1`, [authorId]);
+		}
+	});
+
+	it("should return an empty recipe page when no query matches", async () => {
+		const response = await request(app).get(
+			"/recipes?q=no_such_recipe_keyword_123",
+		);
+
+		expect(response.status).toBe(200);
+		expect(response.body).toMatchObject({
+			data: [],
+			total_count: 0,
+			total_pages: 0,
+			page: 1,
+			per_page: 12,
+		});
+	});
+
+	it("should return 400 when recipe search query is too long", async () => {
+		const response = await request(app).get(`/recipes?q=${"a".repeat(501)}`);
+
+		expect(response.status).toBe(400);
+		expect(response.body).toHaveProperty(
+			"error",
+			"Search query must be 500 characters or less",
+		);
+	});
+
 	/**
 	 * Test: GET /recipes/:id with valid ID returns recipe
 	 *

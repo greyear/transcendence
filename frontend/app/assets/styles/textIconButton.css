@@ -25,6 +25,15 @@
 	text-decoration: underline;
 }
 
+.text-button.is-disabled,
+.text-button:disabled,
+.text-button[aria-disabled="true"] {
+	cursor: not-allowed;
+	opacity: 0.5;
+	text-decoration: none;
+	pointer-events: none;
+}
+
 .text-button--body1 {
 	font-size: var(--fs-body1);
 	line-height: var(--lh-body1);

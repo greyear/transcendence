@@ -10,8 +10,8 @@ The search flow currently provides:
 - semantic recipe retrieval through `search-service`
 - Gemini-generated search summaries
 - fallback summary behavior when Gemini summary generation is unavailable
-- optional result-count override through `limit`
-- automatic result-count inference from query text when `limit` is omitted
+- optional result-count override through `limit`, capped at `12`
+- default AI search result count of `12` when `limit` is omitted
 
 ## Services Involved
 
@@ -102,7 +102,7 @@ What to check:
   - `data`
 - top matches are sensible for the query
 
-## 4. Test Natural-Language Result Count Inference
+## 4. Test Default AI Search Result Count
 
 Example:
 
@@ -112,9 +112,9 @@ curl -s "http://localhost:3000/search/recipes?q=give%20me%20the%20best%20beef%20
 
 What to check:
 
-- `limit` is inferred to `1`
-- `count` is `1`
-- only the top recipe is returned
+- `limit` is `12`
+- `count` is at most `12`
+- matching recipes are returned
 
 Broader example:
 
@@ -124,20 +124,8 @@ curl -s "http://localhost:3000/search/recipes?q=show%20me%20some%20chicken%20rec
 
 What to check:
 
-- `limit` is larger than `1`
-- multiple recipes are returned
-
-Explicit natural-language count example:
-
-```bash
-curl -s "http://localhost:3000/search/recipes?q=show%20me%20three%20chicken%20recipes" | jq
-```
-
-What to check:
-
-- `limit` is inferred to `3`
-- `count` is at most `3`
-- inferred and explicit limits never exceed `5`
+- `limit` is `12`
+- `count` is at most `12`
 
 ## 5. Test Explicit `limit` Override
 
@@ -151,7 +139,18 @@ What to check:
 
 - `limit` is `2`
 - `count` is at most `2`
-- explicit `limit` overrides inferred result count
+- explicit `limit` overrides the default result count
+
+Also verify that requests above the AI max are rejected:
+
+```bash
+curl -s "http://localhost:3000/search/recipes?q=chicken&limit=13" | jq
+```
+
+What to check:
+
+- response is a validation error
+- AI search never returns more than `12` recipes
 
 ## 6. Test Summary Fallback Behavior
 
@@ -176,7 +175,7 @@ The easiest high-value checks are:
 
 1. run full reindex
 2. run one normal search query
-3. run one “best recipe” query to confirm inferred limit behavior
-4. run one explicit `limit=2` query to confirm override behavior
+3. run one default query to confirm `limit` defaults to `12`
+4. run one explicit `limit=2` query to confirm smaller limits work
 
 If those pass, the current search flow is working as intended.

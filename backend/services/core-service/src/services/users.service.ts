@@ -26,6 +26,7 @@ export type FollowOperationResult =
  * Embedded directly in queries — no separate column read needed.
  */
 const IS_ONLINE_SQL = `(u.last_seen_at > now() - interval '60 seconds')`;
+const USER_SEARCH_LIMIT = 20;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -63,8 +64,36 @@ const parseUserRows = <T>(
 
 // ── User queries ──────────────────────────────────────────────────────────────
 
-export const getAllUsers = async (): Promise<UserListItem[]> => {
+export const getAllUsers = async (
+	search?: string,
+): Promise<UserListItem[]> => {
 	try {
+		if (search) {
+			const containsPattern = `%${search}%`;
+			const prefixPattern = `${search}%`;
+			const result = await pool.query(
+				`
+				SELECT
+					u.id,
+					u.username,
+					u.avatar,
+					COUNT(r.id)::int AS recipes_count
+				FROM users u
+				LEFT JOIN recipes r ON r.author_id = u.id
+				WHERE u.username ILIKE $1
+				GROUP BY u.id, u.username, u.avatar
+				ORDER BY
+					CASE WHEN u.username ILIKE $2 THEN 0 ELSE 1 END,
+					u.username ASC,
+					u.id ASC
+				LIMIT $3
+				`,
+				[containsPattern, prefixPattern, USER_SEARCH_LIMIT],
+			);
+
+			return parseUserRows(result.rows, userListItemSchema, "user");
+		}
+
 		const result = await pool.query(`
 			SELECT
 				u.id,

@@ -50,6 +50,39 @@ describe("API Gateway - Recipes Routes", () => {
 		);
 	});
 
+	it("should forward recipe search query parameters to core-service", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 200,
+			json: async () => ({
+				data: [{ id: 1, title: "Beef Tacos" }],
+				total_count: 1,
+				total_pages: 1,
+				page: 2,
+				per_page: 12,
+			}),
+		} as unknown as Response);
+
+		const response = await request(app).get("/recipes?q=beef&page=2&limit=12");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({
+			data: [{ id: 1, title: "Beef Tacos" }],
+			total_count: 1,
+			total_pages: 1,
+			page: 2,
+			per_page: 12,
+		});
+		expect(fetchSpy).toHaveBeenCalledWith(
+			expect.stringContaining("/recipes?q=beef&page=2&limit=12"),
+			expect.objectContaining({
+				headers: expect.objectContaining({
+					"Content-Type": "application/json",
+				}),
+				signal: expect.any(AbortSignal),
+			}),
+		);
+	});
+
 	it("should proxy GET /recipes/:id to core-service", async () => {
 		fetchSpy.mockResolvedValue({
 			status: 200,
