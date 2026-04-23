@@ -1,17 +1,20 @@
 {
+	"notices": {
+		"alreadyFollowing": "Вы уже подписаны на этого пользователя.",
+		"alreadyFavorited": "Этот рецепт уже в избранном."
+	},
 	"common": {
 		"cancel": "Отмена",
 		"signInButton": "Войти",
 		"searchPlaceholder": "Поиск...",
 		"sortButton": "Сортировать",
 		"filterButton": "Фильтры",
+		"applyButton": "Применить",
 		"sortOptions": {
 			"nameAsc": "Имя: А→Я",
 			"nameDesc": "Имя: Я→А",
 			"titleAsc": "Название: А→Я",
 			"titleDesc": "Название: Я→А",
-			"dateAsc": "Сначала старые",
-			"dateDesc": "Сначала новые",
 			"recipesCountAsc": "По увеличению количества рецептов",
 			"recipesCountDesc": "По уменьшению количества рецептов"
 		}
@@ -97,6 +100,7 @@
 		"title": "Поиск",
 		"totalCount": "Результатов:",
 		"recipesTab": "Рецепты",
+		"usersTab": "Пользователи",
 		"perPage": "На странице",
 		"noResults": "Подходящие рецепты не найдены.",
 		"searching": "Ищем рецепты...",

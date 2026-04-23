@@ -11,12 +11,12 @@ type RecipeCardResponse = {
 	picture_url: string | null;
 	description: string | null;
 	rating_avg: number | null;
-	// created_at: string;
 };
 
 type RecipesGridProps = {
 	isAuthenticated: boolean;
 	openAuthModal: (onSuccessAction?: () => void) => void;
+	showNotice: (message: string) => void;
 	sortValue?: string;
 	page?: number;
 	perPage?: number;
@@ -35,10 +35,6 @@ const sortRecipes = (
 			return sorted.sort((a, b) => a.title.localeCompare(b.title));
 		case "name-desc":
 			return sorted.sort((a, b) => b.title.localeCompare(a.title));
-		// case "date-asc":
-		// 	return sorted.sort((a, b) => a.created_at.localeCompare(b.created_at));
-		// case "date-desc":
-		// 	return sorted.sort((a, b) => b.created_at.localeCompare(a.created_at));
 		default:
 			return sorted;
 	}
@@ -47,6 +43,7 @@ const sortRecipes = (
 export const RecipesGrid = ({
 	isAuthenticated,
 	openAuthModal,
+	showNotice,
 	page = 1,
 	perPage = 12,
 	onLoad,
@@ -72,6 +69,7 @@ export const RecipesGrid = ({
 		openAuthModal,
 		listEndpoint: "/users/me/favorites",
 		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFavorited")),
 	});
 
 	useEffect(() => {

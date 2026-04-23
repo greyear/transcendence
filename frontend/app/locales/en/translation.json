@@ -1,17 +1,20 @@
 {
+	"notices": {
+		"alreadyFollowing": "You were already following this user.",
+		"alreadyFavorited": "This recipe is already in your favorites."
+	},
 	"common": {
 		"cancel": "Cancel",
 		"signInButton": "Sign In",
 		"searchPlaceholder": "Search for...",
 		"sortButton": "Sort",
 		"filterButton": "Filter",
+		"applyButton": "Apply",
 		"sortOptions": {
 			"nameAsc": "Name A→Z",
 			"nameDesc": "Name Z→A",
 			"titleAsc": "Title A→Z",
 			"titleDesc": "Title Z→A",
-			"dateAsc": "Old first",
-			"dateDesc": "New first",
 			"recipesCountAsc": "Fewest recipes",
 			"recipesCountDesc": "Most recipes"
 		}
@@ -97,6 +100,7 @@
 		"title": "Search",
 		"totalCount": "Results:",
 		"recipesTab": "Recipes",
+		"usersTab": "Users",
 		"perPage": "Per page",
 		"noResults": "No matching recipes found.",
 		"searching": "Searching recipes...",

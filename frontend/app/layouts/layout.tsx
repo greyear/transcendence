@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router";
 import { z } from "zod";
 import { AuthModal } from "~/components/auth/AuthModal";
+import { Notice } from "~/components/Notice";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
@@ -15,6 +16,7 @@ export type LayoutOutletContext = {
 	) => void;
 	currentUserId: number | null;
 	resetAuthState: () => void;
+	showNotice: (message: string) => void;
 };
 
 const ProfileIdSchema = z.object({ data: z.object({ id: z.number() }) });
@@ -24,8 +26,15 @@ const Layout = () => {
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [isAuthResolved, setIsAuthResolved] = useState(false);
 	const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+	const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 	const authSuccessActionRef = useRef<(() => void) | null>(null);
 	const authCancelActionRef = useRef<(() => void) | null>(null);
+	const showNotice = useCallback((message: string) => {
+		setNoticeMessage(message);
+	}, []);
+	const dismissNotice = useCallback(() => {
+		setNoticeMessage(null);
+	}, []);
 	const resetAuthState = useCallback(() => {
 		setIsAuthenticated(false);
 		setCurrentUserId(null);
@@ -108,6 +117,7 @@ const Layout = () => {
 						currentUserId,
 						openAuthModal,
 						resetAuthState,
+						showNotice,
 					}}
 				/>
 			</main>
@@ -115,6 +125,7 @@ const Layout = () => {
 				isAuthenticated={isAuthenticated}
 				onOpenAuthModal={() => openAuthModal()}
 			/>
+			<Notice message={noticeMessage} onDismiss={dismissNotice} />
 			<AuthModal
 				isOpen={isAuthModalOpen}
 				onClose={() => {

@@ -16,6 +16,7 @@ type UsersGridProps = {
 	isAuthenticated: boolean;
 	currentUserId: number | null;
 	openAuthModal: (onSuccessAction?: () => void) => void;
+	showNotice: (message: string) => void;
 	sortValue?: string;
 	page?: number;
 	perPage?: number;
@@ -46,6 +47,7 @@ export const UsersGrid = ({
 	isAuthenticated,
 	currentUserId,
 	openAuthModal,
+	showNotice,
 	page = 1,
 	perPage = 12,
 	onLoad,
@@ -68,6 +70,7 @@ export const UsersGrid = ({
 		openAuthModal,
 		listEndpoint: "/users/me/following",
 		itemEndpoint: (userId) => `/users/${userId}/follow`,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFollowing")),
 	});
 
 	useEffect(() => {

@@ -21,7 +21,7 @@ const PER_PAGE = 12;
 
 const RecipesPage = () => {
 	const { t } = useTranslation();
-	const { isAuthenticated, openAuthModal } =
+	const { isAuthenticated, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
 	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
 	const [totalCount, setTotalCount] = useState(0);
@@ -90,6 +90,7 @@ const RecipesPage = () => {
 				sortValue={sortValue}
 				isAuthenticated={isAuthenticated}
 				openAuthModal={openAuthModal}
+				showNotice={showNotice}
 			/>
 
 			<Pagination

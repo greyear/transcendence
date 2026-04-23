@@ -1,17 +1,20 @@
 {
+	"notices": {
+		"alreadyFollowing": "Seurasit tätä käyttäjää jo.",
+		"alreadyFavorited": "Tämä resepti on jo suosikeissasi."
+	},
 	"common": {
 		"cancel": "Peruuta",
 		"signInButton": "Kirjaudu",
 		"searchPlaceholder": "Hae...",
 		"sortButton": "Järjestä",
 		"filterButton": "Suodata",
+		"applyButton": "Käytä",
 		"sortOptions": {
 			"nameAsc": "Nimi A→Ö",
 			"nameDesc": "Nimi Ö→А",
 			"titleAsc": "Otsikko A→Ö",
 			"titleDesc": "Otsikko Ö→А",
-			"dateAsc": "Vanhimmat ensin",
-			"dateDesc": "Uusimmat ensin",
 			"recipesCountAsc": "Vähiten reseptejä",
 			"recipesCountDesc": "Eniten reseptejä"
 		}
@@ -97,6 +100,7 @@
 		"title": "Haku",
 		"totalCount": "Tuloksia:",
 		"recipesTab": "Reseptit",
+		"usersTab": "Käyttäjät",
 		"perPage": "Per sivu",
 		"noResults": "Reseptejä ei löytynyt.",
 		"searching": "Haetaan reseptejä...",
