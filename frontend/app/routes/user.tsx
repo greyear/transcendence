@@ -42,7 +42,8 @@ type UserProfileData = z.infer<typeof UserResponseSchema>["data"];
 type FavoriteRecipe = z.infer<typeof FavoritesResponseSchema>["data"][number];
 
 const UserPage = () => {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
+	const language = i18n.resolvedLanguage ?? "en";
 	const { id } = useParams();
 	const { screenSize } = useScreenSize();
 	const { isAuthenticated, currentUserId, openAuthModal } =
@@ -115,6 +116,7 @@ const UserPage = () => {
 		const favoritesRequest = isAuthenticated
 			? fetch(`${API_BASE_URL}/users/${id}/favorites`, {
 					credentials: "include",
+					headers: { "X-Language": language },
 				})
 			: Promise.resolve(null);
 
@@ -164,7 +166,7 @@ const UserPage = () => {
 		return () => {
 			ignore = true;
 		};
-	}, [id, isOwnProfile, isAuthenticated]);
+	}, [id, isOwnProfile, isAuthenticated, language]);
 
 	const onFollowClick = () => {
 		if (!profile || isFollowPending) {
