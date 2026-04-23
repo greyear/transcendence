@@ -367,17 +367,21 @@ export const AuthForm = ({
 								: t("authModal.signupButton")}
 					</MainButton>
 
-					<div className="auth-divider" aria-hidden="true">
-						<span>{t("authModal.orDivider")}</span>
-					</div>
+					{!googleMissingClientId ? (
+						<>
+							<div className="auth-divider" aria-hidden="true">
+								<span>{t("authModal.orDivider")}</span>
+							</div>
 
-					<div className="auth-google-button-shell">
-						<div
-							ref={googleButtonRef}
-							className="auth-google-render-target"
-							aria-hidden={!canUseGoogleButton}
-						/>
-					</div>
+							<div className="auth-google-button-shell">
+								<div
+									ref={googleButtonRef}
+									className="auth-google-render-target"
+									aria-hidden={!canUseGoogleButton}
+								/>
+							</div>
+						</>
+					) : null}
 				</div>
 			</form>
 
