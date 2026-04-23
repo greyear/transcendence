@@ -54,7 +54,8 @@ export const RecipesGrid = ({
 	sortValue = "",
 	userId,
 }: RecipesGridProps) => {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
+	const language = i18n.resolvedLanguage ?? "en";
 	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
@@ -81,7 +82,9 @@ export const RecipesGrid = ({
 			userId !== undefined
 				? `${API_BASE_URL}/users/${userId}/recipes`
 				: `${API_BASE_URL}/recipes`;
-		fetch(endpoint)
+		fetch(endpoint, {
+			headers: { "X-Language": language },
+		})
 			.then((res) => {
 				if (!res.ok) {
 					setErrorStatus(res.status);
@@ -107,7 +110,7 @@ export const RecipesGrid = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [onLoad, sort, userId]);
+	}, [language, onLoad, sort, userId]);
 
 	const sortedList = useMemo(
 		() => sortRecipes(recipeList, sortValue),

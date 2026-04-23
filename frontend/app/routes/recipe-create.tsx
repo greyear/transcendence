@@ -209,7 +209,8 @@ type CreateRecipeResponse = {
 
 const RecipeCreate = () => {
 	const baseId = useId();
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
+	const language = i18n.resolvedLanguage ?? "en";
 	const navigate = useNavigate();
 	const { isAuthenticated, isAuthResolved, openAuthModal } =
 		useOutletContext<LayoutOutletContext>();
@@ -448,7 +449,11 @@ const RecipeCreate = () => {
 			const response = await fetch(`${API_BASE_URL}/recipes`, {
 				method: "POST",
 				credentials: "include",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Content-Type": "application/json",
+					"X-Language": language,
+					"X-Source-Language": language,
+				},
 				body: JSON.stringify(payload),
 			});
 
