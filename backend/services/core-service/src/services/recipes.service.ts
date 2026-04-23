@@ -296,14 +296,14 @@ const scheduleRecipeLocalization = (
 				`
 				UPDATE recipes
 				SET title = $1, description = $2, instructions = $3, updated_at = now()
-				WHERE id = $4 AND updated_at = $5
+				WHERE id = $4 AND date_trunc('milliseconds', updated_at) = $5::timestamptz
 			`,
 				[
 					localizedTitle,
 					localizedDescription,
 					localizedInstructions,
 					recipeId,
-					updatedAt,
+					updatedAt instanceof Date ? updatedAt.toISOString() : updatedAt,
 				],
 			);
 
