@@ -19,7 +19,8 @@ export type LayoutOutletContext = {
 	showNotice: (message: string) => void;
 };
 
-const ProfileIdSchema = z.object({ data: z.object({ id: z.number() }) });
+const SessionResponseSchema = z.object({ authenticated: z.boolean() });
+const AuthMeResponseSchema = z.object({ id: z.number() });
 
 const Layout = () => {
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -40,6 +41,48 @@ const Layout = () => {
 		setCurrentUserId(null);
 	}, []);
 
+	const restoreAuthState = useCallback(async () => {
+		try {
+			const sessionResponse = await fetch(`${API_BASE_URL}/auth/session`, {
+				credentials: "include",
+			});
+
+			if (!sessionResponse.ok) {
+				resetAuthState();
+				return;
+			}
+
+			const sessionBody: unknown = await sessionResponse.json();
+			const parsedSession = SessionResponseSchema.safeParse(sessionBody);
+			if (!parsedSession.success || !parsedSession.data.authenticated) {
+				resetAuthState();
+				return;
+			}
+
+			const meResponse = await fetch(`${API_BASE_URL}/auth/me`, {
+				credentials: "include",
+			});
+			if (!meResponse.ok) {
+				resetAuthState();
+				return;
+			}
+
+			const meBody: unknown = await meResponse.json();
+			const parsedMe = AuthMeResponseSchema.safeParse(meBody);
+			if (!parsedMe.success) {
+				resetAuthState();
+				return;
+			}
+
+			setCurrentUserId(parsedMe.data.id);
+			setIsAuthenticated(true);
+		} catch {
+			resetAuthState();
+		} finally {
+			setIsAuthResolved(true);
+		}
+	}, [resetAuthState]);
+
 	const openAuthModal = (
 		onSuccessAction?: () => void,
 		onCancelAction?: () => void,
@@ -50,34 +93,8 @@ const Layout = () => {
 	};
 
 	useEffect(() => {
-		const restoreAuthState = async () => {
-			try {
-				const response = await fetch(`${API_BASE_URL}/profile`, {
-					credentials: "include",
-				});
-
-				if (!response.ok) {
-					resetAuthState();
-					return;
-				}
-
-				setIsAuthenticated(true);
-				const body: unknown = await response.json();
-				const parsed = ProfileIdSchema.safeParse(body);
-				setCurrentUserId(parsed.success ? parsed.data.data.id : null);
-			} catch {
-				resetAuthState();
-			} finally {
-				// Note: do NOT reset currentUserId here — the success branch above
-				// sets it to the signed-in user's id, and a blanket reset in finally
-				// would clobber that and break any `currentUserId === id` checks
-				// (e.g. the "own card → Profile button" branch in UserCard).
-				setIsAuthResolved(true);
-			}
-		};
-
 		void restoreAuthState();
-	}, [resetAuthState]);
+	}, [restoreAuthState]);
 
 	useEffect(() => {
 		if (!isAuthenticated) {
@@ -135,15 +152,8 @@ const Layout = () => {
 					authCancelActionRef.current = null;
 				}}
 				onSuccess={() => {
-					setIsAuthenticated(true);
 					setIsAuthModalOpen(false);
-					void fetch(`${API_BASE_URL}/profile`, { credentials: "include" })
-						.then((res) => (res.ok ? res.json() : null))
-						.then((body: unknown) => {
-							const parsed = ProfileIdSchema.safeParse(body);
-							setCurrentUserId(parsed.success ? parsed.data.data.id : null);
-						})
-						.catch(() => setCurrentUserId(null));
+					void restoreAuthState();
 					authSuccessActionRef.current?.();
 					authSuccessActionRef.current = null;
 					authCancelActionRef.current = null;
