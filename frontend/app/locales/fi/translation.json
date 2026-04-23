@@ -1,17 +1,20 @@
 {
+	"notices": {
+		"alreadyFollowing": "Seurasit tätä käyttäjää jo.",
+		"alreadyFavorited": "Tämä resepti on jo suosikeissasi."
+	},
 	"common": {
 		"cancel": "Peruuta",
 		"signInButton": "Kirjaudu",
 		"searchPlaceholder": "Hae...",
 		"sortButton": "Järjestä",
 		"filterButton": "Suodata",
+		"applyButton": "Käytä",
 		"sortOptions": {
 			"nameAsc": "Nimi A→Ö",
 			"nameDesc": "Nimi Ö→А",
 			"titleAsc": "Otsikko A→Ö",
 			"titleDesc": "Otsikko Ö→А",
-			"dateAsc": "Vanhimmat ensin",
-			"dateDesc": "Uusimmat ensin",
 			"recipesCountAsc": "Vähiten reseptejä",
 			"recipesCountDesc": "Eniten reseptejä"
 		}
@@ -97,6 +100,7 @@
 		"title": "Haku",
 		"totalCount": "Tuloksia:",
 		"recipesTab": "Reseptit",
+		"usersTab": "Käyttäjät",
 		"perPage": "Per sivu",
 		"noResults": "Reseptejä ei löytynyt.",
 		"searching": "Haetaan reseptejä...",
@@ -171,6 +175,7 @@
 		"googleTokenError": "Google ei palauttanut kirjautumistunnusta.",
 		"googleMissingClientId": "Googlen asiakastunnusta ei ole määritetty.",
 		"googleUnavailable": "Google-kirjautuminen ei ole saatavilla.",
+		"orDivider": "tai",
 		"signupSubmittingButton": "Luodaan tiliä...",
 		"signupSuccess": "Tili luotu. Olet kirjautunut sisään.",
 		"toggleSignupPrompt": "Tarvitsetko tilin? Luo sellainen",

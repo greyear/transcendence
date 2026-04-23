@@ -19,7 +19,7 @@ const PER_PAGE = 12;
 
 const UsersPage = () => {
 	const { t } = useTranslation();
-	const { isAuthenticated, currentUserId, openAuthModal } =
+	const { isAuthenticated, currentUserId, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
 	const [activeFilterIndex, setActiveFilterIndex] = useState(0);
 	const [totalCount, setTotalCount] = useState(0);
@@ -83,6 +83,7 @@ const UsersPage = () => {
 				isAuthenticated={isAuthenticated}
 				currentUserId={currentUserId}
 				openAuthModal={openAuthModal}
+				showNotice={showNotice}
 			/>
 
 			<Pagination

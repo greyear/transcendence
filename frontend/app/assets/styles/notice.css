@@ -1,0 +1,15 @@
+.notice {
+	position: fixed;
+	left: 50%;
+	bottom: var(--space-xl);
+	transform: translateX(-50%);
+	z-index: 200;
+	padding: var(--space-s) var(--space-l);
+	border-radius: var(--radius-full);
+	background-color: var(--surface-action-active);
+	color: var(--text-on-accent);
+	box-shadow: var(--shadow-effect);
+	font-size: var(--fs-body3);
+	line-height: var(--lh-body3);
+	max-width: calc(100vw - (2 * var(--space-l)));
+}

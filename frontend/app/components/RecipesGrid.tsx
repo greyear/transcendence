@@ -11,12 +11,12 @@ type RecipeCardResponse = {
 	picture_url: string | null;
 	description: string | null;
 	rating_avg: number | null;
-	// created_at: string;
 };
 
 type RecipesGridProps = {
 	isAuthenticated: boolean;
 	openAuthModal: (onSuccessAction?: () => void) => void;
+	showNotice: (message: string) => void;
 	sortValue?: string;
 	page?: number;
 	perPage?: number;
@@ -35,10 +35,6 @@ const sortRecipes = (
 			return sorted.sort((a, b) => a.title.localeCompare(b.title));
 		case "name-desc":
 			return sorted.sort((a, b) => b.title.localeCompare(a.title));
-		// case "date-asc":
-		// 	return sorted.sort((a, b) => a.created_at.localeCompare(b.created_at));
-		// case "date-desc":
-		// 	return sorted.sort((a, b) => b.created_at.localeCompare(a.created_at));
 		default:
 			return sorted;
 	}
@@ -47,6 +43,7 @@ const sortRecipes = (
 export const RecipesGrid = ({
 	isAuthenticated,
 	openAuthModal,
+	showNotice,
 	page = 1,
 	perPage = 12,
 	onLoad,
@@ -54,7 +51,8 @@ export const RecipesGrid = ({
 	sortValue = "",
 	userId,
 }: RecipesGridProps) => {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
+	const language = i18n.resolvedLanguage ?? "en";
 	const [recipeList, setRecipeList] = useState<RecipeCardResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [errorStatus, setErrorStatus] = useState<number | "unknown" | null>(
@@ -71,6 +69,7 @@ export const RecipesGrid = ({
 		openAuthModal,
 		listEndpoint: "/users/me/favorites",
 		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFavorited")),
 	});
 
 	useEffect(() => {
@@ -81,7 +80,9 @@ export const RecipesGrid = ({
 			userId !== undefined
 				? `${API_BASE_URL}/users/${userId}/recipes`
 				: `${API_BASE_URL}/recipes`;
-		fetch(endpoint)
+		fetch(endpoint, {
+			headers: { "X-Language": language },
+		})
 			.then((res) => {
 				if (!res.ok) {
 					setErrorStatus(res.status);
@@ -107,7 +108,7 @@ export const RecipesGrid = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [onLoad, sort, userId]);
+	}, [language, onLoad, sort, userId]);
 
 	const sortedList = useMemo(
 		() => sortRecipes(recipeList, sortValue),

@@ -17,41 +17,18 @@
 	gap: var(--space-m);
 }
 
-.main-button.inverted.auth-social-button {
-	background-color: var(--surface-card);
-	border: 1px solid var(--borders-action);
-	color: var(--text-primary);
-	height: auto;
-	min-height: 44px;
-	white-space: normal;
-	width: 100%;
-	pointer-events: none;
-}
-
-.main-button.inverted.auth-social-button[data-google-ready="true"]:disabled {
-	opacity: 1;
-}
-
-.auth-social-google {
-	stroke-width: 1;
-}
-
 .auth-google-button-shell {
-	position: relative;
 	display: flex;
 	justify-content: center;
-	width: 100%;
+	width: min(100%, 400px);
+	margin-inline: auto;
 }
 
 .auth-google-render-target {
-	position: absolute;
-	inset: 0;
-	z-index: 2;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	width: 100%;
-	opacity: 0;
 }
 
 .auth-google-render-target[aria-hidden="true"] {
@@ -86,6 +63,25 @@
 	flex-direction: column;
 	gap: var(--space-m);
 	margin-top: var(--space-s);
+}
+
+.auth-divider {
+	display: flex;
+	align-items: center;
+	gap: var(--space-s);
+	color: var(--text-secondary);
+	font-size: var(--fs-caption);
+	font-weight: var(--fw-caption);
+	line-height: var(--lh-caption);
+	text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+	content: "";
+	flex: 1;
+	height: 1px;
+	background-color: var(--borders-input);
 }
 
 .auth-error {
