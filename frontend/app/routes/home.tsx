@@ -15,7 +15,7 @@ import type { LayoutOutletContext } from "~/layouts/layout";
 const HomePage = () => {
 	const { t } = useTranslation();
 	const { screenSize } = useScreenSize();
-	const { isAuthenticated, openAuthModal } =
+	const { isAuthenticated, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
 	const recipesPerPage = screenSize === "mobile" ? 4 : 6;
 	const cooksRowRef = useRef<CooksRowHandle | null>(null);
@@ -61,6 +61,7 @@ const HomePage = () => {
 					perPage={recipesPerPage}
 					isAuthenticated={isAuthenticated}
 					openAuthModal={openAuthModal}
+					showNotice={showNotice}
 				/>
 			</section>
 

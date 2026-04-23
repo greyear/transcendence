@@ -19,6 +19,14 @@ type UseRelationSetOptions = {
 	itemEndpoint: (id: number) => string;
 	listEndpoint?: string;
 	initialIds?: number[];
+	/**
+	 * Called when a guest-replay POST comes back 409, i.e. the user signed in
+	 * and discovered they were already a member (already following/favoriting).
+	 * Only fires for the replay path — direct clicks by authenticated users
+	 * that happen to 409 don't surface anything (they shouldn't happen in
+	 * normal flow anyway, since the button state already reflects membership).
+	 */
+	onAlreadyMember?: (id: number) => void;
 };
 
 type UseRelationSetResult = {
@@ -53,6 +61,7 @@ export const useRelationSet = ({
 	itemEndpoint,
 	listEndpoint,
 	initialIds,
+	onAlreadyMember,
 }: UseRelationSetOptions): UseRelationSetResult => {
 	const [ids, setIds] = useState<Set<number>>(() => new Set(initialIds));
 	const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
@@ -140,7 +149,11 @@ export const useRelationSet = ({
 		};
 	}, [isAuthenticated, listEndpoint]);
 
-	const runToggle = async (id: number, shouldBeMember: boolean) => {
+	const runToggle = async (
+		id: number,
+		shouldBeMember: boolean,
+		isReplay = false,
+	) => {
 		if (pendingIds.has(id)) {
 			return;
 		}
@@ -163,6 +176,9 @@ export const useRelationSet = ({
 			if (!res.ok && res.status !== 409) {
 				setIds((prev) => updateSetMember(prev, id, !shouldBeMember));
 			}
+			if (isReplay && shouldBeMember && res.status === 409) {
+				onAlreadyMember?.(id);
+			}
 		} catch (error) {
 			console.error(error);
 			setIds((prev) => updateSetMember(prev, id, !shouldBeMember));
@@ -179,7 +195,7 @@ export const useRelationSet = ({
 		const resolved = shouldBeMember ?? !ids.has(id);
 		if (!isAuthenticated) {
 			openAuthModal(() => {
-				void runToggle(id, true);
+				void runToggle(id, true, true);
 			});
 			return;
 		}

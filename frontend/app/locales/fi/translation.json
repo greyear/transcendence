@@ -1,4 +1,8 @@
 {
+	"notices": {
+		"alreadyFollowing": "Seurasit tätä käyttäjää jo.",
+		"alreadyFavorited": "Tämä resepti on jo suosikeissasi."
+	},
 	"common": {
 		"signInButton": "Kirjaudu",
 		"searchPlaceholder": "Hae...",

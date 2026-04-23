@@ -89,7 +89,7 @@ const SearchPage = () => {
 	const { t } = useTranslation();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
-	const { isAuthenticated, openAuthModal } =
+	const { isAuthenticated, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
 	const categories = useCategoryMap();
 	const {
@@ -102,6 +102,7 @@ const SearchPage = () => {
 		openAuthModal,
 		listEndpoint: "/users/me/favorites",
 		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFavorited")),
 	});
 
 	const query = searchParams.get("q") ?? "";

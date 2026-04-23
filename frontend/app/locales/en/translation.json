@@ -1,4 +1,8 @@
 {
+	"notices": {
+		"alreadyFollowing": "You were already following this user.",
+		"alreadyFavorited": "This recipe is already in your favorites."
+	},
 	"common": {
 		"signInButton": "Sign In",
 		"searchPlaceholder": "Search for...",

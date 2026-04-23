@@ -17,6 +17,7 @@ type RecipeCardResponse = {
 type RecipesGridProps = {
 	isAuthenticated: boolean;
 	openAuthModal: (onSuccessAction?: () => void) => void;
+	showNotice: (message: string) => void;
 	sortValue?: string;
 	page?: number;
 	perPage?: number;
@@ -47,6 +48,7 @@ const sortRecipes = (
 export const RecipesGrid = ({
 	isAuthenticated,
 	openAuthModal,
+	showNotice,
 	page = 1,
 	perPage = 12,
 	onLoad,
@@ -71,6 +73,7 @@ export const RecipesGrid = ({
 		openAuthModal,
 		listEndpoint: "/users/me/favorites",
 		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFavorited")),
 	});
 
 	useEffect(() => {

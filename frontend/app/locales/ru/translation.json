@@ -1,4 +1,8 @@
 {
+	"notices": {
+		"alreadyFollowing": "Вы уже подписаны на этого пользователя.",
+		"alreadyFavorited": "Этот рецепт уже в избранном."
+	},
 	"common": {
 		"signInButton": "Войти",
 		"searchPlaceholder": "Поиск...",
