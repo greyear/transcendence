@@ -54,6 +54,7 @@ const RecipeListItemSchema = z
 
 const RecipeListResponseSchema = z.object({
 	data: z.array(RecipeListItemSchema),
+	total_count: z.number().int().nonnegative().optional(),
 });
 
 const tabRequiresAuth = (tab: RecipesTab): boolean =>
@@ -134,6 +135,10 @@ export const RecipesGrid = ({
 	const isAuthGated =
 		!isAuthenticated &&
 		(favoritesOfUserId !== undefined || (!isScoped && tabRequiresAuth(tab)));
+	// `/recipes` is the only paginated list endpoint — it returns a page slice
+	// plus `total_count`. The other endpoints return every row, so the client
+	// handles paging locally.
+	const isServerPaginated = !isScoped && tab === "all";
 
 	// Stash `onLoad` in a ref so an inline `(n) => ...` callback from a parent
 	// doesn't retrigger the fetch effect on every render.
@@ -155,7 +160,10 @@ export const RecipesGrid = ({
 
 		setIsLoading(true);
 
-		const endpoint = resolveEndpoint(favoritesOfUserId, userId, tab);
+		const baseEndpoint = resolveEndpoint(favoritesOfUserId, userId, tab);
+		const endpoint = isServerPaginated
+			? `${baseEndpoint}?page=${page}&per_page=${perPage}`
+			: baseEndpoint;
 		// /users/me/* and /users/:id/favorites require the auth cookie. The other
 		// endpoints don't, but passing credentials is harmless — keep the original
 		// no-credentials path for them to minimize surface area.
@@ -200,6 +208,14 @@ export const RecipesGrid = ({
 				} else {
 					const parsed = RecipeListResponseSchema.safeParse(body);
 					allRecipes = parsed.success ? parsed.data.data : [];
+					if (isServerPaginated && parsed.success) {
+						// Server tells us how many rows exist across all pages; the
+						// array in `data` is just the current page slice.
+						const total = parsed.data.total_count ?? allRecipes.length;
+						onLoadRef.current?.(total);
+						setRecipeList(allRecipes);
+						return;
+					}
 				}
 
 				if (sort === "top") {
@@ -217,15 +233,26 @@ export const RecipesGrid = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [sort, userId, favoritesOfUserId, tab, isAuthGated, language]);
+	}, [
+		sort,
+		userId,
+		favoritesOfUserId,
+		tab,
+		isAuthGated,
+		language,
+		isServerPaginated,
+		page,
+		perPage,
+	]);
 
 	const sortedList = useMemo(
 		() => sortRecipes(recipeList, sortValue),
 		[recipeList, sortValue],
 	);
 
-	const start = (page - 1) * perPage;
-	const pageRecipes = sortedList.slice(start, start + perPage);
+	const pageRecipes = isServerPaginated
+		? sortedList
+		: sortedList.slice((page - 1) * perPage, (page - 1) * perPage + perPage);
 
 	if (isLoading) {
 		return <p className="recipes-grid-status">{t("recipesGrid.loading")}</p>;
