@@ -9,4 +9,5 @@
 
 .icon-button.favorite-button.active svg {
 	fill: var(--icons-heart-active);
+	color: var(--borders-heart-active);
 }
