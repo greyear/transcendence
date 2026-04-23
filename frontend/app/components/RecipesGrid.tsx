@@ -125,6 +125,7 @@ export const RecipesGrid = ({
 		openAuthModal,
 		listEndpoint: "/users/me/favorites",
 		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFavorited")),
 	});
 
 	// Resolution order: favoritesOfUserId > userId > tab. The first two pin the
@@ -216,7 +217,7 @@ export const RecipesGrid = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [sort, userId, favoritesOfUserId, tab, isAuthGated]);
+	}, [sort, userId, favoritesOfUserId, tab, isAuthGated, language]);
 
 	const sortedList = useMemo(
 		() => sortRecipes(recipeList, sortValue),

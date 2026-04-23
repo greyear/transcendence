@@ -63,8 +63,13 @@ type ScopedMode = "authoredBy" | "favoritesOf" | "global";
 
 const RecipesPage = () => {
 	const { t } = useTranslation();
-	const { isAuthenticated, isAuthResolved, currentUserId, openAuthModal, showNotice } =
-		useOutletContext<LayoutOutletContext>();
+	const {
+		isAuthenticated,
+		isAuthResolved,
+		currentUserId,
+		openAuthModal,
+		showNotice,
+	} = useOutletContext<LayoutOutletContext>();
 	const [totalCount, setTotalCount] = useState(0);
 	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
