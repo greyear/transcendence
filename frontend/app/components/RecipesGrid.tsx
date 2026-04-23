@@ -11,7 +11,6 @@ type RecipeCardResponse = {
 	picture_url: string | null;
 	description: string | null;
 	rating_avg: number | null;
-	// created_at: string;
 };
 
 type RecipesGridProps = {
@@ -36,10 +35,6 @@ const sortRecipes = (
 			return sorted.sort((a, b) => a.title.localeCompare(b.title));
 		case "name-desc":
 			return sorted.sort((a, b) => b.title.localeCompare(a.title));
-		// case "date-asc":
-		// 	return sorted.sort((a, b) => a.created_at.localeCompare(b.created_at));
-		// case "date-desc":
-		// 	return sorted.sort((a, b) => b.created_at.localeCompare(a.created_at));
 		default:
 			return sorted;
 	}

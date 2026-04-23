@@ -62,6 +62,35 @@ const SearchRecipesApiResponseSchema = z.object({
 	summary_status: z.string().optional(),
 });
 
+// `/recipes` (non-AI path) uses `id` / `total_count` rather than the
+// `/search/recipes` shape (`recipe_id` / `count`). Only the fields we render
+// are modeled here.
+const RecipesApiItemSchema = z.object({
+	id: z.number(),
+	title: z.string(),
+	description: z.string().nullable(),
+	rating_avg: z.number().nullable().optional(),
+	picture_url: z.string().nullable().optional(),
+});
+
+const RecipesApiResponseSchema = z.object({
+	total_count: z.number(),
+	data: z.array(RecipesApiItemSchema),
+});
+
+const SearchUsersApiItemSchema = z.object({
+	id: z.number(),
+	username: z.string(),
+	recipes_count: z.number().optional(),
+});
+
+// The /users endpoint currently returns `{ data: [...] }` without a top-level
+// count; fall back to data.length when `count` is absent.
+const SearchUsersApiResponseSchema = z.object({
+	count: z.number().optional(),
+	data: z.array(SearchUsersApiItemSchema),
+});
+
 type SearchRecipeItem = {
 	id: number;
 	title: string;
@@ -170,34 +199,51 @@ const SearchPage = () => {
 
 		const params = new URLSearchParams();
 		params.set("q", query);
-		params.set("type", typeParam);
 		params.set("limit", String(limit));
 		params.set("page", String(page));
-		params.set("ai", isAiSearch ? "1" : "0");
 		if (sort) {
 			params.set("sort", sort);
 		}
-		for (const code of mealTypeFilters) {
-			params.append("mealType", code);
+		// Recipe filters apply to both recipe endpoints (`/recipes` and
+		// `/search/recipes`). The `ai` flag is only meaningful for the search
+		// service. Whether the backend honors the filters is its problem; we
+		// always send them so that server-side support lights up automatically.
+		if (typeParam === "recipes") {
+			if (isAiSearch) {
+				params.set("ai", "1");
+			}
+			for (const code of mealTypeFilters) {
+				params.append("mealType", code);
+			}
+			for (const code of dishTypeFilters) {
+				params.append("dishType", code);
+			}
+			for (const code of mainIngredientFilters) {
+				params.append("mainIngredient", code);
+			}
+			for (const code of cuisineFilters) {
+				params.append("cuisine", code);
+			}
 		}
-		for (const code of dishTypeFilters) {
-			params.append("dishType", code);
-		}
-		for (const code of mainIngredientFilters) {
-			params.append("mainIngredient", code);
-		}
-		for (const code of cuisineFilters) {
-			params.append("cuisine", code);
-		}
+
+		// Three endpoints: /users (users tab), /search/recipes (AI on),
+		// /recipes (AI off). The non-AI recipe path skips the search service and
+		// hits the core list endpoint, which returns a different shape.
+		const endpoint =
+			typeParam === "users"
+				? "/users"
+				: isAiSearch
+					? "/search/recipes"
+					: "/recipes";
 
 		setIsLoading(true);
 		setHasError(false);
-		fetch(`${API_BASE_URL}/search/recipes?${params}`, {
+		fetch(`${API_BASE_URL}${endpoint}?${params}`, {
 			signal: controller.signal,
 		})
 			.then(async (res) => {
 				if (!res.ok) {
-					console.error(`Failed to search recipes: ${res.status}`);
+					console.error(`Failed to search (${endpoint}): ${res.status}`);
 					return null;
 				}
 				return res.json();
@@ -208,22 +254,62 @@ const SearchPage = () => {
 					setHasError(true);
 					return;
 				}
-				const parsed = SearchRecipesApiResponseSchema.safeParse(body);
+				if (typeParam === "users") {
+					const parsed = SearchUsersApiResponseSchema.safeParse(body);
+					if (!parsed.success) {
+						console.error("Unexpected /users response shape", parsed.error);
+						setResults(null);
+						setHasError(true);
+						return;
+					}
+					setResults({
+						type: "users",
+						total: parsed.data.count ?? parsed.data.data.length,
+						data: parsed.data.data.map((item) => ({
+							id: item.id,
+							name: item.username,
+							recipeCount: item.recipes_count ?? 0,
+						})),
+					});
+					return;
+				}
+				if (isAiSearch) {
+					const parsed = SearchRecipesApiResponseSchema.safeParse(body);
+					if (!parsed.success) {
+						console.error(
+							"Unexpected /search/recipes response shape",
+							parsed.error,
+						);
+						setResults(null);
+						setHasError(true);
+						return;
+					}
+					setResults({
+						type: "recipes",
+						total: parsed.data.count,
+						summary: parsed.data.summary,
+						data: parsed.data.data.map((item) => ({
+							id: item.recipe_id,
+							title: item.title,
+							description: item.description,
+							rating_avg: item.rating_avg ?? null,
+							picture_url: item.picture_url ?? null,
+						})),
+					});
+					return;
+				}
+				const parsed = RecipesApiResponseSchema.safeParse(body);
 				if (!parsed.success) {
-					console.error(
-						"Unexpected /search/recipes response shape",
-						parsed.error,
-					);
+					console.error("Unexpected /recipes response shape", parsed.error);
 					setResults(null);
 					setHasError(true);
 					return;
 				}
 				setResults({
 					type: "recipes",
-					total: parsed.data.count,
-					summary: parsed.data.summary,
+					total: parsed.data.total_count,
 					data: parsed.data.data.map((item) => ({
-						id: item.recipe_id,
+						id: item.id,
 						title: item.title,
 						description: item.description,
 						rating_avg: item.rating_avg ?? null,
