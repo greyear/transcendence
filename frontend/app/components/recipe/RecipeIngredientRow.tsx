@@ -13,6 +13,7 @@ export type IngredientOption = {
 export type UnitOption = {
 	code: string;
 	kind: string;
+	name?: string;
 };
 
 export type IngredientRow = {
@@ -57,7 +58,7 @@ export const RecipeIngredientRow = ({
 		value: String(option.id),
 	}));
 	const unitSelectOptions = unitOptions.map((unit) => ({
-		label: unit.code,
+		label: unit.name ? `${unit.name} (${unit.code})` : unit.code,
 		value: unit.code,
 	}));
 	const selectValue =

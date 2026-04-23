@@ -120,9 +120,10 @@ const handleRecipePictureMulterError = (
 
 const getCategoryListHandler =
 	(categoryType: string) =>
-	async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+	async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 		try {
-			const result = await getCategoryList(categoryType);
+			const locale = resolveRequestedLocale(req);
+			const result = await getCategoryList(categoryType, locale);
 			res.status(200).json(result);
 		} catch (error) {
 			next(error);
@@ -130,12 +131,13 @@ const getCategoryListHandler =
 	};
 
 const getIngredientListHandler = async (
-	_req: Request,
+	req: Request,
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		const result = await getIngredientList();
+		const locale = resolveRequestedLocale(req);
+		const result = await getIngredientList(locale);
 		res.status(200).json(result);
 	} catch (error) {
 		next(error);
@@ -143,12 +145,13 @@ const getIngredientListHandler = async (
 };
 
 const getUnitListHandler = async (
-	_req: Request,
+	req: Request,
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
 	try {
-		const result = await getUnitList();
+		const locale = resolveRequestedLocale(req);
+		const result = await getUnitList(locale);
 		res.status(200).json(result);
 	} catch (error) {
 		next(error);
