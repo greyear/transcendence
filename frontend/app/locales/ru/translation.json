@@ -171,6 +171,7 @@
 		"googleTokenError": "Google не вернул токен входа.",
 		"googleMissingClientId": "ID клиента Google не настроен.",
 		"googleUnavailable": "Вход через Google недоступен.",
+		"orDivider": "или",
 		"signupSubmittingButton": "Создается аккаунт...",
 		"signupSuccess": "Аккаунт создан. Вы вошли в систему.",
 		"toggleSignupPrompt": "Нет аккаунта? Создать",
