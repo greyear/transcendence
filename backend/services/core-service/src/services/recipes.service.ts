@@ -1196,6 +1196,7 @@ export const getRecipeReviews = async (
 				u.avatar,
 				rrt.rating,
 				rr.body,
+				rr.source_locale AS source_language,
 				rr.created_at,
 				rr.updated_at
 			FROM recipe_reviews rr
@@ -1275,6 +1276,7 @@ export const updateReview = async (
 				u.avatar,
 				rrt.rating,
 				rr.body,
+				rr.source_locale AS source_language,
 				rr.created_at,
 				rr.updated_at
 			FROM recipe_reviews rr

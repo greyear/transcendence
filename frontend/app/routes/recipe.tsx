@@ -4,8 +4,9 @@ import { useLocation, useOutletContext, useParams } from "react-router";
 import { z } from "zod";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.css";
-import { Reports, StarSolid, Trash } from "iconoir-react";
+import { Reports, StarSolid, Translate, Trash } from "iconoir-react";
 import { IconButton } from "~/components/buttons/IconButton";
+import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { RatingModal } from "~/components/rating/ratingModal";
 import { ReviewModal } from "~/components/review/reviewModal";
@@ -39,6 +40,7 @@ type RecipeReview = {
 	author_id: number | null;
 	username: string | null;
 	body: string;
+	source_language: string;
 	created_at: string;
 };
 
@@ -70,11 +72,19 @@ const RecipeReviewSchema = z.object({
 	author_id: z.number().nullable(),
 	username: z.string().nullable(),
 	body: z.string(),
+	source_language: z.enum(["en", "fi", "ru"]),
 	created_at: z.string(),
 });
 
 const RecipeReviewsResponseSchema = z.object({
 	data: z.array(RecipeReviewSchema),
+});
+
+const ReviewTranslationResponseSchema = z.object({
+	data: z.object({
+		review_id: z.number(),
+		translated_body: z.string(),
+	}),
 });
 
 const ProfileResponseSchema = z.object({
@@ -190,6 +200,15 @@ const RecipePage = () => {
 		number | null
 	>(null);
 	const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null);
+	const [translatingReviewId, setTranslatingReviewId] = useState<number | null>(
+		null,
+	);
+	const [translatedReviewBodies, setTranslatedReviewBodies] = useState<
+		Record<number, { body: string; language: string }>
+	>({});
+	const [visibleTranslatedReviewIds, setVisibleTranslatedReviewIds] = useState<
+		Record<number, boolean>
+	>({});
 	const [reviewActionError, setReviewActionError] = useState("");
 	const [isFavorited, setIsFavorited] = useState(false);
 	const [isFavoritePending, setIsFavoritePending] = useState(false);
@@ -294,6 +313,8 @@ const RecipePage = () => {
 		setReviewsErrorStatus(reviewsResult.errorStatus);
 		setReviews(reviewsResult.reviews);
 		setReviewActionError("");
+		setTranslatedReviewBodies({});
+		setVisibleTranslatedReviewIds({});
 	};
 
 	const deleteReview = async (reviewId: number) => {
@@ -329,6 +350,73 @@ const RecipePage = () => {
 		} finally {
 			setDeletingReviewId(null);
 			setReviewIdPendingDelete(null);
+		}
+	};
+
+	const translateReview = async (reviewId: number) => {
+		if (!id || translatingReviewId !== null) {
+			return;
+		}
+
+		const currentTranslation = translatedReviewBodies[reviewId];
+		if (currentTranslation?.language === language) {
+			setVisibleTranslatedReviewIds((current) => ({
+				...current,
+				[reviewId]: !current[reviewId],
+			}));
+			return;
+		}
+
+		setReviewActionError("");
+		setTranslatingReviewId(reviewId);
+
+		try {
+			const response = await fetch(
+				`${API_BASE_URL}/recipes/${id}/reviews/${reviewId}/translate`,
+				{
+					method: "POST",
+					headers: {
+						"X-Language": language,
+					},
+					credentials: "include",
+				},
+			);
+
+			if (!response.ok) {
+				setReviewActionError(
+					t("recipePage.translateReviewError", { status: response.status }),
+				);
+				return;
+			}
+
+			const body: unknown = await response.json();
+			const parsed = ReviewTranslationResponseSchema.safeParse(body);
+
+			if (!parsed.success) {
+				setReviewActionError(
+					t("recipePage.translateReviewError", { status: "unknown" }),
+				);
+				return;
+			}
+
+			setTranslatedReviewBodies((current) => ({
+				...current,
+				[parsed.data.data.review_id]: {
+					body: parsed.data.data.translated_body,
+					language,
+				},
+			}));
+			setVisibleTranslatedReviewIds((current) => ({
+				...current,
+				[parsed.data.data.review_id]: true,
+			}));
+		} catch (error) {
+			console.error(error);
+			setReviewActionError(
+				t("recipePage.translateReviewError", { status: "unknown" }),
+			);
+		} finally {
+			setTranslatingReviewId(null);
 		}
 	};
 
@@ -415,6 +503,8 @@ const RecipePage = () => {
 			.then(({ errorStatus, reviews }) => {
 				setReviewsErrorStatus(errorStatus);
 				setReviews(reviews);
+				setTranslatedReviewBodies({});
+				setVisibleTranslatedReviewIds({});
 			})
 			.finally(() => {
 				setAreReviewsLoading(false);
@@ -637,6 +727,16 @@ const RecipePage = () => {
 									const canDeleteReview =
 										currentUserId !== null &&
 										review.author_id === currentUserId;
+									const translatedReview = translatedReviewBodies[review.id];
+									const isReviewTranslated =
+										translatedReview?.language === language &&
+										visibleTranslatedReviewIds[review.id] === true;
+									const isReviewTranslating = translatingReviewId === review.id;
+									const canTranslateReview =
+										review.source_language !== language;
+									const reviewBody = isReviewTranslated
+										? (translatedReview?.body ?? review.body)
+										: review.body;
 
 									return (
 										<li key={review.id} className="recipe-page-review-card">
@@ -654,7 +754,7 @@ const RecipePage = () => {
 												</div>
 											</div>
 											<div className="recipe-page-review-body">
-												<p className="text-body3">{review.body}</p>
+												<p className="text-body3">{reviewBody}</p>
 												<div className="recipe-page-review-action">
 													{canDeleteReview ? (
 														<IconButton
@@ -670,6 +770,24 @@ const RecipePage = () => {
 													) : null}
 												</div>
 											</div>
+											{canTranslateReview ? (
+												<div className="recipe-page-review-translate-row">
+													<TextIconButton
+														size="body3"
+														className="recipe-page-review-translate"
+														disabled={isReviewTranslating}
+														selected={isReviewTranslated}
+														onClick={() => translateReview(review.id)}
+													>
+														<Translate aria-hidden="true" />
+														{isReviewTranslating
+															? t("recipePage.translatingReview")
+															: isReviewTranslated
+																? t("recipePage.showOriginalReview")
+																: t("recipePage.translateReview")}
+													</TextIconButton>
+												</div>
+											) : null}
 										</li>
 									);
 								})}
