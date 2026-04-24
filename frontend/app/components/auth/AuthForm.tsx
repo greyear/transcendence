@@ -299,7 +299,7 @@ export const AuthForm = ({
 							aria-label={t("ariaLabels.closeAuthDialog")}
 							variant="transparent"
 						>
-							<Xmark />
+							<Xmark aria-hidden="true" />
 						</IconButton>
 					</div>
 				) : null}

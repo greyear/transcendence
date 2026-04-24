@@ -178,7 +178,11 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 							aria-label={t("ariaLabels.toggleMenu")}
 							variant="transparent"
 						>
-							{isOpen ? <Xmark /> : <Menu />}
+							{isOpen ? (
+								<Xmark aria-hidden="true" />
+							) : (
+								<Menu aria-hidden="true" />
+							)}
 						</IconButton>
 					) : (
 						<>
@@ -189,7 +193,7 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 									to="/profile"
 									aria-label={t("ariaLabels.toProfilePage")}
 								>
-									<ProfileCircle />
+									<ProfileCircle aria-hidden="true" />
 								</IconButton>
 							) : (
 								<MainButton variant="inverted" onClick={onOpenAuthModal}>

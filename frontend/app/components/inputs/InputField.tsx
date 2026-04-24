@@ -179,7 +179,11 @@ export const InputField = ({
 								: t("ariaLabels.showPassword")
 						}
 					>
-						{showPassword ? <EyeClosed /> : <Eye />}
+						{showPassword ? (
+							<EyeClosed aria-hidden="true" />
+						) : (
+							<Eye aria-hidden="true" />
+						)}
 					</IconButton>
 				)}
 			</div>
