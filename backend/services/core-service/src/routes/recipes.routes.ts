@@ -35,6 +35,7 @@ import {
 	leaveRecipeReview,
 	publishRecipe,
 	removeRecipeFromFavorites,
+	translateRecipeReview,
 	updateRecipe,
 	updateRecipePicture,
 	updateReview,
@@ -716,10 +717,13 @@ const leaveRecipeReviewHandler = async (
 			throw error;
 		}
 
+		const sourceLocale = resolveSourceLocale(req);
+
 		const result = await leaveRecipeReview(
 			idValidation.value,
 			req.userId,
 			bodyValidation.value,
+			sourceLocale,
 		);
 
 		if (!result.success) {
@@ -774,6 +778,45 @@ const getRecipeReviewsHandler = async (
 	}
 };
 
+const translateRecipeReviewHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+): Promise<void> => {
+	try {
+		const recipeIdValidation = validateRecipeId(req.params.id);
+		if (!recipeIdValidation.valid) {
+			const error: CustomError = new Error(recipeIdValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const reviewIdValidation = validateReviewId(req.params.reviewId);
+		if (!reviewIdValidation.valid) {
+			const error: CustomError = new Error(reviewIdValidation.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const locale = resolveRequestedLocale(req);
+		const result = await translateRecipeReview(
+			recipeIdValidation.value,
+			reviewIdValidation.value,
+			locale,
+		);
+
+		if (!result.success) {
+			const error: CustomError = new Error("Review not found");
+			error.statusCode = 404;
+			throw error;
+		}
+
+		res.status(200).json({ data: result.translation });
+	} catch (error) {
+		next(error);
+	}
+};
+
 /**
  * PUT /recipes/:id/reviews/:reviewId - update a review
  *
@@ -817,11 +860,14 @@ const updateReviewHandler = async (
 			throw error;
 		}
 
+		const sourceLocale = resolveSourceLocale(req);
+
 		const result = await updateReview(
 			recipeIdValidation.value,
 			reviewIdValidation.value,
 			req.userId,
 			bodyValidation.value,
+			sourceLocale,
 		);
 
 		if (!result.success) {
@@ -947,6 +993,10 @@ recipesRouter.put(
 );
 
 recipesRouter.post("/:id/reviews", leaveRecipeReviewHandler);
+recipesRouter.post(
+	"/:id/reviews/:reviewId/translate",
+	translateRecipeReviewHandler,
+);
 recipesRouter.put("/:id/reviews/:reviewId", updateReviewHandler);
 recipesRouter.delete(
 	"/:id/reviews/:reviewId",

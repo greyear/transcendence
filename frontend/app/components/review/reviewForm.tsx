@@ -25,7 +25,8 @@ export const ReviewForm = ({
 	onSuccess,
 	recipeId,
 }: ReviewFormProps) => {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
+	const language = i18n.resolvedLanguage ?? "en";
 	const [review, setReview] = useState("");
 	const [error, setError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,6 +61,8 @@ export const ReviewForm = ({
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
+						"X-Language": language,
+						"X-Source-Language": language,
 					},
 					credentials: "include",
 					body: JSON.stringify({ body: trimmedReview }),

@@ -1033,6 +1033,7 @@ describe("API Gateway - Recipes Routes", () => {
 		const response = await request(app)
 			.post("/recipes/77/reviews")
 			.set("Authorization", "Bearer validtoken")
+			.set("X-Source-Language", "fi")
 			.send({ body: "Great" });
 
 		expect(response.status).toBe(201);
@@ -1048,6 +1049,7 @@ describe("API Gateway - Recipes Routes", () => {
 				method: "POST",
 				headers: expect.objectContaining({
 					"Content-Type": "application/json",
+					"x-source-language": "fi",
 					"x-user-id": "42",
 				}),
 				body: JSON.stringify({ body: "Great" }),
@@ -1109,6 +1111,39 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(response.status).toBe(404);
 		expect(response.body).toEqual({ error: "Recipe not found" });
+	});
+
+	it("should proxy POST /recipes/:id/reviews/:reviewId/translate to core-service", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 200,
+			json: async () => ({
+				data: {
+					review_id: 501,
+					recipe_id: 77,
+					source_language: "en",
+					target_language: "fi",
+					original_body: "Great",
+					translated_body: "Loistava",
+				},
+			}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.post("/recipes/77/reviews/501/translate")
+			.set("X-Language", "fi");
+
+		expect(response.status).toBe(200);
+		expect(response.body.data).toHaveProperty("translated_body", "Loistava");
+		expect(fetchSpy).toHaveBeenCalledWith(
+			expect.stringContaining("/recipes/77/reviews/501/translate"),
+			expect.objectContaining({
+				method: "POST",
+				headers: expect.objectContaining({
+					"x-language": "fi",
+				}),
+				signal: expect.any(AbortSignal),
+			}),
+		);
 	});
 
 	it("should reject PUT /recipes/:id/reviews/:reviewId without authentication", async () => {

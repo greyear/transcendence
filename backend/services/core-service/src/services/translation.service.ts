@@ -307,6 +307,26 @@ export const localizeTextFromSource = async (
 };
 
 /**
+ * Translate one text to a single target locale without storing anything.
+ *
+ * If translation is unavailable, returns the original text as a safe fallback.
+ */
+export const translateTextToLocale = async (
+	sourceText: string,
+	sourceLocale: SupportedLocale = DEFAULT_LOCALE,
+	targetLocale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<string> => {
+	const safeSource = sourceText.trim();
+
+	if (safeSource.length === 0 || sourceLocale === targetLocale) {
+		return safeSource;
+	}
+
+	const localized = await localizeTextFromSource(safeSource, sourceLocale);
+	return localized[targetLocale];
+};
+
+/**
  * Localize multiple texts in parallel, using a batch API call when available.
  */
 const localizeTextsFromSource = async (

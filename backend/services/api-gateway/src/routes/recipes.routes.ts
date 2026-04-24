@@ -187,6 +187,32 @@ const getRecipeReviewsHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
+const translateReviewHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			withForwardedQuery(
+				req,
+				`/recipes/${req.params.id}/reviews/${req.params.reviewId}/translate`,
+			),
+			{
+				method: "POST",
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to translate review" });
+	}
+};
+
 const updateReviewHandler: RequestHandler = async (req, res, _next) => {
 	try {
 		const response = await fetch(
@@ -426,6 +452,11 @@ recipesRouter.get("/units", getUnitsHandler);
 recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
 recipesRouter.put("/:id/picture", requireAuth, updateRecipePictureHandler);
 recipesRouter.post("/:id/reviews", requireAuth, leaveRecipeReviewHandler);
+recipesRouter.post(
+	"/:id/reviews/:reviewId/translate",
+	optionalAuth,
+	translateReviewHandler,
+);
 recipesRouter.put("/:id/reviews/:reviewId", requireAuth, updateReviewHandler);
 recipesRouter.delete(
 	"/:id/reviews/:reviewId",
