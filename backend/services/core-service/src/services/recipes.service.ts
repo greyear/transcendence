@@ -500,9 +500,9 @@ export const getAllRecipesPaginated = async (
 							LIMIT 1
 						) AS picture_url
 					FROM searchable_recipes
-					WHERE search_vector @@ websearch_to_tsquery('simple', $4)
+					WHERE search_vector @@ to_tsquery('simple', regexp_replace(regexp_replace(trim($4), '[^[:alnum:][:space:]]', '', 'g'), '\s+', ':* & ', 'g') || ':*')
 					ORDER BY
-						ts_rank(search_vector, websearch_to_tsquery('simple', $4)) DESC,
+						ts_rank(search_vector, to_tsquery('simple', regexp_replace(regexp_replace(trim($4), '[^[:alnum:][:space:]]', '', 'g'), '\s+', ':* & ', 'g') || ':*')) DESC,
 						created_at DESC,
 						id DESC
 					LIMIT $2 OFFSET $3
@@ -524,7 +524,7 @@ export const getAllRecipesPaginated = async (
 					)
 					SELECT COUNT(*)::int AS total
 					FROM searchable_recipes
-					WHERE search_vector @@ websearch_to_tsquery('simple', $2)
+					WHERE search_vector @@ to_tsquery('simple', regexp_replace(regexp_replace(trim($2), '[^[:alnum:][:space:]]', '', 'g'), '\s+', ':* & ', 'g') || ':*')
 					`,
 					[locale, normalizedSearch],
 				),

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { pool } from "../db/database.js";
 import { areMutualFollowers } from "../utils/service.utils.js";
 import {
+	type PaginatedResponse,
 	type UserListItem,
 	type UserProfile,
 	userListItemSchema,
@@ -66,13 +67,51 @@ const parseUserRows = <T>(
 // ── User queries ──────────────────────────────────────────────────────────────
 
 export const getAllUsers = async (
+	page: number,
+	perPage: number,
 	search?: string,
-): Promise<UserListItem[]> => {
+): Promise<PaginatedResponse<UserListItem>> => {
 	try {
+		const offset = (page - 1) * perPage;
+
 		if (search) {
 			const containsPattern = `%${search}%`;
 			const prefixPattern = `${search}%`;
-			const result = await pool.query(
+
+			const [dataResult, countResult] = await Promise.all([
+				pool.query(
+					`
+					SELECT
+						u.id,
+						u.username,
+						u.avatar,
+						COUNT(r.id)::int AS recipes_count
+					FROM users u
+					LEFT JOIN recipes r ON r.author_id = u.id
+					WHERE u.is_deleted = false AND u.username ILIKE $1
+					GROUP BY u.id, u.username, u.avatar
+					ORDER BY
+						CASE WHEN u.username ILIKE $2 THEN 0 ELSE 1 END,
+						u.username ASC,
+						u.id ASC
+					LIMIT $3 OFFSET $4
+					`,
+					[containsPattern, prefixPattern, perPage, offset],
+				),
+				pool.query(
+					`SELECT COUNT(*)::int AS total FROM users u WHERE u.is_deleted = false AND u.username ILIKE $1`,
+					[containsPattern],
+				),
+			]);
+
+			const total_count = countResult.rows[0].total as number;
+			const total_pages = Math.ceil(total_count / perPage);
+			const data = parseUserRows(dataResult.rows, userListItemSchema, "user");
+			return { data, total_count, total_pages, page, per_page: perPage };
+		}
+
+		const [dataResult, countResult] = await Promise.all([
+			pool.query(
 				`
 				SELECT
 					u.id,
@@ -81,34 +120,22 @@ export const getAllUsers = async (
 					COUNT(r.id)::int AS recipes_count
 				FROM users u
 				LEFT JOIN recipes r ON r.author_id = u.id
-				WHERE u.is_deleted = false AND u.username ILIKE $1
+				WHERE u.is_deleted = false
 				GROUP BY u.id, u.username, u.avatar
-				ORDER BY
-					CASE WHEN u.username ILIKE $2 THEN 0 ELSE 1 END,
-					u.username ASC,
-					u.id ASC
-				LIMIT $3
+				ORDER BY u.id ASC
+				LIMIT $1 OFFSET $2
 				`,
-				[containsPattern, prefixPattern, USER_SEARCH_LIMIT],
-			);
+				[perPage, offset],
+			),
+			pool.query(
+				`SELECT COUNT(*)::int AS total FROM users WHERE is_deleted = false`,
+			),
+		]);
 
-			return parseUserRows(result.rows, userListItemSchema, "user");
-		}
-
-		const result = await pool.query(`
-			SELECT
-				u.id,
-				u.username,
-				u.avatar,
-				COUNT(r.id)::int AS recipes_count
-			FROM users u
-			LEFT JOIN recipes r ON r.author_id = u.id
-			WHERE u.is_deleted = false
-			GROUP BY u.id, u.username, u.avatar
-			ORDER BY u.id ASC
-		`);
-
-		return parseUserRows(result.rows, userListItemSchema, "user");
+		const total_count = countResult.rows[0].total as number;
+		const total_pages = Math.ceil(total_count / perPage);
+		const data = parseUserRows(dataResult.rows, userListItemSchema, "user");
+		return { data, total_count, total_pages, page, per_page: perPage };
 	} catch (error) {
 		console.error("Database error in getAllUsers:", error);
 		throw error;
