@@ -50,7 +50,12 @@
 .select-wrapper .react-select__dropdown-indicator {
 	padding: 0 12px;
 	color: var(--text-primary);
-	transition: transform 0.2s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.select-wrapper .react-select__dropdown-indicator {
+		transition: transform 0.2s ease;
+	}
 }
 
 .react-select__control--menu-is-open .react-select__dropdown-indicator {

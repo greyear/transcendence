@@ -39,11 +39,16 @@
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
-	transition: opacity 0.2s ease;
 	background-color: transparent;
 	color: var(--text-primary);
 	text-decoration: none;
 	padding: 0 var(--space-xs);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.pagination__link {
+		transition: opacity 0.2s ease;
+	}
 }
 
 .pagination__link:hover {

@@ -80,11 +80,16 @@
 	pointer-events: none;
 	background-color: transparent;
 	padding: 0;
-	transition:
-		top 0.2s ease,
-		font-size 0.2s ease,
-		color 0.2s ease,
-		transform 0.2s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.floating-label {
+		transition:
+			top 0.2s ease,
+			font-size 0.2s ease,
+			color 0.2s ease,
+			transform 0.2s ease;
+	}
 }
 
 .input-wrapper.floating:focus-within .floating-label,

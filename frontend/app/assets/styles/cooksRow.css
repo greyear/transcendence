@@ -34,7 +34,13 @@
 	width: var(--fade-width);
 	pointer-events: none;
 	opacity: 0;
-	transition: opacity 160ms ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.cooks-row-wrapper::before,
+	.cooks-row-wrapper::after {
+		transition: opacity 160ms ease;
+	}
 }
 
 .cooks-row-wrapper::before {

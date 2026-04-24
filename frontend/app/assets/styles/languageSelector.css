@@ -26,8 +26,13 @@
 }
 
 .language-dropdown__chevron {
-	transition: transform 0.2s ease;
 	flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.language-dropdown__chevron {
+		transition: transform 0.2s ease;
+	}
 }
 
 .icon-button .language-dropdown__chevron {
