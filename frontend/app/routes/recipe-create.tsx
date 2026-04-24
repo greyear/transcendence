@@ -544,6 +544,7 @@ const RecipeCreate = () => {
 				className="recipe-create-form"
 				onSubmit={handleSubmit}
 				noValidate
+				autoComplete="off"
 				aria-labelledby="recipe-create-heading"
 				aria-describedby="recipe-create-subtitle"
 				aria-busy={isSubmitting}

@@ -225,7 +225,7 @@ const UserPage = () => {
 				<img
 					className="user-profile-avatar"
 					src={resolveMediaUrl(profile.avatar) ?? userPhoto}
-					alt={t("ariaLabels.profileAvatar", { name: profile.username })}
+					alt=""
 				/>
 				<div className="user-profile-identity">
 					<h1 id="user-profile-name">{profile.username}</h1>

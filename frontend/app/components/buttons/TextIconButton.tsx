@@ -47,7 +47,7 @@ export const TextIconButton = ({
 
 					onClick?.();
 				}}
-				aria-pressed={selected}
+				aria-current={selected ? "page" : undefined}
 				aria-disabled={disabled}
 				aria-haspopup={ariaHasPopup}
 				aria-expanded={ariaExpanded}

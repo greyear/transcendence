@@ -18,6 +18,7 @@ type MainButtonProps = {
 	onClick?: MouseEventHandler<HTMLElement>;
 	"aria-label"?: string;
 	"aria-busy"?: boolean;
+	"aria-pressed"?: boolean;
 	disabled?: boolean;
 	type?: "button" | "submit" | "reset";
 };
@@ -31,6 +32,7 @@ export const MainButton = ({
 	onClick,
 	"aria-label": ariaLabel,
 	"aria-busy": ariaBusy,
+	"aria-pressed": ariaPressed,
 	disabled = false,
 	type = "button",
 }: MainButtonProps) => {
@@ -58,6 +60,7 @@ export const MainButton = ({
 			onClick={onClick}
 			aria-label={ariaLabel}
 			aria-busy={ariaBusy}
+			aria-pressed={ariaPressed}
 			disabled={disabled}
 		>
 			{children}
