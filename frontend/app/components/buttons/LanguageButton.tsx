@@ -8,6 +8,7 @@ interface LangButtonProps {
 	isHeader: boolean;
 	onClick: () => void;
 	className?: string;
+	menuItemRole?: "menuitemradio";
 }
 
 export const LanguageButton = ({
@@ -16,15 +17,20 @@ export const LanguageButton = ({
 	isHeader,
 	onClick,
 	className = "",
+	menuItemRole,
 }: LangButtonProps) => {
 	const activeClass = isActive ? "active" : "";
 	const location = isHeader ? "header" : "footer";
+	const isMenuItem = menuItemRole === "menuitemradio";
+
 	return (
 		<IconButton
 			onClick={onClick}
 			className={`language-button--${location} ${activeClass} ${className}`.trim()}
-			aria-pressed={isActive}
 			variant="language"
+			role={isMenuItem ? "menuitemradio" : undefined}
+			aria-checked={isMenuItem ? isActive : undefined}
+			aria-pressed={isMenuItem ? undefined : isActive}
 		>
 			{langCode}
 		</IconButton>

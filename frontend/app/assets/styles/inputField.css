@@ -27,10 +27,6 @@
 	color: var(--text-secondary);
 }
 
-.input-field:focus {
-	outline: none;
-}
-
 .input-field-container {
 	display: flex;
 	flex-direction: column;

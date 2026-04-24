@@ -360,7 +360,9 @@
 		"closeRatingDialog": "Закрыть окно оценки",
 		"closeReviewDialog": "Закрыть окно отзыва",
 		"deleteReview": "Удалить отзыв",
-		"dismissWarning": "Скрыть уведомление"
+		"dismissWarning": "Скрыть уведомление",
+		"skipToMainContent": "Перейти к основному содержимому",
+		"languageMenu": "Язык"
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Название рецепта обязательно",

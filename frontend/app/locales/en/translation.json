@@ -360,7 +360,9 @@
 		"closeRatingDialog": "Close rating dialog",
 		"closeReviewDialog": "Close review dialog",
 		"deleteReview": "Delete review",
-		"dismissWarning": "Dismiss warning"
+		"dismissWarning": "Dismiss warning",
+		"skipToMainContent": "Skip to main content",
+		"languageMenu": "Language"
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Recipe title is required",

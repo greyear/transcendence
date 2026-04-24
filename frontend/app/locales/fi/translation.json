@@ -360,7 +360,9 @@
 		"closeRatingDialog": "Sulje arviointi-ikkuna",
 		"closeReviewDialog": "Sulje arvosteluikkuna",
 		"deleteReview": "Poista arvostelu",
-		"dismissWarning": "Sulje ilmoitus"
+		"dismissWarning": "Sulje ilmoitus",
+		"skipToMainContent": "Siirry pääsisältöön",
+		"languageMenu": "Kieli"
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Reseptin nimi on pakollinen",

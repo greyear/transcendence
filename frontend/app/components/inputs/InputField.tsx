@@ -185,7 +185,11 @@ export const InputField = ({
 			</div>
 
 			{visibleError ? (
-				<p id={`${id}-error`} className="text-caption-s error-message">
+				<p
+					id={`${id}-error`}
+					role="alert"
+					className="text-caption-s error-message"
+				>
 					{visibleError}
 				</p>
 			) : isFocused && hint ? (

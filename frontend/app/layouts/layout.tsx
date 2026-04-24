@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router";
 import { z } from "zod";
 import { AuthModal } from "~/components/auth/AuthModal";
@@ -23,6 +24,7 @@ const SessionResponseSchema = z.object({ authenticated: z.boolean() });
 const AuthMeResponseSchema = z.object({ id: z.number() });
 
 const Layout = () => {
+	const { t } = useTranslation();
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 	const [isAuthResolved, setIsAuthResolved] = useState(false);
@@ -122,11 +124,14 @@ const Layout = () => {
 
 	return (
 		<div className="app-shell">
+			<a href="#main-content" className="skip-link">
+				{t("ariaLabels.skipToMainContent")}
+			</a>
 			<Header
 				isAuthenticated={isAuthenticated}
 				onOpenAuthModal={() => openAuthModal()}
 			/>
-			<main className="app-main">
+			<main id="main-content" tabIndex={-1} className="app-main">
 				<Outlet
 					context={{
 						isAuthenticated,

@@ -4,7 +4,7 @@ import { LanguageButton } from "./buttons/LanguageButton";
 import "../assets/styles/languageSelector.css";
 import { NavArrowDown } from "iconoir-react";
 import type { HTMLAttributes } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { handleDropdownClose } from "~/composables/closeDropdownHandler";
 
 export type LangCodes = "en" | "fi" | "ru";
@@ -23,10 +23,11 @@ export const LanguageSelector = ({
 	className = "",
 	...props
 }: LanguageSelectorProps) => {
-	const { i18n } = useTranslation();
+	const { i18n, t } = useTranslation();
 	const classNames = `language-list ${className}`.trim();
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
+	const menuId = useId();
 
 	const handleLanguageButtonClick = (langCode: LangCodes) => {
 		i18n.changeLanguage(langCode);
@@ -43,8 +44,31 @@ export const LanguageSelector = ({
 			return;
 		}
 
-		handleDropdownClose(dropdown, setIsOpen);
+		return handleDropdownClose(dropdown, setIsOpen);
 	}, [variant]);
+
+	useEffect(() => {
+		if (variant !== "dropdown" || !isOpen) {
+			return;
+		}
+
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key !== "Escape") {
+				return;
+			}
+
+			setIsOpen(false);
+			const trigger = dropdownRef.current?.querySelector<HTMLButtonElement>(
+				".language-dropdown__trigger",
+			);
+			trigger?.focus();
+		};
+
+		document.addEventListener("keydown", handleEscape);
+		return () => {
+			document.removeEventListener("keydown", handleEscape);
+		};
+	}, [variant, isOpen]);
 
 	if (variant === "dropdown") {
 		return (
@@ -53,7 +77,9 @@ export const LanguageSelector = ({
 					className="language-button--header language-dropdown__trigger"
 					variant="language"
 					aria-expanded={isOpen}
-					aria-haspopup="true"
+					aria-haspopup="menu"
+					aria-controls={menuId}
+					aria-label={t("ariaLabels.languageMenu")}
 					onClick={() => setIsOpen((prev) => !prev)}
 				>
 					{i18n.resolvedLanguage}
@@ -62,23 +88,25 @@ export const LanguageSelector = ({
 					/>
 				</IconButton>
 				{isOpen && (
-					<ul className="language-dropdown__menu">
+					<div
+						id={menuId}
+						role="menu"
+						aria-label={t("ariaLabels.languageMenu")}
+						className="language-dropdown__menu"
+					>
 						{languages.map((langCode) => (
-							<li
-								key={langCode}
-								className="language-dropdown__menu-item"
-								role="none"
-							>
+							<div key={langCode} className="language-dropdown__menu-item">
 								<LanguageButton
 									langCode={langCode}
 									isHeader={isHeader}
 									isActive={i18n.resolvedLanguage === langCode}
 									onClick={() => handleLanguageButtonClick(langCode)}
 									className="language-dropdown__button"
+									menuItemRole="menuitemradio"
 								/>
-							</li>
+							</div>
 						))}
-					</ul>
+					</div>
 				)}
 			</div>
 		);
