@@ -4,7 +4,7 @@ import "~/assets/styles/legal.css";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
 
 export const meta: MetaFunction = () => [
-	{ title: "Terms and Conditions | Transcendence" },
+	{ title: "Terms and Conditions — Transcendence" },
 ];
 
 const TermsPage = () => {

@@ -22,7 +22,7 @@ import { useRelationSet } from "~/composables/useRelationSet";
 import { useScreenSize } from "~/composables/useScreenSize";
 import type { LayoutOutletContext } from "~/layouts/layout";
 
-export const meta: MetaFunction = () => [{ title: "Profile | Transcendence" }];
+export const meta: MetaFunction = () => [{ title: "Profile — Transcendence" }];
 
 const UserResponseSchema = z.object({
 	data: z.object({

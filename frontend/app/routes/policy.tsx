@@ -4,7 +4,7 @@ import "~/assets/styles/legal.css";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
 
 export const meta: MetaFunction = () => [
-	{ title: "Privacy Policy | Transcendence" },
+	{ title: "Privacy Policy — Transcendence" },
 ];
 
 const PrivacyPolicyPage = () => {

@@ -19,7 +19,7 @@ export const loader = async ({ request }: Route.LoaderArgs) => {
 
 export const meta: MetaFunction = () => {
 	return [
-		{ title: "Transcendence | Cooking Community" },
+		{ title: "Transcendence — Cooking Community" },
 		{ charSet: "utf-8" },
 		{ name: "viewport", content: "width=device-width, initial-scale=1" },
 		{

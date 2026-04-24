@@ -29,7 +29,7 @@ import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
 import type { LayoutOutletContext } from "~/layouts/layout";
 
-export const meta: MetaFunction = () => [{ title: "Users | Transcendence" }];
+export const meta: MetaFunction = () => [{ title: "Users — Transcendence" }];
 
 const PER_PAGE_MENU_OPTIONS = PER_PAGE_OPTIONS.map((n) => ({
 	label: String(n),

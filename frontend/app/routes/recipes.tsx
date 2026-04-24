@@ -33,7 +33,7 @@ import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
 import type { LayoutOutletContext } from "~/layouts/layout";
 
-export const meta: MetaFunction = () => [{ title: "Recipes | Transcendence" }];
+export const meta: MetaFunction = () => [{ title: "Recipes — Transcendence" }];
 
 const PER_PAGE_MENU_OPTIONS = PER_PAGE_OPTIONS.map((n) => ({
 	label: String(n),

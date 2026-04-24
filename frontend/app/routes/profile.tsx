@@ -17,7 +17,7 @@ import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import type { LayoutOutletContext } from "~/layouts/layout";
 
 export const meta: MetaFunction = () => [
-	{ title: "My profile | Transcendence" },
+	{ title: "My profile — Transcendence" },
 ];
 
 type AuthUserData = {
