@@ -70,10 +70,13 @@ const getAllUsersHandler = async (
 			throw error;
 		}
 
+		const sort = typeof req.query.sort === "string" ? req.query.sort : undefined;
+
 		const result = await getAllUsers(
 			pagination.value.page,
 			pagination.value.per_page,
 			search || undefined,
+			sort,
 		);
 		res.status(200).json(result);
 	} catch (error) {

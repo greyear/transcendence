@@ -29,6 +29,13 @@ export type FollowOperationResult =
 const IS_ONLINE_SQL = `(u.last_seen_at > now() - interval '60 seconds')`;
 const USER_SEARCH_LIMIT = 20;
 
+const USER_SORT_MAP: Record<string, string> = {
+	"name-asc": "u.username ASC",
+	"name-desc": "u.username DESC",
+	"recipes-asc": "recipes_count ASC",
+	"recipes-desc": "recipes_count DESC",
+};
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const doesUserExist = async (userId: number): Promise<boolean> => {
@@ -70,9 +77,11 @@ export const getAllUsers = async (
 	page: number,
 	perPage: number,
 	search?: string,
+	sort?: string,
 ): Promise<PaginatedResponse<UserListItem>> => {
 	try {
 		const offset = (page - 1) * perPage;
+		const sortExpr = USER_SORT_MAP[sort ?? ""] ?? "u.id ASC";
 
 		if (search) {
 			const containsPattern = `%${search}%`;
@@ -92,7 +101,7 @@ export const getAllUsers = async (
 					GROUP BY u.id, u.username, u.avatar
 					ORDER BY
 						CASE WHEN u.username ILIKE $2 THEN 0 ELSE 1 END,
-						u.username ASC,
+						${sortExpr},
 						u.id ASC
 					LIMIT $3 OFFSET $4
 					`,
@@ -122,7 +131,7 @@ export const getAllUsers = async (
 				LEFT JOIN recipes r ON r.author_id = u.id
 				WHERE u.is_deleted = false
 				GROUP BY u.id, u.username, u.avatar
-				ORDER BY u.id ASC
+				ORDER BY ${sortExpr}
 				LIMIT $1 OFFSET $2
 				`,
 				[perPage, offset],
