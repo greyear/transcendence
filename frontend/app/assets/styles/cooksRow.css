@@ -13,7 +13,7 @@
 	overflow-y: hidden;
 	margin: 0 calc(var(--space-l) * -1);
 	scrollbar-width: none;
-	padding: 0 var(--space-l);
+	padding: var(--space-xs) var(--space-l);
 }
 
 .cooks-row > li {
