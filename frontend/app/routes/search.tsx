@@ -1,39 +1,58 @@
-import { Filter, Sparks } from "iconoir-react";
-import { useEffect, useState } from "react";
+import { Sparks } from "iconoir-react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useOutletContext, useSearchParams } from "react-router";
 import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
-import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { RecipeCard } from "~/components/cards/RecipeCard";
 import { UserCard } from "~/components/cards/UserCard";
 import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
 import { Pagination } from "~/components/pagination/Pagination";
+import {
+	CATEGORY_TYPE_CODES,
+	type CategoryTypeCode,
+} from "~/components/recipe/RecipeCategorySection";
+import {
+	SearchFilterMenu,
+	type SearchFilterValues,
+} from "~/components/SearchFilterMenu";
 import { SortMenu } from "~/components/SortMenu";
+import type { LayoutOutletContext } from "~/layouts/layout";
 import "~/assets/styles/recipesGrid.css";
 import "~/assets/styles/usersGrid.css";
 import "~/assets/styles/search.css";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { useCategoryMap } from "~/composables/useCategoryMap";
+import { useRelationSet } from "~/composables/useRelationSet";
 import { useSortOptions } from "~/composables/useSortOptions";
 
-const SEARCH_MAX_LIMIT = 5;
-const DEFAULT_LIMIT = 5;
-const LIMIT_OPTIONS = [5, 12, 24, 36, 48];
+const FILTER_PARAM_BY_TYPE: Record<CategoryTypeCode, string> = {
+	meal_time: "mealType",
+	dish_type: "dishType",
+	main_ingredient: "mainIngredient",
+	cuisine: "cuisine",
+};
+
+const LIMIT_OPTIONS = [12, 24, 36, 48];
+const DEFAULT_LIMIT = LIMIT_OPTIONS[0];
 
 const parseLimit = (raw: string | null): number => {
 	const parsed = Number(raw);
-	if (!Number.isFinite(parsed) || parsed < 1) {
+	if (!Number.isFinite(parsed)) {
 		return DEFAULT_LIMIT;
 	}
-	return Math.min(Math.trunc(parsed), SEARCH_MAX_LIMIT);
+	const truncated = Math.trunc(parsed);
+	return LIMIT_OPTIONS.includes(truncated) ? truncated : DEFAULT_LIMIT;
 };
 
 const SearchRecipesApiItemSchema = z.object({
 	recipe_id: z.number(),
 	title: z.string(),
 	description: z.string().nullable(),
+	rating_avg: z.number().nullable().optional(),
+	picture_url: z.string().nullable().optional(),
 });
 
 const SearchRecipesApiResponseSchema = z.object({
@@ -43,11 +62,41 @@ const SearchRecipesApiResponseSchema = z.object({
 	summary_status: z.string().optional(),
 });
 
+// `/recipes` (non-AI path) uses `id` / `total_count` rather than the
+// `/search/recipes` shape (`recipe_id` / `count`). Only the fields we render
+// are modeled here.
+const RecipesApiItemSchema = z.object({
+	id: z.number(),
+	title: z.string(),
+	description: z.string().nullable(),
+	rating_avg: z.number().nullable().optional(),
+	picture_url: z.string().nullable().optional(),
+});
+
+const RecipesApiResponseSchema = z.object({
+	total_count: z.number(),
+	data: z.array(RecipesApiItemSchema),
+});
+
+const SearchUsersApiItemSchema = z.object({
+	id: z.number(),
+	username: z.string(),
+	recipes_count: z.number().optional(),
+});
+
+// The /users endpoint currently returns `{ data: [...] }` without a top-level
+// count; fall back to data.length when `count` is absent.
+const SearchUsersApiResponseSchema = z.object({
+	count: z.number().optional(),
+	data: z.array(SearchUsersApiItemSchema),
+});
+
 type SearchRecipeItem = {
 	id: number;
 	title: string;
-	description: string;
+	description: string | null;
 	rating_avg: number | null;
+	picture_url: string | null;
 };
 
 type SearchUserItem = {
@@ -67,8 +116,23 @@ type SearchResponse =
 
 const SearchPage = () => {
 	const { t } = useTranslation();
-	const [searchParams] = useSearchParams();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
+	const { isAuthenticated, openAuthModal, showNotice } =
+		useOutletContext<LayoutOutletContext>();
+	const categories = useCategoryMap();
+	const {
+		ids: favoriteIds,
+		pendingIds: pendingFavoriteIds,
+		isListLoading: isFavoritesLoading,
+		handleToggle: handleFavoriteClick,
+	} = useRelationSet({
+		isAuthenticated,
+		openAuthModal,
+		listEndpoint: "/users/me/favorites",
+		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFavorited")),
+	});
 
 	const query = searchParams.get("q") ?? "";
 	const rawType = searchParams.get("type") ?? "recipes";
@@ -76,12 +140,45 @@ const SearchPage = () => {
 	const sort = searchParams.get("sort") ?? "";
 	const limit = parseLimit(searchParams.get("limit"));
 	const aiEnabled = searchParams.get("ai") !== "0";
+	const isAiSearch = typeParam === "recipes" && aiEnabled;
+
+	const rawPage = Number(searchParams.get("page") ?? "1");
+	const page =
+		Number.isFinite(rawPage) && rawPage >= 1 ? Math.trunc(rawPage) : 1;
+
+	const mealTypeFilters = useMemo(
+		() => searchParams.getAll("mealType"),
+		[searchParams],
+	);
+	const dishTypeFilters = useMemo(
+		() => searchParams.getAll("dishType"),
+		[searchParams],
+	);
+	const mainIngredientFilters = useMemo(
+		() => searchParams.getAll("mainIngredient"),
+		[searchParams],
+	);
+	const cuisineFilters = useMemo(
+		() => searchParams.getAll("cuisine"),
+		[searchParams],
+	);
+
+	const filterValues = useMemo(
+		() => ({
+			meal_time: mealTypeFilters,
+			dish_type: dishTypeFilters,
+			main_ingredient: mainIngredientFilters,
+			cuisine: cuisineFilters,
+		}),
+		[mealTypeFilters, dishTypeFilters, mainIngredientFilters, cuisineFilters],
+	);
 
 	const sortOptions = useSortOptions(typeParam);
 
 	const recipesTab = t("searchPage.recipesTab");
-	const tabs = [recipesTab];
-	const activeTab = recipesTab;
+	const usersTab = t("searchPage.usersTab");
+	const tabs = [recipesTab, usersTab];
+	const activeTab = typeParam === "users" ? usersTab : recipesTab;
 
 	const [results, setResults] = useState<SearchResponse | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
@@ -100,19 +197,53 @@ const SearchPage = () => {
 
 		const controller = new AbortController();
 
-		const params = new URLSearchParams({
-			q: query,
-			limit: String(limit),
-		});
+		const params = new URLSearchParams();
+		params.set("q", query);
+		params.set("limit", String(limit));
+		params.set("page", String(page));
+		if (sort) {
+			params.set("sort", sort);
+		}
+		// Recipe filters apply to both recipe endpoints (`/recipes` and
+		// `/search/recipes`). The `ai` flag is only meaningful for the search
+		// service. Whether the backend honors the filters is its problem; we
+		// always send them so that server-side support lights up automatically.
+		if (typeParam === "recipes") {
+			if (isAiSearch) {
+				params.set("ai", "1");
+			}
+			for (const code of mealTypeFilters) {
+				params.append("mealType", code);
+			}
+			for (const code of dishTypeFilters) {
+				params.append("dishType", code);
+			}
+			for (const code of mainIngredientFilters) {
+				params.append("mainIngredient", code);
+			}
+			for (const code of cuisineFilters) {
+				params.append("cuisine", code);
+			}
+		}
+
+		// Three endpoints: /users (users tab), /search/recipes (AI on),
+		// /recipes (AI off). The non-AI recipe path skips the search service and
+		// hits the core list endpoint, which returns a different shape.
+		const endpoint =
+			typeParam === "users"
+				? "/users"
+				: isAiSearch
+					? "/search/recipes"
+					: "/recipes";
 
 		setIsLoading(true);
 		setHasError(false);
-		fetch(`${API_BASE_URL}/search/recipes?${params}`, {
+		fetch(`${API_BASE_URL}${endpoint}?${params}`, {
 			signal: controller.signal,
 		})
 			.then(async (res) => {
 				if (!res.ok) {
-					console.error(`Failed to search recipes: ${res.status}`);
+					console.error(`Failed to search (${endpoint}): ${res.status}`);
 					return null;
 				}
 				return res.json();
@@ -123,25 +254,66 @@ const SearchPage = () => {
 					setHasError(true);
 					return;
 				}
-				const parsed = SearchRecipesApiResponseSchema.safeParse(body);
+				if (typeParam === "users") {
+					const parsed = SearchUsersApiResponseSchema.safeParse(body);
+					if (!parsed.success) {
+						console.error("Unexpected /users response shape", parsed.error);
+						setResults(null);
+						setHasError(true);
+						return;
+					}
+					setResults({
+						type: "users",
+						total: parsed.data.count ?? parsed.data.data.length,
+						data: parsed.data.data.map((item) => ({
+							id: item.id,
+							name: item.username,
+							recipeCount: item.recipes_count ?? 0,
+						})),
+					});
+					return;
+				}
+				if (isAiSearch) {
+					const parsed = SearchRecipesApiResponseSchema.safeParse(body);
+					if (!parsed.success) {
+						console.error(
+							"Unexpected /search/recipes response shape",
+							parsed.error,
+						);
+						setResults(null);
+						setHasError(true);
+						return;
+					}
+					setResults({
+						type: "recipes",
+						total: parsed.data.count,
+						summary: parsed.data.summary,
+						data: parsed.data.data.map((item) => ({
+							id: item.recipe_id,
+							title: item.title,
+							description: item.description,
+							rating_avg: item.rating_avg ?? null,
+							picture_url: item.picture_url ?? null,
+						})),
+					});
+					return;
+				}
+				const parsed = RecipesApiResponseSchema.safeParse(body);
 				if (!parsed.success) {
-					console.error(
-						"Unexpected /search/recipes response shape",
-						parsed.error,
-					);
+					console.error("Unexpected /recipes response shape", parsed.error);
 					setResults(null);
 					setHasError(true);
 					return;
 				}
 				setResults({
 					type: "recipes",
-					total: parsed.data.count,
-					summary: parsed.data.summary,
+					total: parsed.data.total_count,
 					data: parsed.data.data.map((item) => ({
-						id: item.recipe_id,
+						id: item.id,
 						title: item.title,
-						description: item.description ?? "",
-						rating_avg: null,
+						description: item.description,
+						rating_avg: item.rating_avg ?? null,
+						picture_url: item.picture_url ?? null,
 					})),
 				});
 			})
@@ -162,7 +334,18 @@ const SearchPage = () => {
 		return () => {
 			controller.abort();
 		};
-	}, [query, limit]);
+	}, [
+		query,
+		typeParam,
+		limit,
+		page,
+		sort,
+		isAiSearch,
+		mealTypeFilters,
+		dishTypeFilters,
+		mainIngredientFilters,
+		cuisineFilters,
+	]);
 
 	const handleSearch = (newQuery: string) => {
 		const params = new URLSearchParams(searchParams);
@@ -171,9 +354,10 @@ const SearchPage = () => {
 		navigate(`/search?${params.toString()}`);
 	};
 
-	const handleTabChange = (_tab: string) => {
+	const handleTabChange = (tab: string) => {
+		const nextType = tab === usersTab ? "users" : "recipes";
 		const params = new URLSearchParams(searchParams);
-		params.set("type", "recipes");
+		params.set("type", nextType);
 		params.delete("page");
 		params.delete("sort");
 		navigate(`/search?${params.toString()}`);
@@ -203,6 +387,24 @@ const SearchPage = () => {
 		navigate(`/search?${params.toString()}`);
 	};
 
+	const handleFilterApply = (applied: SearchFilterValues) => {
+		setSearchParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+				for (const typeCode of CATEGORY_TYPE_CODES) {
+					const paramKey = FILTER_PARAM_BY_TYPE[typeCode];
+					next.delete(paramKey);
+					for (const code of applied[typeCode]) {
+						next.append(paramKey, code);
+					}
+				}
+				next.delete("page");
+				return next;
+			},
+			{ replace: true },
+		);
+	};
+
 	const limitOptions = LIMIT_OPTIONS.map((n) => ({
 		label: String(n),
 		value: String(n),
@@ -221,24 +423,26 @@ const SearchPage = () => {
 					onSubmit={handleSearch}
 					placeholder={t("common.searchPlaceholder")}
 				/>
-				<IconButton
-					type="button"
-					className={`search-page__ai-toggle${aiEnabled ? " is-active" : ""}`}
-					aria-pressed={aiEnabled}
-					aria-label={
-						aiEnabled
-							? t("ariaLabels.disableAiSummary")
-							: t("ariaLabels.enableAiSummary")
-					}
-					title={
-						aiEnabled
-							? t("searchPage.aiSummaryOn")
-							: t("searchPage.aiSummaryOff")
-					}
-					onClick={handleAiToggle}
-				>
-					<Sparks aria-hidden />
-				</IconButton>
+				{typeParam === "recipes" && (
+					<IconButton
+						type="button"
+						className={`search-page__ai-toggle${aiEnabled ? " is-active" : ""}`}
+						aria-pressed={aiEnabled}
+						aria-label={
+							aiEnabled
+								? t("ariaLabels.disableAiSummary")
+								: t("ariaLabels.enableAiSummary")
+						}
+						title={
+							aiEnabled
+								? t("searchPage.aiSummaryOn")
+								: t("searchPage.aiSummaryOff")
+						}
+						onClick={handleAiToggle}
+					>
+						<Sparks aria-hidden />
+					</IconButton>
+				)}
 			</div>
 
 			<FilterList
@@ -254,10 +458,13 @@ const SearchPage = () => {
 					onChange={handleSortChange}
 				/>
 
-				<TextIconButton>
-					{t("common.filterButton")}
-					<Filter />
-				</TextIconButton>
+				{typeParam === "recipes" && (
+					<SearchFilterMenu
+						categories={categories}
+						values={filterValues}
+						onApply={handleFilterApply}
+					/>
+				)}
 			</div>
 
 			{query && isLoading && (
@@ -278,21 +485,24 @@ const SearchPage = () => {
 						<p className="search-page__empty">{t("searchPage.noResults")}</p>
 					) : results.type === "recipes" ? (
 						<ul className="recipe-card-list">
-							{results.data.map(({ id, title, description, rating_avg }) => (
-								<li key={id}>
-									{/* TODO(favorites-owner): wire isFavorited + onFavoriteClick
-									    to the viewer's /users/me/favorites state so the star
-									    reflects and mutates the real favorite set. */}
-									<RecipeCard
-										id={id}
-										title={title}
-										description={description}
-										rating={rating_avg}
-										isFavorited={false}
-										onFavoriteClick={() => {}}
-									/>
-								</li>
-							))}
+							{results.data.map(
+								({ id, title, description, rating_avg, picture_url }) => (
+									<li key={id}>
+										<RecipeCard
+											id={id}
+											title={title}
+											description={description}
+											rating={rating_avg}
+											pictureUrl={picture_url}
+											isFavorited={favoriteIds.has(id)}
+											isFavoritePending={
+												isFavoritesLoading || pendingFavoriteIds.has(id)
+											}
+											onFavoriteClick={handleFavoriteClick}
+										/>
+									</li>
+								),
+							)}
 						</ul>
 					) : (
 						<ul className="user-card-list">
@@ -303,24 +513,30 @@ const SearchPage = () => {
 							))}
 						</ul>
 					)}
+				</>
+			)}
 
-					{results.data.length > 0 && (
-						<div className="search-page__pagination-row">
+			{query &&
+				!isLoading &&
+				!hasError &&
+				results &&
+				results.data.length > 0 && (
+					<div className="pagination-row">
+						{!isAiSearch && (
 							<SortMenu
 								options={limitOptions}
 								value={String(limit)}
 								onChange={handleLimitChange}
-								label={`${t("searchPage.perPage")}: ${limit}`}
+								label={`${t("common.perPage")}: ${limit}`}
 							/>
-							<Pagination
-								totalElementsCount={total}
-								elementsPerPage={limit}
-								totalPagesCount={totalPages}
-							/>
-						</div>
-					)}
-				</>
-			)}
+						)}
+						<Pagination
+							totalElementsCount={total}
+							elementsPerPage={limit}
+							totalPagesCount={totalPages}
+						/>
+					</div>
+				)}
 		</section>
 	);
 };

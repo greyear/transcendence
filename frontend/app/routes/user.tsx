@@ -46,7 +46,7 @@ const UserPage = () => {
 	const language = i18n.resolvedLanguage ?? "en";
 	const { id } = useParams();
 	const { screenSize } = useScreenSize();
-	const { isAuthenticated, currentUserId, openAuthModal } =
+	const { isAuthenticated, currentUserId, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
 	const [profile, setProfile] = useState<UserProfileData | null>(null);
 	const [favorites, setFavorites] = useState<FavoriteRecipe[] | null>(null);
@@ -70,6 +70,7 @@ const UserPage = () => {
 		openAuthModal,
 		listEndpoint: "/users/me/favorites",
 		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFavorited")),
 	});
 
 	// Viewer's follow relationship to this one profile. Seeded from the profile
@@ -87,6 +88,7 @@ const UserPage = () => {
 		openAuthModal,
 		itemEndpoint: (userId) => `/users/${userId}/follow`,
 		initialIds: followInitialIds,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFollowing")),
 	});
 	const isFollowing = profile ? followingIds.has(profile.id) : false;
 	const isFollowPending = profile ? pendingFollowIds.has(profile.id) : false;
@@ -249,9 +251,11 @@ const UserPage = () => {
 						{t("userProfilePage.authoredRecipes")}
 					</h2>
 					<TextIconButton
-						to="/recipes"
+						to={`/recipes?userId=${profile.id}`}
 						className="text-body2"
-						aria-label={t("ariaLabels.allRecipes")}
+						aria-label={t("ariaLabels.allRecipesByUser", {
+							name: profile.username,
+						})}
 					>
 						{t("userProfilePage.all")}
 						<NavArrowRight aria-hidden="true" />
@@ -260,6 +264,7 @@ const UserPage = () => {
 				<RecipesGrid
 					isAuthenticated={isAuthenticated}
 					openAuthModal={openAuthModal}
+					showNotice={showNotice}
 					page={1}
 					perPage={recipesPerPage}
 					userId={profile.id}
@@ -276,9 +281,11 @@ const UserPage = () => {
 							{t("userProfilePage.favoriteRecipes")}
 						</h2>
 						<TextIconButton
-							to="/recipes"
+							to={`/recipes?favoritesOf=${profile.id}`}
 							className="text-body2"
-							aria-label={t("ariaLabels.allRecipes")}
+							aria-label={t("ariaLabels.allFavoritesOfUser", {
+								name: profile.username,
+							})}
 						>
 							{t("userProfilePage.all")}
 							<NavArrowRight aria-hidden="true" />

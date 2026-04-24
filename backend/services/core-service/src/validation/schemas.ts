@@ -304,6 +304,7 @@ export const myRecipeListItemSchema = z.object({
 	author_id: userIdSchema.nullable(), // Maybe delete this field from /users/me/recipes response since it's always the same as current user?
 	description: z.string().nullable(),
 	rating_avg: z.coerce.number().min(1).max(5).nullable(),
+	picture_url: z.string().nullable(),
 	status: recipeStatusSchema,
 });
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { API_BASE_URL } from "./apiBaseUrl";
 
@@ -19,6 +19,14 @@ type UseRelationSetOptions = {
 	itemEndpoint: (id: number) => string;
 	listEndpoint?: string;
 	initialIds?: number[];
+	/**
+	 * Called when a guest-replay POST comes back 409, i.e. the user signed in
+	 * and discovered they were already a member (already following/favoriting).
+	 * Only fires for the replay path — direct clicks by authenticated users
+	 * that happen to 409 don't surface anything (they shouldn't happen in
+	 * normal flow anyway, since the button state already reflects membership).
+	 */
+	onAlreadyMember?: (id: number) => void;
 };
 
 type UseRelationSetResult = {
@@ -53,10 +61,20 @@ export const useRelationSet = ({
 	itemEndpoint,
 	listEndpoint,
 	initialIds,
+	onAlreadyMember,
 }: UseRelationSetOptions): UseRelationSetResult => {
 	const [ids, setIds] = useState<Set<number>>(() => new Set(initialIds));
 	const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
 	const [isListLoading, setIsListLoading] = useState(false);
+	// Mirror of pendingIds for reads inside async callbacks (list-fetch resolution)
+	// that would otherwise see a stale closure. Used to protect in-flight optimistic
+	// toggles from being overwritten when the list-fetch lands mid-toggle — crucial
+	// for the guest → login replay path, where auth flips and triggers a refetch at
+	// the same moment the replayed toggle is firing.
+	const pendingIdsRef = useRef(pendingIds);
+	useEffect(() => {
+		pendingIdsRef.current = pendingIds;
+	}, [pendingIds]);
 
 	// Re-seed when the parent-provided initialIds change (e.g. after a profile
 	// refetch). Callers should memoize `initialIds` so identity is stable across
@@ -88,16 +106,36 @@ export const useRelationSet = ({
 					return;
 				}
 				const parsed = IdListResponseSchema.safeParse(body);
-				setIds(
-					parsed.success
-						? new Set(parsed.data.data.map((item) => item.id))
-						: new Set(),
-				);
+				const fetched = parsed.success
+					? new Set(parsed.data.data.map((item) => item.id))
+					: new Set<number>();
+				// Preserve the optimistic state for any id with an in-flight toggle:
+				// the fetch may have been started before the toggle's POST/DELETE
+				// reached the server, so `fetched` can reflect stale server state.
+				// The pending toggle's own resolution will reconcile shortly.
+				setIds((prev) => {
+					for (const pid of pendingIdsRef.current) {
+						if (prev.has(pid)) {
+							fetched.add(pid);
+						} else {
+							fetched.delete(pid);
+						}
+					}
+					return fetched;
+				});
 			})
 			.catch((error: unknown) => {
 				console.error(error);
 				if (!ignore) {
-					setIds(new Set());
+					setIds((prev) => {
+						const next = new Set<number>();
+						for (const pid of pendingIdsRef.current) {
+							if (prev.has(pid)) {
+								next.add(pid);
+							}
+						}
+						return next;
+					});
 				}
 			})
 			.finally(() => {
@@ -111,7 +149,11 @@ export const useRelationSet = ({
 		};
 	}, [isAuthenticated, listEndpoint]);
 
-	const runToggle = async (id: number, shouldBeMember: boolean) => {
+	const runToggle = async (
+		id: number,
+		shouldBeMember: boolean,
+		isReplay = false,
+	) => {
 		if (pendingIds.has(id)) {
 			return;
 		}
@@ -134,6 +176,9 @@ export const useRelationSet = ({
 			if (!res.ok && res.status !== 409) {
 				setIds((prev) => updateSetMember(prev, id, !shouldBeMember));
 			}
+			if (isReplay && shouldBeMember && res.status === 409) {
+				onAlreadyMember?.(id);
+			}
 		} catch (error) {
 			console.error(error);
 			setIds((prev) => updateSetMember(prev, id, !shouldBeMember));
@@ -150,7 +195,7 @@ export const useRelationSet = ({
 		const resolved = shouldBeMember ?? !ids.has(id);
 		if (!isAuthenticated) {
 			openAuthModal(() => {
-				void runToggle(id, true);
+				void runToggle(id, true, true);
 			});
 			return;
 		}
