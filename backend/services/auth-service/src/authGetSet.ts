@@ -162,6 +162,25 @@ authGetSet.post(
 );
 
 /*
+	Session status endpoint
+		1. Attempt to decode JWT from cookie or Authorization header
+		2. If valid token → return { authenticated: true }
+		3. If missing or invalid token → return { authenticated: false }
+	Always returns 200 — safe to call for guests.
+*/
+authGetSet.get(
+	"/session",
+	(req: Request, res: Response) => {
+		const decodedToken = help.fetchDecodeToken(req);
+		if (!decodedToken) {
+			res.status(200).json({ authenticated: false });
+			return;
+		}
+		res.status(200).json({ authenticated: true });
+	},
+);
+
+/*
 	Fetch user details endpoint
 		1. Validate JWT from header
 		2. Look up user in DB by userId

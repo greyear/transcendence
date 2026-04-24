@@ -26,10 +26,12 @@
 }
 
 .language-dropdown__chevron {
-	width: 16px;
-	height: 16px;
 	transition: transform 0.2s ease;
 	flex-shrink: 0;
+}
+
+.icon-button .language-dropdown__chevron {
+	color: var(--icons-default);
 }
 
 .language-dropdown__chevron--open {

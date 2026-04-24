@@ -1,17 +1,21 @@
 {
+	"notices": {
+		"alreadyFollowing": "Seurasit tätä käyttäjää jo.",
+		"alreadyFavorited": "Tämä resepti on jo suosikeissasi."
+	},
 	"common": {
 		"cancel": "Peruuta",
 		"signInButton": "Kirjaudu",
 		"searchPlaceholder": "Hae...",
 		"sortButton": "Järjestä",
 		"filterButton": "Suodata",
+		"applyButton": "Käytä",
+		"perPage": "Sivua kohti",
 		"sortOptions": {
 			"nameAsc": "Nimi A→Ö",
 			"nameDesc": "Nimi Ö→А",
 			"titleAsc": "Otsikko A→Ö",
 			"titleDesc": "Otsikko Ö→А",
-			"dateAsc": "Vanhimmat ensin",
-			"dateDesc": "Uusimmat ensin",
 			"recipesCountAsc": "Vähiten reseptejä",
 			"recipesCountDesc": "Eniten reseptejä"
 		}
@@ -19,8 +23,7 @@
 	"homePage": {
 		"heroTitle": "Paikka ruoan ystäville",
 		"heroDescription": "Tutustu uusiin resepteihin, seuraa lempikokkejasi ja jaa omia luomuksiasi. Löydä arkeen sopivia nopeita ruokia ja hieman erityisempiä annoksia, jotka inspiroivat kokeilemaan uutta.",
-		"viewAllRecipes": "Näytä kaikki reseptit",
-		"topRecipes": "Parhaat reseptit",
+		"allRecipes": "Kaikki reseptit",
 		"followCooks": "Seuraa kokkejamme",
 		"all": "kaikki"
 	},
@@ -43,12 +46,17 @@
 		"createButton": "Luo uusi",
 		"tabAll": "Kaikki",
 		"tabMy": "Omat reseptit",
-		"tabSaved": "Tallennetut"
+		"tabSaved": "Tallennetut",
+		"titleAuthoredBy": "Käyttäjän {{username}} reseptit",
+		"titleFavoritesOf": "Käyttäjän {{username}} suosikit",
+		"backToProfile": "Takaisin profiiliin"
 	},
 	"recipesGrid": {
 		"loading": "Ladataan reseptejä...",
 		"empty": "Reseptejä ei löytynyt.",
-		"error": "Reseptien haku epäonnistui (tila: {{status}})."
+		"error": "Reseptien haku epäonnistui (tila: {{status}}).",
+		"signInRequired": "Kirjaudu sisään nähdäksesi tämän listan.",
+		"favoritesForbidden": "Tämän käyttäjän suosikit näkyvät vain vastavuoroisille seuraajille."
 	},
 	"recipePage": {
 		"loading": "Ladataan...",
@@ -97,7 +105,7 @@
 		"title": "Haku",
 		"totalCount": "Tuloksia:",
 		"recipesTab": "Reseptit",
-		"perPage": "Per sivu",
+		"usersTab": "Käyttäjät",
 		"noResults": "Reseptejä ei löytynyt.",
 		"searching": "Haetaan reseptejä...",
 		"error": "Haku epäonnistui. Yritä uudelleen.",
@@ -165,12 +173,9 @@
 		"submittingButton": "Kirjaudutaan...",
 		"signupButton": "Luo tili",
 		"logInButton": "Kirjaudu sisään",
-		"googleLoginButton": "Kirjaudu sisään Googlella",
-		"googleSignupButton": "Luo tili Googlella",
-		"googleSubmittingButton": "Kirjaudutaan Googlella...",
 		"googleTokenError": "Google ei palauttanut kirjautumistunnusta.",
-		"googleMissingClientId": "Googlen asiakastunnusta ei ole määritetty.",
 		"googleUnavailable": "Google-kirjautuminen ei ole saatavilla.",
+		"orDivider": "tai",
 		"signupSubmittingButton": "Luodaan tiliä...",
 		"signupSuccess": "Tili luotu. Olet kirjautunut sisään.",
 		"toggleSignupPrompt": "Tarvitsetko tilin? Luo sellainen",
@@ -193,7 +198,8 @@
 	"usersGrid": {
 		"loading": "Ladataan käyttäjiä...",
 		"empty": "Käyttäjiä ei löytynyt.",
-		"error": "Käyttäjien haku epäonnistui (tila: {{status}})."
+		"error": "Käyttäjien haku epäonnistui (tila: {{status}}).",
+		"signInRequired": "Kirjaudu sisään nähdäksesi tämän listan."
 	},
 	"userCard": {
 		"recipes": "reseptiä",
@@ -340,6 +346,8 @@
 		"goHome": "Siirry etusivulle",
 		"toggleMenu": "Vaihda valikon tila",
 		"allRecipes": "Kaikki reseptit",
+		"allRecipesByUser": "Kaikki käyttäjän {{name}} reseptit",
+		"allFavoritesOfUser": "Kaikki käyttäjän {{name}} suosikit",
 		"allUsers": "Kaikki käyttäjät",
 		"profileAvatar": "Käyttäjän {{name}} profiilikuva",
 		"followUser": "Seuraa käyttäjää {{name}}",

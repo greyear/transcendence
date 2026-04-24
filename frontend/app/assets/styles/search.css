@@ -31,11 +31,3 @@
 .search-page__ai-toggle.is-active svg {
 	color: var(--text-on-accent, var(--icons-primary));
 }
-
-.search-page__pagination-row {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	width: 100%;
-	gap: var(--space-m);
-}

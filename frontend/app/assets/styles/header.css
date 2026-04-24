@@ -67,15 +67,15 @@
 	.header-navigation-list {
 		flex-direction: row;
 	}
+
+	.header-search {
+		width: 328px;
+	}
 }
 
 @media (min-width: 1440px) {
 	.header-top-row {
 		width: var(--desktop-content-width);
-	}
-
-	.header-search {
-		width: 328px;
 	}
 
 	.header-bottom-row {
