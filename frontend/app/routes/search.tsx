@@ -513,26 +513,30 @@ const SearchPage = () => {
 							))}
 						</ul>
 					)}
-
-					{results.data.length > 0 && (
-						<div className="search-page__pagination-row">
-							{!isAiSearch && (
-								<SortMenu
-									options={limitOptions}
-									value={String(limit)}
-									onChange={handleLimitChange}
-									label={`${t("searchPage.perPage")}: ${limit}`}
-								/>
-							)}
-							<Pagination
-								totalElementsCount={total}
-								elementsPerPage={limit}
-								totalPagesCount={totalPages}
-							/>
-						</div>
-					)}
 				</>
 			)}
+
+			{query &&
+				!isLoading &&
+				!hasError &&
+				results &&
+				results.data.length > 0 && (
+					<div className="pagination-row">
+						{!isAiSearch && (
+							<SortMenu
+								options={limitOptions}
+								value={String(limit)}
+								onChange={handleLimitChange}
+								label={`${t("common.perPage")}: ${limit}`}
+							/>
+						)}
+						<Pagination
+							totalElementsCount={total}
+							elementsPerPage={limit}
+							totalPagesCount={totalPages}
+						/>
+					</div>
+				)}
 		</section>
 	);
 };

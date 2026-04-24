@@ -10,6 +10,7 @@
 		"sortButton": "Сортировать",
 		"filterButton": "Фильтры",
 		"applyButton": "Применить",
+		"perPage": "На странице",
 		"sortOptions": {
 			"nameAsc": "Имя: А→Я",
 			"nameDesc": "Имя: Я→А",
@@ -22,8 +23,7 @@
 	"homePage": {
 		"heroTitle": "Место для любителей еды",
 		"heroDescription": "Открывайте новые рецепты, подписывайтесь на любимых авторов и делитесь своими блюдами. От быстрых повседневных идей до чего-то особенного. Находите идеи, которые вдохновляют готовить.",
-		"viewAllRecipes": "Посмотреть все рецепты",
-		"topRecipes": "Популярные рецепты",
+		"allRecipes": "Все рецепты",
 		"followCooks": "Подписывайтесь на авторов",
 		"all": "все"
 	},
@@ -46,12 +46,17 @@
 		"createButton": "Создать",
 		"tabAll": "Все",
 		"tabMy": "Мои рецепты",
-		"tabSaved": "Сохраненные рецепты"
+		"tabSaved": "Сохраненные рецепты",
+		"titleAuthoredBy": "Рецепты пользователя {{username}}",
+		"titleFavoritesOf": "Избранное пользователя {{username}}",
+		"backToProfile": "Назад в профиль"
 	},
 	"recipesGrid": {
 		"loading": "Загрузка рецептов...",
 		"empty": "Рецепты не найдены.",
-		"error": "Не удалось загрузить рецепты (статус: {{status}})."
+		"error": "Не удалось загрузить рецепты (статус: {{status}}).",
+		"signInRequired": "Войдите, чтобы увидеть этот список.",
+		"favoritesForbidden": "Избранное этого пользователя видно только взаимным подписчикам."
 	},
 	"recipePage": {
 		"loading": "Загрузка...",
@@ -101,7 +106,6 @@
 		"totalCount": "Результатов:",
 		"recipesTab": "Рецепты",
 		"usersTab": "Пользователи",
-		"perPage": "На странице",
 		"noResults": "Подходящие рецепты не найдены.",
 		"searching": "Ищем рецепты...",
 		"error": "Поиск не удался. Попробуйте ещё раз.",
@@ -169,11 +173,7 @@
 		"submittingButton": "Выполняется вход...",
 		"signupButton": "Зарегистрироваться",
 		"logInButton": "Войти",
-		"googleLoginButton": "Войти через Google",
-		"googleSignupButton": "Зарегистрироваться через Google",
-		"googleSubmittingButton": "Вход через Google...",
 		"googleTokenError": "Google не вернул токен входа.",
-		"googleMissingClientId": "ID клиента Google не настроен.",
 		"googleUnavailable": "Вход через Google недоступен.",
 		"orDivider": "или",
 		"signupSubmittingButton": "Создается аккаунт...",
@@ -198,7 +198,8 @@
 	"usersGrid": {
 		"loading": "Загрузка пользователей...",
 		"empty": "Пользователи не найдены.",
-		"error": "Не удалось загрузить пользователей (статус: {{status}})."
+		"error": "Не удалось загрузить пользователей (статус: {{status}}).",
+		"signInRequired": "Войдите, чтобы увидеть этот список."
 	},
 	"userCard": {
 		"recipes": "Рецепты",
@@ -345,6 +346,8 @@
 		"goHome": "Перейти на главную страницу",
 		"toggleMenu": "Переключить меню",
 		"allRecipes": "Все рецепты",
+		"allRecipesByUser": "Все рецепты пользователя {{name}}",
+		"allFavoritesOfUser": "Всё избранное пользователя {{name}}",
 		"allUsers": "Все авторы",
 		"profileAvatar": "Аватар пользователя {{name}}",
 		"followUser": "Подписаться на {{name}}",

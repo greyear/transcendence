@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { IconButton } from "~/components/buttons/IconButton";
-import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { CooksRow, type CooksRowHandle } from "~/components/CooksRow";
 import { RecipesGrid } from "~/components/RecipesGrid";
@@ -36,16 +35,12 @@ const HomePage = () => {
 				</div>
 			</header>
 
-			<MainButton className="home-page-view-button text-label" to="/recipes">
-				{t("homePage.viewAllRecipes")}
-			</MainButton>
-
 			<section
 				className="home-page-recipes-section"
-				aria-labelledby="top-recipes-heading"
+				aria-labelledby="all-recipes-heading"
 			>
 				<div className="home-page-recipe-header">
-					<h2 id="top-recipes-heading">{t("homePage.topRecipes")}</h2>
+					<h2 id="all-recipes-heading">{t("homePage.allRecipes")}</h2>
 					<TextIconButton
 						to="/recipes"
 						className="text-body2"
@@ -56,7 +51,6 @@ const HomePage = () => {
 					</TextIconButton>
 				</div>
 				<RecipesGrid
-					sort="top"
 					page={1}
 					perPage={recipesPerPage}
 					isAuthenticated={isAuthenticated}

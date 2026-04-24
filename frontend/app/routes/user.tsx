@@ -251,9 +251,11 @@ const UserPage = () => {
 						{t("userProfilePage.authoredRecipes")}
 					</h2>
 					<TextIconButton
-						to="/recipes"
+						to={`/recipes?userId=${profile.id}`}
 						className="text-body2"
-						aria-label={t("ariaLabels.allRecipes")}
+						aria-label={t("ariaLabels.allRecipesByUser", {
+							name: profile.username,
+						})}
 					>
 						{t("userProfilePage.all")}
 						<NavArrowRight aria-hidden="true" />
@@ -279,9 +281,11 @@ const UserPage = () => {
 							{t("userProfilePage.favoriteRecipes")}
 						</h2>
 						<TextIconButton
-							to="/recipes"
+							to={`/recipes?favoritesOf=${profile.id}`}
 							className="text-body2"
-							aria-label={t("ariaLabels.allRecipes")}
+							aria-label={t("ariaLabels.allFavoritesOfUser", {
+								name: profile.username,
+							})}
 						>
 							{t("userProfilePage.all")}
 							<NavArrowRight aria-hidden="true" />

@@ -10,6 +10,7 @@
 		"sortButton": "Sort",
 		"filterButton": "Filter",
 		"applyButton": "Apply",
+		"perPage": "Per page",
 		"sortOptions": {
 			"nameAsc": "Name A→Z",
 			"nameDesc": "Name Z→A",
@@ -22,8 +23,7 @@
 	"homePage": {
 		"heroTitle": "A place for food lovers",
 		"heroDescription": "Explore new recipes, follow your favorite cooks, and share your own creations. From quick everyday meals to something a bit more special, find ideas that inspire you.",
-		"viewAllRecipes": "View all recipes",
-		"topRecipes": "Top recipes",
+		"allRecipes": "All recipes",
 		"followCooks": "Follow our cooks",
 		"all": "all"
 	},
@@ -46,12 +46,17 @@
 		"createButton": "Create new",
 		"tabAll": "All",
 		"tabMy": "My recipes",
-		"tabSaved": "Saved recipes"
+		"tabSaved": "Saved recipes",
+		"titleAuthoredBy": "Recipes by {{username}}",
+		"titleFavoritesOf": "{{username}}'s favorites",
+		"backToProfile": "Back to profile"
 	},
 	"recipesGrid": {
 		"loading": "Loading recipes...",
 		"empty": "No recipes found.",
-		"error": "Failed to fetch recipes (status: {{status}})."
+		"error": "Failed to fetch recipes (status: {{status}}).",
+		"signInRequired": "Sign in to view this list.",
+		"favoritesForbidden": "This user's favorites are only visible to mutual followers."
 	},
 	"recipePage": {
 		"loading": "Loading...",
@@ -101,7 +106,6 @@
 		"totalCount": "Results:",
 		"recipesTab": "Recipes",
 		"usersTab": "Users",
-		"perPage": "Per page",
 		"noResults": "No matching recipes found.",
 		"searching": "Searching recipes...",
 		"error": "Search failed. Please try again.",
@@ -169,11 +173,7 @@
 		"submittingButton": "Signing in...",
 		"signupButton": "Sign Up",
 		"logInButton": "Log in",
-		"googleLoginButton": "Log in with Google",
-		"googleSignupButton": "Sign up with Google",
-		"googleSubmittingButton": "Signing in with Google...",
 		"googleTokenError": "Google did not return a sign-in token.",
-		"googleMissingClientId": "Google client ID is not configured.",
 		"googleUnavailable": "Google sign-in is not available.",
 		"orDivider": "or",
 		"signupSubmittingButton": "Creating account...",
@@ -198,7 +198,8 @@
 	"usersGrid": {
 		"loading": "Loading users...",
 		"empty": "No users found.",
-		"error": "Failed to fetch users (status: {{status}})."
+		"error": "Failed to fetch users (status: {{status}}).",
+		"signInRequired": "Sign in to view this list."
 	},
 	"userCard": {
 		"recipes": "recipes",
@@ -345,6 +346,8 @@
 		"goHome": "Go to homepage",
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
+		"allRecipesByUser": "All recipes by {{name}}",
+		"allFavoritesOfUser": "All favorites of {{name}}",
 		"allUsers": "All users",
 		"profileAvatar": "Avatar of {{name}}",
 		"followUser": "Follow {{name}}",
