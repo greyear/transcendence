@@ -2,8 +2,5 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: var(--space-s);
-	list-style: none;
-	padding: 0;
-	margin: 0;
 	width: 100%;
 }
