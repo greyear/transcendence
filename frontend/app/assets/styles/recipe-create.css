@@ -124,14 +124,6 @@
 	margin-left: auto;
 }
 
-/* Time row */
-
-.recipe-create-time-row {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: var(--space-s);
-}
-
 /* Ingredient / instruction lists */
 
 .recipe-create-list {

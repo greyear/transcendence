@@ -272,9 +272,7 @@
 		"servingsPlaceholder": "esim. 2",
 		"spicinessLabel": "Tulisuus",
 		"spicinessPlaceholder": "0–3",
-		"prepTimeLegend": "Valmisteluaika",
-		"cookTimeLegend": "Kypsennysaika",
-		"hoursPlaceholder": "tuntia",
+		"cookTimeLegend": "Valmistusaika",
 		"minutesPlaceholder": "minuuttia",
 		"ingredientsHeading": "Ainekset",
 		"instructionsHeading": "Ohjeet",
@@ -302,10 +300,6 @@
 	},
 	"recipeCreateAria": {
 		"addPhoto": "Lisää reseptin kuva",
-		"prepHours": "Valmisteluaika tunteina",
-		"prepMinutes": "Valmisteluaika minuutteina",
-		"cookHours": "Kypsennysaika tunteina",
-		"cookMinutes": "Kypsennysaika minuutteina",
 		"ingredientsList": "Ainesten lista",
 		"instructionsList": "Ohjeiden lista",
 		"ingredientName": "Aineksen {{number}} nimi",
@@ -372,14 +366,9 @@
 		"spicinessRequired": "Tulisuus on pakollinen",
 		"spicinessInt": "Tulisuuden tulee olla kokonaisluku",
 		"spicinessRange": "Tulisuuden tulee olla välillä 0–3",
-		"prepHoursRequired": "Valmistelutunnit ovat pakollisia",
-		"prepMinutesRequired": "Valmisteluminuutit ovat pakollisia",
-		"cookHoursRequired": "Kypsennystunnit ovat pakollisia",
-		"cookMinutesRequired": "Kypsennysminuutit ovat pakollisia",
-		"hoursInt": "Tuntien tulee olla kokonaisluku",
-		"hoursNonneg": "Tuntien tulee olla 0 tai enemmän",
+		"cookTimeRequired": "Valmistusaika on pakollinen",
 		"minutesInt": "Minuuttien tulee olla kokonaisluku",
-		"minutesRange": "Minuuttien tulee olla välillä 0–59",
+		"cookTimeMax": "Valmistusaika saa olla enintään 9999 minuuttia",
 		"amountRequired": "Aineksen määrä on pakollinen",
 		"amountPositive": "Aineksen määrän tulee olla positiivinen",
 		"ingredientRequired": "Aines on pakollinen",
@@ -388,7 +377,6 @@
 		"ingredientsUnique": "Ainesten tulee olla yksilöllisiä",
 		"stepRequired": "Vaiheen teksti on pakollinen",
 		"instructionsMin": "Vähintään yksi ohjevaihe vaaditaan",
-		"prepTimeNonneg": "Valmisteluajan tulee olla 0 tai enemmän",
-		"cookTimePositive": "Kypsennysajan tulee olla suurempi kuin 0"
+		"cookTimePositive": "Valmistusajan tulee olla suurempi kuin 0"
 	}
 }
