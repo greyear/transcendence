@@ -82,7 +82,7 @@ export const LanguageSelector = ({
 					aria-label={t("ariaLabels.languageMenu")}
 					onClick={() => setIsOpen((prev) => !prev)}
 				>
-					{i18n.resolvedLanguage}
+					<span lang={i18n.resolvedLanguage}>{i18n.resolvedLanguage}</span>
 					<NavArrowDown
 						className={`language-dropdown__chevron${isOpen ? " language-dropdown__chevron--open" : ""}`}
 					/>

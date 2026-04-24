@@ -10,6 +10,7 @@
 	display: inline-flex;
 	align-items: center;
 	gap: var(--space-s);
+	min-height: 24px;
 
 	&:hover {
 		filter: brightness(var(--hover-brightness));

@@ -31,6 +31,7 @@ export const LanguageButton = ({
 			role={isMenuItem ? "menuitemradio" : undefined}
 			aria-checked={isMenuItem ? isActive : undefined}
 			aria-pressed={isMenuItem ? undefined : isActive}
+			lang={langCode}
 		>
 			{langCode}
 		</IconButton>
