@@ -1,7 +1,12 @@
 import { NavArrowRight } from "iconoir-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, useOutletContext, useParams } from "react-router";
+import {
+	type MetaFunction,
+	Navigate,
+	useOutletContext,
+	useParams,
+} from "react-router";
 import { z } from "zod";
 import userPhoto from "~/assets/images/user-photo.jpg";
 import "~/assets/styles/userProfile.css";
@@ -12,9 +17,12 @@ import { RecipeCard } from "~/components/cards/RecipeCard";
 import { RecipesGrid } from "~/components/RecipesGrid";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import { useRelationSet } from "~/composables/useRelationSet";
 import { useScreenSize } from "~/composables/useScreenSize";
 import type { LayoutOutletContext } from "~/layouts/layout";
+
+export const meta: MetaFunction = () => [{ title: "Profile | Transcendence" }];
 
 const UserResponseSchema = z.object({
 	data: z.object({
@@ -59,6 +67,12 @@ const UserPage = () => {
 	const numericId = id ? Number(id) : null;
 	const isOwnProfile =
 		numericId !== null && currentUserId !== null && numericId === currentUserId;
+
+	useDocumentTitle(
+		profile
+			? t("pageTitles.user", { name: profile.username })
+			: t("pageTitles.userLoading"),
+	);
 
 	const {
 		ids: favoriteIds,

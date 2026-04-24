@@ -2,7 +2,7 @@ import { NavArrowDown } from "iconoir-react";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useOutletContext } from "react-router";
+import { type MetaFunction, useNavigate, useOutletContext } from "react-router";
 import { z } from "zod";
 import defaultAvatar from "~/assets/images/default-avatar.jpeg";
 import "~/assets/styles/profile.css";
@@ -13,7 +13,12 @@ import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { InputField } from "~/components/inputs/InputField";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import type { LayoutOutletContext } from "~/layouts/layout";
+
+export const meta: MetaFunction = () => [
+	{ title: "My profile | Transcendence" },
+];
 
 type AuthUserData = {
 	id: number;
@@ -49,6 +54,7 @@ const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
 
 const ProfilePage = () => {
 	const { t } = useTranslation();
+	useDocumentTitle(t("pageTitles.profile"));
 	const navigate = useNavigate();
 	const { isAuthenticated, openAuthModal, resetAuthState } =
 		useOutletContext<LayoutOutletContext>();
@@ -534,14 +540,18 @@ const ProfilePage = () => {
 					</MainButton>
 				) : null}
 
-				<div className="profile-page-form-status" aria-live="polite">
+				<output
+					className="profile-page-form-status"
+					aria-live="polite"
+					aria-atomic="true"
+				>
 					{profileMessage ? (
-						<p className="profile-success">{profileMessage}</p>
+						<span className="profile-success">{profileMessage}</span>
 					) : null}
 					{profileError ? (
-						<p className="profile-error">{profileError}</p>
+						<span className="profile-error">{profileError}</span>
 					) : null}
-				</div>
+				</output>
 			</form>
 
 			<div className="profile-page-actions">

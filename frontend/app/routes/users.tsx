@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { useNavigate, useOutletContext, useSearchParams } from "react-router";
+import {
+	type MetaFunction,
+	useNavigate,
+	useOutletContext,
+	useSearchParams,
+} from "react-router";
 import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
@@ -15,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SortMenu } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import {
 	PER_PAGE_OPTIONS,
 	usePerPageParam,
@@ -22,6 +28,8 @@ import {
 import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
 import type { LayoutOutletContext } from "~/layouts/layout";
+
+export const meta: MetaFunction = () => [{ title: "Users | Transcendence" }];
 
 const PER_PAGE_MENU_OPTIONS = PER_PAGE_OPTIONS.map((n) => ({
 	label: String(n),
@@ -41,6 +49,7 @@ const AUTH_REQUIRED_TABS: ReadonlySet<UsersTab> = new Set([
 
 const UsersPage = () => {
 	const { t } = useTranslation();
+	useDocumentTitle(t("pageTitles.users"));
 	const { isAuthenticated, currentUserId, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
 	const [totalCount, setTotalCount] = useState(0);

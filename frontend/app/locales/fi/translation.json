@@ -3,6 +3,23 @@
 		"alreadyFollowing": "Seurasit tätä käyttäjää jo.",
 		"alreadyFavorited": "Tämä resepti on jo suosikeissasi."
 	},
+	"pageTitles": {
+		"home": "Etusivu | Transcendence",
+		"recipes": "Reseptit | Transcendence",
+		"recipesAuthoredBy": "Käyttäjän {{username}} reseptit | Transcendence",
+		"recipesFavoritesOf": "Käyttäjän {{username}} suosikit | Transcendence",
+		"users": "Käyttäjät | Transcendence",
+		"profile": "Oma profiili | Transcendence",
+		"search": "Haku | Transcendence",
+		"searchQuery": "{{query}} — Haku | Transcendence",
+		"recipe": "{{title}} | Transcendence",
+		"recipeLoading": "Resepti | Transcendence",
+		"user": "{{name}} | Transcendence",
+		"userLoading": "Profiili | Transcendence",
+		"recipeCreate": "Lisää resepti | Transcendence",
+		"privacy": "Tietosuojakäytäntö | Transcendence",
+		"terms": "Käyttöehdot | Transcendence"
+	},
 	"common": {
 		"cancel": "Peruuta",
 		"signInButton": "Kirjaudu",

@@ -211,9 +211,13 @@ export const RatingForm = ({
 						</div>
 					</div>
 
-					<div className="rating-status" aria-live="polite">
-						{error ? <p className="rating-error">{error}</p> : null}
-					</div>
+					<output
+						className="rating-status"
+						aria-live="polite"
+						aria-atomic="true"
+					>
+						{error ? <span className="rating-error">{error}</span> : null}
+					</output>
 
 					<p className="rating-help-text text-caption">
 						{t("ratingModal.averageRatingHint")}

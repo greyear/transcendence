@@ -37,7 +37,7 @@ const App = () => {
 	const { i18n } = useTranslation();
 
 	return (
-		<html lang={i18n.resolvedLanguage ?? locale} dir="ltr">
+		<html lang={i18n.resolvedLanguage ?? locale ?? "en"} dir="ltr">
 			<head>
 				<Meta />
 				<Links />

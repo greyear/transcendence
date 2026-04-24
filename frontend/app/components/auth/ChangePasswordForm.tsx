@@ -162,9 +162,9 @@ export const ChangePasswordForm = ({
 					/>
 				</div>
 
-				<div className="auth-status" aria-live="polite">
-					{error ? <p className="auth-error">{error}</p> : null}
-				</div>
+				<output className="auth-status" aria-live="polite" aria-atomic="true">
+					{error ? <span className="auth-error">{error}</span> : null}
+				</output>
 
 				<div className="auth-actions">
 					<MainButton type="submit" disabled={isSubmitting}>

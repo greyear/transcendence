@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useOutletContext, useParams } from "react-router";
+import {
+	type MetaFunction,
+	useLocation,
+	useOutletContext,
+	useParams,
+} from "react-router";
 import { z } from "zod";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.css";
@@ -11,9 +16,12 @@ import { RatingModal } from "~/components/rating/ratingModal";
 import { ReviewModal } from "~/components/review/reviewModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
+
+export const meta: MetaFunction = () => [{ title: "Recipe | Transcendence" }];
 
 type RecipeIngredient = {
 	ingredient_id: number;
@@ -193,6 +201,12 @@ const RecipePage = () => {
 	const [reviewActionError, setReviewActionError] = useState("");
 	const [isFavorited, setIsFavorited] = useState(false);
 	const [isFavoritePending, setIsFavoritePending] = useState(false);
+
+	useDocumentTitle(
+		recipe
+			? t("pageTitles.recipe", { title: recipe.title })
+			: t("pageTitles.recipeLoading"),
+	);
 
 	const toggleFavorite = async () => {
 		if (!id || isFavoritePending) {
@@ -506,9 +520,9 @@ const RecipePage = () => {
 		<section className="recipe-page" aria-labelledby="recipe-title">
 			{showPictureUploadWarning ? (
 				<output className="recipe-page-warning">
-					<p className="text-body3">
+					<span className="recipe-page-warning-text text-body3">
 						{t("recipePage.pictureUploadFailedWarning")}
-					</p>
+					</span>
 					<button
 						type="button"
 						className="recipe-page-warning-dismiss"

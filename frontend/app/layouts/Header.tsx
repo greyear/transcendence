@@ -1,5 +1,5 @@
 import { Menu, ProfileCircle, Xmark } from "iconoir-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
 import "../assets/styles/header.css";
@@ -82,6 +82,10 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const { screenSize } = useScreenSize();
 	const headerRef = useRef<HTMLElement>(null);
+	const menuToggleRef = useRef<HTMLButtonElement>(null);
+	const overlayRef = useRef<HTMLDivElement>(null);
+	const wasOpenRef = useRef(false);
+	const overlayId = useId();
 	const { pathname } = useLocation();
 
 	const navigate = useNavigate();
@@ -111,6 +115,39 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 		return handleDropdownClose(header, setIsOpen);
 	}, []);
 
+	useEffect(() => {
+		if (isOpen) {
+			const firstFocusable = overlayRef.current?.querySelector<HTMLElement>(
+				'a, button, [tabindex]:not([tabindex="-1"])',
+			);
+			firstFocusable?.focus();
+			wasOpenRef.current = true;
+			return;
+		}
+
+		if (wasOpenRef.current) {
+			wasOpenRef.current = false;
+			menuToggleRef.current?.focus();
+		}
+	}, [isOpen]);
+
+	useEffect(() => {
+		if (!isOpen) {
+			return;
+		}
+
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				setIsOpen(false);
+			}
+		};
+
+		document.addEventListener("keydown", handleEscape);
+		return () => {
+			document.removeEventListener("keydown", handleEscape);
+		};
+	}, [isOpen]);
+
 	return (
 		<header ref={headerRef} className="main-header">
 			<div className="header-top-row">
@@ -134,8 +171,10 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 					)}
 					{!isDesktop ? (
 						<IconButton
+							ref={menuToggleRef}
 							onClick={handleMenuButtonClick}
 							aria-expanded={isOpen}
+							aria-controls={overlayId}
 							aria-label={t("ariaLabels.toggleMenu")}
 							variant="transparent"
 						>
@@ -162,7 +201,7 @@ export const Header = ({ isAuthenticated, onOpenAuthModal }: HeaderProps) => {
 				</div>
 			</div>
 			{isOpen && !isDesktop && (
-				<div className="header-menu-overlay">
+				<div ref={overlayRef} id={overlayId} className="header-menu-overlay">
 					<NavigationList isAuthenticated={isAuthenticated} />
 					{!isAuthenticated && (
 						<MainButton variant="inverted" onClick={onOpenAuthModal}>

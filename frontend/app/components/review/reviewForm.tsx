@@ -137,9 +137,13 @@ export const ReviewForm = ({
 						/>
 					</div>
 
-					<div className="review-status" aria-live="polite">
-						{error ? <p className="review-error">{error}</p> : null}
-					</div>
+					<output
+						className="review-status"
+						aria-live="polite"
+						aria-atomic="true"
+					>
+						{error ? <span className="review-error">{error}</span> : null}
+					</output>
 
 					<p className="review-help-text text-caption">
 						{t("reviewModal.existingReviewHint")}
