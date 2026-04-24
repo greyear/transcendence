@@ -79,9 +79,11 @@ describe("Users Routes", () => {
 
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("data");
-			expect(response.body).toHaveProperty("count");
+			expect(response.body).toHaveProperty("total_count");
+			expect(response.body).toHaveProperty("total_pages");
+			expect(response.body).toHaveProperty("page");
+			expect(response.body).toHaveProperty("per_page");
 			expect(Array.isArray(response.body.data)).toBe(true);
-			expect(response.body.count).toBe(response.body.data.length);
 			if (response.body.data.length > 0) {
 				expect(response.body.data[0]).toHaveProperty("id");
 				expect(response.body.data[0]).toHaveProperty("username");
@@ -97,7 +99,7 @@ describe("Users Routes", () => {
 
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("data");
-			expect(response.body).toHaveProperty("count", 1);
+			expect(response.body).toHaveProperty("total_count", 1);
 			expect(response.body.data).toHaveLength(1);
 			expect(response.body.data[0]).toHaveProperty("username", "search_cap_01");
 			expect(response.body.data[0]).not.toHaveProperty("status");
@@ -105,11 +107,10 @@ describe("Users Routes", () => {
 		});
 
 		it("should search users case-insensitively and cap results to 20", async () => {
-			const response = await request(app).get("/users?q=SEARCH_CAP_");
+			const response = await request(app).get("/users?q=SEARCH_CAP_&limit=20");
 
 			expect(response.status).toBe(200);
 			expect(response.body).toHaveProperty("data");
-			expect(response.body).toHaveProperty("count", 20);
 			expect(response.body.data).toHaveLength(20);
 			expect(
 				response.body.data.every((user: { username: string }) =>
@@ -124,7 +125,9 @@ describe("Users Routes", () => {
 			);
 
 			expect(response.status).toBe(200);
-			expect(response.body).toEqual({ data: [], count: 0 });
+			expect(response.body).toHaveProperty("data");
+			expect(response.body.data).toHaveLength(0);
+			expect(response.body).toHaveProperty("total_count", 0);
 		});
 
 		it("should return 400 when the search query is too long", async () => {
