@@ -137,6 +137,7 @@
 		"tabFollowing": "Following"
 	},
 	"profilePage": {
+		"title": "My profile",
 		"loading": "Loading profile...",
 		"signInRequired": "Sign in to view your profile.",
 		"error": "Failed to load profile (status: {{status}}).",
@@ -379,7 +380,10 @@
 		"deleteReview": "Delete review",
 		"dismissWarning": "Dismiss warning",
 		"skipToMainContent": "Skip to main content",
-		"languageMenu": "Language"
+		"languageMenu": "Language",
+		"usersFilter": "Users filter",
+		"recipesFilter": "Recipes filter",
+		"searchFilter": "Search results filter"
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Recipe title is required",

@@ -137,6 +137,7 @@
 		"tabFollowing": "Подписки"
 	},
 	"profilePage": {
+		"title": "Мой профиль",
 		"loading": "Загрузка профиля...",
 		"signInRequired": "Войдите, чтобы просмотреть свой профиль.",
 		"error": "Не удалось загрузить профиль (статус: {{status}}).",
@@ -379,7 +380,10 @@
 		"deleteReview": "Удалить отзыв",
 		"dismissWarning": "Скрыть уведомление",
 		"skipToMainContent": "Перейти к основному содержимому",
-		"languageMenu": "Язык"
+		"languageMenu": "Язык",
+		"usersFilter": "Фильтр пользователей",
+		"recipesFilter": "Фильтр рецептов",
+		"searchFilter": "Фильтр результатов поиска"
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Название рецепта обязательно",

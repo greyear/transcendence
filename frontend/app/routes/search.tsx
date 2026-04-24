@@ -460,6 +460,7 @@ const SearchPage = () => {
 				filters={tabs}
 				activeFilter={activeTab}
 				onFilterChange={handleTabChange}
+				ariaLabel={t("ariaLabels.searchFilter")}
 			/>
 
 			<div className="search-page-controls">

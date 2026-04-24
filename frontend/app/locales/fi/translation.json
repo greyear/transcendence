@@ -137,6 +137,7 @@
 		"tabFollowing": "Seuratut"
 	},
 	"profilePage": {
+		"title": "Oma profiili",
 		"loading": "Ladataan profiilia...",
 		"signInRequired": "Kirjaudu sisään nähdäksesi profiilisi.",
 		"error": "Profiilin lataus epäonnistui (tila: {{status}}).",
@@ -379,7 +380,10 @@
 		"deleteReview": "Poista arvostelu",
 		"dismissWarning": "Sulje ilmoitus",
 		"skipToMainContent": "Siirry pääsisältöön",
-		"languageMenu": "Kieli"
+		"languageMenu": "Kieli",
+		"usersFilter": "Käyttäjien suodatin",
+		"recipesFilter": "Reseptien suodatin",
+		"searchFilter": "Hakutulosten suodatin"
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Reseptin nimi on pakollinen",

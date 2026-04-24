@@ -413,15 +413,14 @@ const ProfilePage = () => {
 	}
 
 	return (
-		<section className="profile-page">
+		<section className="profile-page" aria-labelledby="profile-page-title">
+			<h1 id="profile-page-title" className="visually-hidden">
+				{t("profilePage.title")}
+			</h1>
 			<form className="profile-page-form" onSubmit={handleProfileSubmit}>
 				<div className="profile-avatar-section">
 					<div className="profile-avatar-display">
-						<img
-							className="profile-avatar-image"
-							src={avatarSrc}
-							alt={username || profile.username}
-						/>
+						<img className="profile-avatar-image" src={avatarSrc} alt="" />
 					</div>
 
 					<input
@@ -506,6 +505,8 @@ const ProfilePage = () => {
 
 				<InputField
 					id="profile-username"
+					name="username"
+					autoComplete="username"
 					hint={t("profilePage.usernameHint")}
 					label={t("profilePage.username")}
 					value={username}
@@ -520,6 +521,9 @@ const ProfilePage = () => {
 
 				<InputField
 					id="profile-email"
+					name="email"
+					type="email"
+					autoComplete="email"
 					className="profile-email-field"
 					label={t("profilePage.email")}
 					value={

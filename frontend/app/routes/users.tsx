@@ -109,6 +109,7 @@ const UsersPage = () => {
 				filters={tabsConfig.map((entry) => entry.label)}
 				activeFilter={t(TAB_LABEL_KEYS[tab])}
 				onFilterChange={handleTabChange}
+				ariaLabel={t("ariaLabels.usersFilter")}
 			/>
 		);
 	};
