@@ -27,7 +27,6 @@ export type FollowOperationResult =
  * Embedded directly in queries — no separate column read needed.
  */
 const IS_ONLINE_SQL = `(u.last_seen_at > now() - interval '60 seconds')`;
-const USER_SEARCH_LIMIT = 20;
 
 const USER_SORT_MAP: Record<string, string> = {
 	"name-asc": "u.username ASC",
