@@ -406,7 +406,7 @@ FROM (VALUES
   ('lamb_chop',         'Lamb Chop',         'Karitsan kyljys',    'Бараньи отбивные'),
   ('ground_lamb',       'Ground Lamb',       'Karitsan jauheliha', 'Бараний фарш'),
   ('rabbit',            'Rabbit',            'Kaniini',            'Кролик'),
-  ('venison',           'Venison',           'Hirvenliha',         'Оленина')
+  ('venison',           'Venison',           'Hirvenliha',         'Оленина'),
 
   -- Fish & Seafood
   ('salmon',          'Salmon',         'Lohi',               'Лосось'),

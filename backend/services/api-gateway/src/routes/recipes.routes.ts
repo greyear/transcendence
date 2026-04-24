@@ -379,7 +379,12 @@ const getCategoryListHandler =
 
 const getIngredientsHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		const response = await fetch(`${CORE_SERVICE_URL}/recipes/ingredients`, {
+		const url = new URL(`${CORE_SERVICE_URL}/recipes/ingredients`);
+		for (const [key, value] of Object.entries(req.query)) {
+			if (typeof value === "string") url.searchParams.set(key, value);
+		}
+
+		const response = await fetch(url.toString(), {
 			headers: getInternalHeaders(req),
 			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 		});
@@ -397,7 +402,12 @@ const getIngredientsHandler: RequestHandler = async (req, res, _next) => {
 
 const getUnitsHandler: RequestHandler = async (req, res, _next) => {
 	try {
-		const response = await fetch(`${CORE_SERVICE_URL}/recipes/units`, {
+		const url = new URL(`${CORE_SERVICE_URL}/recipes/units`);
+		for (const [key, value] of Object.entries(req.query)) {
+			if (typeof value === "string") url.searchParams.set(key, value);
+		}
+
+		const response = await fetch(url.toString(), {
 			headers: getInternalHeaders(req),
 			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 		});

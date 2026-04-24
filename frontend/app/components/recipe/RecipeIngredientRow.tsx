@@ -58,7 +58,7 @@ export const RecipeIngredientRow = ({
 		value: String(option.id),
 	}));
 	const unitSelectOptions = unitOptions.map((unit) => ({
-		label: unit.name ? `${unit.name} (${unit.code})` : unit.code,
+		label: unit.name ?? unit.code,
 		value: unit.code,
 	}));
 	const selectValue =

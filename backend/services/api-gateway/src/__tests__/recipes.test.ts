@@ -1494,13 +1494,35 @@ describe("API Gateway - Recipes Routes", () => {
 			}),
 		} as unknown as Response);
 
-		const response = await request(app).get("/recipes/ingredients");
+		const response = await request(app).get("/recipes/ingredients?lang=fi");
 
 		expect(response.status).toBe(200);
 		expect(response.body).toHaveProperty("ingredients");
 		expect(Array.isArray(response.body.ingredients)).toBe(true);
 		expect(fetchSpy).toHaveBeenCalledWith(
-			expect.stringContaining("/recipes/ingredients"),
+			expect.stringContaining("/recipes/ingredients?lang=fi"),
+			expect.objectContaining({ signal: expect.any(AbortSignal) }),
+		);
+	});
+
+	it("should proxy GET /recipes/units with lang query to core-service", async () => {
+		fetchSpy.mockResolvedValue({
+			status: 200,
+			json: async () => ({
+				units: [
+					{ code: "g", kind: "mass", name: "Gramma" },
+					{ code: "ml", kind: "volume", name: "Millilitra" },
+				],
+			}),
+		} as unknown as Response);
+
+		const response = await request(app).get("/recipes/units?lang=fi");
+
+		expect(response.status).toBe(200);
+		expect(response.body).toHaveProperty("units");
+		expect(Array.isArray(response.body.units)).toBe(true);
+		expect(fetchSpy).toHaveBeenCalledWith(
+			expect.stringContaining("/recipes/units?lang=fi"),
 			expect.objectContaining({ signal: expect.any(AbortSignal) }),
 		);
 	});
