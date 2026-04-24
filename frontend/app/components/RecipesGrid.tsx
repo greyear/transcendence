@@ -27,7 +27,6 @@ type RecipesGridProps = {
 	page?: number;
 	perPage?: number;
 	onLoad?: (totalCount: number) => void;
-	sort?: "top";
 	userId?: number;
 	favoritesOfUserId?: number;
 	tab?: RecipesTab;
@@ -102,7 +101,6 @@ export const RecipesGrid = ({
 	page = 1,
 	perPage = 12,
 	onLoad,
-	sort,
 	sortValue = "",
 	userId,
 	favoritesOfUserId,
@@ -218,11 +216,6 @@ export const RecipesGrid = ({
 					}
 				}
 
-				if (sort === "top") {
-					allRecipes = [...allRecipes].sort(
-						(a, b) => (b.rating_avg ?? 0) - (a.rating_avg ?? 0),
-					);
-				}
 				onLoadRef.current?.(allRecipes.length);
 				setRecipeList(allRecipes);
 			})
@@ -234,7 +227,6 @@ export const RecipesGrid = ({
 				setIsLoading(false);
 			});
 	}, [
-		sort,
 		userId,
 		favoritesOfUserId,
 		tab,

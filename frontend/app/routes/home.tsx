@@ -37,10 +37,10 @@ const HomePage = () => {
 
 			<section
 				className="home-page-recipes-section"
-				aria-labelledby="top-recipes-heading"
+				aria-labelledby="all-recipes-heading"
 			>
 				<div className="home-page-recipe-header">
-					<h2 id="top-recipes-heading">{t("homePage.topRecipes")}</h2>
+					<h2 id="all-recipes-heading">{t("homePage.allRecipes")}</h2>
 					<TextIconButton
 						to="/recipes"
 						className="text-body2"
@@ -51,7 +51,6 @@ const HomePage = () => {
 					</TextIconButton>
 				</div>
 				<RecipesGrid
-					sort="top"
 					page={1}
 					perPage={recipesPerPage}
 					isAuthenticated={isAuthenticated}
