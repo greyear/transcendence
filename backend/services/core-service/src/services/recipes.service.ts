@@ -164,12 +164,14 @@ const getRecipeWithIngredientsQuery = `
 						'ingredient_id', ri.ingredient_id,
 						'name', COALESCE(i.name->>$2, i.name->>'en'),
 						'amount', ri.amount,
-						'unit', ri.unit
+						'unit', ri.unit,
+						'unit_name', COALESCE(u.name->>$2, u.name->>'en', ri.unit)
 					)
 					ORDER BY ri.ingredient_id
 				)
 				FROM recipe_ingredients ri
 				JOIN ingredients i ON i.id = ri.ingredient_id
+				LEFT JOIN units u ON u.code = ri.unit
 				WHERE ri.recipe_id = r.id
 			),
 			'[]'::json
@@ -648,12 +650,6 @@ export const getMyRecipes = async (
 				COALESCE(description->>$2, description->>'en') AS description,
 				author_id,
 				rating_avg,
-				(
-					SELECT rm.url
-					FROM recipe_media rm
-					WHERE rm.recipe_id = recipes.id AND rm.position = 0
-					LIMIT 1
-				) AS picture_url,
 				status
       FROM recipes
       WHERE author_id = $1

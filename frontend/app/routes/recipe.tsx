@@ -19,6 +19,7 @@ type RecipeIngredient = {
 	ingredient_id: number;
 	amount: number;
 	unit: string;
+	unit_name?: string;
 	name: string;
 };
 
@@ -46,6 +47,7 @@ const RecipeIngredientSchema = z.object({
 	ingredient_id: z.number(),
 	amount: z.number(),
 	unit: z.string(),
+	unit_name: z.string().optional(),
 	name: z.string(),
 });
 
@@ -575,7 +577,7 @@ const RecipePage = () => {
 									className="recipe-page-detail-item"
 								>
 									<p className="text-body3">
-										{ingredient.amount} {ingredient.unit} {ingredient.name}
+										{ingredient.amount} {ingredient.unit_name ?? ingredient.unit} {ingredient.name}
 									</p>
 								</li>
 							))}
