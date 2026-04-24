@@ -56,6 +56,19 @@ body {
 	outline-offset: 2px;
 }
 
+.main-header
+	:where(
+		a,
+		button,
+		input,
+		textarea,
+		select,
+		summary,
+		[tabindex]
+	):focus-visible {
+	outline-color: var(--text-on-accent);
+}
+
 main {
 	width: 100%;
 	margin: 0 auto;
