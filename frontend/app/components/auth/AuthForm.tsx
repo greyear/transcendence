@@ -60,6 +60,11 @@ const GOOGLE_BUTTON_MAX_WIDTH = 400;
 const GOOGLE_CLIENT_ID_PLACEHOLDER =
 	"123456789012-abc123def456gh789ijklmn0pqrstuvw.apps.googleusercontent.com";
 
+let googleIdentityClientId: string | null = null;
+let activeGoogleCredentialHandler:
+	| ((response: GoogleCredentialResponse) => void)
+	| null = null;
+
 const loadGoogleIdentityScript = () =>
 	new Promise<void>((resolve, reject) => {
 		if (window.google?.accounts?.id) {
@@ -104,6 +109,18 @@ const loadGoogleIdentityScript = () =>
 		};
 		document.head.appendChild(script);
 	});
+
+const initializeGoogleIdentity = (clientId: string) => {
+	if (!window.google?.accounts?.id || googleIdentityClientId === clientId) {
+		return;
+	}
+
+	window.google.accounts.id.initialize({
+		client_id: clientId,
+		callback: (response) => activeGoogleCredentialHandler?.(response),
+	});
+	googleIdentityClientId = clientId;
+};
 
 export const AuthForm = ({
 	initialMode = "login",
@@ -175,6 +192,7 @@ export const AuthForm = ({
 
 		let isCurrent = true;
 		buttonContainer.replaceChildren();
+		activeGoogleCredentialHandler = handleGoogleCredential;
 		setIsGoogleReady(false);
 
 		loadGoogleIdentityScript()
@@ -183,10 +201,7 @@ export const AuthForm = ({
 					return;
 				}
 
-				window.google.accounts.id.initialize({
-					client_id: googleClientId,
-					callback: handleGoogleCredential,
-				});
+				initializeGoogleIdentity(googleClientId);
 				buttonContainer.replaceChildren();
 				const buttonWidth = Math.max(
 					GOOGLE_BUTTON_MIN_WIDTH,
@@ -213,6 +228,9 @@ export const AuthForm = ({
 
 		return () => {
 			isCurrent = false;
+			if (activeGoogleCredentialHandler === handleGoogleCredential) {
+				activeGoogleCredentialHandler = null;
+			}
 			buttonContainer.replaceChildren();
 		};
 	}, [googleMissingClientId, handleGoogleCredential, i18n.resolvedLanguage, t]);
