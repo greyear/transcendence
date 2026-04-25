@@ -116,10 +116,8 @@ Each service requires environment variable configuration. Copy the `env.template
 # Root project level
 cp .env.template .env
 
-# Backend services
-cp backend/services/api-gateway/.env.template backend/services/api-gateway/.env
-cp backend/services/core-service/.env.template backend/services/core-service/.env
-cp backend/services/auth-service/.env.template backend/services/auth-service/.env
+# Frontend services
+cp frontend/.env.example frontend/.env
 ```
 
 Replace placeholder values (e.g., `JWT_SECRET="your-super-secret-jwt-key-min-32-chars"`) with appropriate configuration values for your environment.
