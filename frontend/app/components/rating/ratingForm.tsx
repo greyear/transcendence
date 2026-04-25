@@ -99,7 +99,6 @@ export const RatingForm = ({
 			await onSuccess?.();
 			onClose?.();
 		} catch (submitError) {
-			console.error(submitError);
 			setError(
 				submitError instanceof TypeError
 					? t("ratingModal.networkError")
@@ -137,7 +136,6 @@ export const RatingForm = ({
 			await onSuccess?.();
 			onClose?.();
 		} catch (deleteError) {
-			console.error(deleteError);
 			setError(
 				deleteError instanceof TypeError
 					? t("ratingModal.networkError")

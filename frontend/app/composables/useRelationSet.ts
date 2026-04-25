@@ -124,8 +124,7 @@ export const useRelationSet = ({
 					return fetched;
 				});
 			})
-			.catch((error: unknown) => {
-				console.error(error);
+			.catch(() => {
 				if (!ignore) {
 					setIds((prev) => {
 						const next = new Set<number>();
@@ -179,8 +178,7 @@ export const useRelationSet = ({
 			if (isReplay && shouldBeMember && res.status === 409) {
 				onAlreadyMember?.(id);
 			}
-		} catch (error) {
-			console.error(error);
+		} catch {
 			setIds((prev) => updateSetMember(prev, id, !shouldBeMember));
 		} finally {
 			setPendingIds((prev) => {

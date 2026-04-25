@@ -268,21 +268,17 @@ const RecipeCreate = () => {
 					`${API_BASE_URL}/recipes/ingredients?lang=${encodeURIComponent(language)}`,
 				);
 				if (!response.ok) {
-					console.error(`Failed to fetch ingredients: ${response.status}`);
 					return;
 				}
 				const body: unknown = await response.json();
 				const parsed = IngredientsResponseSchema.safeParse(body);
 				if (!parsed.success) {
-					console.error("Unexpected ingredients response", parsed.error);
 					return;
 				}
 				if (!cancelled) {
 					setIngredientOptions(parsed.data.ingredients);
 				}
-			} catch (error) {
-				console.error(error);
-			}
+			} catch {}
 		};
 
 		const fetchUnits = async () => {
@@ -291,21 +287,17 @@ const RecipeCreate = () => {
 					`${API_BASE_URL}/recipes/units?lang=${encodeURIComponent(language)}`,
 				);
 				if (!response.ok) {
-					console.error(`Failed to fetch units: ${response.status}`);
 					return;
 				}
 				const body: unknown = await response.json();
 				const parsed = UnitsResponseSchema.safeParse(body);
 				if (!parsed.success) {
-					console.error("Unexpected units response", parsed.error);
 					return;
 				}
 				if (!cancelled) {
 					setUnitOptions(parsed.data.units);
 				}
-			} catch (error) {
-				console.error(error);
-			}
+			} catch {}
 		};
 
 		const fetchCategoryType = async (typeCode: CategoryTypeCode) => {
@@ -314,27 +306,18 @@ const RecipeCreate = () => {
 					`${API_BASE_URL}/recipes/${typeCode}?lang=${encodeURIComponent(language)}`,
 				);
 				if (!response.ok) {
-					console.error(
-						`Failed to fetch categories ${typeCode}: ${response.status}`,
-					);
 					return;
 				}
 				const body: unknown = await response.json();
 				const parsed = makeCategoryResponseSchema(typeCode).safeParse(body);
 				if (!parsed.success) {
-					console.error(
-						`Unexpected categories response for ${typeCode}`,
-						parsed.error,
-					);
 					return;
 				}
 				const items = parsed.data[typeCode] ?? [];
 				if (!cancelled) {
 					setCategories((prev) => ({ ...prev, [typeCode]: items }));
 				}
-			} catch (error) {
-				console.error(error);
-			}
+			} catch {}
 		};
 
 		void fetchIngredients();
@@ -428,12 +411,10 @@ const RecipeCreate = () => {
 				},
 			);
 			if (!response.ok) {
-				console.error(`Failed to upload recipe picture: ${response.status}`);
 				return false;
 			}
 			return true;
-		} catch (error) {
-			console.error(error);
+		} catch {
 			return false;
 		}
 	};
@@ -504,8 +485,7 @@ const RecipeCreate = () => {
 				return;
 			}
 			navigate("/recipes");
-		} catch (error) {
-			console.error(error);
+		} catch {
 			setFormError(t("recipeCreatePage.networkError"));
 		} finally {
 			setIsSubmitting(false);

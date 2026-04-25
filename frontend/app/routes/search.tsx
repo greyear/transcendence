@@ -273,7 +273,6 @@ const SearchPage = () => {
 		})
 			.then(async (res) => {
 				if (!res.ok) {
-					console.error(`Failed to search (${endpoint}): ${res.status}`);
 					return null;
 				}
 				return res.json();
@@ -287,7 +286,6 @@ const SearchPage = () => {
 				if (typeParam === "users") {
 					const parsed = SearchUsersApiResponseSchema.safeParse(body);
 					if (!parsed.success) {
-						console.error("Unexpected /users response shape", parsed.error);
 						setResults(null);
 						setHasError(true);
 						return;
@@ -307,10 +305,6 @@ const SearchPage = () => {
 				if (isAiSearch) {
 					const parsed = SearchRecipesApiResponseSchema.safeParse(body);
 					if (!parsed.success) {
-						console.error(
-							"Unexpected /search/recipes response shape",
-							parsed.error,
-						);
 						setResults(null);
 						setHasError(true);
 						return;
@@ -331,7 +325,6 @@ const SearchPage = () => {
 				}
 				const parsed = RecipesApiResponseSchema.safeParse(body);
 				if (!parsed.success) {
-					console.error("Unexpected /recipes response shape", parsed.error);
 					setResults(null);
 					setHasError(true);
 					return;
@@ -352,7 +345,6 @@ const SearchPage = () => {
 				if (error instanceof DOMException && error.name === "AbortError") {
 					return;
 				}
-				console.error(error);
 				setResults(null);
 				setHasError(true);
 			})
