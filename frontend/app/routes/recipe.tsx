@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+	type MetaFunction,
 	useLocation,
 	useNavigate,
-	type MetaFunction,
 	useOutletContext,
 	useParams,
 } from "react-router";
@@ -477,7 +477,7 @@ const RecipePage = () => {
 				return;
 			}
 
-		shouldNavigateToRecipes = true;
+			shouldNavigateToRecipes = true;
 		} catch (error) {
 			console.error(error);
 			setDeleteRecipeDeletionError(
@@ -1113,7 +1113,7 @@ const RecipePage = () => {
 						<p className="text-body2">{t("recipePage.noReviewsAvailable")}</p>
 					)}
 				</section>
-			</div>
+			</section>
 			<RatingModal
 				isOpen={isRatingModalOpen}
 				onClose={onCloseRatingModal}
@@ -1147,7 +1147,7 @@ const RecipePage = () => {
 				confirmLabel={t("recipePage.delete")}
 				isConfirming={deletingRecipe}
 			/>
-		</section>
+		</div>
 	);
 };
 
