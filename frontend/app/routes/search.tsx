@@ -100,10 +100,8 @@ const SearchUsersApiItemSchema = z.object({
 	recipes_count: z.number().optional(),
 });
 
-// The /users endpoint currently returns `{ data: [...] }` without a top-level
-// count; fall back to data.length when `count` is absent.
 const SearchUsersApiResponseSchema = z.object({
-	count: z.number().optional(),
+	total_count: z.number().optional(),
 	data: z.array(SearchUsersApiItemSchema),
 });
 
@@ -294,7 +292,7 @@ const SearchPage = () => {
 					}
 					setResults({
 						type: "users",
-						total: parsed.data.count ?? parsed.data.data.length,
+						total: parsed.data.total_count ?? parsed.data.data.length,
 						data: parsed.data.data.map((item) => ({
 							id: item.id,
 							name: item.username,

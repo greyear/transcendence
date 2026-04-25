@@ -1,6 +1,6 @@
 import { RecipeCard } from "./cards/RecipeCard";
 import "../assets/styles/recipesGrid.css";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
@@ -145,6 +145,10 @@ export const RecipesGrid = ({
 		onLoadRef.current = onLoad;
 	}, [onLoad]);
 
+	// Only retrigger the fetch when sort changes for the server-paginated path;
+	// for client-rendered tabs sort runs locally and doesn't need a refetch.
+	const fetchSortValue = isServerPaginated ? sortValue : undefined;
+
 	useEffect(() => {
 		setErrorStatus(null);
 
@@ -159,8 +163,11 @@ export const RecipesGrid = ({
 		setIsLoading(true);
 
 		const baseEndpoint = resolveEndpoint(favoritesOfUserId, userId, tab);
+		const sortParam = fetchSortValue
+			? `&sort=${encodeURIComponent(fetchSortValue)}`
+			: "";
 		const endpoint = isServerPaginated
-			? `${baseEndpoint}?page=${page}&per_page=${perPage}`
+			? `${baseEndpoint}?page=${page}&per_page=${perPage}${sortParam}`
 			: baseEndpoint;
 		// /users/me/* and /users/:id/favorites require the auth cookie. The other
 		// endpoints don't, but passing credentials is harmless — keep the original
@@ -235,16 +242,15 @@ export const RecipesGrid = ({
 		isServerPaginated,
 		page,
 		perPage,
+		fetchSortValue,
 	]);
 
-	const sortedList = useMemo(
-		() => sortRecipes(recipeList, sortValue),
-		[recipeList, sortValue],
-	);
-
 	const pageRecipes = isServerPaginated
-		? sortedList
-		: sortedList.slice((page - 1) * perPage, (page - 1) * perPage + perPage);
+		? recipeList
+		: sortRecipes(recipeList, sortValue).slice(
+				(page - 1) * perPage,
+				(page - 1) * perPage + perPage,
+			);
 
 	if (isLoading) {
 		return <p className="recipes-grid-status">{t("recipesGrid.loading")}</p>;
