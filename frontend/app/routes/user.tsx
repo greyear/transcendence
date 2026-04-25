@@ -9,6 +9,7 @@ import "~/assets/styles/recipesGrid.css";
 import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { RecipeCard } from "~/components/cards/RecipeCard";
+import { NotFoundView } from "~/components/NotFoundView";
 import { RecipesGrid } from "~/components/RecipesGrid";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
@@ -189,6 +190,10 @@ const UserPage = () => {
 		);
 	}
 
+	if (errorStatus === 404) {
+		return <NotFoundView />;
+	}
+
 	if (errorStatus !== null) {
 		return (
 			<p className="user-profile-status-text" aria-live="assertive">
@@ -198,11 +203,7 @@ const UserPage = () => {
 	}
 
 	if (!profile) {
-		return (
-			<p className="user-profile-status-text" aria-live="polite">
-				{t("userProfilePage.notFound")}
-			</p>
-		);
+		return <NotFoundView />;
 	}
 
 	return (

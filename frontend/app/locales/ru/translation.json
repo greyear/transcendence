@@ -40,6 +40,12 @@
 		"policy": "Конфиденциальность",
 		"profile": "Профиль"
 	},
+	"notFoundPage": {
+		"titleLine1": "Ошибка 404:",
+		"titleLine2": "Вы заблудились в лапше!",
+		"backHome": "На главную",
+		"imageAlt": "Потерявшийся повар на кухне"
+	},
 	"recipesPage": {
 		"title": "Рецепты",
 		"totalCount": "Всего рецептов:",

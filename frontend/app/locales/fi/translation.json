@@ -40,6 +40,12 @@
 		"policy": "Tietosuojaseloste",
 		"profile": "Profiili"
 	},
+	"notFoundPage": {
+		"titleLine1": "Virhe 404:",
+		"titleLine2": "Eksyit nuudeleihin!",
+		"backHome": "Takaisin etusivulle",
+		"imageAlt": "Eksynyt kokki keittiössä"
+	},
 	"recipesPage": {
 		"title": "Reseptit",
 		"totalCount": "Reseptejä yhteensä:",
