@@ -1,4 +1,4 @@
-import "~/assets/styles/modal.css";
+import "~/assets/styles/modal.scss";
 import { type ReactNode, type RefObject, useLayoutEffect } from "react";
 
 type ModalProps = {

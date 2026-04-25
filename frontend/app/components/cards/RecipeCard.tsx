@@ -1,4 +1,4 @@
-import "../../assets/styles/recipeCard.css";
+import "../../assets/styles/recipeCard.scss";
 import { StarSolid } from "iconoir-react";
 import { Link } from "react-router";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";

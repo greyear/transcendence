@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import notFoundImage from "~/assets/images/404-not-found.png";
 import { MainButton } from "~/components/buttons/MainButton";
-import "../assets/styles/not-found.css";
+import "../assets/styles/not-found.scss";
 
 export const NotFoundView = () => {
 	const { t } = useTranslation();

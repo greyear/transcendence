@@ -1,4 +1,4 @@
-import "~/assets/styles/rating.css";
+import "~/assets/styles/rating.scss";
 import { StarSolid, Xmark } from "iconoir-react";
 import { type FormEvent, type RefObject, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

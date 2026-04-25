@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import defaultAvatar from "../../assets/images/default-avatar.jpeg";
-import "../../assets/styles/userCard.css";
+import "../../assets/styles/userCard.scss";
 import { Link, useNavigate } from "react-router";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import { MainButton } from "../buttons/MainButton";

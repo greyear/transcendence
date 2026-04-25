@@ -9,8 +9,8 @@ import {
 } from "react-router";
 import { z } from "zod";
 import userPhoto from "~/assets/images/default-avatar.jpeg";
-import "~/assets/styles/userProfile.css";
-import "~/assets/styles/recipesGrid.css";
+import "~/assets/styles/userProfile.scss";
+import "~/assets/styles/recipesGrid.scss";
 import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { RecipeCard } from "~/components/cards/RecipeCard";

@@ -14,7 +14,7 @@ import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { InputField } from "~/components/inputs/InputField";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { readAuthError } from "~/schemas/auth";
-import "~/assets/styles/auth.css";
+import "~/assets/styles/auth.scss";
 
 type AuthMode = "login" | "signup";
 

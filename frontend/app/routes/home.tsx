@@ -4,7 +4,7 @@ import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { CooksRow, type CooksRowHandle } from "~/components/CooksRow";
 import { RecipesGrid } from "~/components/RecipesGrid";
 import { useScreenSize } from "~/composables/useScreenSize";
-import "../assets/styles/home.css";
+import "../assets/styles/home.scss";
 import { NavArrowLeft, NavArrowRight } from "iconoir-react";
 import { useTranslation } from "react-i18next";
 import { type MetaFunction, useOutletContext } from "react-router";

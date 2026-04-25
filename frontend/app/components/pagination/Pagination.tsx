@@ -5,7 +5,7 @@ import {
 	NavArrowRight,
 } from "iconoir-react";
 import { Navigate, useSearchParams } from "react-router";
-import "~/assets/styles/pagination.css";
+import "~/assets/styles/pagination.scss";
 import { useTranslation } from "react-i18next";
 import { getCurrentPage } from "~/composables/getCurrentPage";
 import { PaginationItem } from "./PaginationItem";

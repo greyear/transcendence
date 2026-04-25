@@ -1,4 +1,4 @@
-import "~/assets/styles/confirmationModal.css";
+import "~/assets/styles/confirmationModal.scss";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { MainButton } from "~/components/buttons/MainButton";

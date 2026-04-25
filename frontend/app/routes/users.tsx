@@ -14,7 +14,7 @@ import {
 	type UsersTab,
 	UsersTabSchema,
 } from "~/components/UsersGrid";
-import "~/assets/styles/users.css";
+import "~/assets/styles/users.scss";
 import { useTranslation } from "react-i18next";
 import { SortMenu } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";

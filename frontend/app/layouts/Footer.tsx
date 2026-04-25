@@ -1,7 +1,7 @@
 import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { LanguageSelector } from "~/components/LanguageSelector";
-import "../assets/styles/footer.css";
+import "../assets/styles/footer.scss";
 import { useTranslation } from "react-i18next";
 
 type FooterProps = {

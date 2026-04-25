@@ -1,0 +1,81 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.cooks-row-wrapper {
+	position: relative;
+	--cooks-row-inline-offset: var(--space-l);
+	--fade-width: var(--space-l);
+
+	&::before,
+	&::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		z-index: 1;
+		width: var(--fade-width);
+		pointer-events: none;
+		opacity: 0;
+
+		@media (prefers-reduced-motion: no-preference) {
+			transition: opacity 160ms ease;
+		}
+	}
+
+	&::before {
+		left: calc(var(--cooks-row-inline-offset) * -1);
+		background: linear-gradient(to right, var(--bg-main), transparent);
+	}
+
+	&::after {
+		right: calc(var(--cooks-row-inline-offset) * -1);
+		background: linear-gradient(to left, var(--bg-main), transparent);
+	}
+
+	&.has-left-fade::before {
+		opacity: 1;
+	}
+
+	&.has-right-fade::after {
+		opacity: 1;
+	}
+
+	@include breakpoint($bp-desktop) {
+		--fade-width: 100px;
+		--cooks-row-inline-offset: max(
+			var(--space-l),
+			calc((100vw - var(--desktop-content-width)) / 2)
+		);
+	}
+}
+
+.cooks-row {
+	display: flex;
+	flex-wrap: nowrap;
+	gap: var(--space-l);
+	list-style: none;
+	overflow-x: auto;
+	overflow-y: hidden;
+	margin: 0 calc(var(--space-l) * -1);
+	scrollbar-width: none;
+	padding: var(--space-xs) var(--space-l);
+
+	> li {
+		flex: 0 0 auto;
+	}
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
+
+	@include breakpoint($bp-desktop) {
+		margin-left: calc(50% - 50vw);
+		margin-right: calc(50% - 50vw);
+		padding-left: var(--cooks-row-inline-offset);
+		padding-right: var(--cooks-row-inline-offset);
+	}
+}
+
+.cooks-row-status {
+	@include status-text;
+}

@@ -1,0 +1,118 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.input-wrapper {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	height: 44px;
+	border-radius: var(--radius-s);
+	background-color: var(--surface-primary);
+	border: 1px solid var(--borders-input);
+	padding: 12px;
+	gap: var(--space-s);
+	align-items: center;
+
+	&:focus-within {
+		border-color: var(--borders-action);
+	}
+
+	&.error {
+		border-color: var(--surface-error);
+	}
+
+	&.floating {
+		position: relative;
+		padding: 0 12px;
+
+		.input-field {
+			height: 100%;
+			padding: 24px 0 6px;
+		}
+
+		&:focus-within .floating-label,
+		.input-field:not(:placeholder-shown) + .floating-label {
+			top: 2px;
+			transform: none;
+			font-size: var(--fs-caption-s);
+		}
+
+		&.error .floating-label {
+			color: var(--surface-error);
+		}
+	}
+
+	@include breakpoint($bp-tablet) {
+		height: 48px;
+	}
+
+	@include breakpoint($bp-desktop) {
+		height: 56px;
+	}
+}
+
+.input-field {
+	width: 100%;
+	padding: 0;
+	background-color: transparent;
+	color: var(--text-primary);
+	border: none;
+
+	&::placeholder {
+		color: var(--text-secondary);
+	}
+
+	&:focus {
+		outline: none;
+	}
+}
+
+.input-field-container {
+	@include flex-col;
+	gap: var(--space-s);
+	width: 100%;
+}
+
+.floating-label {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--text-secondary);
+	pointer-events: none;
+	background-color: transparent;
+	padding: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.floating-label {
+		transition:
+			top 0.2s ease,
+			font-size 0.2s ease,
+			color 0.2s ease,
+			transform 0.2s ease;
+	}
+}
+
+.input-message {
+	color: var(--text-secondary);
+}
+
+.error-message {
+	color: var(--surface-error);
+}
+
+.icon-button.eye {
+	min-width: 32px;
+	height: 32px;
+	padding: 0;
+	background-color: transparent;
+	border: none;
+	color: var(--icons-dark);
+
+	svg {
+		width: var(--icon-size);
+		height: var(--icon-size);
+		color: var(--icons-dark);
+		stroke-width: 2;
+	}
+}

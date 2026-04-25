@@ -28,6 +28,7 @@ CORE_SERVICE_TIMEOUT_MS = float(os.getenv("CORE_SERVICE_TIMEOUT_MS", "10000")) /
 INTERNAL_SERVICE_TOKEN = os.getenv("INTERNAL_SERVICE_TOKEN", "").strip()
 SEARCH_PRUNE_INTERVAL_SECONDS = int(os.getenv("SEARCH_PRUNE_INTERVAL_SECONDS", "300"))
 SEARCH_MAX_RESULT_LIMIT = 12
+SEARCH_MIN_SCORE_THRESHOLD = float(os.getenv("SEARCH_MIN_SCORE_THRESHOLD", "0.55"))
 _embedding_client: genai.Client | None = None
 _generation_client: genai.Client | None = None
 _maintenance_lock = threading.Lock()
@@ -491,10 +492,11 @@ def search_recipe_documents(
                 END AS score
             FROM recipe_search_docs
             WHERE embedding IS NOT NULL
+              AND (1 - (embedding <=> %s::vector)) >= %s
             ORDER BY score DESC, source_updated_at DESC, recipe_id DESC
             LIMIT %s
             """,
-            (query_embedding, limit),
+            (query_embedding, query_embedding, SEARCH_MIN_SCORE_THRESHOLD, limit),
         )
 
         rows = cursor.fetchall()

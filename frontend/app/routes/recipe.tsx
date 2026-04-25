@@ -1,3 +1,4 @@
+import { FireFlame, Reports, StarSolid, Translate, Trash } from "iconoir-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -9,8 +10,7 @@ import {
 } from "react-router";
 import { z } from "zod";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
-import "../assets/styles/recipe.css";
-import { FireFlame, Reports, StarSolid, Translate, Trash } from "iconoir-react";
+import "../assets/styles/recipe.scss";
 import { IconButton } from "~/components/buttons/IconButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { ConfirmationModal } from "~/components/ConfirmationModal";
