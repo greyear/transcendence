@@ -1,7 +1,7 @@
 import "../../assets/styles/recipeCard.css";
 import { StarSolid } from "iconoir-react";
-import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import recipeImg from "../../assets/images/vegetable-side-dishes.jpg";
 import { FavoriteButton } from "../buttons/FavoriteButton";
@@ -58,15 +58,17 @@ export const RecipeCard = ({
 									<StarSolid aria-hidden="true" />
 								</div>
 							) : null}
-							<FavoriteButton
-								isFavorited={isFavorited}
-								disabled={isFavoritePending}
-								onClick={(event) => {
-									event.preventDefault();
-									event.stopPropagation();
-									onFavoriteClick(id);
-								}}
-							/>
+							{!isArchived && (
+								<FavoriteButton
+									isFavorited={isFavorited}
+									disabled={isFavoritePending}
+									onClick={(event) => {
+										event.preventDefault();
+										event.stopPropagation();
+										onFavoriteClick(id);
+									}}
+								/>
+							)}
 						</footer>
 					</div>
 				</div>
