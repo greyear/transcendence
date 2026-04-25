@@ -937,7 +937,8 @@ const RecipePage = () => {
 									className="recipe-page-detail-item"
 								>
 									<p className="text-body3">
-										{ingredient.name}{", "} 
+										{ingredient.name}
+										{", "}
 										{ingredient.amount}{" "}
 										{formatIngredientUnit(ingredient.unit, language)}
 									</p>
