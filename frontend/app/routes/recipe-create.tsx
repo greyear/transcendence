@@ -586,6 +586,7 @@ const RecipeCreate = () => {
 						placeholder={t("recipeCreatePage.servingsPlaceholder")}
 						floatingLabel={false}
 						min={1}
+						max={9999}
 						required
 						value={form.servings}
 						onChange={setNumber("servings")}
