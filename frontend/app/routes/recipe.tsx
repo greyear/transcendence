@@ -483,8 +483,7 @@ const RecipePage = () => {
 			}
 
 			shouldNavigateToRecipes = true;
-		} catch (error) {
-			console.error(error);
+		} catch {
 			setDeleteRecipeDeletionError(
 				t("recipePage.deleteRecipeError", { status: "unknown" }),
 			);
