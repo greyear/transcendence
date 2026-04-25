@@ -86,6 +86,17 @@
 	}
 }
 
+.recipe-card-archived-badge {
+	display: inline-block;
+	margin-left: var(--space-xs);
+	padding: 1px var(--space-xs);
+	border-radius: var(--radius-s);
+	background-color: var(--surface-secondary);
+	color: var(--text-secondary);
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
 .recipe-card-footer {
 	display: flex;
 	flex-direction: row;

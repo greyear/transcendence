@@ -79,7 +79,8 @@
 		"empty": "No recipes found.",
 		"error": "Failed to fetch recipes (status: {{status}}).",
 		"signInRequired": "Sign in to view this list.",
-		"favoritesForbidden": "This user's favorites are only visible to mutual followers."
+		"favoritesForbidden": "This user's favorites are only visible to mutual followers.",
+		"archivedLabel": "Archived"
 	},
 	"recipePage": {
 		"loading": "Loading...",

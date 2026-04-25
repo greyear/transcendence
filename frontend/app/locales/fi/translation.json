@@ -79,7 +79,8 @@
 		"empty": "Reseptejä ei löytynyt.",
 		"error": "Reseptien haku epäonnistui (tila: {{status}}).",
 		"signInRequired": "Kirjaudu sisään nähdäksesi tämän listan.",
-		"favoritesForbidden": "Tämän käyttäjän suosikit näkyvät vain vastavuoroisille seuraajille."
+		"favoritesForbidden": "Tämän käyttäjän suosikit näkyvät vain vastavuoroisille seuraajille.",
+		"archivedLabel": "Arkistoitu"
 	},
 	"recipePage": {
 		"loading": "Ladataan...",
