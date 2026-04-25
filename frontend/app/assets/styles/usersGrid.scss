@@ -1,3 +1,5 @@
+@use 'mixins' as *;
+
 .user-card-list {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(var(--user-card-width), 1fr));
@@ -8,7 +10,5 @@
 }
 
 .users-grid-status {
-	color: var(--text-secondary);
-	margin: 0;
-	padding: var(--space-m) 0;
+	@include status-text;
 }

@@ -1,16 +1,12 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
 .user-card-link-wrapper {
 	display: flex;
 	text-decoration: none;
 	color: unset;
 	width: 100%;
-
-	&:active {
-		filter: brightness(var(--active-brightness));
-	}
-
-	&:hover {
-		filter: brightness(var(--hover-brightness));
-	}
+	@include interactive-brightness;
 
 	&:has(.main-button:hover) {
 		filter: none;
@@ -19,27 +15,31 @@
 
 .user-card {
 	--user-card-photo-size: 120px;
-	display: flex;
-	flex-direction: column;
+	@include flex-col;
 	position: relative;
 	align-items: center;
 	min-width: var(--user-card-width);
 	width: 100%;
+
+	@include breakpoint($bp-tablet) {
+		--user-card-photo-size: 200px;
+	}
+
+	@include breakpoint($bp-desktop) {
+		--user-card-photo-size: 212px;
+	}
 }
 
 .user-card-photo {
 	display: flex;
 	position: absolute;
-	object-fit: cover;
+	@include avatar-image;
 	width: var(--user-card-photo-size);
 	height: var(--user-card-photo-size);
-	border-radius: var(--radius-full);
-	box-shadow: var(--shadow-effect);
 }
 
 .user-card-container {
-	display: flex;
-	flex-direction: column;
+	@include flex-col-center;
 	height: fit-content;
 	margin-top: calc(var(--user-card-photo-size) / 2);
 	background-color: var(--surface-card);
@@ -48,46 +48,31 @@
 	box-shadow: var(--shadow-effect);
 	gap: var(--space-m);
 	width: 100%;
-	align-items: center;
 }
 
 .user-card-header {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
+	@include flex-col-center;
 	margin-top: calc(var(--user-card-photo-size) / 2);
 	gap: var(--space-s);
-}
 
-.user-card-header h3 {
-	text-align: center;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	max-width: 100%;
+	h3 {
+		text-align: center;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 100%;
+	}
 }
 
 .user-card-button {
 	width: 100%;
-}
 
-.user-card-button.unfollow {
-	color: var(--text-primary);
-	background-color: var(--surface-card);
-}
-
-@media (min-width: 768px) {
-	.user-card {
-		--user-card-photo-size: 200px;
+	&.unfollow {
+		color: var(--text-primary);
+		background-color: var(--surface-card);
 	}
 
-	.user-card-button {
+	@include breakpoint($bp-tablet) {
 		width: 296px;
-	}
-}
-
-@media (min-width: 1440px) {
-	.user-card {
-		--user-card-photo-size: 212px;
 	}
 }
