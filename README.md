@@ -225,8 +225,7 @@ All AI-generated code passes before human eyes prior to any use in the project.
 - **Framework**: React 19 with React Router v7
 - **Language**: TypeScript 5.9+
 - **Build Tool**: Vite 7.1
-- **Styling**: SCSS
-- **State Management**: React Context API
+- **Styling**: SCSS (Dart Sass) — component-scoped stylesheets with shared mixins and variables
 - **Internationalisation**: react-i18next with remix-i18next
 - **Form Validation**: Zod 4.3
 - **Component Library**: Icons library
@@ -320,7 +319,6 @@ Due to the time pressure we had for this project we agreed on a module selection
 |-------------|------|--------|-------|
 | Standard user management and authentication | Major | 2 | Secure registration, login, and JWT-based authentication |
 | Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.) | Minor | 1 | Google OAuth integration for single sign-on |
-| Advanced Permissions System | Major | 2 | Role-based access control (admin, user, guest) |
 
 ### Artificial intelligence - 4 points
 
