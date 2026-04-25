@@ -30,10 +30,15 @@ import {
 const app: Express = express();
 
 // ===== MIDDLEWARE =====
-// CORS: allow frontend origin, override via CORS_ORIGIN env in production
+// CORS: allow frontend origin, override via CORS_ORIGIN env in production.
+// Accepts a comma-separated list to support multiple dev hosts (e.g. SSL + non-SSL).
+const corsOrigins = (process.env.CORS_ORIGIN || "https://localhost:5173")
+	.split(",")
+	.map((origin) => origin.trim())
+	.filter(Boolean);
 app.use(
 	cors({
-		origin: process.env.CORS_ORIGIN || "https://localhost:5173",
+		origin: corsOrigins,
 		methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
 		credentials: true,
 	}),

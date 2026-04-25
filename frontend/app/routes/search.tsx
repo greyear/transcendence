@@ -139,8 +139,10 @@ const SearchPage = () => {
 	const typeParam = rawType === "users" ? "users" : "recipes";
 	const sort = searchParams.get("sort") ?? "";
 	const limit = parseLimit(searchParams.get("limit"));
-	const aiEnabled = searchParams.get("ai") !== "0";
-	const isAiSearch = typeParam === "recipes" && aiEnabled;
+	const aiEnabled = searchParams.get("ai") === "1";
+	// `/search/recipes` (AI) requires a query; without one, fall back to the
+	// plain `/recipes` listing so clearing the field still shows results.
+	const isAiSearch = typeParam === "recipes" && aiEnabled && query.length > 0;
 
 	const rawPage = Number(searchParams.get("page") ?? "1");
 	const page =
@@ -188,17 +190,12 @@ const SearchPage = () => {
 	const totalPages = Math.max(1, Math.ceil(total / limit));
 
 	useEffect(() => {
-		if (!query) {
-			setResults(null);
-			setIsLoading(false);
-			setHasError(false);
-			return;
-		}
-
 		const controller = new AbortController();
 
 		const params = new URLSearchParams();
-		params.set("q", query);
+		if (query) {
+			params.set("q", query);
+		}
 		params.set("limit", String(limit));
 		params.set("page", String(page));
 		if (sort) {
@@ -349,7 +346,11 @@ const SearchPage = () => {
 
 	const handleSearch = (newQuery: string) => {
 		const params = new URLSearchParams(searchParams);
-		params.set("q", newQuery);
+		if (newQuery) {
+			params.set("q", newQuery);
+		} else {
+			params.delete("q");
+		}
 		params.delete("page");
 		navigate(`/search?${params.toString()}`);
 	};
@@ -380,9 +381,9 @@ const SearchPage = () => {
 	const handleAiToggle = () => {
 		const params = new URLSearchParams(searchParams);
 		if (aiEnabled) {
-			params.set("ai", "0");
-		} else {
 			params.delete("ai");
+		} else {
+			params.set("ai", "1");
 		}
 		navigate(`/search?${params.toString()}`);
 	};
@@ -410,7 +411,7 @@ const SearchPage = () => {
 		value: String(n),
 	}));
 
-	const totalLabel = query ? `${t("searchPage.totalCount")} ${total}` : "";
+	const totalLabel = `${t("searchPage.totalCount")} ${total}`;
 
 	return (
 		<section className="search-page">
@@ -421,6 +422,7 @@ const SearchPage = () => {
 					key={query}
 					defaultValue={query}
 					onSubmit={handleSearch}
+					onClear={() => handleSearch("")}
 					placeholder={t("common.searchPlaceholder")}
 				/>
 				{typeParam === "recipes" && (
@@ -467,15 +469,15 @@ const SearchPage = () => {
 				)}
 			</div>
 
-			{query && isLoading && (
+			{isLoading && (
 				<p className="search-page__status">{t("searchPage.searching")}</p>
 			)}
 
-			{query && !isLoading && hasError && (
+			{!isLoading && hasError && (
 				<p className="search-page__status">{t("searchPage.error")}</p>
 			)}
 
-			{query && !isLoading && !hasError && results && (
+			{!isLoading && !hasError && results && (
 				<>
 					{aiEnabled && results.type === "recipes" && results.summary && (
 						<p className="search-page__summary">{results.summary}</p>
@@ -516,27 +518,23 @@ const SearchPage = () => {
 				</>
 			)}
 
-			{query &&
-				!isLoading &&
-				!hasError &&
-				results &&
-				results.data.length > 0 && (
-					<div className="pagination-row">
-						{!isAiSearch && (
-							<SortMenu
-								options={limitOptions}
-								value={String(limit)}
-								onChange={handleLimitChange}
-								label={`${t("common.perPage")}: ${limit}`}
-							/>
-						)}
-						<Pagination
-							totalElementsCount={total}
-							elementsPerPage={limit}
-							totalPagesCount={totalPages}
+			{!isLoading && !hasError && results && results.data.length > 0 && (
+				<div className="pagination-row">
+					{!isAiSearch && (
+						<SortMenu
+							options={limitOptions}
+							value={String(limit)}
+							onChange={handleLimitChange}
+							label={`${t("common.perPage")}: ${limit}`}
 						/>
-					</div>
-				)}
+					)}
+					<Pagination
+						totalElementsCount={total}
+						elementsPerPage={limit}
+						totalPagesCount={totalPages}
+					/>
+				</div>
+			)}
 		</section>
 	);
 };
