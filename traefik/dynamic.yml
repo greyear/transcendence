@@ -6,12 +6,22 @@ http:
         - websecure
       tls: {}
       service: gateway
+    frontend-https:
+      rule: "Host(`localhost`) || Host(`127.0.0.1`)"
+      entryPoints:
+        - websecure-frontend
+      tls: {}
+      service: frontend
 
   services:
     gateway:
       loadBalancer:
         servers:
           - url: "http://api-gateway:3000"
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:3000"
 
 tls:
   certificates:
