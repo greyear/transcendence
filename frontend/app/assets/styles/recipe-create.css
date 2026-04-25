@@ -302,14 +302,19 @@
 		flex-shrink: 0;
 	}
 
-	.recipe-ingredient-amount,
-	.recipe-ingredient-unit {
+	.input-field-container.recipe-ingredient-amount {
 		width: 130px;
 		flex-shrink: 0;
 		flex-grow: 0;
 	}
 
-	.recipe-ingredient-name {
+	.select-wrapper.recipe-ingredient-unit {
+		width: 180px;
+		flex-shrink: 0;
+		flex-grow: 0;
+	}
+
+	.select-wrapper.recipe-ingredient-name {
 		flex: 1;
 	}
 
