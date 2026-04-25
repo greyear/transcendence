@@ -171,6 +171,7 @@ def normalize_recipe_document(recipe: dict[str, Any]) -> dict[str, Any]:
         "description": description_text or None,
         "instructions": instructions_text,
         "searchable_text": "\n\n".join(searchable_parts),
+        "picture_url": recipe.get("picture_url"),
         "source_updated_at": parse_core_timestamp(updated_at),
     }
 
@@ -292,16 +293,18 @@ def upsert_search_document(connection: psycopg.Connection[Any], recipe: dict[str
                 description,
                 instructions,
                 searchable_text,
+                picture_url,
                 embedding,
                 source_updated_at,
                 indexed_at
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, now())
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now())
             ON CONFLICT (recipe_id) DO UPDATE SET
                 title = EXCLUDED.title,
                 description = EXCLUDED.description,
                 instructions = EXCLUDED.instructions,
                 searchable_text = EXCLUDED.searchable_text,
+                picture_url = EXCLUDED.picture_url,
                 embedding = EXCLUDED.embedding,
                 source_updated_at = EXCLUDED.source_updated_at,
                 indexed_at = now()
@@ -312,6 +315,7 @@ def upsert_search_document(connection: psycopg.Connection[Any], recipe: dict[str
                 document["description"],
                 document["instructions"],
                 document["searchable_text"],
+                document["picture_url"],
                 embedding,
                 document["source_updated_at"],
             ),
@@ -747,6 +751,7 @@ def search_recipes(
             "recipe_id": row["recipe_id"],
             "title": row["title"],
             "description": row["description"],
+            "picture_url": row["picture_url"],
             "source_updated_at": row["source_updated_at"],
             "indexed_at": row["indexed_at"],
             "score": row["score"],
