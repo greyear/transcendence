@@ -65,9 +65,7 @@ const parseUserRows = <T>(
 
 // ── User queries ──────────────────────────────────────────────────────────────
 
-export const getAllUsers = async (
-	search?: string,
-): Promise<UserListItem[]> => {
+export const getAllUsers = async (search?: string): Promise<UserListItem[]> => {
 	try {
 		if (search) {
 			const containsPattern = `%${search}%`;

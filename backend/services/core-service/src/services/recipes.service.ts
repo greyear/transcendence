@@ -650,6 +650,12 @@ export const getMyRecipes = async (
 				COALESCE(description->>$2, description->>'en') AS description,
 				author_id,
 				rating_avg,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = recipes.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url,
 				status
       FROM recipes
       WHERE author_id = $1
@@ -1703,7 +1709,11 @@ export const getUnitList = async (
 	units: { code: string; kind: string; name: string }[];
 }> => {
 	try {
-		const result = await pool.query<{ code: string; kind: string; name: string }>(
+		const result = await pool.query<{
+			code: string;
+			kind: string;
+			name: string;
+		}>(
 			`SELECT
 				code,
 				kind,

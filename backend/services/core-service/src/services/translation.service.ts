@@ -166,7 +166,9 @@ const requestTranslations = async (
 	if (!TRANSLATION_API_URL) {
 		return null;
 	}
-	console.log(`Requesting translations for source locale "${sourceLocale}" from external service...`);
+	console.log(
+		`Requesting translations for source locale "${sourceLocale}" from external service...`,
+	);
 	try {
 		const response = await fetch(TRANSLATION_API_URL, {
 			method: "POST",
