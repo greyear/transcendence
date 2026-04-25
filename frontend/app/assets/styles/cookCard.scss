@@ -2,11 +2,18 @@
 @use 'mixins' as *;
 
 .cook-card-link {
+	display: block;
 	text-decoration: none;
 	color: unset;
+	border-radius: var(--radius-s);
 
 	&:hover .cook-card-name {
 		text-decoration: underline;
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--borders-action);
+		outline-offset: 2px;
 	}
 }
 
