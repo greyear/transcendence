@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
-import "../../assets/styles/iconButton.css";
+import "../../assets/styles/iconButton.scss";
 import { Link } from "react-router";
 
 type IconButtonVariants = "default" | "transparent" | "language";

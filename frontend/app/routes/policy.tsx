@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { MetaFunction } from "react-router";
-import "~/assets/styles/legal.css";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
+import "~/assets/styles/legal.scss";
 
 export const meta: MetaFunction = () => [
 	{ title: "Privacy Policy — Transcendence" },

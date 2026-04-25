@@ -1,6 +1,6 @@
 import type { MouseEventHandler, ReactNode } from "react";
 import { Link } from "react-router";
-import "../../assets/styles/mainButton.css";
+import "../../assets/styles/mainButton.scss";
 
 type MainButtonVariant =
 	| "primary"

@@ -1,6 +1,6 @@
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
-import "../../assets/styles/textArea.css";
+import "../../assets/styles/textArea.scss";
 
 type TextAreaProps = {
 	id: string;

@@ -1,5 +1,5 @@
 import type { AriaAttributes, ReactNode } from "react";
-import "../../assets/styles/textIconButton.css";
+import "../../assets/styles/textIconButton.scss";
 import { Link } from "react-router";
 
 type TextButtonVariant = "primary" | "inverted";

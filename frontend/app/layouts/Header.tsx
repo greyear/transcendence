@@ -2,7 +2,7 @@ import { Menu, ProfileCircle, Xmark } from "iconoir-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { IconButton } from "../components/buttons/IconButton";
 import { MainButton } from "../components/buttons/MainButton";
-import "../assets/styles/header.css";
+import "../assets/styles/header.scss";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router";
 import { TextIconButton } from "~/components/buttons/TextIconButton";

@@ -1,5 +1,5 @@
 import Select from "react-select";
-import "../../assets/styles/selectField.css";
+import "../../assets/styles/selectField.scss";
 
 type Option = {
 	label: string;

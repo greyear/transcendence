@@ -1,7 +1,7 @@
 import { Xmark } from "iconoir-react";
 import { type FormEvent, type RefObject, useState } from "react";
 import { useTranslation } from "react-i18next";
-import "~/assets/styles/auth.css";
+import "~/assets/styles/auth.scss";
 import { IconButton } from "~/components/buttons/IconButton";
 import { MainButton } from "~/components/buttons/MainButton";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";

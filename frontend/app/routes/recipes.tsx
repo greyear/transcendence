@@ -24,7 +24,7 @@ import {
 	RecipesTabSchema,
 } from "~/components/RecipesGrid";
 import { CATEGORY_TYPE_CODES } from "~/components/recipe/RecipeCategorySection";
-import "~/assets/styles/recipes.css";
+import "~/assets/styles/recipes.scss";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SortMenu } from "~/components/SortMenu";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";

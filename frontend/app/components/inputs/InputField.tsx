@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes } from "react";
 import { useRef, useState } from "react";
-import "../../assets/styles/inputField.css";
+import "../../assets/styles/inputField.scss";
 import { Eye, EyeClosed } from "iconoir-react";
 import { useTranslation } from "react-i18next";
 import { IconButton } from "../buttons/IconButton";

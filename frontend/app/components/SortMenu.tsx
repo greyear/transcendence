@@ -7,8 +7,7 @@ import {
 	useRef,
 	useState,
 } from "react";
-import "~/assets/styles/sortMenu.css";
-import "~/assets/styles/textIconButton.css";
+import "~/assets/styles/sortMenu.scss";
 import { useTranslation } from "react-i18next";
 
 export type SortOption = {

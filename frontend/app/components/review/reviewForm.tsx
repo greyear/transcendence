@@ -1,4 +1,4 @@
-import "~/assets/styles/review.css";
+import "~/assets/styles/review.scss";
 import { Xmark } from "iconoir-react";
 import { type FormEvent, type RefObject, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

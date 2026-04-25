@@ -1,5 +1,5 @@
 import { RecipeCard } from "./cards/RecipeCard";
-import "../assets/styles/recipesGrid.css";
+import "../assets/styles/recipesGrid.scss";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";

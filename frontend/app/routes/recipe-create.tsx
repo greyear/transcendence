@@ -34,7 +34,7 @@ import { RecipePhotoUpload } from "~/components/recipe/RecipePhotoUpload";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import type { LayoutOutletContext } from "~/layouts/layout";
-import "../assets/styles/recipe-create.css";
+import "../assets/styles/recipe-create.scss";
 
 export const meta: MetaFunction = () => [
 	{ title: "Add a recipe — Transcendence" },

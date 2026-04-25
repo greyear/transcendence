@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { type MetaFunction, useNavigate, useOutletContext } from "react-router";
 import { z } from "zod";
 import defaultAvatar from "~/assets/images/default-avatar.jpeg";
-import "~/assets/styles/profile.css";
+import "~/assets/styles/profile.scss";
 import { ChangePasswordModal } from "~/components/auth/ChangePasswordModal";
 import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
