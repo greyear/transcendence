@@ -161,6 +161,7 @@ const normalizeBatchedTranslations = (
 const requestTranslations = async (
 	sourceText: string,
 	sourceLocale: SupportedLocale = DEFAULT_LOCALE,
+	targetLocales: SupportedLocale[] = getTargetLocales(sourceLocale),
 ): Promise<Partial<Record<SupportedLocale, string>> | null> => {
 	// If no translation service is configured, skip external call
 	if (!TRANSLATION_API_URL) {
@@ -180,7 +181,7 @@ const requestTranslations = async (
 			},
 			body: JSON.stringify({
 				source_language: sourceLocale,
-				target_languages: getTargetLocales(sourceLocale),
+				target_languages: targetLocales,
 				text: sourceText,
 			}),
 			signal: timeoutSignal(),
@@ -308,6 +309,28 @@ export const localizeTextFromSource = async (
 				? safeSource
 				: (sanitizeTranslation(translations.ru) ?? safeSource),
 	};
+};
+
+/**
+ * Translate one text to a single target locale without storing anything.
+ *
+ * If translation is unavailable, returns the original text as a safe fallback.
+ */
+export const translateTextToLocale = async (
+	sourceText: string,
+	sourceLocale: SupportedLocale = DEFAULT_LOCALE,
+	targetLocale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<string> => {
+	const safeSource = sourceText.trim();
+
+	if (safeSource.length === 0 || sourceLocale === targetLocale) {
+		return safeSource;
+	}
+
+	const translations = await requestTranslations(safeSource, sourceLocale, [
+		targetLocale,
+	]);
+	return sanitizeTranslation(translations?.[targetLocale]) ?? safeSource;
 };
 
 /**

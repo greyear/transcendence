@@ -38,6 +38,7 @@ import {
 	type SearchRecipeDocument,
 	type SupportedLocale,
 	searchRecipeDocumentSchema,
+	supportedLocaleSchema,
 	type UpdateRecipeInput,
 	type UpdateRecipeReviewInput,
 } from "../validation/schemas.js";
@@ -45,6 +46,7 @@ import { scheduleRecipeSearchReindex } from "./searchIndex.service.js";
 import {
 	localizeInstructionStepsFromSource,
 	localizeTextFromSource,
+	translateTextToLocale,
 } from "./translation.service.js";
 
 type PublishRecipeResult =
@@ -101,6 +103,20 @@ type UpdateReviewResult =
 	| { success: true; review: RecipeReviewListItem }
 	| { success: false; reason: "not-found" | "forbidden" };
 
+type TranslateReviewResult =
+	| {
+			success: true;
+			translation: {
+				review_id: number;
+				recipe_id: number;
+				source_language: SupportedLocale;
+				target_language: SupportedLocale;
+				original_body: string;
+				translated_body: string;
+			};
+	  }
+	| { success: false; reason: "not-found" };
+
 type DeleteReviewResult =
 	| { success: true; reviewId: number; recipeId: number; updatedAt: string }
 	| { success: false; reason: "not-found" | "forbidden" };
@@ -110,6 +126,8 @@ interface ErrorWithCode extends Error {
 }
 
 const USER_NOT_FOUND_CODE = "USER_NOT_FOUND";
+const REVIEW_TRANSLATION_CACHE_LIMIT = 100;
+const reviewTranslationCache = new Map<string, string>();
 
 const recipeIdRowSchema = z.object({
 	id: z.coerce.number().int().positive(),
@@ -118,6 +136,13 @@ const recipeIdRowSchema = z.object({
 const recipeVisibilityRowSchema = z.object({
 	author_id: z.coerce.number().int().positive().nullable(),
 	status: recipeStatusSchema,
+});
+
+const recipeReviewTranslationRowSchema = z.object({
+	recipe_id: z.coerce.number().int().positive(),
+	body: z.string().trim().min(1),
+	source_locale: supportedLocaleSchema,
+	updated_at: z.coerce.date().transform((value) => value.toISOString()),
 });
 
 const requesterRoleRowSchema = z.object({
@@ -458,6 +483,68 @@ export const getAllRecipes = async (
 	}
 };
 
+export type CategoryFilters = {
+	mealType: string[];
+	dishType: string[];
+	mainIngredient: string[];
+	cuisine: string[];
+};
+
+const FILTER_CATEGORY_TYPE: Record<keyof CategoryFilters, string> = {
+	mealType: "meal_time",
+	dishType: "dish_type",
+	mainIngredient: "main_ingredient",
+	cuisine: "cuisine",
+};
+
+const buildCategoryFilterClauses = (
+	filters: CategoryFilters,
+	startIdx: number,
+): { sql: string; values: string[][] } => {
+	const parts: string[] = [];
+	const values: string[][] = [];
+	let idx = startIdx;
+
+	for (const [key, typeCode] of Object.entries(FILTER_CATEGORY_TYPE) as [
+		keyof CategoryFilters,
+		string,
+	][]) {
+		const codes = filters[key];
+		if (codes.length > 0) {
+			parts.push(
+				`EXISTS (\n` +
+					`  SELECT 1 FROM recipe_category_map rcm\n` +
+					`  JOIN recipe_categories rc ON rc.id = rcm.category_id\n` +
+					`  JOIN recipe_category_types rct ON rct.id = rc.category_type_id\n` +
+					`  WHERE rcm.recipe_id = recipes.id\n` +
+					`  AND rct.code = '${typeCode}'\n` +
+					`  AND rc.code = ANY($${idx})\n` +
+					`)`,
+			);
+			values.push(codes);
+			idx++;
+		}
+	}
+
+	return {
+		sql: parts.length > 0 ? "AND " + parts.join("\nAND ") : "",
+		values,
+	};
+};
+
+const getRecipeSortOrderBy = (sort: string | undefined): string => {
+	switch (sort) {
+		case "name-asc":
+			return "COALESCE(title->>$1, title->>'en') ASC, id ASC";
+		case "name-desc":
+			return "COALESCE(title->>$1, title->>'en') DESC, id ASC";
+		case "date-asc":
+			return "created_at ASC, id ASC";
+		default:
+			return "created_at DESC, id DESC";
+	}
+};
+
 /**
  * Get published recipes for exact page
  */
@@ -466,6 +553,13 @@ export const getAllRecipesPaginated = async (
 	perPage: number,
 	locale: SupportedLocale = DEFAULT_LOCALE,
 	search?: string,
+	sort?: string,
+	filters: CategoryFilters = {
+		mealType: [],
+		dishType: [],
+		mainIngredient: [],
+		cuisine: [],
+	},
 ): Promise<PaginatedResponse<RecipeListItem>> => {
 	try {
 		const offset = (page - 1) * perPage;
@@ -473,8 +567,18 @@ export const getAllRecipesPaginated = async (
 		// If nothing remains after sanitizing (e.g. input was "!!!"), skip search entirely.
 		const normalizedSearch =
 			search?.replace(/[^\p{L}\p{N}\s]/gu, "").trim() || undefined;
+		const orderBy = getRecipeSortOrderBy(sort);
 
 		if (normalizedSearch) {
+			// params: $1=locale $2=perPage $3=offset $4=search $5+=filters
+			const dataFilter = buildCategoryFilterClauses(filters, 5);
+			// count params: $1=locale $2=search $3+=filters
+			const countFilter = buildCategoryFilterClauses(filters, 3);
+			const tsQuery = `to_tsquery('simple', regexp_replace(trim($4), '[[:space:]]+', ':* & ', 'g') || ':*')`;
+			const searchOrderBy = sort
+				? orderBy
+				: `ts_rank(search_vector, ${tsQuery}) DESC, created_at DESC, id DESC`;
+
 			const [dataResult, countResult] = await Promise.all([
 				pool.query(
 					`
@@ -494,6 +598,7 @@ export const getAllRecipesPaginated = async (
 							) AS search_vector
 						FROM recipes
 						WHERE status = 'published'
+						${dataFilter.sql}
 					)
 					SELECT
 						id,
@@ -508,14 +613,11 @@ export const getAllRecipesPaginated = async (
 							LIMIT 1
 						) AS picture_url
 					FROM searchable_recipes
-					WHERE search_vector @@ to_tsquery('simple', regexp_replace(trim($4), '[[:space:]]+', ':* & ', 'g') || ':*')
-					ORDER BY
-						ts_rank(search_vector, to_tsquery('simple', regexp_replace(trim($4), '[[:space:]]+', ':* & ', 'g') || ':*')) DESC,
-						created_at DESC,
-						id DESC
+					WHERE search_vector @@ ${tsQuery}
+					ORDER BY ${searchOrderBy}
 					LIMIT $2 OFFSET $3
 					`,
-					[locale, perPage, offset, normalizedSearch],
+					[locale, perPage, offset, normalizedSearch, ...dataFilter.values],
 				),
 				pool.query(
 					`
@@ -529,12 +631,13 @@ export const getAllRecipesPaginated = async (
 							) AS search_vector
 						FROM recipes
 						WHERE status = 'published'
+						${countFilter.sql}
 					)
 					SELECT COUNT(*)::int AS total
 					FROM searchable_recipes
 					WHERE search_vector @@ to_tsquery('simple', regexp_replace(trim($2), '[[:space:]]+', ':* & ', 'g') || ':*')
 					`,
-					[locale, normalizedSearch],
+					[locale, normalizedSearch, ...countFilter.values],
 				),
 			]);
 
@@ -548,6 +651,11 @@ export const getAllRecipesPaginated = async (
 
 			return { data, total_count, total_pages, page, per_page: perPage };
 		}
+
+		// params: $1=locale $2=perPage $3=offset $4+=filters
+		const dataFilter = buildCategoryFilterClauses(filters, 4);
+		// count params: $1+=filters
+		const countFilter = buildCategoryFilterClauses(filters, 1);
 
 		const [dataResult, countResult] = await Promise.all([
 			pool.query(
@@ -566,13 +674,15 @@ export const getAllRecipesPaginated = async (
 					) AS picture_url
 				FROM recipes
 				WHERE status = 'published'
-				ORDER BY created_at DESC
+				${dataFilter.sql}
+				ORDER BY ${orderBy}
 				LIMIT $2 OFFSET $3
 				`,
-				[locale, perPage, offset],
+				[locale, perPage, offset, ...dataFilter.values],
 			),
 			pool.query(
-				`SELECT COUNT(*)::int AS total FROM recipes WHERE status = 'published'`,
+				`SELECT COUNT(*)::int AS total FROM recipes WHERE status = 'published' ${countFilter.sql}`,
+				[...countFilter.values],
 			),
 		]);
 
@@ -1132,6 +1242,7 @@ export const leaveRecipeReview = async (
 	recipeId: number,
 	userId: number,
 	input: CreateRecipeReviewInput,
+	sourceLocale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<LeaveRecipeReviewResult> => {
 	try {
 		const authorExists = await userExists(userId);
@@ -1146,11 +1257,11 @@ export const leaveRecipeReview = async (
 
 		const result = await pool.query(
 			`
-			INSERT INTO recipe_reviews (recipe_id, author_id, body)
-			VALUES ($1, $2, $3)
+			INSERT INTO recipe_reviews (recipe_id, author_id, body, source_locale)
+			VALUES ($1, $2, $3, $4)
 			RETURNING id
 		`,
-			[recipeId, userId, input.body],
+			[recipeId, userId, input.body, sourceLocale],
 		);
 
 		const reviewIdParsed = recipeIdRowSchema.safeParse(result.rows[0]);
@@ -1184,6 +1295,7 @@ export const getRecipeReviews = async (
 				u.avatar,
 				rrt.rating,
 				rr.body,
+				rr.source_locale AS source_language,
 				rr.created_at,
 				rr.updated_at
 			FROM recipe_reviews rr
@@ -1225,6 +1337,7 @@ export const updateReview = async (
 	reviewId: number,
 	userId: number,
 	input: UpdateRecipeReviewInput,
+	sourceLocale?: SupportedLocale,
 ): Promise<UpdateReviewResult> => {
 	try {
 		const existingResult = await pool.query(
@@ -1244,11 +1357,11 @@ export const updateReview = async (
 		await pool.query(
 			`
 			UPDATE recipe_reviews
-			SET body = $1, updated_at = now()
-			WHERE id = $2
+			SET body = $1, source_locale = COALESCE($2, source_locale), updated_at = now()
+			WHERE id = $3
 			RETURNING id, recipe_id, author_id, body, created_at, updated_at
 		`,
-			[input.body, reviewId],
+			[input.body, sourceLocale, reviewId],
 		);
 
 		// Join user data to match the RecipeReviewListItem shape
@@ -1262,6 +1375,7 @@ export const updateReview = async (
 				u.avatar,
 				rrt.rating,
 				rr.body,
+				rr.source_locale AS source_language,
 				rr.created_at,
 				rr.updated_at
 			FROM recipe_reviews rr
@@ -1284,6 +1398,80 @@ export const updateReview = async (
 		return { success: true, review: reviewParsed.data };
 	} catch (error) {
 		console.error("Database error in updateReview:", error);
+		throw error;
+	}
+};
+
+export const translateRecipeReview = async (
+	recipeId: number,
+	reviewId: number,
+	targetLocale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<TranslateReviewResult> => {
+	try {
+		const result = await pool.query(
+			`
+			SELECT
+				rr.recipe_id,
+				rr.body,
+				rr.source_locale,
+				rr.updated_at
+			FROM recipe_reviews rr
+			JOIN recipes r ON r.id = rr.recipe_id
+			WHERE
+				rr.id = $1
+				AND rr.recipe_id = $2
+				AND rr.is_deleted = false
+				AND r.status = 'published'
+		`,
+			[reviewId, recipeId],
+		);
+
+		if (result.rowCount === 0) {
+			return { success: false, reason: "not-found" };
+		}
+
+		const parsedReview = recipeReviewTranslationRowSchema.safeParse(
+			result.rows[0],
+		);
+		if (!parsedReview.success) {
+			throw new Error(z.prettifyError(parsedReview.error));
+		}
+
+		const cacheKey = [
+			reviewId,
+			parsedReview.data.source_locale,
+			targetLocale,
+			parsedReview.data.updated_at,
+		].join(":");
+		let translatedBody = reviewTranslationCache.get(cacheKey);
+		if (!translatedBody) {
+			translatedBody = await translateTextToLocale(
+				parsedReview.data.body,
+				parsedReview.data.source_locale,
+				targetLocale,
+			);
+			reviewTranslationCache.set(cacheKey, translatedBody);
+			if (reviewTranslationCache.size > REVIEW_TRANSLATION_CACHE_LIMIT) {
+				const oldestKey = reviewTranslationCache.keys().next().value;
+				if (oldestKey) {
+					reviewTranslationCache.delete(oldestKey);
+				}
+			}
+		}
+
+		return {
+			success: true,
+			translation: {
+				review_id: reviewId,
+				recipe_id: parsedReview.data.recipe_id,
+				source_language: parsedReview.data.source_locale,
+				target_language: targetLocale,
+				original_body: parsedReview.data.body,
+				translated_body: translatedBody,
+			},
+		};
+	} catch (error) {
+		console.error("Database error in translateRecipeReview:", error);
 		throw error;
 	}
 };

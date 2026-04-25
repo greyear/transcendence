@@ -32,6 +32,22 @@ const withForwardedQuery = (
 	return `${CORE_SERVICE_URL}${path}${req.originalUrl.slice(queryIndex)}`;
 };
 
+const forwardJsonOrTextResponse = async (
+	response: Response,
+	fallbackError: string,
+) => {
+	const rawBody = await response.text();
+	if (!rawBody) {
+		return { error: response.ok ? "" : fallbackError };
+	}
+
+	try {
+		return JSON.parse(rawBody) as unknown;
+	} catch {
+		return { error: rawBody };
+	}
+};
+
 // Create router for recipes
 export const recipesRouter = Router();
 
@@ -184,6 +200,34 @@ const getRecipeReviewsHandler: RequestHandler = async (req, res, _next) => {
 
 		console.error("Error proxying to core-service:", error);
 		res.status(500).json({ error: "Failed to fetch recipe reviews" });
+	}
+};
+
+const translateReviewHandler: RequestHandler = async (req, res, _next) => {
+	try {
+		const response = await fetch(
+			withForwardedQuery(
+				req,
+				`/recipes/${req.params.id}/reviews/${req.params.reviewId}/translate`,
+			),
+			{
+				headers: getInternalHeaders(req),
+				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
+			},
+		);
+		const data = await forwardJsonOrTextResponse(
+			response,
+			"Failed to translate review",
+		);
+		res.status(response.status).json(data);
+	} catch (error) {
+		if (isTimeoutError(error)) {
+			res.status(504).json({ error: "Gateway Timeout" });
+			return;
+		}
+
+		console.error("Error proxying to core-service:", error);
+		res.status(500).json({ error: "Failed to translate review" });
 	}
 };
 
@@ -436,6 +480,11 @@ recipesRouter.get("/units", getUnitsHandler);
 recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
 recipesRouter.put("/:id/picture", requireAuth, updateRecipePictureHandler);
 recipesRouter.post("/:id/reviews", requireAuth, leaveRecipeReviewHandler);
+recipesRouter.get(
+	"/:id/reviews/:reviewId/translate",
+	requireAuth,
+	translateReviewHandler,
+);
 recipesRouter.put("/:id/reviews/:reviewId", requireAuth, updateReviewHandler);
 recipesRouter.delete(
 	"/:id/reviews/:reviewId",

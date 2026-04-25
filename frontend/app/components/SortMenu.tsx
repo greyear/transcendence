@@ -1,7 +1,14 @@
 import { Sort } from "iconoir-react";
-import { type ReactNode, useEffect, useRef, useState } from "react";
-import { TextIconButton } from "~/components/buttons/TextIconButton";
+import {
+	type KeyboardEvent,
+	type ReactNode,
+	useEffect,
+	useId,
+	useRef,
+	useState,
+} from "react";
 import "~/assets/styles/sortMenu.css";
+import "~/assets/styles/textIconButton.css";
 import { useTranslation } from "react-i18next";
 
 export type SortOption = {
@@ -28,7 +35,24 @@ export const SortMenu = ({
 }: SortMenuProps) => {
 	const [open, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement>(null);
+	const triggerRef = useRef<HTMLButtonElement | null>(null);
+	const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+	const [activeIndex, setActiveIndex] = useState(0);
 	const { t } = useTranslation();
+	const listboxId = useId();
+
+	useEffect(() => {
+		if (!open) {
+			return;
+		}
+
+		const currentIndex = options.findIndex((option) => option.value === value);
+		const startIndex = currentIndex >= 0 ? currentIndex : 0;
+		setActiveIndex(startIndex);
+		requestAnimationFrame(() => {
+			optionRefs.current[startIndex]?.focus();
+		});
+	}, [open, options, value]);
 
 	useEffect(() => {
 		if (!open) {
@@ -45,9 +69,10 @@ export const SortMenu = ({
 			}
 		};
 
-		const handleEscape = (e: KeyboardEvent) => {
+		const handleEscape = (e: globalThis.KeyboardEvent) => {
 			if (e.key === "Escape") {
 				setOpen(false);
+				triggerRef.current?.focus();
 			}
 		};
 
@@ -59,33 +84,92 @@ export const SortMenu = ({
 		};
 	}, [open]);
 
+	const focusOption = (index: number) => {
+		setActiveIndex(index);
+		optionRefs.current[index]?.focus();
+	};
+
+	const handleListKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		if (options.length === 0) {
+			return;
+		}
+
+		switch (event.key) {
+			case "ArrowDown":
+				event.preventDefault();
+				focusOption((activeIndex + 1) % options.length);
+				break;
+			case "ArrowUp":
+				event.preventDefault();
+				focusOption((activeIndex - 1 + options.length) % options.length);
+				break;
+			case "Home":
+				event.preventDefault();
+				focusOption(0);
+				break;
+			case "End":
+				event.preventDefault();
+				focusOption(options.length - 1);
+				break;
+			case "Tab":
+				setOpen(false);
+				break;
+			default:
+				break;
+		}
+	};
+
+	const handleSelect = (next: string) => {
+		onChange(next);
+		setOpen(false);
+		triggerRef.current?.focus();
+	};
+
 	return (
 		<div className="sort-menu" ref={ref}>
-			<TextIconButton onClick={() => setOpen((prev) => !prev)}>
+			<button
+				ref={triggerRef}
+				type="button"
+				className="text-button text-button--body1 primary"
+				onClick={() => setOpen((prev) => !prev)}
+				aria-haspopup="listbox"
+				aria-expanded={open}
+				aria-controls={listboxId}
+			>
 				{label ?? t("common.sortButton")}
 				{icon ?? <Sort aria-hidden />}
-			</TextIconButton>
+			</button>
 
 			{open && (
-				<ul
+				<div
+					id={listboxId}
+					role="listbox"
+					tabIndex={-1}
 					className="sort-menu__dropdown"
 					aria-label={ariaLabel ?? t("ariaLabels.sortBy")}
+					onKeyDown={handleListKeyDown}
 				>
-					{options.map((option) => (
-						<li key={option.value}>
+					{options.map((option, index) => {
+						const isSelected = option.value === value;
+						return (
 							<button
+								key={option.value}
 								type="button"
-								className={`sort-menu__option${option.value === value ? " sort-menu__option--active" : ""}`}
-								onClick={() => {
-									onChange(option.value);
-									setOpen(false);
+								role="option"
+								aria-selected={isSelected}
+								tabIndex={index === activeIndex ? 0 : -1}
+								ref={(element) => {
+									optionRefs.current[index] = element;
 								}}
+								className={`sort-menu__option${isSelected ? " sort-menu__option--active" : ""}`}
+								onClick={() => handleSelect(option.value)}
+								onFocus={() => setActiveIndex(index)}
 							>
 								{option.label}
 							</button>
-						</li>
-					))}
-				</ul>
+						);
+					})}
+				</div>
 			)}
 		</div>
 	);

@@ -21,8 +21,7 @@
 	color: var(--text-primary);
 }
 
-.recipe-page-warning p {
-	margin: 0;
+.recipe-page-warning-text {
 	flex: 1;
 }
 
@@ -200,6 +199,16 @@
 	align-items: center;
 	justify-content: center;
 	flex: 0 0 var(--icon-button-size);
+}
+
+.recipe-page-review-translate-row {
+	display: flex;
+	justify-content: flex-start;
+}
+
+.recipe-page-review-translate svg {
+	color: var(--icons-dark);
+	flex-shrink: 0;
 }
 
 .recipe-page-review-author {

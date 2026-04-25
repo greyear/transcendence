@@ -4,6 +4,7 @@
 	list-style: none;
 	padding: 0;
 	gap: var(--space-l);
+	width: 100%;
 }
 
 .users-grid-status {

@@ -1604,6 +1604,13 @@ describe("Recipes Routes", () => {
 			expect(createResponse.body.data).toHaveProperty("recipe_id", recipeId);
 			expect(createResponse.body).toHaveProperty("message", "Review published");
 
+			const createdReviewId = createResponse.body.data.review_id;
+			const storedReview = await pool.query(
+				`SELECT source_locale FROM recipe_reviews WHERE id = $1`,
+				[createdReviewId],
+			);
+			expect(storedReview.rows[0].source_locale).toBe("en");
+
 			await pool.query(
 				`INSERT INTO recipe_ratings (recipe_id, user_id, rating) VALUES ($1, $2, $3)`,
 				[recipeId, reviewerId, 4],
@@ -1628,6 +1635,66 @@ describe("Recipes Routes", () => {
 			if (recipeId) {
 				await pool.query(`DELETE FROM recipe_ratings WHERE recipe_id = $1`, [
 					recipeId,
+				]);
+			}
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				authorId,
+				reviewerId,
+			]);
+		}
+	});
+
+	it("should store review source locale from X-Source-Language", async () => {
+		const authorId = 2307;
+		const reviewerId = 2308;
+		let recipeId: number | null = null;
+		let reviewId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[authorId, "review_locale_recipe_author"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[reviewerId, "review_locale_author"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Review Locale Target', 'fi', 'Review Locale Target', 'ru', 'Review Locale Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
+				 RETURNING id`,
+				[authorId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const createResponse = await request(app)
+				.post(`/recipes/${recipeId}/reviews`)
+				.set("X-User-Id", String(reviewerId))
+				.set("X-Source-Language", "fi")
+				.send({ body: "Todella hyvä resepti" });
+
+			expect(createResponse.status).toBe(201);
+			reviewId = createResponse.body.data.review_id;
+
+			const storedReview = await pool.query(
+				`SELECT body, source_locale FROM recipe_reviews WHERE id = $1`,
+				[reviewId],
+			);
+			expect(storedReview.rows[0].body).toBe("Todella hyvä resepti");
+			expect(storedReview.rows[0].source_locale).toBe("fi");
+		} finally {
+			if (reviewId) {
+				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [
+					reviewId,
 				]);
 			}
 			if (recipeId) {
@@ -1756,6 +1823,79 @@ describe("Recipes Routes", () => {
 
 		expect(response.status).toBe(404);
 		expect(response.body).toHaveProperty("error");
+	});
+
+	it("should translate a review on demand without storing the translation", async () => {
+		const authorId = 2316;
+		const reviewerId = 2317;
+		let recipeId: number | null = null;
+		let reviewId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[authorId, "translate_review_recipe_author"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[reviewerId, "translate_review_author"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Translate Review Target', 'fi', 'Translate Review Target', 'ru', 'Translate Review Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 )
+				 RETURNING id`,
+				[authorId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const reviewResult = await pool.query(
+				`INSERT INTO recipe_reviews (recipe_id, author_id, body, source_locale)
+				 VALUES ($1, $2, $3, $4)
+				 RETURNING id`,
+				[recipeId, reviewerId, "Todella hyvä resepti", "fi"],
+			);
+			reviewId = reviewResult.rows[0].id;
+
+			const response = await request(app)
+				.get(`/recipes/${recipeId}/reviews/${reviewId}/translate`)
+				.set("X-Language", "en");
+
+			expect(response.status).toBe(200);
+			expect(response.body.data).toMatchObject({
+				review_id: reviewId,
+				recipe_id: recipeId,
+				source_language: "fi",
+				target_language: "en",
+				original_body: "Todella hyvä resepti",
+				translated_body: "Todella hyvä resepti",
+			});
+
+			const storedReview = await pool.query(
+				`SELECT body, source_locale FROM recipe_reviews WHERE id = $1`,
+				[reviewId],
+			);
+			expect(storedReview.rows[0].body).toBe("Todella hyvä resepti");
+			expect(storedReview.rows[0].source_locale).toBe("fi");
+		} finally {
+			if (reviewId) {
+				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [
+					reviewId,
+				]);
+			}
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				authorId,
+				reviewerId,
+			]);
+		}
 	});
 
 	it("should return 401 for PUT /recipes/:id/reviews/:reviewId without authentication", async () => {
@@ -1914,6 +2054,7 @@ describe("Recipes Routes", () => {
 			const response = await request(app)
 				.put(`/recipes/${recipeId}/reviews/${reviewId}`)
 				.set("X-User-Id", String(authorId))
+				.set("X-Source-Language", "ru")
 				.send({ body: "Updated body" });
 
 			expect(response.status).toBe(200);
@@ -1924,10 +2065,11 @@ describe("Recipes Routes", () => {
 
 			// Verify DB was updated
 			const dbReview = await pool.query(
-				`SELECT body FROM recipe_reviews WHERE id = $1`,
+				`SELECT body, source_locale FROM recipe_reviews WHERE id = $1`,
 				[reviewId],
 			);
 			expect(dbReview.rows[0].body).toBe("Updated body");
+			expect(dbReview.rows[0].source_locale).toBe("ru");
 		} finally {
 			if (reviewId)
 				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [
@@ -1935,6 +2077,73 @@ describe("Recipes Routes", () => {
 				]);
 			if (recipeId)
 				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
+				recipeAuthorId,
+				authorId,
+			]);
+		}
+	});
+
+	it("should keep existing review source locale when update omits X-Source-Language", async () => {
+		const authorId = 2407;
+		const recipeAuthorId = 2408;
+		let recipeId: number | null = null;
+		let reviewId: number | null = null;
+
+		try {
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[recipeAuthorId, "update_review_keep_locale_owner"],
+			);
+			await pool.query(
+				`INSERT INTO users (id, username, role, status) VALUES ($1, $2, 'user', 'offline') ON CONFLICT (id) DO NOTHING`,
+				[authorId, "update_review_keep_locale_author"],
+			);
+
+			const recipeResult = await pool.query(
+				`INSERT INTO recipes (title, instructions, status, author_id)
+				 VALUES (
+					jsonb_build_object('en', 'Keep Locale Target', 'fi', 'Keep Locale Target', 'ru', 'Keep Locale Target'),
+					jsonb_build_object('en', to_jsonb(ARRAY['step']), 'fi', to_jsonb(ARRAY['step']), 'ru', to_jsonb(ARRAY['step'])),
+					'published',
+					$1
+				 ) RETURNING id`,
+				[recipeAuthorId],
+			);
+			recipeId = recipeResult.rows[0].id;
+
+			const reviewResult = await pool.query(
+				`INSERT INTO recipe_reviews (recipe_id, author_id, body, source_locale)
+				 VALUES ($1, $2, $3, $4)
+				 RETURNING id`,
+				[recipeId, authorId, "Alkuperainen arvio", "fi"],
+			);
+			reviewId = reviewResult.rows[0].id;
+
+			const response = await request(app)
+				.put(`/recipes/${recipeId}/reviews/${reviewId}`)
+				.set("X-User-Id", String(authorId))
+				.send({ body: "Paivitetty arvio" });
+
+			expect(response.status).toBe(200);
+			expect(response.body.data).toHaveProperty("body", "Paivitetty arvio");
+			expect(response.body.data).toHaveProperty("source_language", "fi");
+
+			const dbReview = await pool.query(
+				`SELECT body, source_locale FROM recipe_reviews WHERE id = $1`,
+				[reviewId],
+			);
+			expect(dbReview.rows[0].body).toBe("Paivitetty arvio");
+			expect(dbReview.rows[0].source_locale).toBe("fi");
+		} finally {
+			if (reviewId) {
+				await pool.query(`DELETE FROM recipe_reviews WHERE id = $1`, [
+					reviewId,
+				]);
+			}
+			if (recipeId) {
+				await pool.query(`DELETE FROM recipes WHERE id = $1`, [recipeId]);
+			}
 			await pool.query(`DELETE FROM users WHERE id IN ($1, $2)`, [
 				recipeAuthorId,
 				authorId,

@@ -30,6 +30,19 @@ export const PaginationItem = ({
 		.filter(Boolean)
 		.join(" ");
 
+	if (disabled) {
+		return (
+			<button
+				type="button"
+				className={className}
+				aria-label={ariaLabel}
+				disabled
+			>
+				{children}
+			</button>
+		);
+	}
+
 	return (
 		<Link
 			to={to}

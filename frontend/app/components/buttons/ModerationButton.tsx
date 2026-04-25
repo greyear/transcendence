@@ -32,7 +32,11 @@ export const ModerationButton = ({
 			aria-label={isApprove ? t("ariaLabels.approve") : t("ariaLabels.discard")}
 			disabled={disabled}
 		>
-			{isApprove ? <CheckCircle /> : <XmarkCircle />}
+			{isApprove ? (
+				<CheckCircle aria-hidden="true" />
+			) : (
+				<XmarkCircle aria-hidden="true" />
+			)}
 		</IconButton>
 	);
 };

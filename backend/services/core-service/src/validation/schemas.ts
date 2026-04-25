@@ -321,6 +321,7 @@ export const recipeReviewListItemSchema = z.object({
 	avatar: z.string().nullable(),
 	rating: z.coerce.number().int().min(1).max(5).nullable(),
 	body: z.string(),
+	source_language: supportedLocaleSchema,
 	created_at: z.coerce.date().transform((value) => value.toISOString()),
 	updated_at: z.coerce.date().transform((value) => value.toISOString()),
 });

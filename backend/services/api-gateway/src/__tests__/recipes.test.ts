@@ -1033,6 +1033,7 @@ describe("API Gateway - Recipes Routes", () => {
 		const response = await request(app)
 			.post("/recipes/77/reviews")
 			.set("Authorization", "Bearer validtoken")
+			.set("X-Source-Language", "fi")
 			.send({ body: "Great" });
 
 		expect(response.status).toBe(201);
@@ -1048,6 +1049,7 @@ describe("API Gateway - Recipes Routes", () => {
 				method: "POST",
 				headers: expect.objectContaining({
 					"Content-Type": "application/json",
+					"x-source-language": "fi",
 					"x-user-id": "42",
 				}),
 				body: JSON.stringify({ body: "Great" }),
@@ -1109,6 +1111,88 @@ describe("API Gateway - Recipes Routes", () => {
 
 		expect(response.status).toBe(404);
 		expect(response.body).toEqual({ error: "Recipe not found" });
+	});
+
+	it("should proxy GET /recipes/:id/reviews/:reviewId/translate to core-service", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 200,
+			text: async () =>
+				JSON.stringify({
+					data: {
+						review_id: 501,
+						recipe_id: 77,
+						source_language: "en",
+						target_language: "fi",
+						original_body: "Great",
+						translated_body: "Loistava",
+					},
+				}),
+		} as unknown as Response);
+
+		const response = await request(app)
+			.get("/recipes/77/reviews/501/translate")
+			.set("Authorization", "Bearer validtoken")
+			.set("X-Language", "fi");
+
+		expect(response.status).toBe(200);
+		expect(response.body.data).toHaveProperty("translated_body", "Loistava");
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			1,
+			expect.stringContaining("/validate"),
+			expect.objectContaining({
+				method: "POST",
+				headers: { Authorization: "Bearer validtoken" },
+			}),
+		);
+		expect(fetchSpy).toHaveBeenNthCalledWith(
+			2,
+			expect.stringContaining("/recipes/77/reviews/501/translate"),
+			expect.objectContaining({
+				headers: expect.objectContaining({
+					"x-language": "fi",
+					"x-user-id": "42",
+				}),
+				signal: expect.any(AbortSignal),
+			}),
+		);
+	});
+
+	it("should reject GET /recipes/:id/reviews/:reviewId/translate without authentication", async () => {
+		const response = await request(app)
+			.get("/recipes/77/reviews/501/translate")
+			.set("X-Language", "fi");
+
+		expect(response.status).toBe(401);
+		expect(response.body).toEqual({ error: "Authentication required" });
+		expect(fetchSpy).not.toHaveBeenCalled();
+	});
+
+	it("should preserve upstream status for non-JSON translate responses", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ id: 42 }),
+		} as unknown as Response);
+
+		fetchSpy.mockResolvedValueOnce({
+			status: 502,
+			ok: false,
+			text: async () => "Bad gateway",
+		} as unknown as Response);
+
+		const response = await request(app)
+			.get("/recipes/77/reviews/501/translate")
+			.set("Authorization", "Bearer validtoken")
+			.set("X-Language", "fi");
+
+		expect(response.status).toBe(502);
+		expect(response.body).toEqual({ error: "Bad gateway" });
 	});
 
 	it("should reject PUT /recipes/:id/reviews/:reviewId without authentication", async () => {

@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode, Ref } from "react";
 import "../../assets/styles/iconButton.css";
 import { Link } from "react-router";
 
@@ -13,6 +13,7 @@ type BaseProps = {
 type ButtonIconButtonProps = BaseProps &
 	Omit<ComponentPropsWithoutRef<"button">, keyof BaseProps> & {
 		to?: never;
+		ref?: Ref<HTMLButtonElement>;
 		"data-initial-focus"?: boolean;
 	};
 
@@ -22,6 +23,7 @@ type LinkIconButtonProps = BaseProps &
 		keyof BaseProps | "to" | "aria-pressed"
 	> & {
 		to: string;
+		ref?: Ref<HTMLAnchorElement>;
 	};
 
 type IconButtonProps = ButtonIconButtonProps | LinkIconButtonProps;

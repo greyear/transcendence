@@ -1,7 +1,12 @@
 import { NavArrowRight } from "iconoir-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Navigate, useOutletContext, useParams } from "react-router";
+import {
+	type MetaFunction,
+	Navigate,
+	useOutletContext,
+	useParams,
+} from "react-router";
 import { z } from "zod";
 import userPhoto from "~/assets/images/user-photo.jpg";
 import "~/assets/styles/userProfile.css";
@@ -9,12 +14,22 @@ import "~/assets/styles/recipesGrid.css";
 import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { RecipeCard } from "~/components/cards/RecipeCard";
+import { NotFoundView } from "~/components/NotFoundView";
 import { RecipesGrid } from "~/components/RecipesGrid";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import { useRelationSet } from "~/composables/useRelationSet";
 import { useScreenSize } from "~/composables/useScreenSize";
 import type { LayoutOutletContext } from "~/layouts/layout";
+
+export const meta: MetaFunction = () => [
+	{ title: "Profile — Transcendence" },
+	{
+		name: "description",
+		content: "View this cook's profile, recipes, and reviews on Transcendence.",
+	},
+];
 
 const UserResponseSchema = z.object({
 	data: z.object({
@@ -59,6 +74,12 @@ const UserPage = () => {
 	const numericId = id ? Number(id) : null;
 	const isOwnProfile =
 		numericId !== null && currentUserId !== null && numericId === currentUserId;
+
+	useDocumentTitle(
+		profile
+			? t("pageTitles.user", { name: profile.username })
+			: t("pageTitles.userLoading"),
+	);
 
 	const {
 		ids: favoriteIds,
@@ -189,6 +210,10 @@ const UserPage = () => {
 		);
 	}
 
+	if (errorStatus === 404) {
+		return <NotFoundView />;
+	}
+
 	if (errorStatus !== null) {
 		return (
 			<p className="user-profile-status-text" aria-live="assertive">
@@ -198,11 +223,7 @@ const UserPage = () => {
 	}
 
 	if (!profile) {
-		return (
-			<p className="user-profile-status-text" aria-live="polite">
-				{t("userProfilePage.notFound")}
-			</p>
-		);
+		return <NotFoundView />;
 	}
 
 	return (
@@ -211,7 +232,7 @@ const UserPage = () => {
 				<img
 					className="user-profile-avatar"
 					src={resolveMediaUrl(profile.avatar) ?? userPhoto}
-					alt={t("ariaLabels.profileAvatar", { name: profile.username })}
+					alt=""
 				/>
 				<div className="user-profile-identity">
 					<h1 id="user-profile-name">{profile.username}</h1>

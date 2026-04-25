@@ -343,6 +343,7 @@ CREATE TABLE "recipe_reviews" (
   "recipe_id" integer NOT NULL,
   "author_id" integer NULL,
   "body" text NOT NULL,
+  "source_locale" text NOT NULL DEFAULT 'en' CHECK ("source_locale" IN ('en', 'fi', 'ru')),
   "is_deleted" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz DEFAULT now(),
   "updated_at" timestamptz DEFAULT now(),

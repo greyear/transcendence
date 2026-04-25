@@ -1,8 +1,20 @@
 import { useTranslation } from "react-i18next";
+import type { MetaFunction } from "react-router";
 import "~/assets/styles/legal.css";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
+
+export const meta: MetaFunction = () => [
+	{ title: "Terms and Conditions — Transcendence" },
+	{
+		name: "description",
+		content:
+			"The terms and conditions that govern your use of the Transcendence platform.",
+	},
+];
 
 const TermsPage = () => {
 	const { t } = useTranslation();
+	useDocumentTitle(t("pageTitles.terms"));
 
 	return (
 		<article className="legal-page" aria-labelledby="terms-heading">

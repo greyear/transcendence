@@ -51,8 +51,10 @@
 	display: none;
 }
 
-.profile-avatar-toggle-icon {
-	transition: transform 160ms ease;
+@media (prefers-reduced-motion: no-preference) {
+	.profile-avatar-toggle-icon {
+		transition: transform 160ms ease;
+	}
 }
 
 .profile-avatar-toggle-icon.is-open {

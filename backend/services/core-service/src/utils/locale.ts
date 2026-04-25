@@ -76,3 +76,15 @@ export const resolveSourceLocale = (req: Request): SupportedLocale => {
 
 	return resolveRequestedLocale(req);
 };
+
+export const resolveOptionalSourceLocale = (
+	req: Request,
+): SupportedLocale | undefined => {
+	const headerLocale = parseLanguageHeader(req.headers["x-source-language"]);
+	if (!headerLocale) {
+		return undefined;
+	}
+
+	const parsed = validateLocale(headerLocale);
+	return parsed.valid ? parsed.value : undefined;
+};

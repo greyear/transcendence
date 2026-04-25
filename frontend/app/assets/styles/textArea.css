@@ -21,8 +21,12 @@
 }
 
 .text-area:focus {
-	outline: none;
 	border-color: var(--borders-action);
+}
+
+.text-area:focus-visible {
+	outline: 2px solid var(--borders-action);
+	outline-offset: 2px;
 }
 
 .text-area.error {

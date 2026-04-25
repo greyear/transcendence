@@ -9,6 +9,8 @@ entrypoints:
           permanent: true
   websecure:
     address: ":443"
+  websecure-frontend:
+    address: ":5173"
 
 providers:
   file:
