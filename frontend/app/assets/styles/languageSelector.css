@@ -95,3 +95,8 @@
 	.language-dropdown__button {
 	border-top: none;
 }
+
+.language-dropdown__menu .language-dropdown__button:focus-visible {
+	outline-color: var(--borders-action);
+	outline-offset: -2px;
+}

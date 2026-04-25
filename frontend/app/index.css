@@ -45,6 +45,12 @@ body {
 	transition: transform 0.15s ease;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+	.skip-link {
+		transition: transform 0.15s ease;
+	}
+}
+
 .skip-link:focus {
 	transform: translateY(0);
 	outline: 2px solid var(--borders-action);

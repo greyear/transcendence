@@ -15,7 +15,7 @@ export const FilterList = ({
 	ariaLabel,
 }: FilterListProps) => {
 	return (
-		<div className="filter-list" role="toolbar" aria-label={ariaLabel}>
+		<div className="filter-list" role="group" aria-label={ariaLabel}>
 			{filters.map((filter) => (
 				<MainButton
 					key={filter}

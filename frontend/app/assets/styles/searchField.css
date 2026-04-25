@@ -21,6 +21,10 @@ search {
 	outline-offset: 2px;
 }
 
+.main-header .search-wrapper:focus-within {
+	outline-color: var(--text-on-accent);
+}
+
 .search-field {
 	width: 100%;
 	padding: 0;

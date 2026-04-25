@@ -44,7 +44,7 @@ export const RecipeCard = ({
 							{rating !== null ? (
 								<div className="rating-row">
 									<span className="text-caption">{rating.toFixed(1)}</span>
-									<StarSolid />
+									<StarSolid aria-hidden="true" />
 								</div>
 							) : null}
 							<FavoriteButton
