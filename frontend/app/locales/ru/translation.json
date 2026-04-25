@@ -3,6 +3,23 @@
 		"alreadyFollowing": "Вы уже подписаны на этого пользователя.",
 		"alreadyFavorited": "Этот рецепт уже в избранном."
 	},
+	"pageTitles": {
+		"home": "Главная — Transcendence",
+		"recipes": "Рецепты — Transcendence",
+		"recipesAuthoredBy": "Рецепты пользователя {{username}} — Transcendence",
+		"recipesFavoritesOf": "Избранное пользователя {{username}} — Transcendence",
+		"users": "Пользователи — Transcendence",
+		"profile": "Мой профиль — Transcendence",
+		"search": "Поиск — Transcendence",
+		"searchQuery": "Поиск: {{query}} — Transcendence",
+		"recipe": "{{title}} — Transcendence",
+		"recipeLoading": "Рецепт — Transcendence",
+		"user": "{{name}} — Transcendence",
+		"userLoading": "Профиль — Transcendence",
+		"recipeCreate": "Добавить рецепт — Transcendence",
+		"privacy": "Политика конфиденциальности — Transcendence",
+		"terms": "Условия использования — Transcendence"
+	},
 	"common": {
 		"cancel": "Отмена",
 		"signInButton": "Войти",
@@ -86,7 +103,8 @@
 		"showOriginalReview": "Показать оригинал",
 		"translateReviewError": "Не удалось перевести отзыв (статус: {{status}}).",
 		"step": "Шаг {{number}}",
-		"pictureUploadFailedWarning": "Рецепт создан, но загрузить фото не удалось. Используется стандартное изображение — можно попробовать добавить фото позже."
+		"pictureUploadFailedWarning": "Рецепт создан, но загрузить фото не удалось. Используется стандартное изображение — можно попробовать добавить фото позже.",
+		"ratingDisplayLabel": "Оценка {{rating}} из 5 звезд, {{count}} отзывов"
 	},
 	"ratingModal": {
 		"title": "Оцените этот рецепт",
@@ -130,6 +148,7 @@
 		"tabFollowing": "Подписки"
 	},
 	"profilePage": {
+		"title": "Мой профиль",
 		"loading": "Загрузка профиля...",
 		"signInRequired": "Войдите, чтобы просмотреть свой профиль.",
 		"error": "Не удалось загрузить профиль (статус: {{status}}).",
@@ -364,7 +383,12 @@
 		"closeRatingDialog": "Закрыть окно оценки",
 		"closeReviewDialog": "Закрыть окно отзыва",
 		"deleteReview": "Удалить отзыв",
-		"dismissWarning": "Скрыть уведомление"
+		"dismissWarning": "Скрыть уведомление",
+		"skipToMainContent": "Перейти к основному содержимому",
+		"languageMenu": "Язык",
+		"usersFilter": "Фильтр пользователей",
+		"recipesFilter": "Фильтр рецептов",
+		"searchFilter": "Фильтр результатов поиска"
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Название рецепта обязательно",

@@ -61,7 +61,7 @@ export const SearchField = ({
 				aria-label={t("ariaLabels.openSearch")}
 				onClick={openSearch}
 			>
-				<Search />
+				<Search aria-hidden="true" />
 			</IconButton>
 		);
 	}
@@ -76,7 +76,7 @@ export const SearchField = ({
 						aria-label={t("ariaLabels.closeSearch")}
 						onClick={closeSearch}
 					>
-						<ArrowLeft />
+						<ArrowLeft aria-hidden="true" />
 					</IconButton>
 				) : (
 					<IconButton
@@ -84,7 +84,7 @@ export const SearchField = ({
 						type="submit"
 						aria-label={t("ariaLabels.search")}
 					>
-						<Search />
+						<Search aria-hidden="true" />
 					</IconButton>
 				)}
 
@@ -126,7 +126,7 @@ export const SearchField = ({
 							onClear?.();
 						}}
 					>
-						<Xmark />
+						<Xmark aria-hidden="true" />
 					</IconButton>
 				)}
 			</form>

@@ -3,6 +3,23 @@
 		"alreadyFollowing": "Seurasit tätä käyttäjää jo.",
 		"alreadyFavorited": "Tämä resepti on jo suosikeissasi."
 	},
+	"pageTitles": {
+		"home": "Etusivu — Transcendence",
+		"recipes": "Reseptit — Transcendence",
+		"recipesAuthoredBy": "Käyttäjän {{username}} reseptit — Transcendence",
+		"recipesFavoritesOf": "Käyttäjän {{username}} suosikit — Transcendence",
+		"users": "Käyttäjät — Transcendence",
+		"profile": "Oma profiili — Transcendence",
+		"search": "Haku — Transcendence",
+		"searchQuery": "Haku: {{query}} — Transcendence",
+		"recipe": "{{title}} — Transcendence",
+		"recipeLoading": "Resepti — Transcendence",
+		"user": "{{name}} — Transcendence",
+		"userLoading": "Profiili — Transcendence",
+		"recipeCreate": "Lisää resepti — Transcendence",
+		"privacy": "Tietosuojakäytäntö — Transcendence",
+		"terms": "Käyttöehdot — Transcendence"
+	},
 	"common": {
 		"cancel": "Peruuta",
 		"signInButton": "Kirjaudu",
@@ -86,7 +103,8 @@
 		"showOriginalReview": "Näytä alkuperäinen",
 		"translateReviewError": "Arvostelun kääntäminen epäonnistui (tila: {{status}}).",
 		"step": "Vaihe {{number}}",
-		"pictureUploadFailedWarning": "Resepti luotiin, mutta kuvan lataus epäonnistui. Käytössä on oletuskuva — voit yrittää lisätä kuvan myöhemmin uudelleen."
+		"pictureUploadFailedWarning": "Resepti luotiin, mutta kuvan lataus epäonnistui. Käytössä on oletuskuva — voit yrittää lisätä kuvan myöhemmin uudelleen.",
+		"ratingDisplayLabel": "Arvosana {{rating}} viidestä tähdestä, {{count}} arvostelijaa"
 	},
 	"ratingModal": {
 		"title": "Arvioi tämä resepti",
@@ -130,6 +148,7 @@
 		"tabFollowing": "Seuratut"
 	},
 	"profilePage": {
+		"title": "Oma profiili",
 		"loading": "Ladataan profiilia...",
 		"signInRequired": "Kirjaudu sisään nähdäksesi profiilisi.",
 		"error": "Profiilin lataus epäonnistui (tila: {{status}}).",
@@ -364,7 +383,12 @@
 		"closeRatingDialog": "Sulje arviointi-ikkuna",
 		"closeReviewDialog": "Sulje arvosteluikkuna",
 		"deleteReview": "Poista arvostelu",
-		"dismissWarning": "Sulje ilmoitus"
+		"dismissWarning": "Sulje ilmoitus",
+		"skipToMainContent": "Siirry pääsisältöön",
+		"languageMenu": "Kieli",
+		"usersFilter": "Käyttäjien suodatin",
+		"recipesFilter": "Reseptien suodatin",
+		"searchFilter": "Hakutulosten suodatin"
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Reseptin nimi on pakollinen",

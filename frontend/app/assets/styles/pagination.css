@@ -35,15 +35,29 @@
 	display: flex;
 	min-width: var(--item-size);
 	height: var(--item-size);
+	border: none;
 	border-radius: var(--radius-s);
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
-	transition: opacity 0.2s ease;
 	background-color: transparent;
 	color: var(--text-primary);
 	text-decoration: none;
 	padding: 0 var(--space-xs);
+	font: inherit;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.pagination__link {
+		transition: opacity 0.2s ease;
+	}
+}
+
+.pagination__link svg {
+	width: 20px;
+	height: 20px;
+	stroke-width: 1.5;
+	color: var(--icons-dark);
 }
 
 .pagination__link:hover {
@@ -63,16 +77,13 @@
 }
 
 .pagination__link--disabled {
-	opacity: 0.3;
+	color: var(--text-secondary);
 	cursor: not-allowed;
 	pointer-events: none;
 }
 
-.pagination__link svg {
-	width: 20px;
-	height: 20px;
-	stroke-width: 1.5;
-	color: var(--icons-dark);
+.pagination__link--disabled svg {
+	color: var(--surface-action-inactive);
 }
 
 @media (min-width: 768px) {

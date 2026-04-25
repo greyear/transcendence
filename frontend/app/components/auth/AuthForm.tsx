@@ -317,7 +317,7 @@ export const AuthForm = ({
 							aria-label={t("ariaLabels.closeAuthDialog")}
 							variant="transparent"
 						>
-							<Xmark />
+							<Xmark aria-hidden="true" />
 						</IconButton>
 					</div>
 				) : null}
@@ -369,10 +369,10 @@ export const AuthForm = ({
 					/>
 				</div>
 
-				<div className="auth-status" aria-live="polite">
-					{message ? <p className="auth-success">{message}</p> : null}
-					{error ? <p className="auth-error">{error}</p> : null}
-				</div>
+				<output className="auth-status" aria-live="polite" aria-atomic="true">
+					{message ? <span className="auth-success">{message}</span> : null}
+					{error ? <span className="auth-error">{error}</span> : null}
+				</output>
 
 				<div className="auth-actions">
 					<MainButton type="submit" disabled={isSubmitting}>

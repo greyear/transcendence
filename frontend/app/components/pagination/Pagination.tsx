@@ -63,7 +63,7 @@ export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 						disabled={currentPage <= 1}
 						ariaLabel={t("ariaLabels.firstPage")}
 					>
-						<FastArrowLeft />
+						<FastArrowLeft aria-hidden="true" />
 					</PaginationItem>
 				</li>
 
@@ -74,7 +74,7 @@ export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 						disabled={currentPage <= 1}
 						ariaLabel={t("ariaLabels.previousPage")}
 					>
-						<NavArrowLeft />
+						<NavArrowLeft aria-hidden="true" />
 					</PaginationItem>
 				</li>
 
@@ -107,7 +107,7 @@ export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 						disabled={currentPage >= totalPagesCount}
 						ariaLabel={t("ariaLabels.nextPage")}
 					>
-						<NavArrowRight />
+						<NavArrowRight aria-hidden="true" />
 					</PaginationItem>
 				</li>
 
@@ -118,7 +118,7 @@ export const Pagination = ({ totalPagesCount }: PaginationProps) => {
 						disabled={currentPage >= totalPagesCount}
 						ariaLabel={t("ariaLabels.lastPage")}
 					>
-						<FastArrowRight />
+						<FastArrowRight aria-hidden="true" />
 					</PaginationItem>
 				</li>
 			</ul>

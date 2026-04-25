@@ -30,7 +30,7 @@ export const FavoriteButton = ({
 			}
 			disabled={disabled}
 		>
-			<Heart />
+			<Heart aria-hidden="true" />
 		</IconButton>
 	);
 };

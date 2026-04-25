@@ -17,15 +17,24 @@ search {
 
 .search-wrapper:focus-within {
 	border-color: var(--borders-action);
+	outline: 2px solid var(--borders-action);
+	outline-offset: 2px;
+}
+
+.main-header .search-wrapper:focus-within {
+	outline-color: var(--text-on-accent);
 }
 
 .search-field {
 	width: 100%;
 	padding: 0;
 	border: none;
-	outline: none;
 	background-color: transparent;
 	color: var(--text-primary);
+}
+
+.search-field:focus {
+	outline: none;
 }
 
 .icon-button.search-inline-button,

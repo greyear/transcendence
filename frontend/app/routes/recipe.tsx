@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useOutletContext, useParams } from "react-router";
+import {
+	type MetaFunction,
+	useLocation,
+	useOutletContext,
+	useParams,
+} from "react-router";
 import { z } from "zod";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.css";
@@ -13,9 +18,19 @@ import { RatingModal } from "~/components/rating/ratingModal";
 import { ReviewModal } from "~/components/review/reviewModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
+
+export const meta: MetaFunction = () => [
+	{ title: "Recipe — Transcendence" },
+	{
+		name: "description",
+		content:
+			"View the full recipe with ingredients, step-by-step instructions, and community reviews.",
+	},
+];
 
 type RecipeIngredient = {
 	ingredient_id: number;
@@ -259,6 +274,12 @@ const RecipePage = () => {
 	const [reviewActionError, setReviewActionError] = useState("");
 	const [isFavorited, setIsFavorited] = useState(false);
 	const [isFavoritePending, setIsFavoritePending] = useState(false);
+
+	useDocumentTitle(
+		recipe
+			? t("pageTitles.recipe", { title: recipe.title })
+			: t("pageTitles.recipeLoading"),
+	);
 
 	const toggleFavorite = async () => {
 		if (!id || isFavoritePending) {
@@ -657,12 +678,16 @@ const RecipePage = () => {
 	});
 
 	return (
-		<section className="recipe-page" aria-labelledby="recipe-title">
+		<div className="recipe-page">
 			{showPictureUploadWarning ? (
-				<output className="recipe-page-warning">
-					<p className="text-body3">
+				<output
+					className="recipe-page-warning"
+					aria-live="polite"
+					aria-atomic="true"
+				>
+					<span className="recipe-page-warning-text text-body3">
 						{t("recipePage.pictureUploadFailedWarning")}
-					</p>
+					</span>
 					<button
 						type="button"
 						className="recipe-page-warning-dismiss"
@@ -692,10 +717,19 @@ const RecipePage = () => {
 
 			<div className="recipe-page-actions">
 				{recipe.rating_avg !== null ? (
-					<div className="recipe-rating-display text-label">
-						<span>{recipe.rating_avg.toFixed(1)}</span>
+					<div
+						className="recipe-rating-display text-label"
+						role="img"
+						aria-label={t("recipePage.ratingDisplayLabel", {
+							rating: recipe.rating_avg.toFixed(1),
+							count: recipe.rating_count,
+						})}
+					>
+						<span aria-hidden="true">{recipe.rating_avg.toFixed(1)}</span>
 						<StarSolid aria-hidden="true" />
-						<span className="recipe-rating-count">({recipe.rating_count})</span>
+						<span className="recipe-rating-count" aria-hidden="true">
+							({recipe.rating_count})
+						</span>
 					</div>
 				) : null}
 				<IconButton className="recipe-action" onClick={onOpenRatingModal}>
@@ -712,10 +746,7 @@ const RecipePage = () => {
 				{/* TODO: add an edit button here, visible only to the recipe owner. */}
 			</div>
 
-			<section
-				className="recipe-page-content"
-				aria-label={t("ariaLabels.ingredientsAndInstructions")}
-			>
+			<div className="recipe-page-content">
 				<section
 					className="recipe-page-details-section"
 					aria-labelledby="recipe-ingredients-heading"
@@ -864,7 +895,7 @@ const RecipePage = () => {
 						<p className="text-body2">{t("recipePage.noReviewsAvailable")}</p>
 					)}
 				</section>
-			</section>
+			</div>
 			<RatingModal
 				isOpen={isRatingModalOpen}
 				onClose={onCloseRatingModal}
@@ -890,7 +921,7 @@ const RecipePage = () => {
 				confirmLabel={t("ariaLabels.deleteReview")}
 				isConfirming={deletingReviewId !== null}
 			/>
-		</section>
+		</div>
 	);
 };
 

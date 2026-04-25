@@ -2,6 +2,7 @@ import { Filter, NavArrowLeft } from "iconoir-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+	type MetaFunction,
 	Navigate,
 	useNavigate,
 	useOutletContext,
@@ -23,6 +24,7 @@ import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SortMenu } from "~/components/SortMenu";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { getCurrentPage } from "~/composables/getCurrentPage";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import {
 	PER_PAGE_OPTIONS,
 	usePerPageParam,
@@ -30,6 +32,15 @@ import {
 import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
 import type { LayoutOutletContext } from "~/layouts/layout";
+
+export const meta: MetaFunction = () => [
+	{ title: "Recipes — Transcendence" },
+	{
+		name: "description",
+		content:
+			"Browse the full catalog of community recipes. Filter by cuisine, ingredients, and ratings to find your next dish.",
+	},
+];
 
 const PER_PAGE_MENU_OPTIONS = PER_PAGE_OPTIONS.map((n) => ({
 	label: String(n),
@@ -180,12 +191,21 @@ const RecipesPage = () => {
 				filters={tabsConfig.map((entry) => entry.label)}
 				activeFilter={t(TAB_LABEL_KEYS[tab])}
 				onFilterChange={handleTabChange}
+				ariaLabel={t("ariaLabels.recipesFilter")}
 			/>
 		);
 	};
 
 	const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
 	const page = getCurrentPage(searchParams, totalPages);
+
+	const documentTitle =
+		mode === "favoritesOf" && scopedUsername
+			? t("pageTitles.recipesFavoritesOf", { username: scopedUsername })
+			: mode === "authoredBy" && scopedUsername
+				? t("pageTitles.recipesAuthoredBy", { username: scopedUsername })
+				: t("pageTitles.recipes");
+	useDocumentTitle(documentTitle);
 
 	// Self-favorites has no audience: the backend always 403s (you can't be a
 	// mutual follower of yourself). Send the viewer to their own profile —

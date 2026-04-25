@@ -179,13 +179,21 @@ export const InputField = ({
 								: t("ariaLabels.showPassword")
 						}
 					>
-						{showPassword ? <EyeClosed /> : <Eye />}
+						{showPassword ? (
+							<EyeClosed aria-hidden="true" />
+						) : (
+							<Eye aria-hidden="true" />
+						)}
 					</IconButton>
 				)}
 			</div>
 
 			{visibleError ? (
-				<p id={`${id}-error`} className="text-caption-s error-message">
+				<p
+					id={`${id}-error`}
+					role="alert"
+					className="text-caption-s error-message"
+				>
 					{visibleError}
 				</p>
 			) : isFocused && hint ? (

@@ -3,6 +3,23 @@
 		"alreadyFollowing": "You were already following this user.",
 		"alreadyFavorited": "This recipe is already in your favorites."
 	},
+	"pageTitles": {
+		"home": "Home — Transcendence",
+		"recipes": "Recipes — Transcendence",
+		"recipesAuthoredBy": "Recipes by {{username}} — Transcendence",
+		"recipesFavoritesOf": "{{username}}'s favorites — Transcendence",
+		"users": "Users — Transcendence",
+		"profile": "My profile — Transcendence",
+		"search": "Search — Transcendence",
+		"searchQuery": "Search: {{query}} — Transcendence",
+		"recipe": "{{title}} — Transcendence",
+		"recipeLoading": "Recipe — Transcendence",
+		"user": "{{name}} — Transcendence",
+		"userLoading": "Profile — Transcendence",
+		"recipeCreate": "Add a recipe — Transcendence",
+		"privacy": "Privacy Policy — Transcendence",
+		"terms": "Terms and Conditions — Transcendence"
+	},
 	"common": {
 		"cancel": "Cancel",
 		"signInButton": "Sign In",
@@ -86,7 +103,8 @@
 		"showOriginalReview": "Show original",
 		"translateReviewError": "Failed to translate review (status: {{status}}).",
 		"step": "Step {{number}}",
-		"pictureUploadFailedWarning": "Recipe created, but the photo could not be uploaded. A default image is being used — you can try adding a photo again later."
+		"pictureUploadFailedWarning": "Recipe created, but the photo could not be uploaded. A default image is being used — you can try adding a photo again later.",
+		"ratingDisplayLabel": "Rated {{rating}} out of 5 stars by {{count}} reviewers"
 	},
 	"ratingModal": {
 		"title": "Rate this recipe",
@@ -130,6 +148,7 @@
 		"tabFollowing": "Following"
 	},
 	"profilePage": {
+		"title": "My profile",
 		"loading": "Loading profile...",
 		"signInRequired": "Sign in to view your profile.",
 		"error": "Failed to load profile (status: {{status}}).",
@@ -364,7 +383,12 @@
 		"closeRatingDialog": "Close rating dialog",
 		"closeReviewDialog": "Close review dialog",
 		"deleteReview": "Delete review",
-		"dismissWarning": "Dismiss warning"
+		"dismissWarning": "Dismiss warning",
+		"skipToMainContent": "Skip to main content",
+		"languageMenu": "Language",
+		"usersFilter": "Users filter",
+		"recipesFilter": "Recipes filter",
+		"searchFilter": "Search results filter"
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Recipe title is required",

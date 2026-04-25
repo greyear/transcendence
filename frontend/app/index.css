@@ -25,6 +25,56 @@ body {
 	isolation: isolate;
 }
 
+.app-main:focus {
+	outline: none;
+}
+
+.skip-link {
+	position: absolute;
+	top: var(--space-s);
+	left: var(--space-s);
+	z-index: 1000;
+	padding: var(--space-s) var(--space-m);
+	background-color: var(--surface-card);
+	color: var(--text-primary);
+	border: 2px solid var(--borders-action);
+	border-radius: var(--radius-s);
+	font-weight: var(--fw-label);
+	text-decoration: none;
+	transform: translateY(-200%);
+	transition: transform 0.15s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.skip-link {
+		transition: transform 0.15s ease;
+	}
+}
+
+.skip-link:focus {
+	transform: translateY(0);
+	outline: 2px solid var(--borders-action);
+	outline-offset: 2px;
+}
+
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+	outline: 2px solid var(--borders-action);
+	outline-offset: 2px;
+}
+
+.main-header
+	:where(
+		a,
+		button,
+		input,
+		textarea,
+		select,
+		summary,
+		[tabindex]
+	):focus-visible {
+	outline-color: var(--text-on-accent);
+}
+
 main {
 	width: 100%;
 	margin: 0 auto;
@@ -54,7 +104,7 @@ main {
 	--borders-default: #f2ece3;
 	--borders-heart-active: #8e4977;
 	--borders-action: #27341e;
-	--borders-input: #e2d8e0;
+	--borders-input: #4e633b;
 
 	--radius-s: 8px;
 	--radius-m: 12px;
@@ -70,35 +120,36 @@ main {
 	--space-xxl: 48px;
 
 	/* Typography (fs=fontsize, lh=lineheight, fw=fontweight) === */
-	--fs-h-big: 36px;
-	--lh-h-big: 36px;
+	/* fs/lh use rem so text scales with the user's browser font-size override (WCAG 1.4.4). */
+	--fs-h-big: 2.25rem;
+	--lh-h-big: 2.25rem;
 	--fw-h-big: 400;
-	--fs-h1: 32px;
-	--lh-h1: 32px;
+	--fs-h1: 2rem;
+	--lh-h1: 2rem;
 	--fw-h1: 700;
-	--fs-h2: 24px;
-	--lh-h2: 24px;
+	--fs-h2: 1.5rem;
+	--lh-h2: 1.5rem;
 	--fw-h2: 700;
-	--fs-h3: 20px;
-	--lh-h3: 20px;
+	--fs-h3: 1.25rem;
+	--lh-h3: 1.25rem;
 	--fw-h3: 700;
-	--fs-body1: 24px;
-	--lh-body1: 24px;
+	--fs-body1: 1.5rem;
+	--lh-body1: 1.5rem;
 	--fw-body1: 300;
-	--fs-body2: 20px;
-	--lh-body2: 20px;
+	--fs-body2: 1.25rem;
+	--lh-body2: 1.25rem;
 	--fw-body2: 300;
-	--fs-body3: 16px;
-	--lh-body3: 16px;
+	--fs-body3: 1rem;
+	--lh-body3: 1rem;
 	--fw-body3: 400;
-	--fs-caption: 16px;
-	--lh-caption: 16px;
+	--fs-caption: 1rem;
+	--lh-caption: 1rem;
 	--fw-caption: 300;
-	--fs-caption-s: 12px;
-	--lh-caption-s: 12px;
+	--fs-caption-s: 0.75rem;
+	--lh-caption-s: 0.75rem;
 	--fw-caption-s: 300;
-	--fs-label: 20px;
-	--lh-label: 20px;
+	--fs-label: 1.25rem;
+	--lh-label: 1.25rem;
 	--fw-label: 500;
 
 	--hover-brightness: 1.1;
@@ -123,26 +174,26 @@ main {
 		--space-xl: 32px;
 		--space-xxl: 64px;
 
-		--fs-h-big: 64px;
-		--lh-h-big: 64px;
-		--fs-h1: 48px;
-		--lh-h1: 48px;
-		--fs-h2: 36px;
-		--lh-h2: 36px;
-		--fs-h3: 24px;
-		--lh-h3: 24px;
-		--fs-body1: 32px;
-		--lh-body1: 32px;
-		--fs-body2: 24px;
-		--lh-body2: 24px;
-		--fs-body3: 20px;
-		--lh-body3: 20px;
-		--fs-caption: 20px;
-		--lh-caption: 20px;
-		--fs-caption-s: 16px;
-		--lh-caption-s: 16px;
-		--fs-label: 24px;
-		--lh-label: 24px;
+		--fs-h-big: 4rem;
+		--lh-h-big: 4rem;
+		--fs-h1: 3rem;
+		--lh-h1: 3rem;
+		--fs-h2: 2.25rem;
+		--lh-h2: 2.25rem;
+		--fs-h3: 1.5rem;
+		--lh-h3: 1.5rem;
+		--fs-body1: 2rem;
+		--lh-body1: 2rem;
+		--fs-body2: 1.5rem;
+		--lh-body2: 1.5rem;
+		--fs-body3: 1.25rem;
+		--lh-body3: 1.25rem;
+		--fs-caption: 1.25rem;
+		--lh-caption: 1.25rem;
+		--fs-caption-s: 1rem;
+		--lh-caption-s: 1rem;
+		--fs-label: 1.5rem;
+		--lh-label: 1.5rem;
 
 		--user-card-width: 328px;
 		--icon-button-size: 48px;
@@ -160,26 +211,26 @@ main {
 		--space-xl: 48px;
 		--space-xxl: 72px;
 
-		--fs-h-big: 96px;
-		--lh-h-big: 96px;
-		--fs-h1: 72px;
-		--lh-h1: 72px;
-		--fs-h2: 48px;
-		--lh-h2: 48px;
-		--fs-h3: 32px;
-		--lh-h3: 32px;
-		--fs-body1: 36px;
-		--lh-body1: 36px;
-		--fs-body2: 32px;
-		--lh-body2: 32px;
-		--fs-body3: 24px;
-		--lh-body3: 24px;
-		--fs-caption: 24px;
-		--lh-caption: 24px;
-		--fs-caption-s: 20px;
-		--lh-caption-s: 20px;
-		--fs-label: 32px;
-		--lh-label: 32px;
+		--fs-h-big: 6rem;
+		--lh-h-big: 6rem;
+		--fs-h1: 4.5rem;
+		--lh-h1: 4.5rem;
+		--fs-h2: 3rem;
+		--lh-h2: 3rem;
+		--fs-h3: 2rem;
+		--lh-h3: 2rem;
+		--fs-body1: 2.25rem;
+		--lh-body1: 2.25rem;
+		--fs-body2: 2rem;
+		--lh-body2: 2rem;
+		--fs-body3: 1.5rem;
+		--lh-body3: 1.5rem;
+		--fs-caption: 1.5rem;
+		--lh-caption: 1.5rem;
+		--fs-caption-s: 1.25rem;
+		--lh-caption-s: 1.25rem;
+		--fs-label: 2rem;
+		--lh-label: 2rem;
 
 		--user-card-width: 394px;
 		--icon-button-size: 56px;
@@ -274,4 +325,22 @@ h3,
 
 .text-selected {
 	font-weight: bold;
+}
+
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html {
+		scroll-behavior: auto;
+	}
 }

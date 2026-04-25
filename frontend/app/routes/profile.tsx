@@ -2,7 +2,7 @@ import { NavArrowDown } from "iconoir-react";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useOutletContext } from "react-router";
+import { type MetaFunction, useNavigate, useOutletContext } from "react-router";
 import { z } from "zod";
 import defaultAvatar from "~/assets/images/default-avatar.jpeg";
 import "~/assets/styles/profile.css";
@@ -14,7 +14,17 @@ import { InputField } from "~/components/inputs/InputField";
 import { NotFoundView } from "~/components/NotFoundView";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import type { LayoutOutletContext } from "~/layouts/layout";
+
+export const meta: MetaFunction = () => [
+	{ title: "My profile — Transcendence" },
+	{
+		name: "description",
+		content:
+			"Manage your Transcendence profile, recipes, favorites, and account settings.",
+	},
+];
 
 type AuthUserData = {
 	id: number;
@@ -50,6 +60,7 @@ const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
 
 const ProfilePage = () => {
 	const { t } = useTranslation();
+	useDocumentTitle(t("pageTitles.profile"));
 	const navigate = useNavigate();
 	const { isAuthenticated, openAuthModal, resetAuthState } =
 		useOutletContext<LayoutOutletContext>();
@@ -412,15 +423,14 @@ const ProfilePage = () => {
 	}
 
 	return (
-		<section className="profile-page">
+		<section className="profile-page" aria-labelledby="profile-page-title">
+			<h1 id="profile-page-title" className="visually-hidden">
+				{t("profilePage.title")}
+			</h1>
 			<form className="profile-page-form" onSubmit={handleProfileSubmit}>
 				<div className="profile-avatar-section">
 					<div className="profile-avatar-display">
-						<img
-							className="profile-avatar-image"
-							src={avatarSrc}
-							alt={username || profile.username}
-						/>
+						<img className="profile-avatar-image" src={avatarSrc} alt="" />
 					</div>
 
 					<input
@@ -505,6 +515,8 @@ const ProfilePage = () => {
 
 				<InputField
 					id="profile-username"
+					name="username"
+					autoComplete="username"
 					hint={t("profilePage.usernameHint")}
 					label={t("profilePage.username")}
 					value={username}
@@ -519,6 +531,9 @@ const ProfilePage = () => {
 
 				<InputField
 					id="profile-email"
+					name="email"
+					type="email"
+					autoComplete="email"
 					className="profile-email-field"
 					label={t("profilePage.email")}
 					value={
@@ -539,14 +554,18 @@ const ProfilePage = () => {
 					</MainButton>
 				) : null}
 
-				<div className="profile-page-form-status" aria-live="polite">
+				<output
+					className="profile-page-form-status"
+					aria-live="polite"
+					aria-atomic="true"
+				>
 					{profileMessage ? (
-						<p className="profile-success">{profileMessage}</p>
+						<span className="profile-success">{profileMessage}</span>
 					) : null}
 					{profileError ? (
-						<p className="profile-error">{profileError}</p>
+						<span className="profile-error">{profileError}</span>
 					) : null}
-				</div>
+				</output>
 			</form>
 
 			<div className="profile-page-actions">

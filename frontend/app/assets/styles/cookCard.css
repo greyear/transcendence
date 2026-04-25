@@ -1,6 +1,13 @@
 .cook-card-link {
 	text-decoration: none;
 	color: unset;
+	display: block;
+	border-radius: var(--radius-s);
+}
+
+.cook-card-link:focus-visible {
+	outline: 2px solid var(--borders-action);
+	outline-offset: 2px;
 }
 
 .cook-card-item {

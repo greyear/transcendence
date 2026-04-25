@@ -1,8 +1,20 @@
 import { useTranslation } from "react-i18next";
+import type { MetaFunction } from "react-router";
 import "~/assets/styles/legal.css";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
+
+export const meta: MetaFunction = () => [
+	{ title: "Privacy Policy — Transcendence" },
+	{
+		name: "description",
+		content:
+			"How Transcendence collects, uses, and protects your personal data.",
+	},
+];
 
 const PrivacyPolicyPage = () => {
 	const { t } = useTranslation();
+	useDocumentTitle(t("pageTitles.privacy"));
 
 	return (
 		<article className="legal-page" aria-labelledby="privacy-heading">

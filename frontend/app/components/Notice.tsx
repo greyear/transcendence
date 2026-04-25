@@ -31,7 +31,7 @@ export const Notice = ({
 	}
 
 	return (
-		<output className="notice" aria-live="polite">
+		<output className="notice" aria-live="polite" aria-atomic="true">
 			{message}
 		</output>
 	);

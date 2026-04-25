@@ -1,7 +1,12 @@
 import { Sparks } from "iconoir-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useOutletContext, useSearchParams } from "react-router";
+import {
+	type MetaFunction,
+	useNavigate,
+	useOutletContext,
+	useSearchParams,
+} from "react-router";
 import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
 import { RecipeCard } from "~/components/cards/RecipeCard";
@@ -25,8 +30,18 @@ import "~/assets/styles/usersGrid.css";
 import "~/assets/styles/search.css";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { useCategoryMap } from "~/composables/useCategoryMap";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import { useRelationSet } from "~/composables/useRelationSet";
 import { useSortOptions } from "~/composables/useSortOptions";
+
+export const meta: MetaFunction = () => [
+	{ title: "Search — Transcendence" },
+	{
+		name: "description",
+		content:
+			"Search recipes and cooks across the Transcendence community by name, ingredient, or category.",
+	},
+];
 
 const FILTER_PARAM_BY_TYPE: Record<CategoryTypeCode, string> = {
 	meal_time: "mealType",
@@ -135,6 +150,9 @@ const SearchPage = () => {
 	});
 
 	const query = searchParams.get("q") ?? "";
+	useDocumentTitle(
+		query ? t("pageTitles.searchQuery", { query }) : t("pageTitles.search"),
+	);
 	const rawType = searchParams.get("type") ?? "recipes";
 	const typeParam = rawType === "users" ? "users" : "recipes";
 	const sort = searchParams.get("sort") ?? "";
@@ -451,6 +469,7 @@ const SearchPage = () => {
 				filters={tabs}
 				activeFilter={activeTab}
 				onFilterChange={handleTabChange}
+				ariaLabel={t("ariaLabels.searchFilter")}
 			/>
 
 			<div className="search-page-controls">

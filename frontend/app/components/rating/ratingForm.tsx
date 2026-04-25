@@ -170,7 +170,7 @@ export const RatingForm = ({
 							aria-label={t("ariaLabels.closeRatingDialog")}
 							variant="transparent"
 						>
-							<Xmark />
+							<Xmark aria-hidden="true" />
 						</IconButton>
 					</div>
 				) : null}
@@ -203,6 +203,7 @@ export const RatingForm = ({
 									/>
 									<span
 										className={`rating-star-button ${value <= rating ? "active" : ""}`}
+										aria-hidden="true"
 									>
 										<StarSolid />
 									</span>
@@ -211,9 +212,13 @@ export const RatingForm = ({
 						</div>
 					</div>
 
-					<div className="rating-status" aria-live="polite">
-						{error ? <p className="rating-error">{error}</p> : null}
-					</div>
+					<output
+						className="rating-status"
+						aria-live="polite"
+						aria-atomic="true"
+					>
+						{error ? <span className="rating-error">{error}</span> : null}
+					</output>
 
 					<p className="rating-help-text text-caption">
 						{t("ratingModal.averageRatingHint")}
