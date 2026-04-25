@@ -130,7 +130,8 @@ type SearchResponse =
 	| { type: "users"; data: SearchUserItem[]; total: number };
 
 const SearchPage = () => {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
+	const language = i18n.resolvedLanguage ?? "en";
 	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const { isAuthenticated, currentUserId, openAuthModal, showNotice } =
@@ -268,6 +269,7 @@ const SearchPage = () => {
 		setHasError(false);
 		fetch(`${API_BASE_URL}${endpoint}?${params}`, {
 			signal: controller.signal,
+			headers: { "X-Language": language },
 		})
 			.then(async (res) => {
 				if (!res.ok) {
@@ -374,6 +376,7 @@ const SearchPage = () => {
 		dishTypeFilters,
 		mainIngredientFilters,
 		cuisineFilters,
+		language,
 	]);
 
 	const handleSearch = (newQuery: string) => {
