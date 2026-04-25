@@ -81,7 +81,6 @@ export const getAllUsers = async (
 	try {
 		const offset = (page - 1) * perPage;
 		const sortExpr = USER_SORT_MAP[sort ?? ""] ?? "u.id ASC";
-		console.log(`Fetching users - page: ${page}, perPage: ${perPage}, search: ${search}, sort: ${sort} (SQL sort: ${sortExpr})`);
 
 		if (search) {
 			const containsPattern = `%${search}%`;
@@ -113,7 +112,7 @@ export const getAllUsers = async (
 				),
 			]);
 
-			const total_count = countResult.rows[0].total as number;
+			const total_count = z.number().parse(countResult.rows[0]?.total);
 			const total_pages = Math.ceil(total_count / perPage);
 			const data = parseUserRows(dataResult.rows, userListItemSchema, "user");
 			return { data, total_count, total_pages, page, per_page: perPage };
@@ -141,7 +140,7 @@ export const getAllUsers = async (
 			),
 		]);
 
-		const total_count = countResult.rows[0].total as number;
+		const total_count = z.number().parse(countResult.rows[0]?.total);
 		const total_pages = Math.ceil(total_count / perPage);
 		const data = parseUserRows(dataResult.rows, userListItemSchema, "user");
 		return { data, total_count, total_pages, page, per_page: perPage };
