@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import "../../assets/styles/cookCard.css";
+import "../../assets/styles/cookCard.scss";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import defaultAvatar from "../../assets/images/default-avatar.jpeg";
 

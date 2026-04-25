@@ -1,0 +1,65 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.main-button {
+	height: 44px;
+	padding: 0 var(--space-l);
+	border-radius: var(--radius-s);
+	@include flex-center;
+	text-decoration: none;
+	cursor: pointer;
+	gap: var(--space-xs);
+	font-size: var(--fs-label);
+	font-weight: var(--fw-label);
+	line-height: var(--lh-label);
+	color: var(--text-on-accent);
+	border: 1px solid var(--borders-action);
+	background-color: var(--surface-action-active);
+	white-space: nowrap;
+	@include interactive-brightness;
+	@include button-disabled;
+
+	&.pill {
+		border-radius: var(--radius-full);
+		background-color: var(--bg-main);
+		color: var(--text-primary);
+		font-size: var(--fs-caption);
+		font-weight: var(--fw-caption);
+		line-height: var(--lh-caption);
+		padding: 0 var(--space-l);
+
+		&.active {
+			background-color: var(--surface-action-active);
+			color: var(--text-on-accent);
+		}
+	}
+
+	&.danger {
+		background-color: var(--surface-error);
+		border-color: var(--borders-input);
+	}
+
+	&.secondary {
+		background-color: var(--surface-warning);
+		color: var(--text-primary);
+	}
+
+	&.inverted {
+		background-color: var(--surface-primary);
+		color: var(--text-primary);
+		border-color: var(--borders-input);
+	}
+
+	@include breakpoint($bp-tablet) {
+		height: 48px;
+
+		&.danger,
+		&.secondary {
+			min-width: 296px;
+		}
+	}
+
+	@include breakpoint($bp-desktop) {
+		height: 56px;
+	}
+}

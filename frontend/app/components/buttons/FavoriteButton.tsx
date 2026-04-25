@@ -1,7 +1,7 @@
 import { Heart } from "iconoir-react";
 import type { MouseEvent } from "react";
 import { IconButton } from "./IconButton";
-import "../../assets/styles/favoriteButton.css";
+import "../../assets/styles/favoriteButton.scss";
 import { useTranslation } from "react-i18next";
 
 type FavoriteButtonProps = {

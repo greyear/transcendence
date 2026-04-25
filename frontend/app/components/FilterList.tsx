@@ -1,5 +1,5 @@
 import { MainButton } from "~/components/buttons/MainButton";
-import "~/assets/styles/filterList.css";
+import "~/assets/styles/filterList.scss";
 
 type FilterListProps = {
 	filters: string[];

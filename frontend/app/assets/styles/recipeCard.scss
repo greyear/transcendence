@@ -1,3 +1,6 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
 .recipe-card-link-wrapper {
 	text-decoration: none;
 	color: unset;
@@ -28,15 +31,21 @@
 	align-items: center;
 	--recipe-card-image-size: 160px;
 	min-height: var(--recipe-card-image-size);
+
+	@include breakpoint($bp-tablet) {
+		--recipe-card-image-size: 248px;
+	}
+
+	@include breakpoint($bp-desktop) {
+		--recipe-card-image-size: 300px;
+	}
 }
 
 .recipe-card-image {
 	position: absolute;
-	object-fit: cover;
+	@include avatar-image;
 	width: var(--recipe-card-image-size);
 	height: var(--recipe-card-image-size);
-	border-radius: var(--radius-full);
-	box-shadow: var(--shadow-effect);
 	align-content: center;
 }
 
@@ -50,11 +59,18 @@
 	height: var(--recipe-card-container-height);
 	box-shadow: var(--shadow-effect);
 	margin-left: calc(var(--recipe-card-image-size) / 2);
+
+	@include breakpoint($bp-tablet) {
+		--recipe-card-container-height: 204px;
+	}
+
+	@include breakpoint($bp-desktop) {
+		--recipe-card-container-height: 264px;
+	}
 }
 
 .recipe-card-content-column {
-	display: flex;
-	flex-direction: column;
+	@include flex-col;
 	gap: var(--space-m);
 	margin-left: calc(var(--recipe-card-image-size) / 2);
 	width: 100%;
@@ -63,8 +79,7 @@
 }
 
 .recipe-card-header {
-	display: flex;
-	flex-direction: column;
+	@include flex-col;
 	gap: var(--space-s);
 	width: 100%;
 	overflow: hidden;
@@ -91,10 +106,10 @@
 	flex-direction: row;
 	justify-content: space-between;
 	align-items: center;
-}
 
-.recipe-card-footer .favorite-button {
-	margin-left: auto;
+	.favorite-button {
+		margin-left: auto;
+	}
 }
 
 .rating-row {
@@ -108,32 +123,12 @@
 		width: var(--star-icon-size);
 		height: var(--star-icon-size);
 	}
-}
 
-@media (min-width: 768px) {
-	.recipe-card {
-		--recipe-card-image-size: 248px;
-	}
-
-	.rating-row {
+	@include breakpoint($bp-tablet) {
 		--star-icon-size: 24px;
 	}
 
-	.recipe-card-container {
-		--recipe-card-container-height: 204px;
-	}
-}
-
-@media (min-width: 1440px) {
-	.recipe-card {
-		--recipe-card-image-size: 300px;
-	}
-
-	.rating-row {
+	@include breakpoint($bp-desktop) {
 		--star-icon-size: 32px;
-	}
-
-	.recipe-card-container {
-		--recipe-card-container-height: 264px;
 	}
 }

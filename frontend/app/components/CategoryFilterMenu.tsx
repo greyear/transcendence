@@ -9,7 +9,7 @@ import {
 	type CategoryMap,
 	type CategoryTypeCode,
 } from "~/components/recipe/RecipeCategorySection";
-import "~/assets/styles/categoryFilterMenu.css";
+import "~/assets/styles/searchFilterMenu.scss";
 
 export type SearchFilterValues = Record<CategoryTypeCode, string[]>;
 

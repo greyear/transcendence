@@ -1,4 +1,4 @@
-import "../../assets/styles/searchField.css";
+import "../../assets/styles/searchField.scss";
 import { ArrowLeft, Search, Xmark } from "iconoir-react";
 import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,0 +1,50 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.cook-card-link {
+	display: block;
+	text-decoration: none;
+	color: unset;
+	border-radius: var(--radius-s);
+
+	&:hover .cook-card-name {
+		text-decoration: underline;
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--borders-action);
+		outline-offset: 2px;
+	}
+}
+
+.cook-card-item {
+	--cook-image-size: 56px;
+	--cook-card-width: 64px;
+	width: var(--cook-card-width);
+	@include flex-col-center;
+	gap: var(--space-m);
+
+	@include breakpoint($bp-tablet) {
+		--cook-image-size: 80px;
+		--cook-card-width: 96px;
+	}
+
+	@include breakpoint($bp-desktop) {
+		--cook-image-size: 100px;
+		--cook-card-width: 120px;
+	}
+}
+
+.cook-card-image {
+	width: var(--cook-image-size);
+	height: var(--cook-image-size);
+	@include avatar-image;
+}
+
+.cook-card-name {
+	text-align: center;
+	width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}

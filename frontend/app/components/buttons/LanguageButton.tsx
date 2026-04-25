@@ -1,6 +1,6 @@
 import type { KeyboardEvent, Ref } from "react";
 import type { LangCodes } from "../LanguageSelector";
-import "../../assets/styles/languageSelector.css";
+import "../../assets/styles/languageSelector.scss";
 import { IconButton } from "./IconButton";
 
 interface LangButtonProps {

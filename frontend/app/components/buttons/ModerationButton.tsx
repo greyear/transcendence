@@ -1,6 +1,6 @@
 import { CheckCircle, XmarkCircle } from "iconoir-react";
 import { IconButton } from "./IconButton";
-import "../../assets/styles/moderationButton.css";
+import "../../assets/styles/moderationButton.scss";
 import { useTranslation } from "react-i18next";
 
 type ModerationAction = "approve" | "discard";

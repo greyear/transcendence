@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import "~/assets/styles/notice.css";
+import "~/assets/styles/notice.scss";
 
 type NoticeProps = {
 	message: string | null;
