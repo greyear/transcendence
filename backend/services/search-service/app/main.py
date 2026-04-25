@@ -482,6 +482,7 @@ def search_recipe_documents(
                 description,
                 instructions,
                 searchable_text,
+                picture_url,
                 source_updated_at,
                 indexed_at,
                 CASE
@@ -505,6 +506,7 @@ def search_recipe_documents(
             "description": row["description"],
             "instructions": row["instructions"],
             "searchable_text": row["searchable_text"],
+            "picture_url": row["picture_url"],
             "source_updated_at": row["source_updated_at"],
             "indexed_at": row["indexed_at"],
             "score": float(row["score"]),
