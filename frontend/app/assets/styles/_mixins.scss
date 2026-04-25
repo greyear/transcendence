@@ -1,0 +1,74 @@
+@use 'variables' as *;
+
+@mixin flex-center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@mixin flex-col {
+	display: flex;
+	flex-direction: column;
+}
+
+@mixin flex-col-center {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+@mixin interactive-brightness {
+	@media (prefers-reduced-motion: no-preference) {
+		transition: filter 0.2s ease;
+	}
+
+	&:hover {
+		filter: brightness(var(--hover-brightness));
+	}
+
+	&:active {
+		filter: brightness(var(--active-brightness));
+	}
+}
+
+@mixin button-disabled {
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		filter: none;
+
+		&:hover {
+			filter: none;
+		}
+	}
+}
+
+@mixin surface-card {
+	width: min(100%, 800px);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-xl);
+	padding: var(--space-xl);
+	border-radius: var(--radius-l);
+	background-color: var(--surface-card);
+	border: 1px solid var(--borders-input);
+	box-shadow: var(--shadow-effect);
+}
+
+@mixin avatar-image {
+	border-radius: var(--radius-full);
+	object-fit: cover;
+	box-shadow: var(--shadow-effect);
+}
+
+@mixin status-text {
+	color: var(--text-secondary);
+	margin: 0;
+	padding: var(--space-m) 0;
+}
+
+@mixin breakpoint($bp) {
+	@media (min-width: $bp) {
+		@content;
+	}
+}

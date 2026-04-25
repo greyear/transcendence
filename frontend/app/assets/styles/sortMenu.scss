@@ -1,3 +1,5 @@
+@use 'mixins' as *;
+
 .sort-menu {
 	position: relative;
 }
@@ -14,8 +16,7 @@
 	border-radius: var(--radius-l);
 	box-shadow: var(--shadow-effect);
 	min-width: 160px;
-	display: flex;
-	flex-direction: column;
+	@include flex-col;
 	gap: var(--space-xs);
 }
 
@@ -31,27 +32,10 @@
 	color: var(--text-primary);
 	cursor: pointer;
 	white-space: nowrap;
-}
+	@include interactive-brightness;
 
-@media (prefers-reduced-motion: no-preference) {
-	.sort-menu__option {
-		transition: filter 0.2s ease;
+	&--active {
+		background-color: var(--surface-action-active);
+		color: var(--text-on-accent);
 	}
-}
-
-.sort-menu__option:hover {
-	filter: brightness(var(--hover-brightness));
-}
-
-.sort-menu__option:active {
-	filter: brightness(var(--active-brightness));
-}
-
-.sort-menu__option--active {
-	background-color: var(--surface-action-active);
-	color: var(--text-on-accent);
-}
-
-.sort-menu__option--active:hover {
-	filter: brightness(var(--hover-brightness));
 }

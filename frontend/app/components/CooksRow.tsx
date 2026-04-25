@@ -7,7 +7,7 @@ import {
 	useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import "~/assets/styles/cooksRow.css";
+import "~/assets/styles/cooksRow.scss";
 import { getScrollAmount } from "~/composables/getScrollAmount";
 import { useTopCooks } from "~/composables/useTopCooks";
 import { CookCard } from "./cards/CookCard";

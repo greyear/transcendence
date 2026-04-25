@@ -25,9 +25,9 @@ import {
 } from "~/components/recipe/RecipeCategorySection";
 import { SortMenu } from "~/components/SortMenu";
 import type { LayoutOutletContext } from "~/layouts/layout";
-import "~/assets/styles/recipesGrid.css";
-import "~/assets/styles/usersGrid.css";
-import "~/assets/styles/search.css";
+import "~/assets/styles/recipesGrid.scss";
+import "~/assets/styles/usersGrid.scss";
+import "~/assets/styles/search.scss";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { useCategoryMap } from "~/composables/useCategoryMap";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";

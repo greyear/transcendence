@@ -1,3 +1,6 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
 .text-button {
 	text-decoration: none;
 	font-size: var(--fs-body1);
@@ -20,19 +23,23 @@
 	&:active {
 		filter: brightness(var(--active-brightness));
 	}
-}
 
-.text-button.underline {
-	text-decoration: underline;
-}
+	&.underline {
+		text-decoration: underline;
+	}
 
-.text-button.is-disabled,
-.text-button:disabled,
-.text-button[aria-disabled="true"] {
-	cursor: not-allowed;
-	opacity: 0.5;
-	text-decoration: none;
-	pointer-events: none;
+	&.is-disabled,
+	&:disabled,
+	&[aria-disabled="true"] {
+		cursor: not-allowed;
+		opacity: 0.5;
+		text-decoration: none;
+		pointer-events: none;
+	}
+
+	&.inverted {
+		color: var(--text-on-accent);
+	}
 }
 
 .text-button--body1 {
@@ -63,8 +70,4 @@
 		width: var(--lh-body3);
 		height: var(--lh-body3);
 	}
-}
-
-.text-button.inverted {
-	color: var(--text-on-accent);
 }

@@ -8,7 +8,7 @@ import {
 	ScrollRestoration,
 	useLoaderData,
 } from "react-router";
-import "./index.css";
+import "./index.scss";
 import type { Route } from "./+types/root";
 import i18next from "./i18next.server";
 

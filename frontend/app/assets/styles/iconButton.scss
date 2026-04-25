@@ -1,0 +1,73 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.icon-button {
+	min-width: var(--icon-button-size);
+	height: var(--icon-button-size);
+	border-radius: var(--radius-s);
+	@include flex-center;
+	cursor: pointer;
+	padding: 0;
+	@include interactive-brightness;
+	@include button-disabled;
+
+	svg {
+		width: var(--icon-size);
+		height: var(--icon-size);
+		stroke-width: 1.5;
+		color: var(--icons-dark);
+	}
+
+	&.default {
+		background-color: var(--surface-primary);
+		border: 1px solid var(--borders-input);
+	}
+
+	&.transparent {
+		background-color: transparent;
+		border: none;
+
+		svg {
+			color: var(--text-on-accent);
+		}
+	}
+
+	&.language {
+		text-transform: uppercase;
+		font-size: var(--fs-body3);
+		border: 1px solid var(--borders-default);
+
+		&.language-button--header {
+			background-color: var(--surface-header);
+			color: var(--text-on-accent);
+
+			&.active {
+				background-color: var(--surface-primary);
+				color: var(--text-primary);
+			}
+		}
+
+		&.language-dropdown__button {
+			border: none;
+			border-radius: 0;
+			background-color: var(--surface-card);
+			color: var(--text-primary);
+
+			&.active {
+				background-color: var(--surface-primary);
+				color: var(--text-secondary);
+			}
+		}
+
+		&.language-button--footer {
+			border-color: var(--borders-action);
+			background-color: var(--bg-footer);
+			color: var(--text-primary);
+
+			&.active {
+				background-color: var(--surface-action-active);
+				color: var(--text-on-accent);
+			}
+		}
+	}
+}

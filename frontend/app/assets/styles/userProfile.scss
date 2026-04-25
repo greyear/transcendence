@@ -1,0 +1,83 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
+.user-profile-page {
+	@include flex-col;
+	gap: var(--space-xl);
+}
+
+.user-profile-status-text {
+	@include status-text;
+}
+
+.user-profile-header {
+	@include flex-col-center;
+	gap: var(--space-l);
+}
+
+.user-profile-avatar {
+	--user-profile-avatar-size: 160px;
+	width: var(--user-profile-avatar-size);
+	height: var(--user-profile-avatar-size);
+	@include avatar-image;
+
+	@include breakpoint($bp-tablet) {
+		--user-profile-avatar-size: 240px;
+	}
+
+	@include breakpoint($bp-desktop) {
+		--user-profile-avatar-size: 300px;
+	}
+}
+
+.user-profile-identity {
+	@include flex-col-center;
+	gap: var(--space-s);
+}
+
+.user-profile-status {
+	margin: 0;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-xs);
+
+	&::before {
+		content: "";
+		display: inline-block;
+		width: 0.6em;
+		height: 0.6em;
+		border-radius: var(--radius-full);
+		background-color: currentColor;
+	}
+
+	&.online {
+		color: var(--surface-success);
+	}
+
+	&.offline {
+		color: var(--surface-error);
+	}
+}
+
+.user-profile-follow-button {
+	min-width: 160px;
+
+	@include breakpoint($bp-tablet) {
+		min-width: 240px;
+	}
+
+	@include breakpoint($bp-desktop) {
+		min-width: 300px;
+	}
+}
+
+.user-profile-recipes-section {
+	@include flex-col;
+	gap: var(--space-l);
+}
+
+.user-profile-recipe-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}

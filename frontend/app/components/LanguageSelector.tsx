@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { IconButton } from "./buttons/IconButton";
 import { LanguageButton } from "./buttons/LanguageButton";
-import "../assets/styles/languageSelector.css";
+import "../assets/styles/languageSelector.scss";
 import { NavArrowDown } from "iconoir-react";
 import type { HTMLAttributes, KeyboardEvent } from "react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";

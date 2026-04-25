@@ -1,5 +1,5 @@
 import { UserCard } from "./cards/UserCard";
-import "../assets/styles/usersGrid.css";
+import "../assets/styles/usersGrid.scss";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
