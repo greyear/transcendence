@@ -1,6 +1,8 @@
 .recipe-card-link-wrapper {
 	text-decoration: none;
 	color: unset;
+	display: block;
+	border-radius: var(--radius-l);
 
 	&:hover {
 		filter: brightness(var(--hover-brightness));
@@ -12,6 +14,11 @@
 
 	&:has(.favorite-button:hover) {
 		filter: none;
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--borders-action);
+		outline-offset: 4px;
 	}
 }
 

@@ -6,8 +6,13 @@
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
-	transition: filter 0.2s ease;
 	padding: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.icon-button {
+		transition: filter 0.2s ease;
+	}
 }
 
 .icon-button svg {

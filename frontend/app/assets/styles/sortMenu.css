@@ -30,8 +30,13 @@
 	line-height: var(--lh-body1);
 	color: var(--text-primary);
 	cursor: pointer;
-	transition: filter 0.2s ease;
 	white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.sort-menu__option {
+		transition: filter 0.2s ease;
+	}
 }
 
 .sort-menu__option:hover {

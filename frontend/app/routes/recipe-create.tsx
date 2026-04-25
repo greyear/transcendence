@@ -8,7 +8,7 @@ import {
 	useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useOutletContext } from "react-router";
+import { type MetaFunction, useNavigate, useOutletContext } from "react-router";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
 import { InputField } from "~/components/inputs/InputField";
@@ -32,8 +32,18 @@ import type { InstructionRow } from "~/components/recipe/RecipeInstructionItem";
 import { RecipeInstructionSection } from "~/components/recipe/RecipeInstructionSection";
 import { RecipePhotoUpload } from "~/components/recipe/RecipePhotoUpload";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import "../assets/styles/recipe-create.css";
+
+export const meta: MetaFunction = () => [
+	{ title: "Add a recipe — Transcendence" },
+	{
+		name: "description",
+		content:
+			"Share your recipe with the community. Add ingredients, instructions, and a photo to publish your dish.",
+	},
+];
 
 const DESCRIPTION_MAX = 128;
 
@@ -175,6 +185,7 @@ type CreateRecipeResponse = {
 const RecipeCreate = () => {
 	const baseId = useId();
 	const { t, i18n } = useTranslation();
+	useDocumentTitle(t("pageTitles.recipeCreate"));
 	const language = i18n.resolvedLanguage ?? "en";
 	const navigate = useNavigate();
 	const { isAuthenticated, isAuthResolved, openAuthModal } =
@@ -510,6 +521,7 @@ const RecipeCreate = () => {
 				className="recipe-create-form"
 				onSubmit={handleSubmit}
 				noValidate
+				autoComplete="off"
 				aria-labelledby="recipe-create-heading"
 				aria-describedby="recipe-create-subtitle"
 				aria-busy={isSubmitting}

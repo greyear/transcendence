@@ -26,8 +26,13 @@
 }
 
 .language-dropdown__chevron {
-	transition: transform 0.2s ease;
 	flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.language-dropdown__chevron {
+		transition: transform 0.2s ease;
+	}
 }
 
 .icon-button .language-dropdown__chevron {
@@ -89,4 +94,9 @@
 	+ .language-dropdown__menu-item
 	.language-dropdown__button {
 	border-top: none;
+}
+
+.language-dropdown__menu .language-dropdown__button:focus-visible {
+	outline-color: var(--borders-action);
+	outline-offset: -2px;
 }

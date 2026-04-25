@@ -7,7 +7,6 @@
 	justify-content: center;
 	text-decoration: none;
 	cursor: pointer;
-	transition: filter 0.2s ease;
 	gap: var(--space-xs);
 	font-size: var(--fs-label);
 	font-weight: var(--fw-label);
@@ -16,6 +15,12 @@
 	border: 1px solid var(--borders-action);
 	background-color: var(--surface-action-active);
 	white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.main-button {
+		transition: filter 0.2s ease;
+	}
 }
 
 .main-button:hover {

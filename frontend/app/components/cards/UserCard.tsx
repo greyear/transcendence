@@ -56,11 +56,7 @@ export const UserCard = ({
 	return (
 		<Link to={`/user/${id}`} className="user-card-link-wrapper">
 			<article className="user-card">
-				<img
-					className="user-card-photo"
-					src={avatarSrc}
-					alt={t("ariaLabels.profileAvatar", { name })}
-				/>
+				<img className="user-card-photo" src={avatarSrc} alt="" />
 				<div className="user-card-container">
 					<header className="user-card-header">
 						<h3>{name}</h3>

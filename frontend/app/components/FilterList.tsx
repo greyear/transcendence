@@ -5,26 +5,28 @@ type FilterListProps = {
 	filters: string[];
 	activeFilter: string;
 	onFilterChange: (filter: string) => void;
+	ariaLabel?: string;
 };
 
 export const FilterList = ({
 	filters,
 	activeFilter,
 	onFilterChange,
+	ariaLabel,
 }: FilterListProps) => {
 	return (
-		<ul className="filter-list">
+		<fieldset className="filter-list" aria-label={ariaLabel}>
 			{filters.map((filter) => (
-				<li key={filter}>
-					<MainButton
-						variant="pill"
-						active={activeFilter === filter}
-						onClick={() => onFilterChange(filter)}
-					>
-						{filter}
-					</MainButton>
-				</li>
+				<MainButton
+					key={filter}
+					variant="pill"
+					active={activeFilter === filter}
+					aria-pressed={activeFilter === filter}
+					onClick={() => onFilterChange(filter)}
+				>
+					{filter}
+				</MainButton>
 			))}
-		</ul>
+		</fieldset>
 	);
 };

@@ -1,7 +1,8 @@
-import { Filter, NavArrowLeft } from "iconoir-react";
-import { useEffect, useState } from "react";
+import { NavArrowLeft } from "iconoir-react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+	type MetaFunction,
 	Navigate,
 	useNavigate,
 	useOutletContext,
@@ -9,6 +10,10 @@ import {
 } from "react-router";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
+import {
+	CategoryFilterMenu,
+	type SearchFilterValues,
+} from "~/components/CategoryFilterMenu";
 import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
@@ -18,11 +23,14 @@ import {
 	type RecipesTab,
 	RecipesTabSchema,
 } from "~/components/RecipesGrid";
+import { CATEGORY_TYPE_CODES } from "~/components/recipe/RecipeCategorySection";
 import "~/assets/styles/recipes.css";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SortMenu } from "~/components/SortMenu";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { getCurrentPage } from "~/composables/getCurrentPage";
+import { useCategoryMap } from "~/composables/useCategoryMap";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import {
 	PER_PAGE_OPTIONS,
 	usePerPageParam,
@@ -30,6 +38,22 @@ import {
 import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
 import type { LayoutOutletContext } from "~/layouts/layout";
+
+export const meta: MetaFunction = () => [
+	{ title: "Recipes — Transcendence" },
+	{
+		name: "description",
+		content:
+			"Browse the full catalog of community recipes. Filter by cuisine, ingredients, and ratings to find your next dish.",
+	},
+];
+
+const FILTER_PARAM_BY_TYPE: Record<string, string> = {
+	meal_time: "mealType",
+	dish_type: "dishType",
+	main_ingredient: "mainIngredient",
+	cuisine: "cuisine",
+};
 
 const PER_PAGE_MENU_OPTIONS = PER_PAGE_OPTIONS.map((n) => ({
 	label: String(n),
@@ -127,11 +151,56 @@ const RecipesPage = () => {
 		navigate(`/search?${params.toString()}`);
 	};
 
+	const categories = useCategoryMap();
 	const sortOptions = useSortOptions("recipes");
 	const DEFAULT_SORT = sortOptions[0].value;
 
 	const [sortValue, setSort] = useSortParam(DEFAULT_SORT);
 	const [perPage, setPerPage] = usePerPageParam();
+
+	const mealTypeFilters = useMemo(
+		() => searchParams.getAll("mealType"),
+		[searchParams],
+	);
+	const dishTypeFilters = useMemo(
+		() => searchParams.getAll("dishType"),
+		[searchParams],
+	);
+	const mainIngredientFilters = useMemo(
+		() => searchParams.getAll("mainIngredient"),
+		[searchParams],
+	);
+	const cuisineFilters = useMemo(
+		() => searchParams.getAll("cuisine"),
+		[searchParams],
+	);
+	const filterValues = useMemo<SearchFilterValues>(
+		() => ({
+			meal_time: mealTypeFilters,
+			dish_type: dishTypeFilters,
+			main_ingredient: mainIngredientFilters,
+			cuisine: cuisineFilters,
+		}),
+		[mealTypeFilters, dishTypeFilters, mainIngredientFilters, cuisineFilters],
+	);
+
+	const handleFilterApply = (applied: SearchFilterValues) => {
+		setSearchParams(
+			(prev) => {
+				const next = new URLSearchParams(prev);
+				for (const typeCode of CATEGORY_TYPE_CODES) {
+					const paramKey = FILTER_PARAM_BY_TYPE[typeCode];
+					next.delete(paramKey);
+					for (const code of applied[typeCode]) {
+						next.append(paramKey, code);
+					}
+				}
+				next.delete("page");
+				return next;
+			},
+			{ replace: true },
+		);
+	};
 
 	// `tab` lives in the URL so it's shareable, refresh-safe, and survives
 	// re-renders from sibling URL params (sort, page).
@@ -168,6 +237,9 @@ const RecipesPage = () => {
 						params.delete("tab");
 					} else {
 						params.set("tab", next.value);
+						for (const typeCode of CATEGORY_TYPE_CODES) {
+							params.delete(FILTER_PARAM_BY_TYPE[typeCode]);
+						}
 					}
 					params.delete("page");
 					return params;
@@ -180,12 +252,21 @@ const RecipesPage = () => {
 				filters={tabsConfig.map((entry) => entry.label)}
 				activeFilter={t(TAB_LABEL_KEYS[tab])}
 				onFilterChange={handleTabChange}
+				ariaLabel={t("ariaLabels.recipesFilter")}
 			/>
 		);
 	};
 
 	const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
 	const page = getCurrentPage(searchParams, totalPages);
+
+	const documentTitle =
+		mode === "favoritesOf" && scopedUsername
+			? t("pageTitles.recipesFavoritesOf", { username: scopedUsername })
+			: mode === "authoredBy" && scopedUsername
+				? t("pageTitles.recipesAuthoredBy", { username: scopedUsername })
+				: t("pageTitles.recipes");
+	useDocumentTitle(documentTitle);
 
 	// Self-favorites has no audience: the backend always 403s (you can't be a
 	// mutual follower of yourself). Send the viewer to their own profile —
@@ -238,10 +319,13 @@ const RecipesPage = () => {
 			<div className="recipes-page-controls">
 				<SortMenu options={sortOptions} value={sortValue} onChange={setSort} />
 
-				<TextIconButton>
-					{t("common.filterButton")}
-					<Filter />
-				</TextIconButton>
+				{!isScoped && tab === "all" && (
+					<CategoryFilterMenu
+						categories={categories}
+						values={filterValues}
+						onApply={handleFilterApply}
+					/>
+				)}
 			</div>
 
 			{mode === "favoritesOf" && !isAuthResolved ? (
@@ -252,6 +336,7 @@ const RecipesPage = () => {
 					perPage={perPage}
 					onLoad={setTotalCount}
 					sortValue={sortValue}
+					filters={filterValues}
 					isAuthenticated={isAuthenticated}
 					openAuthModal={openAuthModal}
 					showNotice={showNotice}

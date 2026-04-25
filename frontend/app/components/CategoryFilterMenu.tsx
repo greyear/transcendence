@@ -1,5 +1,5 @@
 import { Filter } from "iconoir-react";
-import { type FormEvent, useEffect, useId, useRef, useState } from "react";
+import { type SyntheticEvent, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
@@ -9,21 +9,21 @@ import {
 	type CategoryMap,
 	type CategoryTypeCode,
 } from "~/components/recipe/RecipeCategorySection";
-import "~/assets/styles/searchFilterMenu.css";
+import "~/assets/styles/categoryFilterMenu.css";
 
 export type SearchFilterValues = Record<CategoryTypeCode, string[]>;
 
-type SearchFilterMenuProps = {
+type CategoryFilterMenuProps = {
 	categories: CategoryMap;
 	values: SearchFilterValues;
 	onApply: (values: SearchFilterValues) => void;
 };
 
-export const SearchFilterMenu = ({
+export const CategoryFilterMenu = ({
 	categories,
 	values,
 	onApply,
-}: SearchFilterMenuProps) => {
+}: CategoryFilterMenuProps) => {
 	const { t } = useTranslation();
 	const baseId = useId();
 	const [open, setOpen] = useState(false);
@@ -52,9 +52,15 @@ export const SearchFilterMenu = ({
 		};
 
 		const handleEscape = (e: KeyboardEvent) => {
-			if (e.key === "Escape") {
-				setOpen(false);
+			if (e.key !== "Escape") {
+				return;
 			}
+
+			setOpen(false);
+			const trigger = ref.current?.querySelector<HTMLButtonElement>(
+				".search-filter-menu__trigger",
+			);
+			trigger?.focus();
 		};
 
 		document.addEventListener("mousedown", handleOutside);
@@ -69,21 +75,33 @@ export const SearchFilterMenu = ({
 		setDraftValues((prev) => ({ ...prev, [typeCode]: codes }));
 	};
 
-	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+	const handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		onApply(draftValues);
 		setOpen(false);
 	};
 
+	const panelId = `${baseId}-panel`;
+
 	return (
 		<div className="search-filter-menu" ref={ref}>
-			<TextIconButton onClick={() => setOpen((prev) => !prev)} selected={open}>
+			<TextIconButton
+				onClick={() => setOpen((prev) => !prev)}
+				selected={open}
+				className="search-filter-menu__trigger"
+				aria-expanded={open}
+				aria-controls={panelId}
+			>
 				{t("common.filterButton")}
 				<Filter aria-hidden />
 			</TextIconButton>
 
 			{open && (
-				<form className="search-filter-menu__dropdown" onSubmit={handleSubmit}>
+				<form
+					id={panelId}
+					className="search-filter-menu__dropdown"
+					onSubmit={handleSubmit}
+				>
 					<fieldset className="search-filter-menu__fields">
 						<legend className="search-filter-menu__legend">
 							{t("common.filterButton")}

@@ -1,6 +1,6 @@
 import { UserCard } from "./cards/UserCard";
 import "../assets/styles/usersGrid.css";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
@@ -38,6 +38,7 @@ const UserListItemSchema = z.object({
 
 const UserListResponseSchema = z.object({
 	data: z.array(UserListItemSchema),
+	total_count: z.number().optional(),
 });
 
 const tabRequiresAuth = (tab: UsersTab): boolean =>
@@ -51,26 +52,6 @@ const resolveEndpoint = (tab: UsersTab): string => {
 		return `${API_BASE_URL}/users/me/following`;
 	}
 	return `${API_BASE_URL}/users`;
-};
-
-const sortUsers = (
-	users: UserCardResponse[],
-	sortValue: string,
-): UserCardResponse[] => {
-	const sorted = [...users];
-
-	switch (sortValue) {
-		case "name-asc":
-			return sorted.sort((a, b) => a.username.localeCompare(b.username));
-		case "name-desc":
-			return sorted.sort((a, b) => b.username.localeCompare(a.username));
-		case "recipes-asc":
-			return sorted.sort((a, b) => a.recipes_count - b.recipes_count);
-		case "recipes-desc":
-			return sorted.sort((a, b) => b.recipes_count - a.recipes_count);
-		default:
-			return sorted;
-	}
 };
 
 export const UsersGrid = ({
@@ -126,11 +107,18 @@ export const UsersGrid = ({
 
 		setIsLoading(true);
 
-		const endpoint = resolveEndpoint(tab);
+		const baseEndpoint = resolveEndpoint(tab);
 		const requiresCredentials = tabRequiresAuth(tab);
 
+		const params = new URLSearchParams();
+		params.set("page", String(page));
+		params.set("per_page", String(perPage));
+		if (sortValue) {
+			params.set("sort", sortValue);
+		}
+
 		fetch(
-			endpoint,
+			`${baseEndpoint}?${params}`,
 			requiresCredentials ? { credentials: "include" } : undefined,
 		)
 			.then(async (res) => {
@@ -150,9 +138,12 @@ export const UsersGrid = ({
 					return;
 				}
 				const parsed = UserListResponseSchema.safeParse(body);
-				const allUsers = parsed.success ? parsed.data.data : [];
-				onLoadRef.current?.(allUsers.length);
-				setUserList(allUsers);
+				const users = parsed.success ? parsed.data.data : [];
+				const total = parsed.success
+					? (parsed.data.total_count ?? users.length)
+					: 0;
+				onLoadRef.current?.(total);
+				setUserList(users);
 			})
 			.catch((error: unknown) => {
 				console.error(error);
@@ -161,15 +152,7 @@ export const UsersGrid = ({
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [tab, isAuthGated]);
-
-	const sortedList = useMemo(
-		() => sortUsers(userList, sortValue),
-		[userList, sortValue],
-	);
-
-	const start = (page - 1) * perPage;
-	const pageUsers = sortedList.slice(start, start + perPage);
+	}, [tab, isAuthGated, page, perPage, sortValue]);
 
 	if (isLoading) {
 		return <p className="users-grid-status">{t("usersGrid.loading")}</p>;
@@ -200,7 +183,7 @@ export const UsersGrid = ({
 
 	return (
 		<ul className="user-card-list">
-			{pageUsers.map(({ id, username, avatar, recipes_count }) => (
+			{userList.map(({ id, username, avatar, recipes_count }) => (
 				<li key={id}>
 					<UserCard
 						id={id}

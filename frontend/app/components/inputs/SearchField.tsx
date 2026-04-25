@@ -11,6 +11,7 @@ type SearchProps = {
 	mode?: "always-open" | "collapsible";
 	defaultValue?: string;
 	onSubmit?: (query: string) => void;
+	onClear?: () => void;
 };
 
 export const SearchField = ({
@@ -20,6 +21,7 @@ export const SearchField = ({
 	mode = "always-open",
 	defaultValue = "",
 	onSubmit: onSubmitProp,
+	onClear,
 }: SearchProps) => {
 	const { t } = useTranslation();
 	const id = useId();
@@ -59,7 +61,7 @@ export const SearchField = ({
 				aria-label={t("ariaLabels.openSearch")}
 				onClick={openSearch}
 			>
-				<Search />
+				<Search aria-hidden="true" />
 			</IconButton>
 		);
 	}
@@ -74,7 +76,7 @@ export const SearchField = ({
 						aria-label={t("ariaLabels.closeSearch")}
 						onClick={closeSearch}
 					>
-						<ArrowLeft />
+						<ArrowLeft aria-hidden="true" />
 					</IconButton>
 				) : (
 					<IconButton
@@ -82,7 +84,7 @@ export const SearchField = ({
 						type="submit"
 						aria-label={t("ariaLabels.search")}
 					>
-						<Search />
+						<Search aria-hidden="true" />
 					</IconButton>
 				)}
 
@@ -94,6 +96,14 @@ export const SearchField = ({
 					placeholder={placeholder}
 					aria-label={translatedAriaLabel}
 					onChange={(e) => setValue(e.target.value)}
+					onBlur={() => {
+						// If the user emptied a previously-populated field and tabbed
+						// away, treat that as a clear so the parent can drop `?q=`
+						// without forcing the user to also click the X.
+						if (value === "" && defaultValue !== "") {
+							onClear?.();
+						}
+					}}
 					onKeyDown={(e) => {
 						if (e.key === "Escape") {
 							if (mode === "collapsible") {
@@ -113,9 +123,10 @@ export const SearchField = ({
 						onClick={() => {
 							setValue("");
 							inputRef.current?.focus();
+							onClear?.();
 						}}
 					>
-						<Xmark />
+						<Xmark aria-hidden="true" />
 					</IconButton>
 				)}
 			</form>

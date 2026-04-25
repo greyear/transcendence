@@ -1,9 +1,18 @@
 import { Sparks } from "iconoir-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useOutletContext, useSearchParams } from "react-router";
+import {
+	type MetaFunction,
+	useNavigate,
+	useOutletContext,
+	useSearchParams,
+} from "react-router";
 import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
+import {
+	CategoryFilterMenu,
+	type SearchFilterValues,
+} from "~/components/CategoryFilterMenu";
 import { RecipeCard } from "~/components/cards/RecipeCard";
 import { UserCard } from "~/components/cards/UserCard";
 import { FilterList } from "~/components/FilterList";
@@ -14,10 +23,6 @@ import {
 	CATEGORY_TYPE_CODES,
 	type CategoryTypeCode,
 } from "~/components/recipe/RecipeCategorySection";
-import {
-	SearchFilterMenu,
-	type SearchFilterValues,
-} from "~/components/SearchFilterMenu";
 import { SortMenu } from "~/components/SortMenu";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import "~/assets/styles/recipesGrid.css";
@@ -25,8 +30,18 @@ import "~/assets/styles/usersGrid.css";
 import "~/assets/styles/search.css";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { useCategoryMap } from "~/composables/useCategoryMap";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import { useRelationSet } from "~/composables/useRelationSet";
 import { useSortOptions } from "~/composables/useSortOptions";
+
+export const meta: MetaFunction = () => [
+	{ title: "Search — Transcendence" },
+	{
+		name: "description",
+		content:
+			"Search recipes and cooks across the Transcendence community by name, ingredient, or category.",
+	},
+];
 
 const FILTER_PARAM_BY_TYPE: Record<CategoryTypeCode, string> = {
 	meal_time: "mealType",
@@ -81,13 +96,12 @@ const RecipesApiResponseSchema = z.object({
 const SearchUsersApiItemSchema = z.object({
 	id: z.number(),
 	username: z.string(),
+	avatar: z.string().nullable().optional(),
 	recipes_count: z.number().optional(),
 });
 
-// The /users endpoint currently returns `{ data: [...] }` without a top-level
-// count; fall back to data.length when `count` is absent.
 const SearchUsersApiResponseSchema = z.object({
-	count: z.number().optional(),
+	total_count: z.number().optional(),
 	data: z.array(SearchUsersApiItemSchema),
 });
 
@@ -102,6 +116,7 @@ type SearchRecipeItem = {
 type SearchUserItem = {
 	id: number;
 	name: string;
+	avatar: string | null;
 	recipeCount: number;
 };
 
@@ -118,7 +133,7 @@ const SearchPage = () => {
 	const { t } = useTranslation();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
-	const { isAuthenticated, openAuthModal, showNotice } =
+	const { isAuthenticated, currentUserId, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
 	const categories = useCategoryMap();
 	const {
@@ -134,13 +149,31 @@ const SearchPage = () => {
 		onAlreadyMember: () => showNotice(t("notices.alreadyFavorited")),
 	});
 
+	const {
+		ids: followingIds,
+		pendingIds: pendingFollowIds,
+		isListLoading: isFollowingLoading,
+		handleToggle: handleFollowToggle,
+	} = useRelationSet({
+		isAuthenticated,
+		openAuthModal,
+		listEndpoint: "/users/me/following",
+		itemEndpoint: (userId) => `/users/${userId}/follow`,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFollowing")),
+	});
+
 	const query = searchParams.get("q") ?? "";
+	useDocumentTitle(
+		query ? t("pageTitles.searchQuery", { query }) : t("pageTitles.search"),
+	);
 	const rawType = searchParams.get("type") ?? "recipes";
 	const typeParam = rawType === "users" ? "users" : "recipes";
 	const sort = searchParams.get("sort") ?? "";
 	const limit = parseLimit(searchParams.get("limit"));
-	const aiEnabled = searchParams.get("ai") !== "0";
-	const isAiSearch = typeParam === "recipes" && aiEnabled;
+	const aiEnabled = searchParams.get("ai") === "1";
+	// `/search/recipes` (AI) requires a query; without one, fall back to the
+	// plain `/recipes` listing so clearing the field still shows results.
+	const isAiSearch = typeParam === "recipes" && aiEnabled && query.length > 0;
 
 	const rawPage = Number(searchParams.get("page") ?? "1");
 	const page =
@@ -188,17 +221,12 @@ const SearchPage = () => {
 	const totalPages = Math.max(1, Math.ceil(total / limit));
 
 	useEffect(() => {
-		if (!query) {
-			setResults(null);
-			setIsLoading(false);
-			setHasError(false);
-			return;
-		}
-
 		const controller = new AbortController();
 
 		const params = new URLSearchParams();
-		params.set("q", query);
+		if (query) {
+			params.set("q", query);
+		}
 		params.set("limit", String(limit));
 		params.set("page", String(page));
 		if (sort) {
@@ -264,10 +292,11 @@ const SearchPage = () => {
 					}
 					setResults({
 						type: "users",
-						total: parsed.data.count ?? parsed.data.data.length,
+						total: parsed.data.total_count ?? parsed.data.data.length,
 						data: parsed.data.data.map((item) => ({
 							id: item.id,
 							name: item.username,
+							avatar: item.avatar ?? null,
 							recipeCount: item.recipes_count ?? 0,
 						})),
 					});
@@ -349,7 +378,11 @@ const SearchPage = () => {
 
 	const handleSearch = (newQuery: string) => {
 		const params = new URLSearchParams(searchParams);
-		params.set("q", newQuery);
+		if (newQuery) {
+			params.set("q", newQuery);
+		} else {
+			params.delete("q");
+		}
 		params.delete("page");
 		navigate(`/search?${params.toString()}`);
 	};
@@ -380,9 +413,9 @@ const SearchPage = () => {
 	const handleAiToggle = () => {
 		const params = new URLSearchParams(searchParams);
 		if (aiEnabled) {
-			params.set("ai", "0");
-		} else {
 			params.delete("ai");
+		} else {
+			params.set("ai", "1");
 		}
 		navigate(`/search?${params.toString()}`);
 	};
@@ -410,7 +443,7 @@ const SearchPage = () => {
 		value: String(n),
 	}));
 
-	const totalLabel = query ? `${t("searchPage.totalCount")} ${total}` : "";
+	const totalLabel = `${t("searchPage.totalCount")} ${total}`;
 
 	return (
 		<section className="search-page">
@@ -421,6 +454,7 @@ const SearchPage = () => {
 					key={query}
 					defaultValue={query}
 					onSubmit={handleSearch}
+					onClear={() => handleSearch("")}
 					placeholder={t("common.searchPlaceholder")}
 				/>
 				{typeParam === "recipes" && (
@@ -449,33 +483,35 @@ const SearchPage = () => {
 				filters={tabs}
 				activeFilter={activeTab}
 				onFilterChange={handleTabChange}
+				ariaLabel={t("ariaLabels.searchFilter")}
 			/>
 
 			<div className="search-page-controls">
-				<SortMenu
-					options={sortOptions}
-					value={sort}
-					onChange={handleSortChange}
-				/>
-
 				{typeParam === "recipes" && (
-					<SearchFilterMenu
-						categories={categories}
-						values={filterValues}
-						onApply={handleFilterApply}
-					/>
+					<>
+						<SortMenu
+							options={sortOptions}
+							value={sort}
+							onChange={handleSortChange}
+						/>
+						<CategoryFilterMenu
+							categories={categories}
+							values={filterValues}
+							onApply={handleFilterApply}
+						/>
+					</>
 				)}
 			</div>
 
-			{query && isLoading && (
+			{isLoading && (
 				<p className="search-page__status">{t("searchPage.searching")}</p>
 			)}
 
-			{query && !isLoading && hasError && (
+			{!isLoading && hasError && (
 				<p className="search-page__status">{t("searchPage.error")}</p>
 			)}
 
-			{query && !isLoading && !hasError && results && (
+			{!isLoading && !hasError && results && (
 				<>
 					{aiEnabled && results.type === "recipes" && results.summary && (
 						<p className="search-page__summary">{results.summary}</p>
@@ -506,9 +542,20 @@ const SearchPage = () => {
 						</ul>
 					) : (
 						<ul className="user-card-list">
-							{results.data.map(({ id, name, recipeCount }) => (
+							{results.data.map(({ id, name, avatar, recipeCount }) => (
 								<li key={id}>
-									<UserCard id={id} name={name} recipeCount={recipeCount} />
+									<UserCard
+										id={id}
+										name={name}
+										avatar={avatar}
+										recipeCount={recipeCount}
+										isFollowing={followingIds.has(id)}
+										isFollowPending={
+											isFollowingLoading || pendingFollowIds.has(id)
+										}
+										onFollowToggle={handleFollowToggle}
+										isOwnCard={currentUserId === id}
+									/>
 								</li>
 							))}
 						</ul>
@@ -516,27 +563,23 @@ const SearchPage = () => {
 				</>
 			)}
 
-			{query &&
-				!isLoading &&
-				!hasError &&
-				results &&
-				results.data.length > 0 && (
-					<div className="pagination-row">
-						{!isAiSearch && (
-							<SortMenu
-								options={limitOptions}
-								value={String(limit)}
-								onChange={handleLimitChange}
-								label={`${t("common.perPage")}: ${limit}`}
-							/>
-						)}
-						<Pagination
-							totalElementsCount={total}
-							elementsPerPage={limit}
-							totalPagesCount={totalPages}
+			{!isLoading && !hasError && results && results.data.length > 0 && (
+				<div className="pagination-row">
+					{!isAiSearch && (
+						<SortMenu
+							options={limitOptions}
+							value={String(limit)}
+							onChange={handleLimitChange}
+							label={`${t("common.perPage")}: ${limit}`}
 						/>
-					</div>
-				)}
+					)}
+					<Pagination
+						totalElementsCount={total}
+						elementsPerPage={limit}
+						totalPagesCount={totalPages}
+					/>
+				</div>
+			)}
 		</section>
 	);
 };

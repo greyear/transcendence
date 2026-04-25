@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
 	useLocation,
 	useNavigate,
+	type MetaFunction,
 	useOutletContext,
 	useParams,
 } from "react-router";
@@ -13,13 +14,24 @@ import { FireFlame, Reports, StarSolid, Translate, Trash } from "iconoir-react";
 import { IconButton } from "~/components/buttons/IconButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { ConfirmationModal } from "~/components/ConfirmationModal";
+import { NotFoundView } from "~/components/NotFoundView";
 import { RatingModal } from "~/components/rating/ratingModal";
 import { ReviewModal } from "~/components/review/reviewModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
+import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
+
+export const meta: MetaFunction = () => [
+	{ title: "Recipe — Transcendence" },
+	{
+		name: "description",
+		content:
+			"View the full recipe with ingredients, step-by-step instructions, and community reviews.",
+	},
+];
 
 type RecipeIngredient = {
 	ingredient_id: number;
@@ -323,6 +335,12 @@ const RecipePage = () => {
 		useState("");
 	const [deletingRecipe, setDeletingRecipe] = useState(false);
 	const [isDeleteRecipeModalOpen, setIsDeleteRecipeModalOpen] = useState(false);
+
+	useDocumentTitle(
+		recipe
+			? t("pageTitles.recipe", { title: recipe.title })
+			: t("pageTitles.recipeLoading"),
+	);
 
 	const toggleFavorite = async () => {
 		if (!id || isFavoritePending) {
@@ -751,6 +769,10 @@ const RecipePage = () => {
 		return <p className="recipe-page-status">{t("recipePage.loading")}</p>;
 	}
 
+	if (errorStatus === 404) {
+		return <NotFoundView />;
+	}
+
 	if (errorStatus !== null) {
 		return (
 			<p className="recipe-page-status">
@@ -760,9 +782,7 @@ const RecipePage = () => {
 	}
 
 	if (!recipe) {
-		return (
-			<p className="recipe-page-status">{t("recipePage.recipeNotFound")}</p>
-		);
+		return <NotFoundView />;
 	}
 
 	const instructionOccurrences = new Map<string, number>();
@@ -781,12 +801,16 @@ const RecipePage = () => {
 	});
 
 	return (
-		<section className="recipe-page" aria-labelledby="recipe-title">
+		<div className="recipe-page">
 			{showPictureUploadWarning && (
-				<output className="recipe-page-warning">
-					<p className="text-body3">
+				<output
+					className="recipe-page-warning"
+					aria-live="polite"
+					aria-atomic="true"
+				>
+					<span className="recipe-page-warning-text text-body3">
 						{t("recipePage.pictureUploadFailedWarning")}
-					</p>
+					</span>
 					<button
 						type="button"
 						className="recipe-page-warning-dismiss"
@@ -816,10 +840,19 @@ const RecipePage = () => {
 
 			<div className="recipe-page-actions">
 				{recipe.rating_avg !== null && (
-					<div className="recipe-rating-display text-label">
-						<span>{recipe.rating_avg.toFixed(1)}</span>
+					<div
+						className="recipe-rating-display text-label"
+						role="img"
+						aria-label={t("recipePage.ratingDisplayLabel", {
+							rating: recipe.rating_avg.toFixed(1),
+							count: recipe.rating_count,
+						})}
+					>
+						<span aria-hidden="true">{recipe.rating_avg.toFixed(1)}</span>
 						<StarSolid aria-hidden="true" />
-						<span className="recipe-rating-count">({recipe.rating_count})</span>
+						<span className="recipe-rating-count" aria-hidden="true">
+							({recipe.rating_count})
+						</span>
 					</div>
 				)}
 				{!isAuthor && (
@@ -1080,7 +1113,7 @@ const RecipePage = () => {
 						<p className="text-body2">{t("recipePage.noReviewsAvailable")}</p>
 					)}
 				</section>
-			</section>
+			</div>
 			<RatingModal
 				isOpen={isRatingModalOpen}
 				onClose={onCloseRatingModal}

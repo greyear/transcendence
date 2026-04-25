@@ -13,7 +13,7 @@
 	overflow-y: hidden;
 	margin: 0 calc(var(--space-l) * -1);
 	scrollbar-width: none;
-	padding: 0 var(--space-l);
+	padding: var(--space-xs) var(--space-l);
 }
 
 .cooks-row > li {
@@ -34,7 +34,13 @@
 	width: var(--fade-width);
 	pointer-events: none;
 	opacity: 0;
-	transition: opacity 160ms ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.cooks-row-wrapper::before,
+	.cooks-row-wrapper::after {
+		transition: opacity 160ms ease;
+	}
 }
 
 .cooks-row-wrapper::before {

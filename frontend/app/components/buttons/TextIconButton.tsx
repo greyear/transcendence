@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { AriaAttributes, ReactNode } from "react";
 import "../../assets/styles/textIconButton.css";
 import { Link } from "react-router";
 
@@ -13,6 +13,9 @@ interface TextButtonProps {
 	variant?: TextButtonVariant;
 	selected?: boolean;
 	disabled?: boolean;
+	"aria-haspopup"?: AriaAttributes["aria-haspopup"];
+	"aria-expanded"?: AriaAttributes["aria-expanded"];
+	"aria-controls"?: AriaAttributes["aria-controls"];
 }
 
 export const TextIconButton = ({
@@ -22,8 +25,11 @@ export const TextIconButton = ({
 	size = "body1",
 	variant = "primary",
 	className = "",
-	selected = false,
+	selected,
 	disabled = false,
+	"aria-haspopup": ariaHasPopup,
+	"aria-expanded": ariaExpanded,
+	"aria-controls": ariaControls,
 }: TextButtonProps) => {
 	const combinedClasses =
 		`text-button text-button--${size} ${variant} ${selected ? "text-selected" : ""} ${disabled ? "is-disabled" : ""} ${className}`.trim();
@@ -41,8 +47,11 @@ export const TextIconButton = ({
 
 					onClick?.();
 				}}
-				aria-pressed={selected}
+				aria-current={selected ? "page" : undefined}
 				aria-disabled={disabled}
+				aria-haspopup={ariaHasPopup}
+				aria-expanded={ariaExpanded}
+				aria-controls={ariaControls}
 				tabIndex={disabled ? -1 : undefined}
 			>
 				{children}
@@ -55,7 +64,10 @@ export const TextIconButton = ({
 			type="button"
 			onClick={onClick}
 			className={combinedClasses}
-			aria-pressed={selected}
+			aria-pressed={ariaExpanded !== undefined ? undefined : selected}
+			aria-haspopup={ariaHasPopup}
+			aria-expanded={ariaExpanded}
+			aria-controls={ariaControls}
 			disabled={disabled}
 		>
 			{children}

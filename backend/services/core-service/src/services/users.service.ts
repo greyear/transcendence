@@ -95,12 +95,12 @@ export const getAllUsers = async (
 						u.avatar,
 						COUNT(r.id)::int AS recipes_count
 					FROM users u
-					LEFT JOIN recipes r ON r.author_id = u.id
+					LEFT JOIN recipes r ON r.author_id = u.id AND r.status = 'published'
 					WHERE u.is_deleted = false AND u.username ILIKE $1
 					GROUP BY u.id, u.username, u.avatar
 					ORDER BY
-						CASE WHEN u.username ILIKE $2 THEN 0 ELSE 1 END,
 						${sortExpr},
+						CASE WHEN u.username ILIKE $2 THEN 0 ELSE 1 END,
 						u.id ASC
 					LIMIT $3 OFFSET $4
 					`,
@@ -112,7 +112,7 @@ export const getAllUsers = async (
 				),
 			]);
 
-			const total_count = countResult.rows[0].total as number;
+			const total_count = z.number().parse(countResult.rows[0]?.total);
 			const total_pages = Math.ceil(total_count / perPage);
 			const data = parseUserRows(dataResult.rows, userListItemSchema, "user");
 			return { data, total_count, total_pages, page, per_page: perPage };
@@ -127,7 +127,7 @@ export const getAllUsers = async (
 					u.avatar,
 					COUNT(r.id)::int AS recipes_count
 				FROM users u
-				LEFT JOIN recipes r ON r.author_id = u.id
+				LEFT JOIN recipes r ON r.author_id = u.id AND r.status = 'published'
 				WHERE u.is_deleted = false
 				GROUP BY u.id, u.username, u.avatar
 				ORDER BY ${sortExpr}
@@ -140,7 +140,7 @@ export const getAllUsers = async (
 			),
 		]);
 
-		const total_count = countResult.rows[0].total as number;
+		const total_count = z.number().parse(countResult.rows[0]?.total);
 		const total_pages = Math.ceil(total_count / perPage);
 		const data = parseUserRows(dataResult.rows, userListItemSchema, "user");
 		return { data, total_count, total_pages, page, per_page: perPage };

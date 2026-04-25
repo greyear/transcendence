@@ -198,7 +198,12 @@
 	grid-area: remove;
 	align-self: center;
 	color: var(--text-secondary);
-	transition: color 0.15s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.icon-button.recipe-remove-button {
+		transition: color 0.15s ease;
+	}
 }
 
 .icon-button.recipe-remove-button svg {
