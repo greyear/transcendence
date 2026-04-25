@@ -24,6 +24,7 @@ import {
 import {
 	addRecipeToFavorites,
 	archiveRecipe,
+	type CategoryFilters,
 	createRecipe,
 	deleteReview,
 	getAllRecipesPaginated,
@@ -564,11 +565,32 @@ const getAllRecipesHandler = async (
 			res.status(400).json({ error: pagination.error });
 			return;
 		}
+		const sort =
+			typeof req.query.sort === "string" ? req.query.sort : undefined;
+
+		const parseArrayParam = (value: unknown): string[] => {
+			if (typeof value === "string") return value ? [value] : [];
+			if (Array.isArray(value))
+				return (value as unknown[]).filter(
+					(v): v is string => typeof v === "string" && v.length > 0,
+				);
+			return [];
+		};
+
+		const filters: CategoryFilters = {
+			mealType: parseArrayParam(req.query.mealType),
+			dishType: parseArrayParam(req.query.dishType),
+			mainIngredient: parseArrayParam(req.query.mainIngredient),
+			cuisine: parseArrayParam(req.query.cuisine),
+		};
+
 		const result = await getAllRecipesPaginated(
 			pagination.value.page,
 			pagination.value.per_page,
 			locale,
 			search || undefined,
+			sort,
+			filters,
 		);
 		res.status(200).json(result);
 	} catch (error) {
