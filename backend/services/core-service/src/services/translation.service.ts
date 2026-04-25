@@ -166,7 +166,7 @@ const requestTranslations = async (
 	if (!TRANSLATION_API_URL) {
 		return null;
 	}
-
+	console.log(`Requesting translations for source locale "${sourceLocale}" from external service...`);
 	try {
 		const response = await fetch(TRANSLATION_API_URL, {
 			method: "POST",
@@ -183,6 +183,7 @@ const requestTranslations = async (
 			}),
 			signal: timeoutSignal(),
 		});
+		console.log(`Translation API responded with status ${response.status}`);
 
 		if (!response.ok) {
 			console.warn(
@@ -193,6 +194,7 @@ const requestTranslations = async (
 		}
 
 		const data = (await response.json()) as TranslationApiResponse;
+		console.log("Translation API response data:", data);
 		if (!data.translations || typeof data.translations !== "object") {
 			return null;
 		}
