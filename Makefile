@@ -95,8 +95,23 @@ db-seed:
 		schema_waited=$$((schema_waited + 1)); \
 	done
 	@echo "Applying users + recipes seeds via docker-compose..."
-	@docker-compose exec -T core-db psql -v ON_ERROR_STOP=1 -U core_user -d core_db -f /docker-entrypoint-initdb.d/03-seed-users.sql
-	@docker-compose exec -T core-db psql -v ON_ERROR_STOP=1 -U core_user -d core_db -f /docker-entrypoint-initdb.d/04-seed-recipes.sql
+	@run_seed() { \
+		file="$$1"; \
+		attempts=0; \
+		until docker-compose exec -T core-db psql -q -v ON_ERROR_STOP=1 -U core_user -d core_db -f "$$file" >/dev/null; do \
+			attempts=$$((attempts + 1)); \
+			if [ $$attempts -ge 5 ]; then \
+				echo "✗ Failed to apply $$file after $$attempts attempts"; \
+				exit 1; \
+			fi; \
+			echo "Seed failed for $$file (attempt $$attempts/5), retrying in 2s..."; \
+			sleep 2; \
+			echo "Waiting for core-db to become ready again..."; \
+			until docker exec core-postgres pg_isready -U core_user -d core_db >/dev/null 2>&1; do sleep 1; done; \
+		done; \
+	}; \
+	run_seed /docker-entrypoint-initdb.d/03-seed-users.sql; \
+	run_seed /docker-entrypoint-initdb.d/04-seed-recipes.sql
 	@echo "Seed counts:"
 	@echo "  users:   `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM users;\" | tr -d '[:space:]'`"
 	@echo "  recipes: `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM recipes;\" | tr -d '[:space:]'`"
