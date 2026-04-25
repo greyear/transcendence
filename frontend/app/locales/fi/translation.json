@@ -397,6 +397,7 @@
 		"servingsRequired": "Annokset on pakollinen",
 		"servingsInt": "Annosten tulee olla kokonaisluku",
 		"servingsPositive": "Annosten tulee olla positiivinen kokonaisluku",
+		"servingsMax": "Annoksia saa olla enintään 9999",
 		"spicinessRequired": "Tulisuus on pakollinen",
 		"spicinessInt": "Tulisuuden tulee olla kokonaisluku",
 		"spicinessRange": "Tulisuuden tulee olla välillä 0–3",
