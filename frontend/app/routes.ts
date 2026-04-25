@@ -17,6 +17,7 @@ export default [
 		route("/policy", "routes/policy.tsx"),
 		route("/terms", "routes/terms.tsx"),
 		route("/search", "routes/search.tsx"),
+		route("*", "routes/not-found.tsx"),
 	]),
 	route("/set-locale", "routes/set-locale.ts"),
 ] satisfies RouteConfig;

@@ -11,6 +11,7 @@ import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { InputField } from "~/components/inputs/InputField";
+import { NotFoundView } from "~/components/NotFoundView";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import type { LayoutOutletContext } from "~/layouts/layout";
@@ -394,6 +395,10 @@ const ProfilePage = () => {
 		);
 	}
 
+	if (errorStatus === 404) {
+		return <NotFoundView />;
+	}
+
 	if (errorStatus !== null) {
 		return (
 			<p className="profile-page-status">
@@ -403,7 +408,7 @@ const ProfilePage = () => {
 	}
 
 	if (!profile) {
-		return <p className="profile-page-status">{t("profilePage.notFound")}</p>;
+		return <NotFoundView />;
 	}
 
 	return (

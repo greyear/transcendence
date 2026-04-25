@@ -7,6 +7,7 @@ import "../assets/styles/recipe.css";
 import { Reports, StarSolid, Trash } from "iconoir-react";
 import { IconButton } from "~/components/buttons/IconButton";
 import { ConfirmationModal } from "~/components/ConfirmationModal";
+import { NotFoundView } from "~/components/NotFoundView";
 import { RatingModal } from "~/components/rating/ratingModal";
 import { ReviewModal } from "~/components/review/reviewModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
@@ -476,6 +477,10 @@ const RecipePage = () => {
 		return <p className="recipe-page-status">{t("recipePage.loading")}</p>;
 	}
 
+	if (errorStatus === 404) {
+		return <NotFoundView />;
+	}
+
 	if (errorStatus !== null) {
 		return (
 			<p className="recipe-page-status">
@@ -485,9 +490,7 @@ const RecipePage = () => {
 	}
 
 	if (!recipe) {
-		return (
-			<p className="recipe-page-status">{t("recipePage.recipeNotFound")}</p>
-		);
+		return <NotFoundView />;
 	}
 
 	const instructionOccurrences = new Map<string, number>();

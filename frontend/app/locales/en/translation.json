@@ -40,6 +40,12 @@
 		"policy": "Privacy Policy",
 		"profile": "Profile"
 	},
+	"notFoundPage": {
+		"titleLine1": "Error 404:",
+		"titleLine2": "You're lost in the noodles!",
+		"backHome": "Back to Home",
+		"imageAlt": "Lost chef in a kitchen"
+	},
 	"recipesPage": {
 		"title": "Recipes",
 		"totalCount": "Total recipes:",
