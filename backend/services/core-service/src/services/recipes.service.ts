@@ -464,7 +464,10 @@ export const getAllRecipesPaginated = async (
 ): Promise<PaginatedResponse<RecipeListItem>> => {
 	try {
 		const offset = (page - 1) * perPage;
-		const normalizedSearch = search?.trim();
+		// Strip punctuation/symbols that would produce invalid to_tsquery syntax.
+		// If nothing remains after sanitizing (e.g. input was "!!!"), skip search entirely.
+		const normalizedSearch =
+			search?.replace(/[^\p{L}\p{N}\s]/gu, "").trim() || undefined;
 
 		if (normalizedSearch) {
 			const [dataResult, countResult] = await Promise.all([
@@ -500,9 +503,9 @@ export const getAllRecipesPaginated = async (
 							LIMIT 1
 						) AS picture_url
 					FROM searchable_recipes
-					WHERE search_vector @@ to_tsquery('simple', regexp_replace(regexp_replace(trim($4), '[^[:alnum:][:space:]]', '', 'g'), 's+', ':* & ', 'g') || ':*')
+					WHERE search_vector @@ to_tsquery('simple', regexp_replace(trim($4), '[[:space:]]+', ':* & ', 'g') || ':*')
 					ORDER BY
-						ts_rank(search_vector, to_tsquery('simple', regexp_replace(regexp_replace(trim($4), '[^[:alnum:][:space:]]', '', 'g'), 's+', ':* & ', 'g') || ':*')) DESC,
+						ts_rank(search_vector, to_tsquery('simple', regexp_replace(trim($4), '[[:space:]]+', ':* & ', 'g') || ':*')) DESC,
 						created_at DESC,
 						id DESC
 					LIMIT $2 OFFSET $3
@@ -524,7 +527,7 @@ export const getAllRecipesPaginated = async (
 					)
 					SELECT COUNT(*)::int AS total
 					FROM searchable_recipes
-					WHERE search_vector @@ to_tsquery('simple', regexp_replace(regexp_replace(trim($2), '[^[:alnum:][:space:]]', '', 'g'), 's+', ':* & ', 'g') || ':*')
+					WHERE search_vector @@ to_tsquery('simple', regexp_replace(trim($2), '[[:space:]]+', ':* & ', 'g') || ':*')
 					`,
 					[locale, normalizedSearch],
 				),
