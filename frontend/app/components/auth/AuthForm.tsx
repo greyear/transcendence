@@ -137,14 +137,12 @@ export const AuthForm = ({
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
-	const [message, setMessage] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isGoogleReady, setIsGoogleReady] = useState(false);
 
 	const handleGoogleCredential = useCallback(
 		async (googleResponse: GoogleCredentialResponse) => {
 			setError("");
-			setMessage("");
 
 			if (!googleResponse.credential) {
 				setError(t("authModal.googleTokenError"));
@@ -169,7 +167,6 @@ export const AuthForm = ({
 
 				setEmail("");
 				setPassword("");
-				setMessage(t("authModal.loginSuccess"));
 				onSuccess?.();
 			} catch (googleError) {
 				console.error(googleError);
@@ -238,7 +235,6 @@ export const AuthForm = ({
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setError("");
-		setMessage("");
 		setIsSubmitting(true);
 
 		try {
@@ -265,13 +261,11 @@ export const AuthForm = ({
 
 			if (mode === "signup") {
 				setPassword("");
-				setMessage(t("authModal.signupSuccess"));
 				onSuccess?.();
 				return;
 			}
 
 			setPassword("");
-			setMessage(t("authModal.loginSuccess"));
 			onSuccess?.();
 		} catch (submitError) {
 			console.error(submitError);
@@ -288,10 +282,23 @@ export const AuthForm = ({
 	const toggleMode = () => {
 		setMode((currentMode) => (currentMode === "login" ? "signup" : "login"));
 		setError("");
-		setMessage("");
 		setEmail("");
 		setPassword("");
 	};
+
+	useEffect(() => {
+		if (!error) {
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			setError("");
+		}, 5_000);
+
+		return () => {
+			window.clearTimeout(timeoutId);
+		};
+	}, [error]);
 
 	const canUseGoogleButton = isGoogleReady && !googleMissingClientId;
 
