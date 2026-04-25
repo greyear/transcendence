@@ -75,6 +75,10 @@
 		"reviewAnonymous": "Удаленный пользователь",
 		"confirmDeleteReview": "Удалить ваш отзыв?",
 		"deleteReviewError": "Не удалось удалить отзыв (статус: {{status}}).",
+		"translateReview": "Перевести",
+		"translatingReview": "Перевод...",
+		"showOriginalReview": "Показать оригинал",
+		"translateReviewError": "Не удалось перевести отзыв (статус: {{status}}).",
 		"step": "Шаг {{number}}",
 		"pictureUploadFailedWarning": "Рецепт создан, но загрузить фото не удалось. Используется стандартное изображение — можно попробовать добавить фото позже."
 	},

@@ -75,6 +75,10 @@
 		"reviewAnonymous": "Poistettu käyttäjä",
 		"confirmDeleteReview": "Poistetaanko arvostelusi?",
 		"deleteReviewError": "Arvostelun poistaminen epäonnistui (tila: {{status}}).",
+		"translateReview": "Käännä",
+		"translatingReview": "Käännetään...",
+		"showOriginalReview": "Näytä alkuperäinen",
+		"translateReviewError": "Arvostelun kääntäminen epäonnistui (tila: {{status}}).",
 		"step": "Vaihe {{number}}",
 		"pictureUploadFailedWarning": "Resepti luotiin, mutta kuvan lataus epäonnistui. Käytössä on oletuskuva — voit yrittää lisätä kuvan myöhemmin uudelleen."
 	},

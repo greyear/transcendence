@@ -75,6 +75,10 @@
 		"reviewAnonymous": "Deleted user",
 		"confirmDeleteReview": "Delete your review?",
 		"deleteReviewError": "Failed to delete review (status: {{status}}).",
+		"translateReview": "Translate",
+		"translatingReview": "Translating...",
+		"showOriginalReview": "Show original",
+		"translateReviewError": "Failed to translate review (status: {{status}}).",
 		"step": "Step {{number}}",
 		"pictureUploadFailedWarning": "Recipe created, but the photo could not be uploaded. A default image is being used — you can try adding a photo again later."
 	},
