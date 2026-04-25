@@ -441,6 +441,8 @@ const RecipePage = () => {
 			return;
 		}
 
+		let shouldNavigateToRecipes = false;
+
 		setDeleteRecipeDeletionError("");
 		setDeletingRecipe(true);
 
@@ -457,7 +459,7 @@ const RecipePage = () => {
 				return;
 			}
 
-			navigate("/recipes");
+		shouldNavigateToRecipes = true;
 		} catch (error) {
 			console.error(error);
 			setDeleteRecipeDeletionError(
@@ -466,6 +468,10 @@ const RecipePage = () => {
 		} finally {
 			setDeletingRecipe(false);
 			setIsDeleteRecipeModalOpen(false);
+		}
+
+		if (shouldNavigateToRecipes) {
+			navigate("/recipes");
 		}
 	};
 
@@ -675,6 +681,20 @@ const RecipePage = () => {
 				setAreReviewsLoading(false);
 			});
 	}, [id]);
+
+	useEffect(() => {
+		if (!deleteRecipeDeletionError) {
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			setDeleteRecipeDeletionError("");
+		}, 5_000);
+
+		return () => {
+			window.clearTimeout(timeoutId);
+		};
+	}, [deleteRecipeDeletionError]);
 
 	useEffect(() => {
 		if (!isAuthenticated || !id) {
