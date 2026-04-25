@@ -55,5 +55,5 @@ const getSearchRecipeByIdHandler = async (
 	}
 };
 
-internalSearchRouter.get("/recipes/:id", getSearchRecipeByIdHandler);
 internalSearchRouter.get("/recipes", getSearchRecipesHandler);
+internalSearchRouter.get("/recipes/:id", getSearchRecipeByIdHandler);

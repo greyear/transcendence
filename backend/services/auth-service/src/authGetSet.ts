@@ -44,11 +44,15 @@ authGetSet.delete(
 					body: JSON.stringify({ id: userId }),
 				});
 				if (!fetchRes.ok) {
-					console.error(`Core delete of user ${userId} failed with status ${fetchRes.status}`);
+					console.error(
+						`Core delete of user ${userId} failed with status ${fetchRes.status}`,
+					);
 				}
-
 			} catch (error) {
-				console.error(`Failed to delete core profile for user ${userId}:`, error);
+				console.error(
+					`Failed to delete core profile for user ${userId}:`,
+					error,
+				);
 			}
 
 			res.json({ message: "User deleted" });
@@ -168,17 +172,14 @@ authGetSet.post(
 		3. If missing or invalid token → return { authenticated: false }
 	Always returns 200 — safe to call for guests.
 */
-authGetSet.get(
-	"/session",
-	(req: Request, res: Response) => {
-		const decodedToken = help.fetchDecodeToken(req);
-		if (!decodedToken) {
-			res.status(200).json({ authenticated: false });
-			return;
-		}
-		res.status(200).json({ authenticated: true });
-	},
-);
+authGetSet.get("/session", (req: Request, res: Response) => {
+	const decodedToken = help.fetchDecodeToken(req);
+	if (!decodedToken) {
+		res.status(200).json({ authenticated: false });
+		return;
+	}
+	res.status(200).json({ authenticated: true });
+});
 
 /*
 	Fetch user details endpoint
