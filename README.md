@@ -1,6 +1,6 @@
 *This project has been created as part of the 42 curriculum by azinchen, msavelie, ssalorin, jkarhu, elehtone.*
 
-# ft_transcendence
+# Recipe Creating Platform (RCP)
 
 A recipe sharing platform with a clean interface, social features and AI integration.
 
@@ -48,6 +48,39 @@ Our team consists of 5 members:
 - **Developers**: Implement features, review code, test, and document contributions.
 	- All 5 of us were developers to various degrees
 
+## Team Contributions
+
+This is a rough summary of what each person worked on. See the Git history for full details.
+
+### Anya Zinchenko
+**GitHub**: [greyear](https://github.com/greyear)
+
+Anya coordinated the project and handled a lot of the backend glue work. She worked on integrating the Core Service and API Gateway, authentication (including Google OAuth and session handling), user profiles and followers, recipe creation and management, search integration, and multilingual support. Also did a fair bit of the deployment config and documentation. Roughly 50 merged PRs across various system-wide stuff.
+
+### Nick Saveliev
+**GitHub**: [FPyMEHTAPIU](https://github.com/FPyMEHTAPIU)
+
+Nick led the frontend work. Handled the React setup, component structure, and routing. Built the core UI bits like grids, pagination, modals, and form inputs. Also did authentication flows on the frontend, styling, and Vite configuration. Around 130 commits to the frontend.
+
+### Seela Salorinta
+**GitHub**: [SeelaSalorinta](https://github.com/SeelaSalorinta)
+
+Seela did most of the actual frontend components. Built recipe cards, recipe details pages, user grids, profile views, cook listings, filters, and sorting. Over 150 commits across the frontend—basically built most of what you see on screen.
+
+### Jimi Karhu
+**GitHub**: [gitenjoyer95](https://github.com/gitenjoyer95)
+
+Jimi built the Python microservices, mainly the search service (with RAG/AI for recipe search) and the translation service. Set up the Docker containers, error handling, and integration with the API Gateway.
+
+### Eric Lehtonen
+**GitHub**: [el-kittiwake](https://github.com/el-kittiwake)
+
+Eric built the auth service. Handled user registration, login, session management, Google OAuth, JWT tokens, and permissions. Around 68 commits mainly to the auth service.
+
+### Summary
+
+Roughly 600 commits across the whole project. Nick and Seela handled the frontend, Eric did auth, Jimi did the Python services, and Anya coordinated the rest and did a lot of the integration work.
+
 ## Project management practices
 	
 Our group tried to follow the subject guidelines regarding project management.
@@ -83,10 +116,8 @@ Each service requires environment variable configuration. Copy the `env.template
 # Root project level
 cp .env.template .env
 
-# Backend services
-cp backend/services/api-gateway/.env.template backend/services/api-gateway/.env
-cp backend/services/core-service/.env.template backend/services/core-service/.env
-cp backend/services/auth-service/.env.template backend/services/auth-service/.env
+# Frontend services
+cp frontend/.env.example frontend/.env
 ```
 
 Replace placeholder values (e.g., `JWT_SECRET="your-super-secret-jwt-key-min-32-chars"`) with appropriate configuration values for your environment.
@@ -192,32 +223,30 @@ All AI-generated code passes before human eyes prior to any use in the project.
 - **Framework**: React 19 with React Router v7
 - **Language**: TypeScript 5.9+
 - **Build Tool**: Vite 7.1
-- **Styling**: <unknown or lacking> (CSS framework or solution)
-- **State Management**: React Context API / <unknown or lacking>
+- **Styling**: SCSS (Dart Sass) — component-scoped stylesheets with shared mixins and variables
 - **Internationalisation**: react-i18next with remix-i18next
 - **Form Validation**: Zod 4.3
-- **Component Library**: Iconoir React (icons)
-- **HTTP Client**: <unknown or lacking>
+- **Component Library**: Icons library
 
 **Rationale**: React Router v7 provides modern, performant routing with server-side rendering capabilities. Vite ensures fast development build cycles and optimised production bundles. TypeScript provides type safety across the frontend layer.
 
 ## Backend
 
-- **API Gateway**: Express.js 4.18 with TypeScript
-- **Service Architecture**: Microservices pattern with three independent services
+- **API Gateway**: Express.js 5
+- **Service Architecture**: Microservices (five independent services)
 - **Language**: TypeScript 5.9+
 - **Authentication Service**: Node.js with Express
 - **Core Service**: Node.js with Express
 - **Form Validation**: Zod 4.3 for schema validation
 - **Testing**: Jest 30.3 with Supertest
 
-**Rationale**: Express provides a lightweight, flexible HTTP server foundation. Microservices architecture enables independent scaling and deployment of different concerns (authentication, recipes, notifications).
+**Rationale**: Express provides a lightweight, flexible HTTP server foundation. Microservices architecture enables independent scaling and deployment of different concerns (api-gateway, auth-service, core-service, search-service, translation-service).
 
 ## Databases
 
 - **Auth Database**: MongoDB 6 (stores user authentication credentials and sessions)
   - **Port**: 27017
-  - **Credentials**: Configurable via environment variables
+  - **Name**: `auth_db`
   
 - **Core Database**: PostgreSQL 15 (stores recipes, users, followers, ratings, comments)
   - **Port**: 5433
@@ -230,7 +259,7 @@ All AI-generated code passes before human eyes prior to any use in the project.
 - **Containerisation**: Docker & Docker Compose
 - **Reverse Proxy & Load Balancing**: Traefik v3.0
 - **SSL/TLS**: Self-signed certificates for HTTPS
-- **Service Orchestration**: Docker Compose (development/staging); Kubernetes manifests available for production
+- **Service Orchestration**: Docker Compose (development/staging)
 
 **Rationale**: Docker ensures consistency across development and production environments. Traefik provides automatic HTTPS routing and service discovery within the containerised environment.
 
@@ -238,10 +267,10 @@ All AI-generated code passes before human eyes prior to any use in the project.
 
 # Features list
 
-## Core features
+## Core features and developer
 
 | Feature | Description | Developer |
-|---------|-------------|----------|
+|---------|-------------|-----------|
 | User Registration & Authentication | Secure user account creation and login | Eric, Anya, Nick |
 | User Profiles | Customisable user profiles with avatar support | Anya |
 | Recipe Creation | Users can create and publish recipes | Nick, Anya |
@@ -253,6 +282,7 @@ All AI-generated code passes before human eyes prior to any use in the project.
 | Multilingual Support | Interface in English, Finnish, Russian | Nick, Seela, Anya |
 | Responsive Design | Mobile and desktop compatibility | Nick, Seela |
 | AI Features | Recipe recommendations and intelligent search | Nick, Jimi |
+| Documentation | README and other internal documentation | All members |
 
 ---
 
@@ -287,7 +317,6 @@ Due to the time pressure we had for this project we agreed on a module selection
 |-------------|------|--------|-------|
 | Standard user management and authentication | Major | 2 | Secure registration, login, and JWT-based authentication |
 | Implement remote authentication with OAuth 2.0 (Google, GitHub, 42, etc.) | Minor | 1 | Google OAuth integration for single sign-on |
-| Advanced Permissions System | Major | 2 | Role-based access control (admin, user, guest) |
 
 ### Artificial intelligence - 4 points
 
@@ -582,4 +611,8 @@ We split the system into three services that each handle one thing:
 
 **Core Service** — Manages recipes, user profiles, followers, ratings, comments, and everything else. Talks to PostgreSQL. The bulk of the app logic lives here.
 
-This separation means each service can scale independently, and we can deploy changes to auth without touching recipes (or vice versa).
+**Search Service** — AI-powered recipe search using retrieval-augmented generation (RAG). Built in Python. Handles intelligent content retrieval and recipe recommendations.
+
+**Translation Service** — On-demand recipe translation using LLM capabilities. Built in Python. Translates recipes and content between supported languages.
+
+Each service scales independently, so we can deploy auth changes without touching the recipe service, or add search without redeploying core.
