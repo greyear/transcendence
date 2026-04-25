@@ -1,3 +1,6 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
 .input-wrapper {
 	display: flex;
 	flex-direction: row;
@@ -9,10 +12,43 @@
 	padding: 12px;
 	gap: var(--space-s);
 	align-items: center;
-}
 
-.input-wrapper:focus-within {
-	border-color: var(--borders-action);
+	&:focus-within {
+		border-color: var(--borders-action);
+	}
+
+	&.error {
+		border-color: var(--surface-error);
+	}
+
+	&.floating {
+		position: relative;
+		padding: 0 12px;
+
+		.input-field {
+			height: 100%;
+			padding: 24px 0 6px;
+		}
+
+		&:focus-within .floating-label,
+		.input-field:not(:placeholder-shown) + .floating-label {
+			top: 2px;
+			transform: none;
+			font-size: var(--fs-caption-s);
+		}
+
+		&.error .floating-label {
+			color: var(--surface-error);
+		}
+	}
+
+	@include breakpoint($bp-tablet) {
+		height: 48px;
+	}
+
+	@include breakpoint($bp-desktop) {
+		height: 56px;
+	}
 }
 
 .input-field {
@@ -21,55 +57,20 @@
 	background-color: transparent;
 	color: var(--text-primary);
 	border: none;
-}
 
-.input-field::placeholder {
-	color: var(--text-secondary);
+	&::placeholder {
+		color: var(--text-secondary);
+	}
+
+	&:focus {
+		outline: none;
+	}
 }
 
 .input-field-container {
-	display: flex;
-	flex-direction: column;
+	@include flex-col;
 	gap: var(--space-s);
 	width: 100%;
-}
-
-.input-wrapper.error {
-	border-color: var(--surface-error);
-}
-
-.input-message {
-	color: var(--text-secondary);
-}
-
-.error-message {
-	color: var(--surface-error);
-}
-
-.icon-button.eye {
-	min-width: 32px;
-	height: 32px;
-	padding: 0;
-	background-color: transparent;
-	border: none;
-	color: var(--icons-dark);
-}
-
-.icon-button.eye svg {
-	width: var(--icon-size);
-	height: var(--icon-size);
-	color: var(--icons-dark);
-	stroke-width: 2;
-}
-
-.input-wrapper.floating {
-	position: relative;
-	padding: 0 12px;
-}
-
-.input-wrapper.floating .input-field {
-	height: 100%;
-	padding: 24px 0 6px;
 }
 
 .floating-label {
@@ -92,25 +93,26 @@
 	}
 }
 
-.input-wrapper.floating:focus-within .floating-label,
-.input-wrapper.floating .input-field:not(:placeholder-shown) + .floating-label {
-	top: 2px;
-	transform: none;
-	font-size: var(--fs-caption-s);
+.input-message {
+	color: var(--text-secondary);
 }
 
-.input-wrapper.floating.error .floating-label {
+.error-message {
 	color: var(--surface-error);
 }
 
-@media (min-width: 768px) {
-	.input-wrapper {
-		height: 48px;
-	}
-}
+.icon-button.eye {
+	min-width: 32px;
+	height: 32px;
+	padding: 0;
+	background-color: transparent;
+	border: none;
+	color: var(--icons-dark);
 
-@media (min-width: 1440px) {
-	.input-wrapper {
-		height: 56px;
+	svg {
+		width: var(--icon-size);
+		height: var(--icon-size);
+		color: var(--icons-dark);
+		stroke-width: 2;
 	}
 }

@@ -1,17 +1,17 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
 .pagination {
 	width: fit-content;
 }
 
 .pagination-row {
-	display: flex;
-	flex-direction: column;
+	@include flex-col;
 	align-items: center;
 	width: 100%;
 	gap: var(--space-m);
-}
 
-@media (min-width: 1440px) {
-	.pagination-row {
+	@include breakpoint($bp-desktop) {
 		flex-direction: row;
 		justify-content: space-between;
 	}
@@ -28,86 +28,69 @@
 
 .pagination__item--hidden {
 	display: none;
+
+	@include breakpoint($bp-tablet) {
+		display: list-item;
+	}
 }
 
 .pagination__link {
 	--item-size: 44px;
-	display: flex;
+	@include flex-center;
 	min-width: var(--item-size);
 	height: var(--item-size);
 	border: none;
 	border-radius: var(--radius-s);
-	align-items: center;
-	justify-content: center;
 	cursor: pointer;
 	background-color: transparent;
 	color: var(--text-primary);
 	text-decoration: none;
 	padding: 0 var(--space-xs);
-	font: inherit;
-}
 
-@media (prefers-reduced-motion: no-preference) {
-	.pagination__link {
-		transition: opacity 0.2s ease;
+	&:hover {
+		opacity: 0.6;
 	}
-}
 
-.pagination__link svg {
-	width: 20px;
-	height: 20px;
-	stroke-width: 1.5;
-	color: var(--icons-dark);
-}
+	&:active {
+		opacity: 0.4;
+	}
 
-.pagination__link:hover {
-	opacity: 0.6;
-}
+	&--active {
+		background-color: var(--surface-action-active);
+		color: var(--text-on-accent);
+		cursor: default;
+		pointer-events: none;
+		opacity: 1;
+	}
 
-.pagination__link:active {
-	opacity: 0.4;
-}
+	&--disabled {
+		opacity: 0.3;
+		cursor: not-allowed;
+		pointer-events: none;
+	}
 
-.pagination__link--active {
-	background-color: var(--surface-action-active);
-	color: var(--text-on-accent);
-	cursor: default;
-	pointer-events: none;
-	opacity: 1;
-}
+	svg {
+		width: 20px;
+		height: 20px;
+		stroke-width: 1.5;
+		color: var(--icons-dark);
+	}
 
-.pagination__link--disabled {
-	color: var(--text-secondary);
-	cursor: not-allowed;
-	pointer-events: none;
-}
-
-.pagination__link--disabled svg {
-	color: var(--surface-action-inactive);
-}
-
-@media (min-width: 768px) {
-	.pagination__link {
+	@include breakpoint($bp-tablet) {
 		--item-size: 48px;
+
+		svg {
+			width: 24px;
+			height: 24px;
+		}
 	}
 
-	.pagination__item--hidden {
-		display: list-item;
-	}
-
-	.pagination__link svg {
-		width: 24px;
-		height: 24px;
-	}
-}
-
-@media (min-width: 1440px) {
-	.pagination__link {
+	@include breakpoint($bp-desktop) {
 		--item-size: 56px;
-	}
 
-	.pagination__link svg {
-		width: 32px;
-		height: 32px;
+		svg {
+			width: 32px;
+			height: 32px;
+		}
 	}
 }

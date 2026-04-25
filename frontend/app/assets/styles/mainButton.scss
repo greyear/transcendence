@@ -1,10 +1,11 @@
+@use 'variables' as *;
+@use 'mixins' as *;
+
 .main-button {
 	height: 44px;
 	padding: 0 var(--space-l);
 	border-radius: var(--radius-s);
-	display: flex;
-	align-items: center;
-	justify-content: center;
+	@include flex-center;
 	text-decoration: none;
 	cursor: pointer;
 	gap: var(--space-xs);
@@ -15,76 +16,49 @@
 	border: 1px solid var(--borders-action);
 	background-color: var(--surface-action-active);
 	white-space: nowrap;
-}
+	@include interactive-brightness;
+	@include button-disabled;
 
-@media (prefers-reduced-motion: no-preference) {
-	.main-button {
-		transition: filter 0.2s ease;
+	&.pill {
+		border-radius: var(--radius-full);
+		background-color: var(--bg-main);
+		color: var(--text-primary);
+		font-size: var(--fs-caption);
+		font-weight: var(--fw-caption);
+		line-height: var(--lh-caption);
+		padding: 0 var(--space-l);
+
+		&.active {
+			background-color: var(--surface-action-active);
+			color: var(--text-on-accent);
+		}
 	}
-}
 
-.main-button:hover {
-	filter: brightness(var(--hover-brightness));
-}
+	&.danger {
+		background-color: var(--surface-error);
+	}
 
-.main-button:active {
-	filter: brightness(var(--active-brightness));
-}
+	&.secondary {
+		background-color: var(--surface-warning);
+		color: var(--text-primary);
+	}
 
-.main-button:disabled {
-	opacity: 0.5;
-	cursor: not-allowed;
-	filter: none;
-}
+	&.inverted {
+		background-color: var(--surface-primary);
+		color: var(--text-primary);
+		border-color: var(--borders-input);
+	}
 
-.main-button:disabled:hover {
-	filter: none;
-}
-
-.main-button.pill {
-	border-radius: var(--radius-full);
-	background-color: var(--bg-main);
-	color: var(--text-primary);
-	font-size: var(--fs-caption);
-	font-weight: var(--fw-caption);
-	line-height: var(--lh-caption);
-	padding: 0 var(--space-l);
-}
-
-.main-button.pill.active {
-	background-color: var(--surface-action-active);
-	color: var(--text-on-accent);
-}
-
-.main-button.danger {
-	background-color: var(--surface-error);
-	border-color: var(--borders-input);
-}
-
-.main-button.secondary {
-	background-color: var(--surface-warning);
-	color: var(--text-primary);
-}
-
-.main-button.inverted {
-	background-color: var(--surface-primary);
-	color: var(--text-primary);
-	border-color: var(--borders-input);
-}
-
-@media (min-width: 768px) {
-	.main-button {
+	@include breakpoint($bp-tablet) {
 		height: 48px;
+
+		&.danger,
+		&.secondary {
+			min-width: 296px;
+		}
 	}
 
-	.main-button.danger,
-	.main-button.secondary {
-		min-width: 296px;
-	}
-}
-
-@media (min-width: 1440px) {
-	.main-button {
+	@include breakpoint($bp-desktop) {
 		height: 56px;
 	}
 }

@@ -1,0 +1,42 @@
+@use 'variables' as *;
+
+@mixin flex-center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@mixin flex-col {
+	display: flex;
+	flex-direction: column;
+}
+
+@mixin interactive-brightness {
+	transition: filter 0.2s ease;
+
+	&:hover {
+		filter: brightness(var(--hover-brightness));
+	}
+
+	&:active {
+		filter: brightness(var(--active-brightness));
+	}
+}
+
+@mixin button-disabled {
+	&:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		filter: none;
+
+		&:hover {
+			filter: none;
+		}
+	}
+}
+
+@mixin breakpoint($bp) {
+	@media (min-width: $bp) {
+		@content;
+	}
+}
