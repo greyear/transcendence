@@ -32,6 +32,22 @@ const withForwardedQuery = (
 	return `${CORE_SERVICE_URL}${path}${req.originalUrl.slice(queryIndex)}`;
 };
 
+const forwardJsonOrTextResponse = async (
+	response: Response,
+	fallbackError: string,
+) => {
+	const rawBody = await response.text();
+	if (!rawBody) {
+		return { error: response.ok ? "" : fallbackError };
+	}
+
+	try {
+		return JSON.parse(rawBody) as unknown;
+	} catch {
+		return { error: rawBody };
+	}
+};
+
 // Create router for recipes
 export const recipesRouter = Router();
 
@@ -195,12 +211,14 @@ const translateReviewHandler: RequestHandler = async (req, res, _next) => {
 				`/recipes/${req.params.id}/reviews/${req.params.reviewId}/translate`,
 			),
 			{
-				method: "POST",
 				headers: getInternalHeaders(req),
 				signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 			},
 		);
-		const data = await response.json();
+		const data = await forwardJsonOrTextResponse(
+			response,
+			"Failed to translate review",
+		);
 		res.status(response.status).json(data);
 	} catch (error) {
 		if (isTimeoutError(error)) {
@@ -452,9 +470,9 @@ recipesRouter.get("/units", getUnitsHandler);
 recipesRouter.post("/:id/publish", requireAuth, publishRecipeHandler);
 recipesRouter.put("/:id/picture", requireAuth, updateRecipePictureHandler);
 recipesRouter.post("/:id/reviews", requireAuth, leaveRecipeReviewHandler);
-recipesRouter.post(
+recipesRouter.get(
 	"/:id/reviews/:reviewId/translate",
-	optionalAuth,
+	requireAuth,
 	translateReviewHandler,
 );
 recipesRouter.put("/:id/reviews/:reviewId", requireAuth, updateReviewHandler);

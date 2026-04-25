@@ -126,6 +126,8 @@ interface ErrorWithCode extends Error {
 }
 
 const USER_NOT_FOUND_CODE = "USER_NOT_FOUND";
+const REVIEW_TRANSLATION_CACHE_LIMIT = 100;
+const reviewTranslationCache = new Map<string, string>();
 
 const recipeIdRowSchema = z.object({
 	id: z.coerce.number().int().positive(),
@@ -140,6 +142,7 @@ const recipeReviewTranslationRowSchema = z.object({
 	recipe_id: z.coerce.number().int().positive(),
 	body: z.string().trim().min(1),
 	source_locale: supportedLocaleSchema,
+	updated_at: z.coerce.date().transform((value) => value.toISOString()),
 });
 
 const requesterRoleRowSchema = z.object({
@@ -1238,7 +1241,7 @@ export const updateReview = async (
 	reviewId: number,
 	userId: number,
 	input: UpdateRecipeReviewInput,
-	sourceLocale: SupportedLocale = DEFAULT_LOCALE,
+	sourceLocale?: SupportedLocale,
 ): Promise<UpdateReviewResult> => {
 	try {
 		const existingResult = await pool.query(
@@ -1258,7 +1261,7 @@ export const updateReview = async (
 		await pool.query(
 			`
 			UPDATE recipe_reviews
-			SET body = $1, source_locale = $2, updated_at = now()
+			SET body = $1, source_locale = COALESCE($2, source_locale), updated_at = now()
 			WHERE id = $3
 			RETURNING id, recipe_id, author_id, body, created_at, updated_at
 		`,
@@ -1314,7 +1317,8 @@ export const translateRecipeReview = async (
 			SELECT
 				rr.recipe_id,
 				rr.body,
-				rr.source_locale
+				rr.source_locale,
+				rr.updated_at
 			FROM recipe_reviews rr
 			JOIN recipes r ON r.id = rr.recipe_id
 			WHERE
@@ -1337,11 +1341,27 @@ export const translateRecipeReview = async (
 			throw new Error(z.prettifyError(parsedReview.error));
 		}
 
-		const translatedBody = await translateTextToLocale(
-			parsedReview.data.body,
+		const cacheKey = [
+			reviewId,
 			parsedReview.data.source_locale,
 			targetLocale,
-		);
+			parsedReview.data.updated_at,
+		].join(":");
+		let translatedBody = reviewTranslationCache.get(cacheKey);
+		if (!translatedBody) {
+			translatedBody = await translateTextToLocale(
+				parsedReview.data.body,
+				parsedReview.data.source_locale,
+				targetLocale,
+			);
+			reviewTranslationCache.set(cacheKey, translatedBody);
+			if (reviewTranslationCache.size > REVIEW_TRANSLATION_CACHE_LIMIT) {
+				const oldestKey = reviewTranslationCache.keys().next().value;
+				if (oldestKey) {
+					reviewTranslationCache.delete(oldestKey);
+				}
+			}
+		}
 
 		return {
 			success: true,

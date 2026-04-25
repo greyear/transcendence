@@ -41,6 +41,7 @@ import {
 	updateReview,
 } from "../services/recipes.service.js";
 import {
+	resolveOptionalSourceLocale,
 	resolveRequestedLocale,
 	resolveSourceLocale,
 } from "../utils/locale.js";
@@ -860,7 +861,7 @@ const updateReviewHandler = async (
 			throw error;
 		}
 
-		const sourceLocale = resolveSourceLocale(req);
+		const sourceLocale = resolveOptionalSourceLocale(req);
 
 		const result = await updateReview(
 			recipeIdValidation.value,
@@ -993,7 +994,7 @@ recipesRouter.put(
 );
 
 recipesRouter.post("/:id/reviews", leaveRecipeReviewHandler);
-recipesRouter.post(
+recipesRouter.get(
 	"/:id/reviews/:reviewId/translate",
 	translateRecipeReviewHandler,
 );

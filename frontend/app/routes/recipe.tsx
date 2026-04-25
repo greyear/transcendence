@@ -35,15 +35,6 @@ type Recipe = {
 	instructions: string[];
 };
 
-type RecipeReview = {
-	id: number;
-	author_id: number | null;
-	username: string | null;
-	body: string;
-	source_language: string;
-	created_at: string;
-};
-
 const RecipeIngredientSchema = z.object({
 	ingredient_id: z.number(),
 	amount: z.number(),
@@ -67,18 +58,23 @@ const RecipeResponseSchema = z.object({
 	data: RecipeSchema,
 });
 
+const ReviewLanguageSchema = z.enum(["en", "fi", "ru"]);
+
 const RecipeReviewSchema = z.object({
 	id: z.number(),
 	author_id: z.number().nullable(),
 	username: z.string().nullable(),
 	body: z.string(),
-	source_language: z.enum(["en", "fi", "ru"]),
+	source_language: ReviewLanguageSchema,
 	created_at: z.string(),
+	updated_at: z.string(),
 });
 
 const RecipeReviewsResponseSchema = z.object({
 	data: z.array(RecipeReviewSchema),
 });
+
+type RecipeReview = z.infer<typeof RecipeReviewSchema>;
 
 const ReviewTranslationResponseSchema = z.object({
 	data: z.object({
@@ -92,6 +88,14 @@ const ProfileResponseSchema = z.object({
 		id: z.number(),
 	}),
 });
+
+type ReviewLanguage = z.infer<typeof ReviewLanguageSchema>;
+
+const normalizeReviewLanguage = (value: string | undefined): ReviewLanguage => {
+	const normalized = (value ?? "en").slice(0, 2).toLowerCase();
+	const parsed = ReviewLanguageSchema.safeParse(normalized);
+	return parsed.success ? parsed.data : "en";
+};
 
 type FetchRecipeResult = {
 	errorStatus: number | "unknown" | null;
@@ -174,7 +178,7 @@ const RecipeLocationStateSchema = z.object({
 const RecipePage = () => {
 	const { id } = useParams();
 	const { t, i18n } = useTranslation();
-	const language = i18n.resolvedLanguage ?? "en";
+	const language = normalizeReviewLanguage(i18n.resolvedLanguage);
 	const location = useLocation();
 	const { isAuthenticated, openAuthModal } =
 		useOutletContext<LayoutOutletContext>();
@@ -204,7 +208,10 @@ const RecipePage = () => {
 		null,
 	);
 	const [translatedReviewBodies, setTranslatedReviewBodies] = useState<
-		Record<number, { body: string; language: string }>
+		Record<
+			number,
+			{ body: string; language: ReviewLanguage; updatedAt: string }
+		>
 	>({});
 	const [visibleTranslatedReviewIds, setVisibleTranslatedReviewIds] = useState<
 		Record<number, boolean>
@@ -358,8 +365,23 @@ const RecipePage = () => {
 			return;
 		}
 
+		if (!isAuthenticated) {
+			openAuthModal(() => {
+				void translateReview(reviewId);
+			});
+			return;
+		}
+
+		const review = reviews.find((item) => item.id === reviewId);
+		if (!review) {
+			return;
+		}
+
 		const currentTranslation = translatedReviewBodies[reviewId];
-		if (currentTranslation?.language === language) {
+		if (
+			currentTranslation?.language === language &&
+			currentTranslation.updatedAt === review.updated_at
+		) {
 			setVisibleTranslatedReviewIds((current) => ({
 				...current,
 				[reviewId]: !current[reviewId],
@@ -374,7 +396,6 @@ const RecipePage = () => {
 			const response = await fetch(
 				`${API_BASE_URL}/recipes/${id}/reviews/${reviewId}/translate`,
 				{
-					method: "POST",
 					headers: {
 						"X-Language": language,
 					},
@@ -404,6 +425,7 @@ const RecipePage = () => {
 				[parsed.data.data.review_id]: {
 					body: parsed.data.data.translated_body,
 					language,
+					updatedAt: review.updated_at,
 				},
 			}));
 			setVisibleTranslatedReviewIds((current) => ({
@@ -730,6 +752,7 @@ const RecipePage = () => {
 									const translatedReview = translatedReviewBodies[review.id];
 									const isReviewTranslated =
 										translatedReview?.language === language &&
+										translatedReview.updatedAt === review.updated_at &&
 										visibleTranslatedReviewIds[review.id] === true;
 									const isReviewTranslating = translatingReviewId === review.id;
 									const canTranslateReview =

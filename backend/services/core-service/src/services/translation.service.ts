@@ -161,6 +161,7 @@ const normalizeBatchedTranslations = (
 const requestTranslations = async (
 	sourceText: string,
 	sourceLocale: SupportedLocale = DEFAULT_LOCALE,
+	targetLocales: SupportedLocale[] = getTargetLocales(sourceLocale),
 ): Promise<Partial<Record<SupportedLocale, string>> | null> => {
 	// If no translation service is configured, skip external call
 	if (!TRANSLATION_API_URL) {
@@ -178,7 +179,7 @@ const requestTranslations = async (
 			},
 			body: JSON.stringify({
 				source_language: sourceLocale,
-				target_languages: getTargetLocales(sourceLocale),
+				target_languages: targetLocales,
 				text: sourceText,
 			}),
 			signal: timeoutSignal(),
@@ -322,8 +323,10 @@ export const translateTextToLocale = async (
 		return safeSource;
 	}
 
-	const localized = await localizeTextFromSource(safeSource, sourceLocale);
-	return localized[targetLocale];
+	const translations = await requestTranslations(safeSource, sourceLocale, [
+		targetLocale,
+	]);
+	return sanitizeTranslation(translations?.[targetLocale]) ?? safeSource;
 };
 
 /**
