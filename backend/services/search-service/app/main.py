@@ -364,6 +364,15 @@ def update_reindex_job(job_id: str, **updates: Any) -> None:
             job.update(updates)
 
 
+def count_search_documents() -> int:
+    with psycopg.connect(SEARCH_DATABASE_URL) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM recipe_search_docs")
+            row = cursor.fetchone()
+
+    return int(row[0]) if row else 0
+
+
 def reindex_error_message(error: Exception) -> str:
     if isinstance(error, HTTPException):
         return str(error.detail)
@@ -425,6 +434,34 @@ def run_reindex_job(job_id: str) -> None:
         )
     finally:
         _reindex_worker_lock.release()
+
+
+def startup_reindex_if_index_is_empty() -> None:
+    try:
+        indexed_count = count_search_documents()
+        if indexed_count > 0:
+            logger.info(
+                "Skipping startup reindex because search-db already contains %s documents",
+                indexed_count,
+            )
+            return
+
+        job, created = create_or_get_active_reindex_job()
+        if not created:
+            logger.info(
+                "Search index is empty at startup, but reindex job %s is already %s",
+                job["job_id"],
+                job["status"],
+            )
+            return
+
+        logger.info(
+            "Search index is empty at startup; starting full reindex job %s",
+            job["job_id"],
+        )
+        run_reindex_job(job["job_id"])
+    except Exception:
+        logger.exception("Startup reindex trigger failed")
 
 
 def search_recipe_documents(
@@ -620,6 +657,15 @@ def health() -> dict[str, Any]:
         "service": "search-service",
         "time": utc_now_iso(),
     }
+
+
+@app.on_event("startup")
+def startup_reindex_if_needed() -> None:
+    threading.Thread(
+        target=startup_reindex_if_index_is_empty,
+        name="startup-search-bootstrap",
+        daemon=True,
+    ).start()
 
 
 @app.post("/admin/reindex", status_code=202)
