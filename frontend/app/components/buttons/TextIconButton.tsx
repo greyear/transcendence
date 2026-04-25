@@ -64,7 +64,7 @@ export const TextIconButton = ({
 			type="button"
 			onClick={onClick}
 			className={combinedClasses}
-			aria-pressed={selected}
+			aria-pressed={ariaExpanded !== undefined ? undefined : selected}
 			aria-haspopup={ariaHasPopup}
 			aria-expanded={ariaExpanded}
 			aria-controls={ariaControls}

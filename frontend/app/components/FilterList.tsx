@@ -15,7 +15,7 @@ export const FilterList = ({
 	ariaLabel,
 }: FilterListProps) => {
 	return (
-		<div className="filter-list" role="toolbar" aria-label={ariaLabel}>
+		<fieldset className="filter-list" aria-label={ariaLabel}>
 			{filters.map((filter) => (
 				<MainButton
 					key={filter}
@@ -27,6 +27,6 @@ export const FilterList = ({
 					{filter}
 				</MainButton>
 			))}
-		</div>
+		</fieldset>
 	);
 };
