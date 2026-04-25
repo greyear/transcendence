@@ -44,6 +44,7 @@ type RecipeIngredient = {
 type RecipeCategory = {
 	id: number;
 	code: string;
+	name?: string;
 };
 
 type Recipe = {
@@ -76,6 +77,7 @@ const RecipeIngredientSchema = z.object({
 const RecipeCategorySchema = z.object({
 	id: z.number(),
 	code: z.string(),
+	name: z.string().optional(),
 });
 
 const RecipeSchema = z.object({
@@ -910,7 +912,7 @@ const RecipePage = () => {
 								key={category.id}
 								className="recipe-page-category-chip text-caption"
 							>
-								{formatCategoryCode(category.code)}
+								{category.name ?? formatCategoryCode(category.code)}
 							</li>
 						))}
 					</ul>
