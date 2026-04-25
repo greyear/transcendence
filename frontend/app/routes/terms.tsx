@@ -5,6 +5,11 @@ import { useDocumentTitle } from "~/composables/useDocumentTitle";
 
 export const meta: MetaFunction = () => [
 	{ title: "Terms and Conditions — Transcendence" },
+	{
+		name: "description",
+		content:
+			"The terms and conditions that govern your use of the Transcendence platform.",
+	},
 ];
 
 const TermsPage = () => {

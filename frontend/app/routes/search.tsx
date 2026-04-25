@@ -34,7 +34,14 @@ import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import { useRelationSet } from "~/composables/useRelationSet";
 import { useSortOptions } from "~/composables/useSortOptions";
 
-export const meta: MetaFunction = () => [{ title: "Search — Transcendence" }];
+export const meta: MetaFunction = () => [
+	{ title: "Search — Transcendence" },
+	{
+		name: "description",
+		content:
+			"Search recipes and cooks across the Transcendence community by name, ingredient, or category.",
+	},
+];
 
 const FILTER_PARAM_BY_TYPE: Record<CategoryTypeCode, string> = {
 	meal_time: "mealType",

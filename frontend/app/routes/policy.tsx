@@ -5,6 +5,11 @@ import { useDocumentTitle } from "~/composables/useDocumentTitle";
 
 export const meta: MetaFunction = () => [
 	{ title: "Privacy Policy — Transcendence" },
+	{
+		name: "description",
+		content:
+			"How Transcendence collects, uses, and protects your personal data.",
+	},
 ];
 
 const PrivacyPolicyPage = () => {

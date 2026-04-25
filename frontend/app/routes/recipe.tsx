@@ -21,7 +21,14 @@ import type { LayoutOutletContext } from "~/layouts/layout";
 import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
 
-export const meta: MetaFunction = () => [{ title: "Recipe — Transcendence" }];
+export const meta: MetaFunction = () => [
+	{ title: "Recipe — Transcendence" },
+	{
+		name: "description",
+		content:
+			"View the full recipe with ingredients, step-by-step instructions, and community reviews.",
+	},
+];
 
 type RecipeIngredient = {
 	ingredient_id: number;

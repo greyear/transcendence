@@ -18,6 +18,11 @@ import type { LayoutOutletContext } from "~/layouts/layout";
 
 export const meta: MetaFunction = () => [
 	{ title: "My profile — Transcendence" },
+	{
+		name: "description",
+		content:
+			"Manage your Transcendence profile, recipes, favorites, and account settings.",
+	},
 ];
 
 type AuthUserData = {

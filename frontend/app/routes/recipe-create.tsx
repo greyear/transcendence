@@ -39,6 +39,11 @@ import "../assets/styles/recipe-create.css";
 
 export const meta: MetaFunction = () => [
 	{ title: "Add a recipe — Transcendence" },
+	{
+		name: "description",
+		content:
+			"Share your recipe with the community. Add ingredients, instructions, and a photo to publish your dish.",
+	},
 ];
 
 const DESCRIPTION_MAX = 128;

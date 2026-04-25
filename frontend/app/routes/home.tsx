@@ -12,7 +12,14 @@ import heroImage from "~/assets/images/hero-image.jpg";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import type { LayoutOutletContext } from "~/layouts/layout";
 
-export const meta: MetaFunction = () => [{ title: "Home — Transcendence" }];
+export const meta: MetaFunction = () => [
+	{ title: "Home — Transcendence" },
+	{
+		name: "description",
+		content:
+			"A place for food lovers. Explore new recipes, share your own, and connect with the cooking community.",
+	},
+];
 
 const HomePage = () => {
 	const { t } = useTranslation();
