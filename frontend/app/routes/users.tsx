@@ -23,8 +23,6 @@ import {
 	PER_PAGE_OPTIONS,
 	usePerPageParam,
 } from "~/composables/usePerPageParam";
-import { useSortOptions } from "~/composables/useSortOptions";
-import { useSortParam } from "~/composables/useSortParam";
 import type { LayoutOutletContext } from "~/layouts/layout";
 
 export const meta: MetaFunction = () => [
@@ -66,8 +64,6 @@ const UsersPage = () => {
 		navigate(`/search?${params.toString()}`);
 	};
 
-	const sortOptions = useSortOptions("users");
-	const [sortValue, setSort] = useSortParam(sortOptions[0].value);
 	const [perPage, setPerPage] = usePerPageParam();
 
 	const parsedTab = UsersTabSchema.safeParse(searchParams.get("tab"));
@@ -136,14 +132,9 @@ const UsersPage = () => {
 
 			{isAuthenticated ? renderTabBar() : null}
 
-			<div className="users-page-controls">
-				<SortMenu options={sortOptions} value={sortValue} onChange={setSort} />
-			</div>
-
 			<UsersGrid
 				page={page}
 				perPage={perPage}
-				sortValue={sortValue}
 				onLoad={setTotalCount}
 				isAuthenticated={isAuthenticated}
 				currentUserId={currentUserId}

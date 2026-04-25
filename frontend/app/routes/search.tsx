@@ -487,18 +487,19 @@ const SearchPage = () => {
 			/>
 
 			<div className="search-page-controls">
-				<SortMenu
-					options={sortOptions}
-					value={sort}
-					onChange={handleSortChange}
-				/>
-
 				{typeParam === "recipes" && (
-					<CategoryFilterMenu
-						categories={categories}
-						values={filterValues}
-						onApply={handleFilterApply}
-					/>
+					<>
+						<SortMenu
+							options={sortOptions}
+							value={sort}
+							onChange={handleSortChange}
+						/>
+						<CategoryFilterMenu
+							categories={categories}
+							values={filterValues}
+							onApply={handleFilterApply}
+						/>
+					</>
 				)}
 			</div>
 
