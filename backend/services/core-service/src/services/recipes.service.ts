@@ -1624,6 +1624,12 @@ export const getSearchRecipes = async (): Promise<SearchRecipeDocument[]> => {
 					'[]'::jsonb
 				) AS instructions,
 				r.author_id,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = r.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url,
 				r.servings,
 				r.spiciness,
 				r.rating_avg,
@@ -1709,6 +1715,12 @@ export const getSearchRecipeById = async (
 					'[]'::jsonb
 				) AS instructions,
 				r.author_id,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = r.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url,
 				r.servings,
 				r.spiciness,
 				r.rating_avg,

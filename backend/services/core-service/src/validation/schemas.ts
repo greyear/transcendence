@@ -340,6 +340,7 @@ export const searchRecipeDocumentSchema = z.object({
 	description: z.string().nullable(),
 	instructions: z.array(z.string()),
 	author_id: userIdSchema.nullable(),
+	picture_url: z.string().nullable(),
 	servings: z.number().int().positive(),
 	spiciness: z.number().int().min(0).max(3),
 	rating_avg: z.coerce.number().min(1).max(5).nullable(),

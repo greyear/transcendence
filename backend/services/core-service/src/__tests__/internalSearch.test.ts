@@ -17,6 +17,7 @@ describe("Internal Search Routes", () => {
 			expect(response.body.data[0]).toHaveProperty("description");
 			expect(response.body.data[0]).toHaveProperty("instructions");
 			expect(response.body.data[0]).toHaveProperty("author_id");
+			expect(response.body.data[0]).toHaveProperty("picture_url");
 			expect(response.body.data[0]).toHaveProperty("servings");
 			expect(response.body.data[0]).toHaveProperty("spiciness");
 			expect(response.body.data[0]).toHaveProperty("rating_avg");
@@ -36,6 +37,7 @@ describe("Internal Search Routes", () => {
 		expect(response.body.data).toHaveProperty("description");
 		expect(response.body.data).toHaveProperty("instructions");
 		expect(response.body.data).toHaveProperty("author_id");
+		expect(response.body.data).toHaveProperty("picture_url");
 		expect(response.body.data).toHaveProperty("servings");
 		expect(response.body.data).toHaveProperty("spiciness");
 		expect(response.body.data).toHaveProperty("rating_avg");
