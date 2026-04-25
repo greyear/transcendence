@@ -748,7 +748,6 @@ const RecipePage = () => {
 	const instructionOccurrences = new Map<string, number>();
 	const recipeImageSrc = resolveMediaUrl(recipe.picture_url) ?? recipeImg;
 	const createdAt = formatRecipeDateTime(recipe.created_at, language);
-	const updatedAt = formatRecipeDateTime(recipe.updated_at, language);
 	const isAuthor = recipe.author_id === currentUserId && currentUserId !== null;
 
 	const instructionsWithKeys = recipe.instructions.map((instruction) => {
@@ -839,24 +838,12 @@ const RecipePage = () => {
 				className="recipe-page-meta"
 				aria-label={t("recipePage.details")}
 			>
-				{(createdAt || updatedAt) && (
+				{createdAt && (
 					<div className="recipe-page-timestamps text-caption">
-						{createdAt && (
-							<span>
-								{t("recipePage.createdAt")}:{" "}
-								<time dateTime={recipe.created_at ?? undefined}>
-									{createdAt}
-								</time>
-							</span>
-						)}
-						{updatedAt && (
-							<span>
-								{t("recipePage.updatedAt")}:{" "}
-								<time dateTime={recipe.updated_at ?? undefined}>
-									{updatedAt}
-								</time>
-							</span>
-						)}
+						<span>
+							{t("recipePage.createdAt")}:{" "}
+							<time dateTime={recipe.created_at ?? undefined}>{createdAt}</time>
+						</span>
 					</div>
 				)}
 
