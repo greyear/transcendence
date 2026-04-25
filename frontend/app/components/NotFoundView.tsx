@@ -22,7 +22,6 @@ export const NotFoundView = () => {
 					to="/"
 					variant="primary"
 					className="not-found-page-button"
-					aria-label={t("notFoundPage.backHome")}
 				>
 					{t("notFoundPage.backHome")}
 				</MainButton>
