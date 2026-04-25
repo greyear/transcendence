@@ -704,3 +704,138 @@ JOIN ingredients i ON i.name->>'en' = sri.ingredient_name
 ON CONFLICT (recipe_id, ingredient_id) DO UPDATE
 SET amount = EXCLUDED.amount,
     unit = EXCLUDED.unit;
+
+-- ============================================
+-- RECIPE CATEGORY MAPPINGS (20 recipes × 4 categories each = 80 mappings)
+-- ============================================
+WITH seeded_recipe_categories(title_en, category_type_code, category_code) AS (
+  VALUES
+    -- 1. Spaghetti Carbonara
+    ('Spaghetti Carbonara', 'meal_time', 'dinner'),
+    ('Spaghetti Carbonara', 'dish_type', 'pasta'),
+    ('Spaghetti Carbonara', 'main_ingredient', 'pasta'),
+    ('Spaghetti Carbonara', 'cuisine', 'italian'),
+
+    -- 2. Chicken Tikka Masala
+    ('Chicken Tikka Masala', 'meal_time', 'dinner'),
+    ('Chicken Tikka Masala', 'dish_type', 'curry'),
+    ('Chicken Tikka Masala', 'main_ingredient', 'chicken'),
+    ('Chicken Tikka Masala', 'cuisine', 'indian'),
+
+    -- 3. Avocado Toast with Poached Egg
+    ('Avocado Toast with Poached Egg', 'meal_time', 'breakfast'),
+    ('Avocado Toast with Poached Egg', 'dish_type', 'sandwich'),
+    ('Avocado Toast with Poached Egg', 'main_ingredient', 'avocado'),
+    ('Avocado Toast with Poached Egg', 'cuisine', 'american'),
+
+    -- 4. Classic Caesar Salad
+    ('Classic Caesar Salad', 'meal_time', 'lunch'),
+    ('Classic Caesar Salad', 'dish_type', 'salad'),
+    ('Classic Caesar Salad', 'main_ingredient', 'cheese'),
+    ('Classic Caesar Salad', 'cuisine', 'american'),
+
+    -- 5. Beef Tacos
+    ('Beef Tacos', 'meal_time', 'dinner'),
+    ('Beef Tacos', 'dish_type', 'taco'),
+    ('Beef Tacos', 'main_ingredient', 'beef'),
+    ('Beef Tacos', 'cuisine', 'mexican'),
+
+    -- 6. Mushroom Risotto
+    ('Mushroom Risotto', 'meal_time', 'dinner'),
+    ('Mushroom Risotto', 'dish_type', 'risotto'),
+    ('Mushroom Risotto', 'main_ingredient', 'mushroom'),
+    ('Mushroom Risotto', 'cuisine', 'italian'),
+
+    -- 7. Greek Salad
+    ('Greek Salad', 'meal_time', 'lunch'),
+    ('Greek Salad', 'dish_type', 'salad'),
+    ('Greek Salad', 'main_ingredient', 'tomato'),
+    ('Greek Salad', 'cuisine', 'greek'),
+
+    -- 8. Banana Oat Pancakes
+    ('Banana Oat Pancakes', 'meal_time', 'breakfast'),
+    ('Banana Oat Pancakes', 'dish_type', 'pancake'),
+    ('Banana Oat Pancakes', 'main_ingredient', 'banana'),
+    ('Banana Oat Pancakes', 'cuisine', 'american'),
+
+    -- 9. Tom Yum Soup
+    ('Tom Yum Soup', 'meal_time', 'lunch'),
+    ('Tom Yum Soup', 'dish_type', 'soup'),
+    ('Tom Yum Soup', 'main_ingredient', 'shrimp'),
+    ('Tom Yum Soup', 'cuisine', 'thai'),
+
+    -- 10. Margherita Pizza
+    ('Margherita Pizza', 'meal_time', 'dinner'),
+    ('Margherita Pizza', 'dish_type', 'pizza'),
+    ('Margherita Pizza', 'main_ingredient', 'cheese'),
+    ('Margherita Pizza', 'cuisine', 'italian'),
+
+    -- 11. Shakshuka
+    ('Shakshuka', 'meal_time', 'breakfast'),
+    ('Shakshuka', 'dish_type', 'omelette'),
+    ('Shakshuka', 'main_ingredient', 'eggs'),
+    ('Shakshuka', 'cuisine', 'middle_eastern'),
+
+    -- 12. Grilled Salmon with Lemon Butter
+    ('Grilled Salmon with Lemon Butter', 'meal_time', 'dinner'),
+    ('Grilled Salmon with Lemon Butter', 'dish_type', 'grill'),
+    ('Grilled Salmon with Lemon Butter', 'main_ingredient', 'salmon'),
+    ('Grilled Salmon with Lemon Butter', 'cuisine', 'mediterranean'),
+
+    -- 13. Vegetable Stir-fry with Tofu
+    ('Vegetable Stir-fry with Tofu', 'meal_time', 'lunch'),
+    ('Vegetable Stir-fry with Tofu', 'dish_type', 'stir_fry'),
+    ('Vegetable Stir-fry with Tofu', 'main_ingredient', 'tofu'),
+    ('Vegetable Stir-fry with Tofu', 'cuisine', 'asian'),
+
+    -- 14. French Onion Soup
+    ('French Onion Soup', 'meal_time', 'lunch'),
+    ('French Onion Soup', 'dish_type', 'soup'),
+    ('French Onion Soup', 'main_ingredient', 'potato'),
+    ('French Onion Soup', 'cuisine', 'french'),
+
+    -- 15. Mango Smoothie Bowl
+    ('Mango Smoothie Bowl', 'meal_time', 'breakfast'),
+    ('Mango Smoothie Bowl', 'dish_type', 'smoothie'),
+    ('Mango Smoothie Bowl', 'main_ingredient', 'mango'),
+    ('Mango Smoothie Bowl', 'cuisine', 'american'),
+
+    -- 16. Borscht
+    ('Borscht', 'meal_time', 'lunch'),
+    ('Borscht', 'dish_type', 'soup'),
+    ('Borscht', 'main_ingredient', 'beef'),
+    ('Borscht', 'cuisine', 'russian'),
+
+    -- 17. Butter Chicken
+    ('Butter Chicken', 'meal_time', 'dinner'),
+    ('Butter Chicken', 'dish_type', 'curry'),
+    ('Butter Chicken', 'main_ingredient', 'chicken'),
+    ('Butter Chicken', 'cuisine', 'indian'),
+
+    -- 18. Lentil Soup
+    ('Lentil Soup', 'meal_time', 'lunch'),
+    ('Lentil Soup', 'dish_type', 'soup'),
+    ('Lentil Soup', 'main_ingredient', 'lentils'),
+    ('Lentil Soup', 'cuisine', 'indian'),
+
+    -- 19. Chocolate Lava Cakes
+    ('Chocolate Lava Cakes', 'meal_time', 'snack'),
+    ('Chocolate Lava Cakes', 'dish_type', 'cake'),
+    ('Chocolate Lava Cakes', 'main_ingredient', 'eggs'),
+    ('Chocolate Lava Cakes', 'cuisine', 'american'),
+
+    -- 20. Overnight Oats
+    ('Overnight Oats', 'meal_time', 'breakfast'),
+    ('Overnight Oats', 'dish_type', 'porridge'),
+    ('Overnight Oats', 'main_ingredient', 'oats'),
+    ('Overnight Oats', 'cuisine', 'american')
+)
+INSERT INTO recipe_category_map (recipe_id, category_id)
+SELECT
+  r.id,
+  rc.id
+FROM seeded_recipe_categories src
+JOIN recipes r ON COALESCE(r.title->>'en', '') = src.title_en
+JOIN recipe_category_types rct ON rct.code = src.category_type_code
+JOIN recipe_categories rc ON rc.category_type_id = rct.id AND rc.code = src.category_code
+ON CONFLICT (recipe_id, category_id) DO NOTHING;
