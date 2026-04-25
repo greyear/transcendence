@@ -81,6 +81,7 @@ export const getAllUsers = async (
 	try {
 		const offset = (page - 1) * perPage;
 		const sortExpr = USER_SORT_MAP[sort ?? ""] ?? "u.id ASC";
+		console.log(`Fetching users - page: ${page}, perPage: ${perPage}, search: ${search}, sort: ${sort} (SQL sort: ${sortExpr})`);
 
 		if (search) {
 			const containsPattern = `%${search}%`;
@@ -95,12 +96,12 @@ export const getAllUsers = async (
 						u.avatar,
 						COUNT(r.id)::int AS recipes_count
 					FROM users u
-					LEFT JOIN recipes r ON r.author_id = u.id
+					LEFT JOIN recipes r ON r.author_id = u.id AND r.status = 'published'
 					WHERE u.is_deleted = false AND u.username ILIKE $1
 					GROUP BY u.id, u.username, u.avatar
 					ORDER BY
-						CASE WHEN u.username ILIKE $2 THEN 0 ELSE 1 END,
 						${sortExpr},
+						CASE WHEN u.username ILIKE $2 THEN 0 ELSE 1 END,
 						u.id ASC
 					LIMIT $3 OFFSET $4
 					`,
@@ -127,7 +128,7 @@ export const getAllUsers = async (
 					u.avatar,
 					COUNT(r.id)::int AS recipes_count
 				FROM users u
-				LEFT JOIN recipes r ON r.author_id = u.id
+				LEFT JOIN recipes r ON r.author_id = u.id AND r.status = 'published'
 				WHERE u.is_deleted = false
 				GROUP BY u.id, u.username, u.avatar
 				ORDER BY ${sortExpr}
