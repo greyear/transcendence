@@ -60,7 +60,8 @@ const buildRecipeFormSchema = (t: TFunction) => {
 		z
 			.number({ error: v("servingsRequired") })
 			.int(v("servingsInt"))
-			.positive(v("servingsPositive")),
+			.positive(v("servingsPositive"))
+			.max(9999, v("servingsMax")),
 	);
 
 	const cookTimeSchema = z.preprocess(
