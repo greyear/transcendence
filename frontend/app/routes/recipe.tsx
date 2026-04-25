@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useOutletContext, useParams } from "react-router";
+import {
+	useLocation,
+	useNavigate,
+	useOutletContext,
+	useParams,
+} from "react-router";
 import { z } from "zod";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.css";
-import { Reports, StarSolid, Trash } from "iconoir-react";
+import { FireFlame, Reports, StarSolid, Trash } from "iconoir-react";
 import { IconButton } from "~/components/buttons/IconButton";
 import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { RatingModal } from "~/components/rating/ratingModal";
@@ -22,15 +27,27 @@ type RecipeIngredient = {
 	name: string;
 };
 
+type RecipeCategory = {
+	id: number;
+	code: string;
+};
+
 type Recipe = {
 	id: number;
+	author_id: number | null;
 	title: string;
 	description: string | null;
+	servings: number;
+	spiciness: number;
 	rating_avg: number | null;
 	rating_count: number;
 	viewer_rating: number | null;
 	picture_url: string | null;
 	ingredients: RecipeIngredient[];
+	categories: RecipeCategory[];
+	cook_time: number | null;
+	created_at: string | null;
+	updated_at: string | null;
 	instructions: string[];
 };
 
@@ -49,15 +66,33 @@ const RecipeIngredientSchema = z.object({
 	name: z.string(),
 });
 
+const RecipeCategorySchema = z.object({
+	id: z.number(),
+	code: z.string(),
+});
+
 const RecipeSchema = z.object({
 	id: z.number(),
+	author_id: z.coerce.number().int().positive().nullable(),
 	title: z.string(),
 	description: z.string().nullable(),
+	servings: z.coerce.number().int().positive().optional().default(1),
+	spiciness: z.coerce.number().int().min(0).max(3).optional().default(0),
 	rating_avg: z.coerce.number().nullable(),
 	rating_count: z.coerce.number().optional().default(0),
 	viewer_rating: z.coerce.number().nullable().optional().default(null),
 	picture_url: z.string().nullable(),
 	ingredients: z.array(RecipeIngredientSchema).optional().default([]),
+	categories: z.array(RecipeCategorySchema).optional().default([]),
+	cook_time: z.coerce
+		.number()
+		.int()
+		.positive()
+		.nullable()
+		.optional()
+		.default(null),
+	created_at: z.string().nullable().optional().default(null),
+	updated_at: z.string().nullable().optional().default(null),
 	instructions: z.array(z.string()).optional().default([]),
 });
 
@@ -147,15 +182,41 @@ const fetchRecipeReviews = async (
 	}
 };
 
-const formatReviewDate = (value: string) => {
+const formatReviewDate = (value: string, language: string) => {
 	const date = new Date(value);
 
 	if (Number.isNaN(date.getTime())) {
 		return value;
 	}
 
-	return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+	return new Intl.DateTimeFormat(language, {
+		dateStyle: "medium",
+	}).format(date);
 };
+
+const formatRecipeDateTime = (value: string | null, language: string) => {
+	if (!value) {
+		return null;
+	}
+
+	const date = new Date(value);
+
+	if (Number.isNaN(date.getTime())) {
+		return value;
+	}
+
+	return new Intl.DateTimeFormat(language, {
+		dateStyle: "medium",
+		timeStyle: "short",
+	}).format(date);
+};
+
+const formatCategoryCode = (value: string) =>
+	value
+		.split(/[_-]/)
+		.filter(Boolean)
+		.map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+		.join(" ");
 
 const RecipeLocationStateSchema = z.object({
 	pictureUploadFailed: z.literal(true),
@@ -166,6 +227,7 @@ const RecipePage = () => {
 	const { t, i18n } = useTranslation();
 	const language = i18n.resolvedLanguage ?? "en";
 	const location = useLocation();
+	const navigate = useNavigate();
 	const { isAuthenticated, openAuthModal } =
 		useOutletContext<LayoutOutletContext>();
 
@@ -193,6 +255,10 @@ const RecipePage = () => {
 	const [reviewActionError, setReviewActionError] = useState("");
 	const [isFavorited, setIsFavorited] = useState(false);
 	const [isFavoritePending, setIsFavoritePending] = useState(false);
+	const [deleteRecipeDeletionError, setDeleteRecipeDeletionError] =
+		useState("");
+	const [deletingRecipe, setDeletingRecipe] = useState(false);
+	const [isDeleteRecipeModalOpen, setIsDeleteRecipeModalOpen] = useState(false);
 
 	const toggleFavorite = async () => {
 		if (!id || isFavoritePending) {
@@ -296,6 +362,47 @@ const RecipePage = () => {
 		setReviewActionError("");
 	};
 
+	const onCloseDeleteRecipeModal = () => {
+		if (deletingRecipe) {
+			return;
+		}
+
+		setIsDeleteRecipeModalOpen(false);
+	};
+
+	const deleteRecipe = async () => {
+		if (!id) {
+			return;
+		}
+
+		setDeleteRecipeDeletionError("");
+		setDeletingRecipe(true);
+
+		try {
+			const response = await fetch(`${API_BASE_URL}/recipes/${id}`, {
+				method: "DELETE",
+				credentials: "include",
+			});
+
+			if (!response.ok) {
+				setDeleteRecipeDeletionError(
+					t("recipePage.deleteRecipeError", { status: response.status }),
+				);
+				return;
+			}
+
+			navigate("/recipes");
+		} catch (error) {
+			console.error(error);
+			setDeleteRecipeDeletionError(
+				t("recipePage.deleteRecipeError", { status: "unknown" }),
+			);
+		} finally {
+			setDeletingRecipe(false);
+			setIsDeleteRecipeModalOpen(false);
+		}
+	};
+
 	const deleteReview = async (reviewId: number) => {
 		if (!id) {
 			return;
@@ -343,8 +450,6 @@ const RecipePage = () => {
 		setErrorStatus(null);
 		setRecipe(null);
 
-		// TODO: expose ownership in the recipe response so we can show an edit
-		// button only for the recipe author.
 		void fetchRecipeById(id, isAuthenticated, language)
 			.then(({ errorStatus, recipe }) => {
 				setErrorStatus(errorStatus);
@@ -492,6 +597,10 @@ const RecipePage = () => {
 
 	const instructionOccurrences = new Map<string, number>();
 	const recipeImageSrc = resolveMediaUrl(recipe.picture_url) ?? recipeImg;
+	const createdAt = formatRecipeDateTime(recipe.created_at, language);
+	const updatedAt = formatRecipeDateTime(recipe.updated_at, language);
+	const isAuthor = recipe.author_id === currentUserId && currentUserId !== null;
+
 	const instructionsWithKeys = recipe.instructions.map((instruction) => {
 		const occurrenceCount = (instructionOccurrences.get(instruction) ?? 0) + 1;
 		instructionOccurrences.set(instruction, occurrenceCount);
@@ -504,7 +613,7 @@ const RecipePage = () => {
 
 	return (
 		<section className="recipe-page" aria-labelledby="recipe-title">
-			{showPictureUploadWarning ? (
+			{showPictureUploadWarning && (
 				<output className="recipe-page-warning">
 					<p className="text-body3">
 						{t("recipePage.pictureUploadFailedWarning")}
@@ -518,13 +627,13 @@ const RecipePage = () => {
 						&times;
 					</button>
 				</output>
-			) : null}
+			)}
 			<section className="recipe-page-hero">
 				<div className="recipe-page-hero-text">
 					<h1 id="recipe-title">{recipe.title}</h1>
-					{recipe.description ? (
+					{recipe.description && (
 						<p className="text-body2">{recipe.description}</p>
-					) : null}
+					)}
 				</div>
 
 				<div className="recipe-page-hero-media">
@@ -537,26 +646,129 @@ const RecipePage = () => {
 			</section>
 
 			<div className="recipe-page-actions">
-				{recipe.rating_avg !== null ? (
+				{recipe.rating_avg !== null && (
 					<div className="recipe-rating-display text-label">
 						<span>{recipe.rating_avg.toFixed(1)}</span>
 						<StarSolid aria-hidden="true" />
 						<span className="recipe-rating-count">({recipe.rating_count})</span>
 					</div>
-				) : null}
-				<IconButton className="recipe-action" onClick={onOpenRatingModal}>
-					{t("recipePage.rate")} <StarSolid aria-hidden="true" />
-				</IconButton>
-				<IconButton className="recipe-action" onClick={onOpenReviewModal}>
-					{t("recipePage.review")} <Reports aria-hidden="true" />
-				</IconButton>
+				)}
+				{!isAuthor && (
+					<>
+						<IconButton className="recipe-action" onClick={onOpenRatingModal}>
+							{t("recipePage.rate")} <StarSolid aria-hidden="true" />
+						</IconButton>
+						<IconButton className="recipe-action" onClick={onOpenReviewModal}>
+							{t("recipePage.review")} <Reports aria-hidden="true" />
+						</IconButton>
+					</>
+				)}
 				<FavoriteButton
 					isFavorited={isFavorited}
 					disabled={isFavoritePending}
 					onClick={handleFavoriteClick}
 				/>
-				{/* TODO: add an edit button here, visible only to the recipe owner. */}
+				{isAuthor && (
+					<IconButton
+						className="recipe-action delete-recipe"
+						disabled={deletingRecipe}
+						onClick={() => setIsDeleteRecipeModalOpen(true)}
+					>
+						{t("recipePage.delete")} <Trash aria-hidden="true" />
+					</IconButton>
+				)}
 			</div>
+
+			{deleteRecipeDeletionError && (
+				<p className="recipe-page-action-error text-body2">
+					{deleteRecipeDeletionError}
+				</p>
+			)}
+
+			<section
+				className="recipe-page-meta"
+				aria-label={t("recipePage.details")}
+			>
+				{(createdAt || updatedAt) && (
+					<div className="recipe-page-timestamps text-caption">
+						{createdAt && (
+							<span>
+								{t("recipePage.createdAt")}:{" "}
+								<time dateTime={recipe.created_at ?? undefined}>
+									{createdAt}
+								</time>
+							</span>
+						)}
+						{updatedAt && (
+							<span>
+								{t("recipePage.updatedAt")}:{" "}
+								<time dateTime={recipe.updated_at ?? undefined}>
+									{updatedAt}
+								</time>
+							</span>
+						)}
+					</div>
+				)}
+
+				{recipe.categories.length > 0 && (
+					<ul
+						className="recipe-page-category-list"
+						aria-label={t("recipePage.categories")}
+					>
+						{recipe.categories.map((category) => (
+							<li
+								key={category.id}
+								className="recipe-page-category-chip text-caption"
+							>
+								{formatCategoryCode(category.code)}
+							</li>
+						))}
+					</ul>
+				)}
+
+				<ul className="recipe-page-facts">
+					<li className="recipe-page-detail-item recipe-page-fact">
+						<span className="recipe-page-fact-label">
+							{t("recipePage.portions")}
+						</span>
+						<p className="recipe-page-fact-value">{recipe.servings}</p>
+					</li>
+					<li className="recipe-page-detail-item recipe-page-fact">
+						<span className="recipe-page-fact-label">
+							{t("recipePage.cookTime")}
+						</span>
+						<p className="recipe-page-fact-value">
+							{recipe.cook_time === null
+								? t("recipePage.notAvailable")
+								: t("recipePage.minutes", { count: recipe.cook_time })}
+						</p>
+					</li>
+					<li className="recipe-page-detail-item recipe-page-fact">
+						<span className="recipe-page-fact-label">
+							{t("recipePage.spiciness")}
+						</span>
+						<span
+							className="recipe-page-spice-scale"
+							role="img"
+							aria-label={t("recipePage.spicinessValue", {
+								value: recipe.spiciness,
+							})}
+						>
+							{[1, 2, 3].map((level) => (
+								<FireFlame
+									key={level}
+									aria-hidden="true"
+									className={
+										level <= recipe.spiciness
+											? "recipe-page-spice-icon is-active"
+											: "recipe-page-spice-icon"
+									}
+								/>
+							))}
+						</span>
+					</li>
+				</ul>
+			</section>
 
 			<section
 				className="recipe-page-content"
@@ -575,7 +787,7 @@ const RecipePage = () => {
 									className="recipe-page-detail-item"
 								>
 									<p className="text-body3">
-										{ingredient.amount} {ingredient.unit} {ingredient.name}
+										{ingredient.name}, {ingredient.amount} {ingredient.unit}
 									</p>
 								</li>
 							))}
@@ -627,11 +839,11 @@ const RecipePage = () => {
 						</p>
 					) : reviews.length > 0 ? (
 						<>
-							{reviewActionError ? (
+							{reviewActionError && (
 								<p className="recipe-page-review-error text-body2">
 									{reviewActionError}
 								</p>
-							) : null}
+							)}
 							<ul className="recipe-page-detail-list recipe-page-reviews-list">
 								{reviews.map((review) => {
 									const canDeleteReview =
@@ -649,14 +861,14 @@ const RecipePage = () => {
 														className="recipe-page-review-date text-caption"
 														dateTime={review.created_at}
 													>
-														{formatReviewDate(review.created_at)}
+														{formatReviewDate(review.created_at, language)}
 													</time>
 												</div>
 											</div>
 											<div className="recipe-page-review-body">
 												<p className="text-body3">{review.body}</p>
 												<div className="recipe-page-review-action">
-													{canDeleteReview ? (
+													{canDeleteReview && (
 														<IconButton
 															className="recipe-page-review-delete"
 															aria-label={t("ariaLabels.deleteReview")}
@@ -667,7 +879,7 @@ const RecipePage = () => {
 														>
 															<Trash aria-hidden="true" />
 														</IconButton>
-													) : null}
+													)}
 												</div>
 											</div>
 										</li>
@@ -704,6 +916,14 @@ const RecipePage = () => {
 				title={t("recipePage.confirmDeleteReview")}
 				confirmLabel={t("ariaLabels.deleteReview")}
 				isConfirming={deletingReviewId !== null}
+			/>
+			<ConfirmationModal
+				isOpen={isDeleteRecipeModalOpen}
+				onClose={onCloseDeleteRecipeModal}
+				onConfirm={deleteRecipe}
+				title={t("recipePage.confirmDeleteRecipe")}
+				confirmLabel={t("recipePage.delete")}
+				isConfirming={deletingRecipe}
 			/>
 		</section>
 	);

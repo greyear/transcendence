@@ -51,10 +51,12 @@ main {
 	--icons-default: #f2ece3;
 	--icons-dark: var(--text-primary);
 	--icons-heart-active: #db858b;
+	--icons-error: var(--surface-error);
 	--borders-default: #f2ece3;
 	--borders-heart-active: #8e4977;
 	--borders-action: #27341e;
 	--borders-input: #e2d8e0;
+	--borders-error: var(--surface-error);
 
 	--radius-s: 8px;
 	--radius-m: 12px;

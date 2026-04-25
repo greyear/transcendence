@@ -88,10 +88,6 @@
 	color: var(--surface-error);
 }
 
-.auth-success {
-	color: var(--surface-success);
-}
-
 .auth-toggle {
 	display: flex;
 	flex-direction: column;
