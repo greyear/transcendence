@@ -19,6 +19,7 @@ type RecipeIngredient = {
 	ingredient_id: number;
 	amount: number;
 	unit: string;
+	unit_name?: string;
 	name: string;
 };
 
@@ -46,6 +47,7 @@ const RecipeIngredientSchema = z.object({
 	ingredient_id: z.number(),
 	amount: z.number(),
 	unit: z.string(),
+	unit_name: z.string().optional(),
 	name: z.string(),
 });
 
@@ -155,6 +157,43 @@ const formatReviewDate = (value: string) => {
 	}
 
 	return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+};
+
+const UNIT_ABBREVIATIONS_BY_LOCALE: Readonly<
+	Record<string, Readonly<Record<string, string>>>
+> = {
+	fi: {
+		kg: "kg",
+		g: "g",
+		mg: "mg",
+		ml: "ml",
+		l: "l",
+		tsp: "tl",
+		tbsp: "rkl",
+		pcs: "kpl",
+		slice: "viip.",
+		clove: "kynsi",
+	},
+	ru: {
+		kg: "кг",
+		g: "г",
+		mg: "мг",
+		ml: "мл",
+		l: "л",
+		tsp: "ч. л.",
+		tbsp: "ст. л.",
+		pcs: "шт.",
+		slice: "ломт.",
+		clove: "зубч.",
+	},
+};
+
+const formatIngredientUnit = (unitCode: string, language: string): string => {
+	const locale = language.slice(0, 2).toLowerCase();
+	const normalizedCode = unitCode.trim().toLowerCase();
+	const localized = UNIT_ABBREVIATIONS_BY_LOCALE[locale]?.[normalizedCode];
+
+	return localized ?? unitCode;
 };
 
 const RecipeLocationStateSchema = z.object({
@@ -575,7 +614,9 @@ const RecipePage = () => {
 									className="recipe-page-detail-item"
 								>
 									<p className="text-body3">
-										{ingredient.amount} {ingredient.unit} {ingredient.name}
+										{ingredient.amount}{" "}
+										{formatIngredientUnit(ingredient.unit, language)}{" "}
+										{ingredient.name}
 									</p>
 								</li>
 							))}

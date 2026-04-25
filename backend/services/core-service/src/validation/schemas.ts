@@ -60,6 +60,7 @@ const recipeIngredientSchema = z.object({
 	name: z.string().trim().min(1).max(128),
 	amount: z.coerce.number().positive(),
 	unit: z.string().min(1).max(16),
+	unit_name: z.string().trim().min(1).max(64).optional(),
 });
 
 const recipeCategorySchema = z.object({

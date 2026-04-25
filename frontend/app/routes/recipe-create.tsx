@@ -127,6 +127,7 @@ const UnitsResponseSchema = z.object({
 		z.object({
 			code: z.string().min(1),
 			kind: z.string().min(1),
+			name: z.string().min(1).optional(),
 		}),
 	),
 });
@@ -235,7 +236,9 @@ const RecipeCreate = () => {
 
 		const fetchIngredients = async () => {
 			try {
-				const response = await fetch(`${API_BASE_URL}/recipes/ingredients`);
+				const response = await fetch(
+					`${API_BASE_URL}/recipes/ingredients?lang=${encodeURIComponent(language)}`,
+				);
 				if (!response.ok) {
 					console.error(`Failed to fetch ingredients: ${response.status}`);
 					return;
@@ -256,7 +259,9 @@ const RecipeCreate = () => {
 
 		const fetchUnits = async () => {
 			try {
-				const response = await fetch(`${API_BASE_URL}/recipes/units`);
+				const response = await fetch(
+					`${API_BASE_URL}/recipes/units?lang=${encodeURIComponent(language)}`,
+				);
 				if (!response.ok) {
 					console.error(`Failed to fetch units: ${response.status}`);
 					return;
@@ -277,7 +282,9 @@ const RecipeCreate = () => {
 
 		const fetchCategoryType = async (typeCode: CategoryTypeCode) => {
 			try {
-				const response = await fetch(`${API_BASE_URL}/recipes/${typeCode}`);
+				const response = await fetch(
+					`${API_BASE_URL}/recipes/${typeCode}?lang=${encodeURIComponent(language)}`,
+				);
 				if (!response.ok) {
 					console.error(
 						`Failed to fetch categories ${typeCode}: ${response.status}`,
@@ -311,7 +318,7 @@ const RecipeCreate = () => {
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [language]);
 
 	const handleCategoryTypeChange = useCallback(
 		(typeCode: CategoryTypeCode, ids: number[]) => {

@@ -165,14 +165,16 @@ const getRecipeWithIngredientsQuery = `
 				SELECT json_agg(
 					json_build_object(
 						'ingredient_id', ri.ingredient_id,
-						'name', i.name,
+						'name', COALESCE(i.name->>$2, i.name->>'en'),
 						'amount', ri.amount,
-						'unit', ri.unit
+						'unit', ri.unit,
+						'unit_name', COALESCE(u.name->>$2, u.name->>'en', ri.unit)
 					)
 					ORDER BY ri.ingredient_id
 				)
 				FROM recipe_ingredients ri
 				JOIN ingredients i ON i.id = ri.ingredient_id
+				LEFT JOIN units u ON u.code = ri.unit
 				WHERE ri.recipe_id = r.id
 			),
 			'[]'::json
@@ -185,7 +187,7 @@ const getRecipeWithIngredientsQuery = `
 						'code', rc.code,
 						'category_type_id', rct.id,
 						'category_type_code', rct.code,
-						'category_type_name', rct.name
+						'category_type_name', COALESCE(rct.name->>$2, rct.name->>'en')
 					)
 					ORDER BY rct.id, rc.id
 				)
@@ -1441,7 +1443,7 @@ export const getSearchRecipes = async (): Promise<SearchRecipeDocument[]> => {
 						SELECT json_agg(
 							json_build_object(
 								'ingredient_id', ri.ingredient_id,
-								'name', i.name,
+								'name', COALESCE(i.name->>'en', i.name->>'fi', i.name->>'ru'),
 								'amount', ri.amount,
 								'unit', ri.unit
 							)
@@ -1461,7 +1463,7 @@ export const getSearchRecipes = async (): Promise<SearchRecipeDocument[]> => {
 								'code', rc.code,
 								'category_type_id', rct.id,
 								'category_type_code', rct.code,
-								'category_type_name', rct.name
+								'category_type_name', COALESCE(rct.name->>'en', rct.name->>'fi', rct.name->>'ru')
 							)
 							ORDER BY rct.id, rc.id
 						)
@@ -1526,7 +1528,7 @@ export const getSearchRecipeById = async (
 						SELECT json_agg(
 							json_build_object(
 								'ingredient_id', ri.ingredient_id,
-								'name', i.name,
+								'name', COALESCE(i.name->>'en', i.name->>'fi', i.name->>'ru'),
 								'amount', ri.amount,
 								'unit', ri.unit
 							)
@@ -1546,7 +1548,7 @@ export const getSearchRecipeById = async (
 								'code', rc.code,
 								'category_type_id', rct.id,
 								'category_type_code', rct.code,
-								'category_type_name', rct.name
+								'category_type_name', COALESCE(rct.name->>'en', rct.name->>'fi', rct.name->>'ru')
 							)
 							ORDER BY rct.id, rc.id
 						)
@@ -1658,6 +1660,7 @@ export const updateRecipePicture = async (
 
 export const getCategoryList = async (
 	categoryTypeCode: string,
+	locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<{
 	[key: string]: { id: number; code: string; name: string }[];
 }> => {
@@ -1668,13 +1671,16 @@ export const getCategoryList = async (
 			name: string;
 		}>(
 			`
-			SELECT rc.id, rc.code, rc.name
+			SELECT
+				rc.id,
+				rc.code,
+				COALESCE(rc.name->>$2, rc.name->>'en') AS name
 			FROM recipe_categories rc
 			JOIN recipe_category_types rct ON rct.id = rc.category_type_id
 			WHERE rct.code = $1
-			ORDER BY rc.name ASC
+			ORDER BY COALESCE(rc.name->>$2, rc.name->>'en') ASC
 			`,
-			[categoryTypeCode],
+			[categoryTypeCode, locale],
 		);
 
 		return { [categoryTypeCode]: result.rows };
@@ -1687,12 +1693,17 @@ export const getCategoryList = async (
 	}
 };
 
-export const getIngredientList = async (): Promise<{
+export const getIngredientList = async (
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<{
 	ingredients: { id: number; name: string }[];
 }> => {
 	try {
 		const result = await pool.query<{ id: number; name: string }>(
-			`SELECT id, name FROM ingredients ORDER BY name COLLATE "C" ASC`,
+			`SELECT id, COALESCE(name->>$1, name->>'en') AS name
+			 FROM ingredients
+			 ORDER BY COALESCE(name->>$1, name->>'en') COLLATE "C" ASC`,
+			[locale],
 		);
 		return { ingredients: result.rows };
 	} catch (error) {
@@ -1701,12 +1712,24 @@ export const getIngredientList = async (): Promise<{
 	}
 };
 
-export const getUnitList = async (): Promise<{
-	units: { code: string; kind: string }[];
+export const getUnitList = async (
+	locale: SupportedLocale = DEFAULT_LOCALE,
+): Promise<{
+	units: { code: string; kind: string; name: string }[];
 }> => {
 	try {
-		const result = await pool.query<{ code: string; kind: string }>(
-			`SELECT code, kind FROM units ORDER BY kind ASC, code COLLATE "C" ASC`,
+		const result = await pool.query<{
+			code: string;
+			kind: string;
+			name: string;
+		}>(
+			`SELECT
+				code,
+				kind,
+				COALESCE(name->>$1, name->>'en') AS name
+			 FROM units
+			 ORDER BY kind ASC, code COLLATE "C" ASC`,
+			[locale],
 		);
 		return { units: result.rows };
 	} catch (error) {

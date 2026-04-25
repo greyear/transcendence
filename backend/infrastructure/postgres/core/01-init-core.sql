@@ -58,14 +58,17 @@ CREATE TABLE "recipes" (
 CREATE TABLE "ingredients" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "code" varchar(64) UNIQUE NOT NULL,
-  "name" varchar(128) UNIQUE NOT NULL,
+  "name" jsonb NOT NULL
+    CHECK (jsonb_typeof(name) = 'object' AND name ? 'en'),
   "created_at" timestamptz DEFAULT now()
 );
 
 CREATE TABLE "units" (
   "code" varchar PRIMARY KEY,
   "kind" varchar NOT NULL
-    CHECK (kind IN ('mass', 'volume', 'portion'))
+    CHECK (kind IN ('mass', 'volume', 'portion')),
+  "name" jsonb NOT NULL
+    CHECK (jsonb_typeof(name) = 'object' AND name ? 'en')
 );
 
 CREATE TABLE "recipe_ingredients" (
@@ -94,7 +97,8 @@ CREATE TABLE "recipe_ingredients" (
 CREATE TABLE "recipe_category_types" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "code" varchar(32) UNIQUE NOT NULL,
-  "name" varchar(64) NOT NULL,
+  "name" jsonb NOT NULL
+    CHECK (jsonb_typeof(name) = 'object' AND name ? 'en'),
   "created_at" timestamptz DEFAULT now()
 );
 
@@ -102,7 +106,8 @@ CREATE TABLE "recipe_categories" (
   "id" integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   "category_type_id" integer NOT NULL,
   "code" varchar(32) NOT NULL,
-  "name" varchar(64) NOT NULL,
+  "name" jsonb NOT NULL
+    CHECK (jsonb_typeof(name) = 'object' AND name ? 'en'),
   "created_at" timestamptz DEFAULT now(),
 
   CONSTRAINT "recipe_categories_category_type_id_fkey"
@@ -416,7 +421,15 @@ COMMENT ON COLUMN "recipe_ingredients"."amount" IS 'Ingredient amount';
 
 COMMENT ON COLUMN "recipe_ingredients"."unit" IS 'g, ml, pcs, etc.';
 
+COMMENT ON COLUMN "ingredients"."name" IS 'Localized ingredient name JSON: {"en":"...","fi":"...","ru":"..."}';
+
+COMMENT ON COLUMN "units"."name" IS 'Localized unit label JSON: {"en":"...","fi":"...","ru":"..."}';
+
 COMMENT ON COLUMN "recipe_category_types"."code" IS 'meal_time, dish_type, main_ingredient, cuisine';
+
+COMMENT ON COLUMN "recipe_category_types"."name" IS 'Localized category type name JSON: {"en":"...","fi":"...","ru":"..."}';
+
+COMMENT ON COLUMN "recipe_categories"."name" IS 'Localized category name JSON: {"en":"...","fi":"...","ru":"..."}';
 
 COMMENT ON COLUMN "ingredient_categories"."code" IS 'nuts, dairy, meat, fish, grains, spices';
 
