@@ -210,6 +210,7 @@ const getRecipeWithIngredientsQuery = `
 					json_build_object(
 						'id', rc.id,
 						'code', rc.code,
+						'name', COALESCE(rc.name->>$2, rc.name->>'en'),
 						'category_type_id', rct.id,
 						'category_type_code', rct.code,
 						'category_type_name', COALESCE(rct.name->>$2, rct.name->>'en')

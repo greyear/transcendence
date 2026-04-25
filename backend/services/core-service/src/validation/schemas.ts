@@ -66,6 +66,7 @@ const recipeIngredientSchema = z.object({
 const recipeCategorySchema = z.object({
 	id: positiveIntSchema,
 	code: z.string().trim().min(1).max(32),
+	name: z.string().trim().min(1).max(128).optional(),
 	category_type_id: positiveIntSchema,
 	category_type_code: z.string().trim().min(1).max(32),
 	category_type_name: z.string().trim().min(1).max(64),
