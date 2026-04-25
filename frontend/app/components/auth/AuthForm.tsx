@@ -377,7 +377,6 @@ export const AuthForm = ({
 				</div>
 
 				<output className="auth-status" aria-live="polite" aria-atomic="true">
-					{message ? <span className="auth-success">{message}</span> : null}
 					{error ? <span className="auth-error">{error}</span> : null}
 				</output>
 
