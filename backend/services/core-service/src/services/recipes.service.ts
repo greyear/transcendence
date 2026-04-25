@@ -483,6 +483,68 @@ export const getAllRecipes = async (
 	}
 };
 
+export type CategoryFilters = {
+	mealType: string[];
+	dishType: string[];
+	mainIngredient: string[];
+	cuisine: string[];
+};
+
+const FILTER_CATEGORY_TYPE: Record<keyof CategoryFilters, string> = {
+	mealType: "meal_time",
+	dishType: "dish_type",
+	mainIngredient: "main_ingredient",
+	cuisine: "cuisine",
+};
+
+const buildCategoryFilterClauses = (
+	filters: CategoryFilters,
+	startIdx: number,
+): { sql: string; values: string[][] } => {
+	const parts: string[] = [];
+	const values: string[][] = [];
+	let idx = startIdx;
+
+	for (const [key, typeCode] of Object.entries(FILTER_CATEGORY_TYPE) as [
+		keyof CategoryFilters,
+		string,
+	][]) {
+		const codes = filters[key];
+		if (codes.length > 0) {
+			parts.push(
+				`EXISTS (\n` +
+					`  SELECT 1 FROM recipe_category_map rcm\n` +
+					`  JOIN recipe_categories rc ON rc.id = rcm.category_id\n` +
+					`  JOIN recipe_category_types rct ON rct.id = rc.category_type_id\n` +
+					`  WHERE rcm.recipe_id = recipes.id\n` +
+					`  AND rct.code = '${typeCode}'\n` +
+					`  AND rc.code = ANY($${idx})\n` +
+					`)`,
+			);
+			values.push(codes);
+			idx++;
+		}
+	}
+
+	return {
+		sql: parts.length > 0 ? "AND " + parts.join("\nAND ") : "",
+		values,
+	};
+};
+
+const getRecipeSortOrderBy = (sort: string | undefined): string => {
+	switch (sort) {
+		case "name-asc":
+			return "COALESCE(title->>$1, title->>'en') ASC, id ASC";
+		case "name-desc":
+			return "COALESCE(title->>$1, title->>'en') DESC, id ASC";
+		case "date-asc":
+			return "created_at ASC, id ASC";
+		default:
+			return "created_at DESC, id DESC";
+	}
+};
+
 /**
  * Get published recipes for exact page
  */
@@ -491,6 +553,13 @@ export const getAllRecipesPaginated = async (
 	perPage: number,
 	locale: SupportedLocale = DEFAULT_LOCALE,
 	search?: string,
+	sort?: string,
+	filters: CategoryFilters = {
+		mealType: [],
+		dishType: [],
+		mainIngredient: [],
+		cuisine: [],
+	},
 ): Promise<PaginatedResponse<RecipeListItem>> => {
 	try {
 		const offset = (page - 1) * perPage;
@@ -498,8 +567,18 @@ export const getAllRecipesPaginated = async (
 		// If nothing remains after sanitizing (e.g. input was "!!!"), skip search entirely.
 		const normalizedSearch =
 			search?.replace(/[^\p{L}\p{N}\s]/gu, "").trim() || undefined;
+		const orderBy = getRecipeSortOrderBy(sort);
 
 		if (normalizedSearch) {
+			// params: $1=locale $2=perPage $3=offset $4=search $5+=filters
+			const dataFilter = buildCategoryFilterClauses(filters, 5);
+			// count params: $1=locale $2=search $3+=filters
+			const countFilter = buildCategoryFilterClauses(filters, 3);
+			const tsQuery = `to_tsquery('simple', regexp_replace(trim($4), '[[:space:]]+', ':* & ', 'g') || ':*')`;
+			const searchOrderBy = sort
+				? orderBy
+				: `ts_rank(search_vector, ${tsQuery}) DESC, created_at DESC, id DESC`;
+
 			const [dataResult, countResult] = await Promise.all([
 				pool.query(
 					`
@@ -519,6 +598,7 @@ export const getAllRecipesPaginated = async (
 							) AS search_vector
 						FROM recipes
 						WHERE status = 'published'
+						${dataFilter.sql}
 					)
 					SELECT
 						id,
@@ -533,14 +613,11 @@ export const getAllRecipesPaginated = async (
 							LIMIT 1
 						) AS picture_url
 					FROM searchable_recipes
-					WHERE search_vector @@ to_tsquery('simple', regexp_replace(trim($4), '[[:space:]]+', ':* & ', 'g') || ':*')
-					ORDER BY
-						ts_rank(search_vector, to_tsquery('simple', regexp_replace(trim($4), '[[:space:]]+', ':* & ', 'g') || ':*')) DESC,
-						created_at DESC,
-						id DESC
+					WHERE search_vector @@ ${tsQuery}
+					ORDER BY ${searchOrderBy}
 					LIMIT $2 OFFSET $3
 					`,
-					[locale, perPage, offset, normalizedSearch],
+					[locale, perPage, offset, normalizedSearch, ...dataFilter.values],
 				),
 				pool.query(
 					`
@@ -554,12 +631,13 @@ export const getAllRecipesPaginated = async (
 							) AS search_vector
 						FROM recipes
 						WHERE status = 'published'
+						${countFilter.sql}
 					)
 					SELECT COUNT(*)::int AS total
 					FROM searchable_recipes
 					WHERE search_vector @@ to_tsquery('simple', regexp_replace(trim($2), '[[:space:]]+', ':* & ', 'g') || ':*')
 					`,
-					[locale, normalizedSearch],
+					[locale, normalizedSearch, ...countFilter.values],
 				),
 			]);
 
@@ -573,6 +651,11 @@ export const getAllRecipesPaginated = async (
 
 			return { data, total_count, total_pages, page, per_page: perPage };
 		}
+
+		// params: $1=locale $2=perPage $3=offset $4+=filters
+		const dataFilter = buildCategoryFilterClauses(filters, 4);
+		// count params: $1+=filters
+		const countFilter = buildCategoryFilterClauses(filters, 1);
 
 		const [dataResult, countResult] = await Promise.all([
 			pool.query(
@@ -591,13 +674,15 @@ export const getAllRecipesPaginated = async (
 					) AS picture_url
 				FROM recipes
 				WHERE status = 'published'
-				ORDER BY created_at DESC
+				${dataFilter.sql}
+				ORDER BY ${orderBy}
 				LIMIT $2 OFFSET $3
 				`,
-				[locale, perPage, offset],
+				[locale, perPage, offset, ...dataFilter.values],
 			),
 			pool.query(
-				`SELECT COUNT(*)::int AS total FROM recipes WHERE status = 'published'`,
+				`SELECT COUNT(*)::int AS total FROM recipes WHERE status = 'published' ${countFilter.sql}`,
+				[...countFilter.values],
 			),
 		]);
 

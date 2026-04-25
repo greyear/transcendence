@@ -15,9 +15,7 @@ import {
 	UsersTabSchema,
 } from "~/components/UsersGrid";
 import "~/assets/styles/users.css";
-import { Filter } from "iconoir-react";
 import { useTranslation } from "react-i18next";
-import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SortMenu } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
@@ -25,8 +23,6 @@ import {
 	PER_PAGE_OPTIONS,
 	usePerPageParam,
 } from "~/composables/usePerPageParam";
-import { useSortOptions } from "~/composables/useSortOptions";
-import { useSortParam } from "~/composables/useSortParam";
 import type { LayoutOutletContext } from "~/layouts/layout";
 
 export const meta: MetaFunction = () => [
@@ -68,8 +64,6 @@ const UsersPage = () => {
 		navigate(`/search?${params.toString()}`);
 	};
 
-	const sortOptions = useSortOptions("users");
-	const [sortValue, setSort] = useSortParam(sortOptions[0].value);
 	const [perPage, setPerPage] = usePerPageParam();
 
 	const parsedTab = UsersTabSchema.safeParse(searchParams.get("tab"));
@@ -138,19 +132,9 @@ const UsersPage = () => {
 
 			{isAuthenticated ? renderTabBar() : null}
 
-			<div className="users-page-controls">
-				<SortMenu options={sortOptions} value={sortValue} onChange={setSort} />
-
-				<TextIconButton>
-					{t("common.filterButton")}
-					<Filter />
-				</TextIconButton>
-			</div>
-
 			<UsersGrid
 				page={page}
 				perPage={perPage}
-				sortValue={sortValue}
 				onLoad={setTotalCount}
 				isAuthenticated={isAuthenticated}
 				currentUserId={currentUserId}

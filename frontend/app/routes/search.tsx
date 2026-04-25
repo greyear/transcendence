@@ -9,6 +9,10 @@ import {
 } from "react-router";
 import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
+import {
+	CategoryFilterMenu,
+	type SearchFilterValues,
+} from "~/components/CategoryFilterMenu";
 import { RecipeCard } from "~/components/cards/RecipeCard";
 import { UserCard } from "~/components/cards/UserCard";
 import { FilterList } from "~/components/FilterList";
@@ -19,10 +23,6 @@ import {
 	CATEGORY_TYPE_CODES,
 	type CategoryTypeCode,
 } from "~/components/recipe/RecipeCategorySection";
-import {
-	SearchFilterMenu,
-	type SearchFilterValues,
-} from "~/components/SearchFilterMenu";
 import { SortMenu } from "~/components/SortMenu";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import "~/assets/styles/recipesGrid.css";
@@ -96,13 +96,12 @@ const RecipesApiResponseSchema = z.object({
 const SearchUsersApiItemSchema = z.object({
 	id: z.number(),
 	username: z.string(),
+	avatar: z.string().nullable().optional(),
 	recipes_count: z.number().optional(),
 });
 
-// The /users endpoint currently returns `{ data: [...] }` without a top-level
-// count; fall back to data.length when `count` is absent.
 const SearchUsersApiResponseSchema = z.object({
-	count: z.number().optional(),
+	total_count: z.number().optional(),
 	data: z.array(SearchUsersApiItemSchema),
 });
 
@@ -117,6 +116,7 @@ type SearchRecipeItem = {
 type SearchUserItem = {
 	id: number;
 	name: string;
+	avatar: string | null;
 	recipeCount: number;
 };
 
@@ -133,7 +133,7 @@ const SearchPage = () => {
 	const { t } = useTranslation();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
-	const { isAuthenticated, openAuthModal, showNotice } =
+	const { isAuthenticated, currentUserId, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
 	const categories = useCategoryMap();
 	const {
@@ -147,6 +147,19 @@ const SearchPage = () => {
 		listEndpoint: "/users/me/favorites",
 		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
 		onAlreadyMember: () => showNotice(t("notices.alreadyFavorited")),
+	});
+
+	const {
+		ids: followingIds,
+		pendingIds: pendingFollowIds,
+		isListLoading: isFollowingLoading,
+		handleToggle: handleFollowToggle,
+	} = useRelationSet({
+		isAuthenticated,
+		openAuthModal,
+		listEndpoint: "/users/me/following",
+		itemEndpoint: (userId) => `/users/${userId}/follow`,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFollowing")),
 	});
 
 	const query = searchParams.get("q") ?? "";
@@ -279,10 +292,11 @@ const SearchPage = () => {
 					}
 					setResults({
 						type: "users",
-						total: parsed.data.count ?? parsed.data.data.length,
+						total: parsed.data.total_count ?? parsed.data.data.length,
 						data: parsed.data.data.map((item) => ({
 							id: item.id,
 							name: item.username,
+							avatar: item.avatar ?? null,
 							recipeCount: item.recipes_count ?? 0,
 						})),
 					});
@@ -473,18 +487,19 @@ const SearchPage = () => {
 			/>
 
 			<div className="search-page-controls">
-				<SortMenu
-					options={sortOptions}
-					value={sort}
-					onChange={handleSortChange}
-				/>
-
 				{typeParam === "recipes" && (
-					<SearchFilterMenu
-						categories={categories}
-						values={filterValues}
-						onApply={handleFilterApply}
-					/>
+					<>
+						<SortMenu
+							options={sortOptions}
+							value={sort}
+							onChange={handleSortChange}
+						/>
+						<CategoryFilterMenu
+							categories={categories}
+							values={filterValues}
+							onApply={handleFilterApply}
+						/>
+					</>
 				)}
 			</div>
 
@@ -527,9 +542,20 @@ const SearchPage = () => {
 						</ul>
 					) : (
 						<ul className="user-card-list">
-							{results.data.map(({ id, name, recipeCount }) => (
+							{results.data.map(({ id, name, avatar, recipeCount }) => (
 								<li key={id}>
-									<UserCard id={id} name={name} recipeCount={recipeCount} />
+									<UserCard
+										id={id}
+										name={name}
+										avatar={avatar}
+										recipeCount={recipeCount}
+										isFollowing={followingIds.has(id)}
+										isFollowPending={
+											isFollowingLoading || pendingFollowIds.has(id)
+										}
+										onFollowToggle={handleFollowToggle}
+										isOwnCard={currentUserId === id}
+									/>
 								</li>
 							))}
 						</ul>
