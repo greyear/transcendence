@@ -1,17 +1,21 @@
 {
+	"notices": {
+		"alreadyFollowing": "You were already following this user.",
+		"alreadyFavorited": "This recipe is already in your favorites."
+	},
 	"common": {
 		"cancel": "Cancel",
 		"signInButton": "Sign In",
 		"searchPlaceholder": "Search for...",
 		"sortButton": "Sort",
 		"filterButton": "Filter",
+		"applyButton": "Apply",
+		"perPage": "Per page",
 		"sortOptions": {
 			"nameAsc": "Name A→Z",
 			"nameDesc": "Name Z→A",
 			"titleAsc": "Title A→Z",
 			"titleDesc": "Title Z→A",
-			"dateAsc": "Old first",
-			"dateDesc": "New first",
 			"recipesCountAsc": "Fewest recipes",
 			"recipesCountDesc": "Most recipes"
 		}
@@ -19,8 +23,7 @@
 	"homePage": {
 		"heroTitle": "A place for food lovers",
 		"heroDescription": "Explore new recipes, follow your favorite cooks, and share your own creations. From quick everyday meals to something a bit more special, find ideas that inspire you.",
-		"viewAllRecipes": "View all recipes",
-		"topRecipes": "Top recipes",
+		"allRecipes": "All recipes",
 		"followCooks": "Follow our cooks",
 		"all": "all"
 	},
@@ -43,12 +46,17 @@
 		"createButton": "Create new",
 		"tabAll": "All",
 		"tabMy": "My recipes",
-		"tabSaved": "Saved recipes"
+		"tabSaved": "Saved recipes",
+		"titleAuthoredBy": "Recipes by {{username}}",
+		"titleFavoritesOf": "{{username}}'s favorites",
+		"backToProfile": "Back to profile"
 	},
 	"recipesGrid": {
 		"loading": "Loading recipes...",
 		"empty": "No recipes found.",
-		"error": "Failed to fetch recipes (status: {{status}})."
+		"error": "Failed to fetch recipes (status: {{status}}).",
+		"signInRequired": "Sign in to view this list.",
+		"favoritesForbidden": "This user's favorites are only visible to mutual followers."
 	},
 	"recipePage": {
 		"loading": "Loading...",
@@ -97,7 +105,7 @@
 		"title": "Search",
 		"totalCount": "Results:",
 		"recipesTab": "Recipes",
-		"perPage": "Per page",
+		"usersTab": "Users",
 		"noResults": "No matching recipes found.",
 		"searching": "Searching recipes...",
 		"error": "Search failed. Please try again.",
@@ -165,12 +173,9 @@
 		"submittingButton": "Signing in...",
 		"signupButton": "Sign Up",
 		"logInButton": "Log in",
-		"googleLoginButton": "Log in with Google",
-		"googleSignupButton": "Sign up with Google",
-		"googleSubmittingButton": "Signing in with Google...",
 		"googleTokenError": "Google did not return a sign-in token.",
-		"googleMissingClientId": "Google client ID is not configured.",
 		"googleUnavailable": "Google sign-in is not available.",
+		"orDivider": "or",
 		"signupSubmittingButton": "Creating account...",
 		"signupSuccess": "Account created. You are signed in.",
 		"toggleSignupPrompt": "Need an account? Create one",
@@ -193,7 +198,8 @@
 	"usersGrid": {
 		"loading": "Loading users...",
 		"empty": "No users found.",
-		"error": "Failed to fetch users (status: {{status}})."
+		"error": "Failed to fetch users (status: {{status}}).",
+		"signInRequired": "Sign in to view this list."
 	},
 	"userCard": {
 		"recipes": "recipes",
@@ -266,9 +272,7 @@
 		"servingsPlaceholder": "e.g. 2",
 		"spicinessLabel": "Spiciness",
 		"spicinessPlaceholder": "0 to 3",
-		"prepTimeLegend": "Prep Time",
 		"cookTimeLegend": "Cook Time",
-		"hoursPlaceholder": "hours",
 		"minutesPlaceholder": "minutes",
 		"ingredientsHeading": "Ingredients",
 		"instructionsHeading": "Instructions",
@@ -296,10 +300,6 @@
 	},
 	"recipeCreateAria": {
 		"addPhoto": "Add a recipe photo",
-		"prepHours": "Prep time hours",
-		"prepMinutes": "Prep time minutes",
-		"cookHours": "Cook time hours",
-		"cookMinutes": "Cook time minutes",
 		"ingredientsList": "Ingredients list",
 		"instructionsList": "Instructions list",
 		"ingredientName": "Ingredient {{number}} name",
@@ -340,6 +340,8 @@
 		"goHome": "Go to homepage",
 		"toggleMenu": "Toggle menu",
 		"allRecipes": "All recipes",
+		"allRecipesByUser": "All recipes by {{name}}",
+		"allFavoritesOfUser": "All favorites of {{name}}",
 		"allUsers": "All users",
 		"profileAvatar": "Avatar of {{name}}",
 		"followUser": "Follow {{name}}",
@@ -364,14 +366,9 @@
 		"spicinessRequired": "Spiciness is required",
 		"spicinessInt": "Spiciness must be a whole number",
 		"spicinessRange": "Spiciness must be between 0 and 3",
-		"prepHoursRequired": "Prep hours is required",
-		"prepMinutesRequired": "Prep minutes is required",
-		"cookHoursRequired": "Cook hours is required",
-		"cookMinutesRequired": "Cook minutes is required",
-		"hoursInt": "Hours must be a whole number",
-		"hoursNonneg": "Hours must be 0 or more",
+		"cookTimeRequired": "Cook time is required",
 		"minutesInt": "Minutes must be a whole number",
-		"minutesRange": "Minutes must be between 0 and 59",
+		"cookTimeMax": "Cook time must be 9999 minutes or less",
 		"amountRequired": "Ingredient amount is required",
 		"amountPositive": "Ingredient amount must be positive",
 		"ingredientRequired": "Ingredient is required",
@@ -380,7 +377,6 @@
 		"ingredientsUnique": "Ingredients must be unique",
 		"stepRequired": "Step text is required",
 		"instructionsMin": "At least one instruction step is required",
-		"prepTimeNonneg": "Prep time must be 0 or more",
 		"cookTimePositive": "Cook time must be greater than 0"
 	}
 }

@@ -1,7 +1,10 @@
 .icon-button.favorite-button {
 	background: var(--surface-favorite);
-	color: var(--icons-default);
 	border: none;
+}
+
+.icon-button.favorite-button svg {
+	color: var(--icons-default);
 }
 
 .icon-button.favorite-button.active svg {

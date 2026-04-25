@@ -10,8 +10,6 @@ export const useSortOptions = (page: "recipes" | "users"): SortOption[] => {
 			return [
 				{ label: t("common.sortOptions.titleAsc"), value: "name-asc" },
 				{ label: t("common.sortOptions.titleDesc"), value: "name-desc" },
-				{ label: t("common.sortOptions.dateAsc"), value: "date-asc" },
-				{ label: t("common.sortOptions.dateDesc"), value: "date-desc" },
 			];
 		}
 

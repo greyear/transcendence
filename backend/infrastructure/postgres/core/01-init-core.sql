@@ -38,6 +38,7 @@ CREATE TABLE "recipes" (
   "instructions" jsonb NOT NULL,
   "servings" integer NOT NULL DEFAULT 1,
   "spiciness" smallint NOT NULL DEFAULT 0 CHECK (spiciness BETWEEN 0 AND 3),
+  "cook_time" integer NULL CHECK (cook_time > 0 AND cook_time <= 9999),
   "author_id" integer NULL,
   "status" varchar(16) NOT NULL
     CHECK (status IN ('draft', 'moderation', 'published', 'archived')),

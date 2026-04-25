@@ -180,6 +180,24 @@ const patchChangePasswordHandler: RequestHandler = async (
 	}
 };
 
+const getSessionHandler: RequestHandler = async (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		const headers = getAuthHeaders(req);
+		const response = await fetch(`${AUTH_SERVICE_URL}/session`, {
+			method: "GET",
+			headers,
+		});
+		const data = await response.json();
+		res.status(response.status).json(data);
+	} catch (error) {
+		next(error);
+	}
+};
+
 const getMeHandler: RequestHandler = async (
 	req: Request,
 	res: Response,
@@ -231,6 +249,7 @@ authRouter.post("/logout", postLogoutHandler);
 
 //authGetSet.ts handlers
 authRouter.post("/validate", postValidateHandler);
+authRouter.get("/session", getSessionHandler);
 authRouter.get("/me", getMeHandler);
 authRouter.delete("/delete", deleteUserHandler);
 authRouter.patch("/change-password", patchChangePasswordHandler);

@@ -32,6 +32,13 @@ export const Footer = ({ isAuthenticated, onOpenAuthModal }: FooterProps) => {
 								{t("layout.users")}
 							</TextIconButton>
 						</li>
+						{isAuthenticated && (
+							<li>
+								<TextIconButton size="body2" to="/profile">
+									{t("layout.profile")}
+								</TextIconButton>
+							</li>
+						)}
 					</ul>
 				</nav>
 				<div className="footer-buttons-row">

@@ -96,10 +96,12 @@ type FetchRecipeReviewsResult = {
 const fetchRecipeById = async (
 	id: string,
 	isAuthenticated: boolean,
+	language: string,
 ): Promise<FetchRecipeResult> => {
 	try {
 		const response = await fetch(`${API_BASE_URL}/recipes/${id}`, {
 			credentials: isAuthenticated ? "include" : "omit",
+			headers: { "X-Language": language },
 		});
 		if (!response.ok) {
 			return { errorStatus: response.status, recipe: null };
@@ -161,7 +163,8 @@ const RecipeLocationStateSchema = z.object({
 
 const RecipePage = () => {
 	const { id } = useParams();
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
+	const language = i18n.resolvedLanguage ?? "en";
 	const location = useLocation();
 	const { isAuthenticated, openAuthModal } =
 		useOutletContext<LayoutOutletContext>();
@@ -282,7 +285,7 @@ const RecipePage = () => {
 		}
 
 		const [recipeResult, reviewsResult] = await Promise.all([
-			fetchRecipeById(id, isAuthenticated),
+			fetchRecipeById(id, isAuthenticated, language),
 			fetchRecipeReviews(id),
 		]);
 
@@ -342,7 +345,7 @@ const RecipePage = () => {
 
 		// TODO: expose ownership in the recipe response so we can show an edit
 		// button only for the recipe author.
-		void fetchRecipeById(id, isAuthenticated)
+		void fetchRecipeById(id, isAuthenticated, language)
 			.then(({ errorStatus, recipe }) => {
 				setErrorStatus(errorStatus);
 				setRecipe(recipe);
@@ -350,7 +353,7 @@ const RecipePage = () => {
 			.finally(() => {
 				setIsLoading(false);
 			});
-	}, [id, isAuthenticated]);
+	}, [id, isAuthenticated, language]);
 
 	useEffect(() => {
 		if (!isAuthenticated) {

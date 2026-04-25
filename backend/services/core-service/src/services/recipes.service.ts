@@ -162,6 +162,9 @@ const getRecipeWithIngredientsQuery = `
 		COALESCE(r.instructions->$2, r.instructions->'en', '[]'::jsonb) AS instructions,
 		r.servings,
 		r.spiciness,
+		r.cook_time,
+		r.created_at,
+		r.updated_at,
 		r.author_id,
 		r.rating_avg,
 		r.rating_count,
@@ -318,14 +321,14 @@ const scheduleRecipeLocalization = (
 				`
 				UPDATE recipes
 				SET title = $1, description = $2, instructions = $3, updated_at = now()
-				WHERE id = $4 AND updated_at = $5
+				WHERE id = $4 AND date_trunc('milliseconds', updated_at) = $5::timestamptz
 			`,
 				[
 					localizedTitle,
 					localizedDescription,
 					localizedInstructions,
 					recipeId,
-					updatedAt,
+					updatedAt instanceof Date ? updatedAt.toISOString() : updatedAt,
 				],
 			);
 
@@ -670,6 +673,12 @@ export const getMyRecipes = async (
 				COALESCE(description->>$2, description->>'en') AS description,
 				author_id,
 				rating_avg,
+				(
+					SELECT rm.url
+					FROM recipe_media rm
+					WHERE rm.recipe_id = recipes.id AND rm.position = 0
+					LIMIT 1
+				) AS picture_url,
 				status
       FROM recipes
       WHERE author_id = $1
@@ -707,8 +716,8 @@ export const createRecipe = async (
 
 		const result = await client.query(
 			`
-      INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status)
-      VALUES ($1, $2, $3, $4, $5, $6, 'published')
+      INSERT INTO recipes (title, description, instructions, servings, spiciness, cook_time, author_id, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'published')
       RETURNING id, updated_at
     `,
 			[
@@ -717,6 +726,7 @@ export const createRecipe = async (
 				placeholderInstructions,
 				input.servings,
 				input.spiciness,
+				input.cook_time ?? null,
 				userId,
 			],
 		);
@@ -842,8 +852,9 @@ export const updateRecipe = async (
         instructions = $3,
         servings = $4,
         spiciness = $5,
+        cook_time = $6,
         updated_at = now()
-      WHERE id = $6 AND author_id = $7 AND status = 'draft'
+      WHERE id = $7 AND author_id = $8 AND status = 'draft'
       RETURNING id, updated_at
     `,
 			[
@@ -852,6 +863,7 @@ export const updateRecipe = async (
 				placeholderInstructions,
 				input.servings,
 				input.spiciness,
+				input.cook_time ?? null,
 				recipeId,
 				userId,
 			],

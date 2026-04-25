@@ -100,6 +100,7 @@ const createRecipeInputSchema = z.object({
 			(items) => new Set(items).size === items.length,
 			"category_ids must be unique",
 		),
+	cook_time: z.coerce.number().int().positive().max(9999).nullable().optional(),
 });
 
 const ratingInputSchema = z.object({
@@ -268,6 +269,9 @@ export const recipeSchema = z.object({
 	picture_url: z.string().nullable(),
 	ingredients: z.array(recipeIngredientSchema),
 	categories: z.array(recipeCategorySchema),
+	cook_time: z.number().int().positive().nullable(),
+	created_at: z.coerce.date().transform((v) => v.toISOString()),
+	updated_at: z.coerce.date().transform((v) => v.toISOString()),
 });
 
 /**
@@ -304,6 +308,7 @@ export const myRecipeListItemSchema = z.object({
 	author_id: userIdSchema.nullable(), // Maybe delete this field from /users/me/recipes response since it's always the same as current user?
 	description: z.string().nullable(),
 	rating_avg: z.coerce.number().min(1).max(5).nullable(),
+	picture_url: z.string().nullable(),
 	status: recipeStatusSchema,
 });
 
