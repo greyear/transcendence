@@ -93,7 +93,8 @@
 		"confirmDeleteReview": "Poistetaanko arvostelusi?",
 		"deleteReviewError": "Arvostelun poistaminen epäonnistui (tila: {{status}}).",
 		"step": "Vaihe {{number}}",
-		"pictureUploadFailedWarning": "Resepti luotiin, mutta kuvan lataus epäonnistui. Käytössä on oletuskuva — voit yrittää lisätä kuvan myöhemmin uudelleen."
+		"pictureUploadFailedWarning": "Resepti luotiin, mutta kuvan lataus epäonnistui. Käytössä on oletuskuva — voit yrittää lisätä kuvan myöhemmin uudelleen.",
+		"ratingDisplayLabel": "Arvosana {{rating}} viidestä tähdestä, {{count}} arvostelijaa"
 	},
 	"ratingModal": {
 		"title": "Arvioi tämä resepti",

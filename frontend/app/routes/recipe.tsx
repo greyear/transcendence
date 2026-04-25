@@ -517,9 +517,13 @@ const RecipePage = () => {
 	});
 
 	return (
-		<section className="recipe-page" aria-labelledby="recipe-title">
+		<div className="recipe-page">
 			{showPictureUploadWarning ? (
-				<output className="recipe-page-warning">
+				<output
+					className="recipe-page-warning"
+					aria-live="polite"
+					aria-atomic="true"
+				>
 					<span className="recipe-page-warning-text text-body3">
 						{t("recipePage.pictureUploadFailedWarning")}
 					</span>
@@ -548,10 +552,19 @@ const RecipePage = () => {
 
 			<div className="recipe-page-actions">
 				{recipe.rating_avg !== null ? (
-					<div className="recipe-rating-display text-label">
-						<span>{recipe.rating_avg.toFixed(1)}</span>
+					<div
+						className="recipe-rating-display text-label"
+						role="img"
+						aria-label={t("recipePage.ratingDisplayLabel", {
+							rating: recipe.rating_avg.toFixed(1),
+							count: recipe.rating_count,
+						})}
+					>
+						<span aria-hidden="true">{recipe.rating_avg.toFixed(1)}</span>
 						<StarSolid aria-hidden="true" />
-						<span className="recipe-rating-count">({recipe.rating_count})</span>
+						<span className="recipe-rating-count" aria-hidden="true">
+							({recipe.rating_count})
+						</span>
 					</div>
 				) : null}
 				<IconButton className="recipe-action" onClick={onOpenRatingModal}>
@@ -568,10 +581,7 @@ const RecipePage = () => {
 				{/* TODO: add an edit button here, visible only to the recipe owner. */}
 			</div>
 
-			<section
-				className="recipe-page-content"
-				aria-label={t("ariaLabels.ingredientsAndInstructions")}
-			>
+			<div className="recipe-page-content">
 				<section
 					className="recipe-page-details-section"
 					aria-labelledby="recipe-ingredients-heading"
@@ -689,7 +699,7 @@ const RecipePage = () => {
 						<p className="text-body2">{t("recipePage.noReviewsAvailable")}</p>
 					)}
 				</section>
-			</section>
+			</div>
 			<RatingModal
 				isOpen={isRatingModalOpen}
 				onClose={onCloseRatingModal}
@@ -715,7 +725,7 @@ const RecipePage = () => {
 				confirmLabel={t("ariaLabels.deleteReview")}
 				isConfirming={deletingReviewId !== null}
 			/>
-		</section>
+		</div>
 	);
 };
 
