@@ -58,6 +58,7 @@
 
 .main-button.danger {
 	background-color: var(--surface-error);
+	border-color: var(--borders-input);
 }
 
 .main-button.secondary {

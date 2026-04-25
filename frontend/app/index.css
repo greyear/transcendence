@@ -101,9 +101,11 @@ main {
 	--icons-default: #f2ece3;
 	--icons-dark: var(--text-primary);
 	--icons-heart-active: #db858b;
+	--icons-error: var(--surface-error);
 	--borders-default: #f2ece3;
 	--borders-heart-active: #8e4977;
 	--borders-action: #27341e;
+	--borders-error: var(--surface-error);
 	--borders-input: #4e633b;
 
 	--radius-s: 8px;
