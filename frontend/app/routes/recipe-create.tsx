@@ -22,7 +22,6 @@ import {
 	RecipeCategorySection,
 } from "~/components/recipe/RecipeCategorySection";
 import { RecipeFormField } from "~/components/recipe/RecipeFormField";
-import { RecipeFormFieldset } from "~/components/recipe/RecipeFormFieldset";
 import type {
 	IngredientOption,
 	IngredientRow,
@@ -54,24 +53,14 @@ const buildRecipeFormSchema = (t: TFunction) => {
 			.positive(v("servingsPositive")),
 	);
 
-	const hoursSchema = (requiredKey: string) =>
-		z.preprocess(
-			emptyToUndef,
-			z
-				.number({ error: v(requiredKey) })
-				.int(v("hoursInt"))
-				.nonnegative(v("hoursNonneg")),
-		);
-
-	const minutesSchema = (requiredKey: string) =>
-		z.preprocess(
-			emptyToUndef,
-			z
-				.number({ error: v(requiredKey) })
-				.int(v("minutesInt"))
-				.min(0, v("minutesRange"))
-				.max(59, v("minutesRange")),
-		);
+	const cookTimeSchema = z.preprocess(
+		emptyToUndef,
+		z
+			.number({ error: v("cookTimeRequired") })
+			.int(v("minutesInt"))
+			.positive(v("cookTimePositive"))
+			.max(9999, v("cookTimeMax")),
+	);
 
 	const spicinessSchema = z.preprocess(
 		emptyToUndef,
@@ -92,47 +81,34 @@ const buildRecipeFormSchema = (t: TFunction) => {
 		.int()
 		.positive(v("ingredientRequired"));
 
-	return z
-		.object({
-			title: z.string().min(1, v("titleRequired")),
-			description: z
-				.string()
-				.min(1, v("descriptionRequired"))
-				.max(DESCRIPTION_MAX, v("descriptionMax", { count: DESCRIPTION_MAX })),
-			servings: servingsSchema,
-			spiciness: spicinessSchema,
-			prepHours: hoursSchema("prepHoursRequired"),
-			prepMinutes: minutesSchema("prepMinutesRequired"),
-			cookHours: hoursSchema("cookHoursRequired"),
-			cookMinutes: minutesSchema("cookMinutesRequired"),
-			ingredients: z
-				.array(
-					z.object({
-						ingredientId: ingredientIdSchema,
-						amount: amountSchema,
-						unit: z.string().min(1, v("unitRequired")),
-					}),
-				)
-				.min(1, v("ingredientsMin"))
-				.refine(
-					(items) =>
-						new Set(items.map((item) => item.ingredientId)).size ===
-						items.length,
-					v("ingredientsUnique"),
-				),
-			instructions: z
-				.array(z.object({ text: z.string().min(1, v("stepRequired")) }))
-				.min(1, v("instructionsMin")),
-			categoryIds: z.array(z.number().int().positive()),
-		})
-		.refine((d) => d.prepHours * 60 + d.prepMinutes >= 0, {
-			message: v("prepTimeNonneg"),
-			path: ["prepHours"],
-		})
-		.refine((d) => d.cookHours * 60 + d.cookMinutes > 0, {
-			message: v("cookTimePositive"),
-			path: ["cookHours"],
-		});
+	return z.object({
+		title: z.string().min(1, v("titleRequired")),
+		description: z
+			.string()
+			.min(1, v("descriptionRequired"))
+			.max(DESCRIPTION_MAX, v("descriptionMax", { count: DESCRIPTION_MAX })),
+		servings: servingsSchema,
+		spiciness: spicinessSchema,
+		cookTime: cookTimeSchema,
+		ingredients: z
+			.array(
+				z.object({
+					ingredientId: ingredientIdSchema,
+					amount: amountSchema,
+					unit: z.string().min(1, v("unitRequired")),
+				}),
+			)
+			.min(1, v("ingredientsMin"))
+			.refine(
+				(items) =>
+					new Set(items.map((item) => item.ingredientId)).size === items.length,
+				v("ingredientsUnique"),
+			),
+		instructions: z
+			.array(z.object({ text: z.string().min(1, v("stepRequired")) }))
+			.min(1, v("instructionsMin")),
+		categoryIds: z.array(z.number().int().positive()),
+	});
 };
 
 type RecipeFormValues = z.infer<ReturnType<typeof buildRecipeFormSchema>>;
@@ -151,6 +127,7 @@ const UnitsResponseSchema = z.object({
 		z.object({
 			code: z.string().min(1),
 			kind: z.string().min(1),
+			name: z.string().min(1).optional(),
 		}),
 	),
 });
@@ -171,29 +148,17 @@ type FormState = {
 	description: string;
 	servings: NumOrEmpty;
 	spiciness: NumOrEmpty;
-	prepHours: NumOrEmpty;
-	prepMinutes: NumOrEmpty;
-	cookHours: NumOrEmpty;
-	cookMinutes: NumOrEmpty;
+	cookTime: NumOrEmpty;
 };
 
-type NumericField =
-	| "servings"
-	| "spiciness"
-	| "prepHours"
-	| "prepMinutes"
-	| "cookHours"
-	| "cookMinutes";
+type NumericField = "servings" | "spiciness" | "cookTime";
 
 const initialForm: FormState = {
 	title: "",
 	description: "",
 	servings: "",
 	spiciness: "",
-	prepHours: "",
-	prepMinutes: "",
-	cookHours: "",
-	cookMinutes: "",
+	cookTime: "",
 };
 
 const emptyCategoryMap = (): CategoryMap => ({
@@ -271,7 +236,9 @@ const RecipeCreate = () => {
 
 		const fetchIngredients = async () => {
 			try {
-				const response = await fetch(`${API_BASE_URL}/recipes/ingredients`);
+				const response = await fetch(
+					`${API_BASE_URL}/recipes/ingredients?lang=${encodeURIComponent(language)}`,
+				);
 				if (!response.ok) {
 					console.error(`Failed to fetch ingredients: ${response.status}`);
 					return;
@@ -292,7 +259,9 @@ const RecipeCreate = () => {
 
 		const fetchUnits = async () => {
 			try {
-				const response = await fetch(`${API_BASE_URL}/recipes/units`);
+				const response = await fetch(
+					`${API_BASE_URL}/recipes/units?lang=${encodeURIComponent(language)}`,
+				);
 				if (!response.ok) {
 					console.error(`Failed to fetch units: ${response.status}`);
 					return;
@@ -313,7 +282,9 @@ const RecipeCreate = () => {
 
 		const fetchCategoryType = async (typeCode: CategoryTypeCode) => {
 			try {
-				const response = await fetch(`${API_BASE_URL}/recipes/${typeCode}`);
+				const response = await fetch(
+					`${API_BASE_URL}/recipes/${typeCode}?lang=${encodeURIComponent(language)}`,
+				);
 				if (!response.ok) {
 					console.error(
 						`Failed to fetch categories ${typeCode}: ${response.status}`,
@@ -347,7 +318,7 @@ const RecipeCreate = () => {
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [language]);
 
 	const handleCategoryTypeChange = useCallback(
 		(typeCode: CategoryTypeCode, ids: number[]) => {
@@ -436,6 +407,7 @@ const RecipeCreate = () => {
 			description: parsed.description,
 			servings: parsed.servings,
 			spiciness: parsed.spiciness,
+			cook_time: parsed.cookTime,
 			instructions: parsed.instructions.map((step) => step.text),
 			ingredients: parsed.ingredients.map((ingredient) => ({
 				ingredient_id: ingredient.ingredientId,
@@ -625,63 +597,22 @@ const RecipeCreate = () => {
 					/>
 				</RecipeFormField>
 
-				<RecipeFormFieldset
-					legend={t("recipeCreatePage.prepTimeLegend")}
+				<RecipeFormField
+					label={t("recipeCreatePage.cookTimeLegend")}
+					htmlFor="cook-time"
 					required
 				>
-					<div className="recipe-create-time-row">
-						<InputField
-							id="prep-hours"
-							type="number"
-							placeholder={t("recipeCreatePage.hoursPlaceholder")}
-							min={0}
-							required
-							value={form.prepHours}
-							onChange={setNumber("prepHours")}
-							aria-label={t("recipeCreateAria.prepHours")}
-						/>
-						<InputField
-							id="prep-minutes"
-							type="number"
-							placeholder={t("recipeCreatePage.minutesPlaceholder")}
-							min={0}
-							max={59}
-							required
-							value={form.prepMinutes}
-							onChange={setNumber("prepMinutes")}
-							aria-label={t("recipeCreateAria.prepMinutes")}
-						/>
-					</div>
-				</RecipeFormFieldset>
-
-				<RecipeFormFieldset
-					legend={t("recipeCreatePage.cookTimeLegend")}
-					required
-				>
-					<div className="recipe-create-time-row">
-						<InputField
-							id="cook-hours"
-							type="number"
-							placeholder={t("recipeCreatePage.hoursPlaceholder")}
-							min={0}
-							required
-							value={form.cookHours}
-							onChange={setNumber("cookHours")}
-							aria-label={t("recipeCreateAria.cookHours")}
-						/>
-						<InputField
-							id="cook-minutes"
-							type="number"
-							placeholder={t("recipeCreatePage.minutesPlaceholder")}
-							min={0}
-							max={59}
-							required
-							value={form.cookMinutes}
-							onChange={setNumber("cookMinutes")}
-							aria-label={t("recipeCreateAria.cookMinutes")}
-						/>
-					</div>
-				</RecipeFormFieldset>
+					<InputField
+						id="cook-time"
+						type="number"
+						placeholder={t("recipeCreatePage.minutesPlaceholder")}
+						min={1}
+						max={9999}
+						required
+						value={form.cookTime}
+						onChange={setNumber("cookTime")}
+					/>
+				</RecipeFormField>
 
 				<RecipeCategorySection
 					categories={categories}

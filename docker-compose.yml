@@ -246,9 +246,28 @@ services:
     networks:
       - transcendence-network
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development-dependencies-env
+    container_name: frontend
+    restart: unless-stopped
+    command: npm run dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      - api-gateway
+    networks:
+      - transcendence-network
+
 volumes:
   core_pg_data:
   search_pg_data:
+  frontend_node_modules:
 
 networks:
   transcendence-network:
