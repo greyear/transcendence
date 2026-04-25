@@ -178,7 +178,9 @@ const UserPage = () => {
 				if (!ignore) {
 					setErrorStatus("unknown");
 				}
-				console.error(error);
+				if (import.meta.env.DEV) {
+					console.error(error);
+				}
 			})
 			.finally(() => {
 				if (!ignore) {

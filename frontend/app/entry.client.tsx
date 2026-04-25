@@ -35,4 +35,8 @@ const main = async () => {
 	});
 };
 
-main().catch((error) => console.error(error));
+main().catch((error) => {
+	if (import.meta.env.DEV) {
+		console.error(error);
+	}
+});

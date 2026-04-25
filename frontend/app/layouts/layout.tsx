@@ -21,7 +21,7 @@ export type LayoutOutletContext = {
 };
 
 const SessionResponseSchema = z.object({ authenticated: z.boolean() });
-const AuthMeResponseSchema = z.object({ id: z.number() });
+const ProfileResponseSchema = z.object({ data: z.object({ id: z.number() }) });
 
 const Layout = () => {
 	const { t } = useTranslation();
@@ -61,22 +61,22 @@ const Layout = () => {
 				return;
 			}
 
-			const meResponse = await fetch(`${API_BASE_URL}/auth/me`, {
+			const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
 				credentials: "include",
 			});
-			if (!meResponse.ok) {
+			if (!profileResponse.ok) {
 				resetAuthState();
 				return;
 			}
 
-			const meBody: unknown = await meResponse.json();
-			const parsedMe = AuthMeResponseSchema.safeParse(meBody);
-			if (!parsedMe.success) {
+			const profileBody: unknown = await profileResponse.json();
+			const parsedProfile = ProfileResponseSchema.safeParse(profileBody);
+			if (!parsedProfile.success) {
 				resetAuthState();
 				return;
 			}
 
-			setCurrentUserId(parsedMe.data.id);
+			setCurrentUserId(parsedProfile.data.data.id);
 			setIsAuthenticated(true);
 		} catch {
 			resetAuthState();
@@ -113,7 +113,9 @@ const Layout = () => {
 					resetAuthState();
 				}
 			} catch (error) {
-				console.error(`Heartbeat failed: ${error}`);
+				if (import.meta.env.DEV) {
+					console.error(`Heartbeat failed: ${error}`);
+				}
 			}
 		};
 
