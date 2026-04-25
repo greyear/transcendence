@@ -140,6 +140,9 @@ const getRecipeWithIngredientsQuery = `
 		COALESCE(r.instructions->$2, r.instructions->'en', '[]'::jsonb) AS instructions,
 		r.servings,
 		r.spiciness,
+		r.cook_time,
+		r.created_at,
+		r.updated_at,
 		r.author_id,
 		r.rating_avg,
 		r.rating_count,
@@ -466,7 +469,10 @@ export const getAllRecipesPaginated = async (
 ): Promise<PaginatedResponse<RecipeListItem>> => {
 	try {
 		const offset = (page - 1) * perPage;
-		const normalizedSearch = search?.trim();
+		// Strip punctuation/symbols that would produce invalid to_tsquery syntax.
+		// If nothing remains after sanitizing (e.g. input was "!!!"), skip search entirely.
+		const normalizedSearch =
+			search?.replace(/[^\p{L}\p{N}\s]/gu, "").trim() || undefined;
 
 		if (normalizedSearch) {
 			const [dataResult, countResult] = await Promise.all([
@@ -502,9 +508,9 @@ export const getAllRecipesPaginated = async (
 							LIMIT 1
 						) AS picture_url
 					FROM searchable_recipes
-					WHERE search_vector @@ websearch_to_tsquery('simple', $4)
+					WHERE search_vector @@ to_tsquery('simple', regexp_replace(trim($4), '[[:space:]]+', ':* & ', 'g') || ':*')
 					ORDER BY
-						ts_rank(search_vector, websearch_to_tsquery('simple', $4)) DESC,
+						ts_rank(search_vector, to_tsquery('simple', regexp_replace(trim($4), '[[:space:]]+', ':* & ', 'g') || ':*')) DESC,
 						created_at DESC,
 						id DESC
 					LIMIT $2 OFFSET $3
@@ -526,7 +532,7 @@ export const getAllRecipesPaginated = async (
 					)
 					SELECT COUNT(*)::int AS total
 					FROM searchable_recipes
-					WHERE search_vector @@ websearch_to_tsquery('simple', $2)
+					WHERE search_vector @@ to_tsquery('simple', regexp_replace(trim($2), '[[:space:]]+', ':* & ', 'g') || ':*')
 					`,
 					[locale, normalizedSearch],
 				),
@@ -693,8 +699,8 @@ export const createRecipe = async (
 
 		const result = await client.query(
 			`
-      INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status)
-      VALUES ($1, $2, $3, $4, $5, $6, 'published')
+      INSERT INTO recipes (title, description, instructions, servings, spiciness, cook_time, author_id, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'published')
       RETURNING id, updated_at
     `,
 			[
@@ -703,6 +709,7 @@ export const createRecipe = async (
 				placeholderInstructions,
 				input.servings,
 				input.spiciness,
+				input.cook_time ?? null,
 				userId,
 			],
 		);
@@ -828,8 +835,9 @@ export const updateRecipe = async (
         instructions = $3,
         servings = $4,
         spiciness = $5,
+        cook_time = $6,
         updated_at = now()
-      WHERE id = $6 AND author_id = $7 AND status = 'draft'
+      WHERE id = $7 AND author_id = $8 AND status = 'draft'
       RETURNING id, updated_at
     `,
 			[
@@ -838,6 +846,7 @@ export const updateRecipe = async (
 				placeholderInstructions,
 				input.servings,
 				input.spiciness,
+				input.cook_time ?? null,
 				recipeId,
 				userId,
 			],
