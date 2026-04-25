@@ -15,9 +15,7 @@ import {
 	UsersTabSchema,
 } from "~/components/UsersGrid";
 import "~/assets/styles/users.css";
-import { Filter } from "iconoir-react";
 import { useTranslation } from "react-i18next";
-import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { SortMenu } from "~/components/SortMenu";
 import { getCurrentPage } from "~/composables/getCurrentPage";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
@@ -140,11 +138,6 @@ const UsersPage = () => {
 
 			<div className="users-page-controls">
 				<SortMenu options={sortOptions} value={sortValue} onChange={setSort} />
-
-				<TextIconButton>
-					{t("common.filterButton")}
-					<Filter />
-				</TextIconButton>
 			</div>
 
 			<UsersGrid

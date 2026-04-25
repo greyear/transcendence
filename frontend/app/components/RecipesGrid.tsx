@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
+import type { SearchFilterValues } from "~/components/CategoryFilterMenu";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { useRelationSet } from "~/composables/useRelationSet";
 import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
@@ -24,6 +25,7 @@ type RecipesGridProps = {
 	openAuthModal: (onSuccessAction?: () => void) => void;
 	showNotice: (message: string) => void;
 	sortValue?: string;
+	filters?: SearchFilterValues;
 	page?: number;
 	perPage?: number;
 	onLoad?: (totalCount: number) => void;
@@ -102,6 +104,7 @@ export const RecipesGrid = ({
 	perPage = 12,
 	onLoad,
 	sortValue = "",
+	filters,
 	userId,
 	favoritesOfUserId,
 	tab = "all",
@@ -145,9 +148,10 @@ export const RecipesGrid = ({
 		onLoadRef.current = onLoad;
 	}, [onLoad]);
 
-	// Only retrigger the fetch when sort changes for the server-paginated path;
-	// for client-rendered tabs sort runs locally and doesn't need a refetch.
+	// Only retrigger the fetch when sort/filters change for the server-paginated
+	// path; for client-rendered tabs these run locally and don't need a refetch.
 	const fetchSortValue = isServerPaginated ? sortValue : undefined;
+	const fetchFilters = isServerPaginated ? filters : undefined;
 
 	useEffect(() => {
 		setErrorStatus(null);
@@ -163,12 +167,21 @@ export const RecipesGrid = ({
 		setIsLoading(true);
 
 		const baseEndpoint = resolveEndpoint(favoritesOfUserId, userId, tab);
-		const sortParam = fetchSortValue
-			? `&sort=${encodeURIComponent(fetchSortValue)}`
-			: "";
-		const endpoint = isServerPaginated
-			? `${baseEndpoint}?page=${page}&per_page=${perPage}${sortParam}`
-			: baseEndpoint;
+		let endpoint = baseEndpoint;
+		if (isServerPaginated) {
+			const params = new URLSearchParams();
+			params.set("page", String(page));
+			params.set("per_page", String(perPage));
+			if (fetchSortValue) params.set("sort", fetchSortValue);
+			if (fetchFilters) {
+				for (const v of fetchFilters.meal_time) params.append("mealType", v);
+				for (const v of fetchFilters.dish_type) params.append("dishType", v);
+				for (const v of fetchFilters.main_ingredient)
+					params.append("mainIngredient", v);
+				for (const v of fetchFilters.cuisine) params.append("cuisine", v);
+			}
+			endpoint = `${baseEndpoint}?${params}`;
+		}
 		// /users/me/* and /users/:id/favorites require the auth cookie. The other
 		// endpoints don't, but passing credentials is harmless — keep the original
 		// no-credentials path for them to minimize surface area.
@@ -243,6 +256,7 @@ export const RecipesGrid = ({
 		page,
 		perPage,
 		fetchSortValue,
+		fetchFilters,
 	]);
 
 	const pageRecipes = isServerPaginated

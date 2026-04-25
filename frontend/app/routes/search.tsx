@@ -9,6 +9,10 @@ import {
 } from "react-router";
 import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
+import {
+	CategoryFilterMenu,
+	type SearchFilterValues,
+} from "~/components/CategoryFilterMenu";
 import { RecipeCard } from "~/components/cards/RecipeCard";
 import { UserCard } from "~/components/cards/UserCard";
 import { FilterList } from "~/components/FilterList";
@@ -19,10 +23,6 @@ import {
 	CATEGORY_TYPE_CODES,
 	type CategoryTypeCode,
 } from "~/components/recipe/RecipeCategorySection";
-import {
-	SearchFilterMenu,
-	type SearchFilterValues,
-} from "~/components/SearchFilterMenu";
 import { SortMenu } from "~/components/SortMenu";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import "~/assets/styles/recipesGrid.css";
@@ -494,7 +494,7 @@ const SearchPage = () => {
 				/>
 
 				{typeParam === "recipes" && (
-					<SearchFilterMenu
+					<CategoryFilterMenu
 						categories={categories}
 						values={filterValues}
 						onApply={handleFilterApply}

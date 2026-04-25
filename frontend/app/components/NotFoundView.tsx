@@ -18,11 +18,7 @@ export const NotFoundView = () => {
 					<span>{t("notFoundPage.titleLine1")}</span>
 					<span>{t("notFoundPage.titleLine2")}</span>
 				</h1>
-				<MainButton
-					to="/"
-					variant="primary"
-					className="not-found-page-button"
-				>
+				<MainButton to="/" variant="primary" className="not-found-page-button">
 					{t("notFoundPage.backHome")}
 				</MainButton>
 			</div>
