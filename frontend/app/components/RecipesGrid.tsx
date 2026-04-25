@@ -243,8 +243,7 @@ export const RecipesGrid = ({
 				onLoadRef.current?.(allRecipes.length);
 				setRecipeList(allRecipes);
 			})
-			.catch((error: unknown) => {
-				console.error(error);
+			.catch(() => {
 				setErrorStatus("unknown");
 			})
 			.finally(() => {

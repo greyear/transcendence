@@ -123,8 +123,6 @@ export const UsersGrid = ({
 		)
 			.then(async (res) => {
 				if (!res.ok) {
-					const message = `Failed to fetch users: ${res.status}`;
-					console.error(message);
 					setErrorStatus(res.status);
 					return null;
 				}
@@ -145,8 +143,7 @@ export const UsersGrid = ({
 				onLoadRef.current?.(total);
 				setUserList(users);
 			})
-			.catch((error: unknown) => {
-				console.error(error);
+			.catch(() => {
 				setErrorStatus("unknown");
 			})
 			.finally(() => {

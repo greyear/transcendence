@@ -185,8 +185,7 @@ const fetchRecipeById = async (
 			errorStatus: null,
 			recipe: parsed.data.data,
 		};
-	} catch (error: unknown) {
-		console.error(error);
+	} catch {
 		return { errorStatus: "unknown" as const, recipe: null };
 	}
 };
@@ -212,8 +211,7 @@ const fetchRecipeReviews = async (
 		}
 
 		return { errorStatus: null, reviews: parsed.data.data };
-	} catch (error: unknown) {
-		console.error(error);
+	} catch {
 		return { errorStatus: "unknown" as const, reviews: [] };
 	}
 };
@@ -378,9 +376,8 @@ const RecipePage = () => {
 			}
 
 			setIsFavorited(shouldBeFavorited);
-		} catch (error) {
+		} catch {
 			setIsFavorited(wasFavoritedBeforeClick);
-			console.error(error);
 		} finally {
 			setIsFavoritePending(false);
 		}
@@ -526,8 +523,7 @@ const RecipePage = () => {
 			}
 
 			await refreshRecipeData();
-		} catch (error) {
-			console.error(error);
+		} catch {
 			setReviewActionError(
 				t("recipePage.deleteReviewError", { status: "unknown" }),
 			);
@@ -609,8 +605,7 @@ const RecipePage = () => {
 				...current,
 				[parsed.data.data.review_id]: true,
 			}));
-		} catch (error) {
-			console.error(error);
+		} catch {
 			setReviewActionError(
 				t("recipePage.translateReviewError", { status: "unknown" }),
 			);
@@ -667,8 +662,7 @@ const RecipePage = () => {
 				if (!ignoreResult) {
 					setCurrentUserId(parsed.success ? parsed.data.data.id : null);
 				}
-			} catch (error) {
-				console.error(error);
+			} catch {
 				if (!ignoreResult) {
 					setCurrentUserId(null);
 				}
@@ -761,8 +755,7 @@ const RecipePage = () => {
 					parsed.data.data.some((favorite) => favorite.id === currentRecipeId),
 				);
 			})
-			.catch((error) => {
-				console.error(error);
+			.catch(() => {
 				if (!ignoreResult) {
 					setIsFavorited(false);
 				}
