@@ -96,6 +96,7 @@ const RecipesApiResponseSchema = z.object({
 const SearchUsersApiItemSchema = z.object({
 	id: z.number(),
 	username: z.string(),
+	avatar: z.string().nullable().optional(),
 	recipes_count: z.number().optional(),
 });
 
@@ -117,6 +118,7 @@ type SearchRecipeItem = {
 type SearchUserItem = {
 	id: number;
 	name: string;
+	avatar: string | null;
 	recipeCount: number;
 };
 
@@ -133,7 +135,7 @@ const SearchPage = () => {
 	const { t } = useTranslation();
 	const [searchParams, setSearchParams] = useSearchParams();
 	const navigate = useNavigate();
-	const { isAuthenticated, openAuthModal, showNotice } =
+	const { isAuthenticated, currentUserId, openAuthModal, showNotice } =
 		useOutletContext<LayoutOutletContext>();
 	const categories = useCategoryMap();
 	const {
@@ -147,6 +149,19 @@ const SearchPage = () => {
 		listEndpoint: "/users/me/favorites",
 		itemEndpoint: (recipeId) => `/recipes/${recipeId}/favorite`,
 		onAlreadyMember: () => showNotice(t("notices.alreadyFavorited")),
+	});
+
+	const {
+		ids: followingIds,
+		pendingIds: pendingFollowIds,
+		isListLoading: isFollowingLoading,
+		handleToggle: handleFollowToggle,
+	} = useRelationSet({
+		isAuthenticated,
+		openAuthModal,
+		listEndpoint: "/users/me/following",
+		itemEndpoint: (userId) => `/users/${userId}/follow`,
+		onAlreadyMember: () => showNotice(t("notices.alreadyFollowing")),
 	});
 
 	const query = searchParams.get("q") ?? "";
@@ -283,6 +298,7 @@ const SearchPage = () => {
 						data: parsed.data.data.map((item) => ({
 							id: item.id,
 							name: item.username,
+							avatar: item.avatar ?? null,
 							recipeCount: item.recipes_count ?? 0,
 						})),
 					});
@@ -527,9 +543,20 @@ const SearchPage = () => {
 						</ul>
 					) : (
 						<ul className="user-card-list">
-							{results.data.map(({ id, name, recipeCount }) => (
+							{results.data.map(({ id, name, avatar, recipeCount }) => (
 								<li key={id}>
-									<UserCard id={id} name={name} recipeCount={recipeCount} />
+									<UserCard
+										id={id}
+										name={name}
+										avatar={avatar}
+										recipeCount={recipeCount}
+										isFollowing={followingIds.has(id)}
+										isFollowPending={
+											isFollowingLoading || pendingFollowIds.has(id)
+										}
+										onFollowToggle={handleFollowToggle}
+										isOwnCard={currentUserId === id}
+									/>
 								</li>
 							))}
 						</ul>
