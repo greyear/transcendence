@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import {
 	CATEGORY_TYPE_CODES,
@@ -26,6 +27,8 @@ const emptyCategoryMap = (): CategoryMap => ({
 });
 
 export const useCategoryMap = (): CategoryMap => {
+	const { i18n } = useTranslation();
+	const language = i18n.resolvedLanguage ?? "en";
 	const [categories, setCategories] = useState<CategoryMap>(emptyCategoryMap);
 
 	useEffect(() => {
@@ -33,7 +36,9 @@ export const useCategoryMap = (): CategoryMap => {
 
 		const fetchCategoryType = async (typeCode: CategoryTypeCode) => {
 			try {
-				const response = await fetch(`${API_BASE_URL}/recipes/${typeCode}`);
+				const response = await fetch(`${API_BASE_URL}/recipes/${typeCode}`, {
+					headers: { "X-Language": language },
+				});
 				if (!response.ok) {
 					console.error(
 						`Failed to fetch categories ${typeCode}: ${response.status}`,
@@ -65,7 +70,7 @@ export const useCategoryMap = (): CategoryMap => {
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [language]);
 
 	return categories;
 };
