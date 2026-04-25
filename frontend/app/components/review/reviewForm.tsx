@@ -19,13 +19,17 @@ const ApiResponseSchema = z.object({
 	message: z.string().optional(),
 });
 
+const normalizeLanguage = (value: string | undefined) =>
+	(value ?? "en").slice(0, 2).toLowerCase();
+
 export const ReviewForm = ({
 	dialogRef,
 	onClose,
 	onSuccess,
 	recipeId,
 }: ReviewFormProps) => {
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
+	const language = normalizeLanguage(i18n.resolvedLanguage);
 	const [review, setReview] = useState("");
 	const [error, setError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,6 +64,8 @@ export const ReviewForm = ({
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
+						"X-Language": language,
+						"X-Source-Language": language,
 					},
 					credentials: "include",
 					body: JSON.stringify({ body: trimmedReview }),

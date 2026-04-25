@@ -306,6 +306,16 @@
 	flex: 0 0 var(--icon-button-size);
 }
 
+.recipe-page-review-translate-row {
+	display: flex;
+	justify-content: flex-start;
+}
+
+.recipe-page-review-translate svg {
+	color: var(--icons-dark);
+	flex-shrink: 0;
+}
+
 .recipe-page-review-author {
 	color: var(--text-secondary);
 	flex: 1 1 auto;

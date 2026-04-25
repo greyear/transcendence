@@ -24,7 +24,10 @@ import {
 	unfollowUser,
 } from "../services/users.service.js";
 import { resolveRequestedLocale } from "../utils/locale.js";
-import { validateUserId } from "../validation/schemas.js";
+import {
+	validatePaginationQuery,
+	validateUserId,
+} from "../validation/schemas.js";
 
 interface CustomError extends Error {
 	statusCode?: number;
@@ -56,8 +59,27 @@ const getAllUsersHandler = async (
 			throw error;
 		}
 
-		const users = await getAllUsers(search || undefined);
-		res.status(200).json({ data: users, count: users.length });
+		const paginationInput = req.query.limit
+			? { ...req.query, per_page: req.query.limit }
+			: req.query;
+
+		const pagination = validatePaginationQuery(paginationInput);
+		if (!pagination.valid) {
+			const error: CustomError = new Error(pagination.error);
+			error.statusCode = 400;
+			throw error;
+		}
+
+		const sort =
+			typeof req.query.sort === "string" ? req.query.sort : undefined;
+
+		const result = await getAllUsers(
+			pagination.value.page,
+			pagination.value.per_page,
+			search || undefined,
+			sort,
+		);
+		res.status(200).json(result);
 	} catch (error) {
 		next(error);
 	}

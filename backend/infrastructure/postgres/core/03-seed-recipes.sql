@@ -700,7 +700,7 @@ FROM seeded_recipe_ingredients sri
 JOIN seeded_media sm ON sm.title_en = sri.title_en
 JOIN recipes r ON COALESCE(r.title->>'en', '') = sm.title_en
 JOIN recipe_media rm ON rm.recipe_id = r.id AND rm.position = 0 AND rm.url = sm.image_url
-JOIN ingredients i ON i.name = sri.ingredient_name
+JOIN ingredients i ON i.name->>'en' = sri.ingredient_name
 ON CONFLICT (recipe_id, ingredient_id) DO UPDATE
 SET amount = EXCLUDED.amount,
     unit = EXCLUDED.unit;

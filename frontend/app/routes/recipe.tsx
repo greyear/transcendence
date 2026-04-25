@@ -9,8 +9,9 @@ import {
 import { z } from "zod";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.css";
-import { FireFlame, Reports, StarSolid, Trash } from "iconoir-react";
+import { FireFlame, Reports, StarSolid, Translate, Trash } from "iconoir-react";
 import { IconButton } from "~/components/buttons/IconButton";
+import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { RatingModal } from "~/components/rating/ratingModal";
 import { ReviewModal } from "~/components/review/reviewModal";
@@ -24,6 +25,7 @@ type RecipeIngredient = {
 	ingredient_id: number;
 	amount: number;
 	unit: string;
+	unit_name?: string;
 	name: string;
 };
 
@@ -51,18 +53,11 @@ type Recipe = {
 	instructions: string[];
 };
 
-type RecipeReview = {
-	id: number;
-	author_id: number | null;
-	username: string | null;
-	body: string;
-	created_at: string;
-};
-
 const RecipeIngredientSchema = z.object({
 	ingredient_id: z.number(),
 	amount: z.number(),
 	unit: z.string(),
+	unit_name: z.string().optional(),
 	name: z.string(),
 });
 
@@ -100,16 +95,29 @@ const RecipeResponseSchema = z.object({
 	data: RecipeSchema,
 });
 
+const ReviewLanguageSchema = z.enum(["en", "fi", "ru"]);
+
 const RecipeReviewSchema = z.object({
 	id: z.number(),
 	author_id: z.number().nullable(),
 	username: z.string().nullable(),
 	body: z.string(),
+	source_language: ReviewLanguageSchema,
 	created_at: z.string(),
+	updated_at: z.string(),
 });
 
 const RecipeReviewsResponseSchema = z.object({
 	data: z.array(RecipeReviewSchema),
+});
+
+type RecipeReview = z.infer<typeof RecipeReviewSchema>;
+
+const ReviewTranslationResponseSchema = z.object({
+	data: z.object({
+		review_id: z.number(),
+		translated_body: z.string(),
+	}),
 });
 
 const ProfileResponseSchema = z.object({
@@ -117,6 +125,14 @@ const ProfileResponseSchema = z.object({
 		id: z.number(),
 	}),
 });
+
+type ReviewLanguage = z.infer<typeof ReviewLanguageSchema>;
+
+const normalizeReviewLanguage = (value: string | undefined): ReviewLanguage => {
+	const normalized = (value ?? "en").slice(0, 2).toLowerCase();
+	const parsed = ReviewLanguageSchema.safeParse(normalized);
+	return parsed.success ? parsed.data : "en";
+};
 
 type FetchRecipeResult = {
 	errorStatus: number | "unknown" | null;
@@ -217,6 +233,42 @@ const formatCategoryCode = (value: string) =>
 		.filter(Boolean)
 		.map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
 		.join(" ");
+const UNIT_ABBREVIATIONS_BY_LOCALE: Readonly<
+	Record<string, Readonly<Record<string, string>>>
+> = {
+	fi: {
+		kg: "kg",
+		g: "g",
+		mg: "mg",
+		ml: "ml",
+		l: "l",
+		tsp: "tl",
+		tbsp: "rkl",
+		pcs: "kpl",
+		slice: "viip.",
+		clove: "kynsi",
+	},
+	ru: {
+		kg: "кг",
+		g: "г",
+		mg: "мг",
+		ml: "мл",
+		l: "л",
+		tsp: "ч. л.",
+		tbsp: "ст. л.",
+		pcs: "шт.",
+		slice: "ломт.",
+		clove: "зубч.",
+	},
+};
+
+const formatIngredientUnit = (unitCode: string, language: string): string => {
+	const locale = language.slice(0, 2).toLowerCase();
+	const normalizedCode = unitCode.trim().toLowerCase();
+	const localized = UNIT_ABBREVIATIONS_BY_LOCALE[locale]?.[normalizedCode];
+
+	return localized ?? unitCode;
+};
 
 const RecipeLocationStateSchema = z.object({
 	pictureUploadFailed: z.literal(true),
@@ -225,7 +277,7 @@ const RecipeLocationStateSchema = z.object({
 const RecipePage = () => {
 	const { id } = useParams();
 	const { t, i18n } = useTranslation();
-	const language = i18n.resolvedLanguage ?? "en";
+	const language = normalizeReviewLanguage(i18n.resolvedLanguage);
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { isAuthenticated, openAuthModal } =
@@ -252,6 +304,18 @@ const RecipePage = () => {
 		number | null
 	>(null);
 	const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null);
+	const [translatingReviewId, setTranslatingReviewId] = useState<number | null>(
+		null,
+	);
+	const [translatedReviewBodies, setTranslatedReviewBodies] = useState<
+		Record<
+			number,
+			{ body: string; language: ReviewLanguage; updatedAt: string }
+		>
+	>({});
+	const [visibleTranslatedReviewIds, setVisibleTranslatedReviewIds] = useState<
+		Record<number, boolean>
+	>({});
 	const [reviewActionError, setReviewActionError] = useState("");
 	const [isFavorited, setIsFavorited] = useState(false);
 	const [isFavoritePending, setIsFavoritePending] = useState(false);
@@ -360,6 +424,8 @@ const RecipePage = () => {
 		setReviewsErrorStatus(reviewsResult.errorStatus);
 		setReviews(reviewsResult.reviews);
 		setReviewActionError("");
+		setTranslatedReviewBodies({});
+		setVisibleTranslatedReviewIds({});
 	};
 
 	const onCloseDeleteRecipeModal = () => {
@@ -436,6 +502,88 @@ const RecipePage = () => {
 		} finally {
 			setDeletingReviewId(null);
 			setReviewIdPendingDelete(null);
+		}
+	};
+
+	const translateReview = async (reviewId: number) => {
+		if (!id || translatingReviewId !== null) {
+			return;
+		}
+
+		if (!isAuthenticated) {
+			openAuthModal(() => {
+				void translateReview(reviewId);
+			});
+			return;
+		}
+
+		const review = reviews.find((item) => item.id === reviewId);
+		if (!review) {
+			return;
+		}
+
+		const currentTranslation = translatedReviewBodies[reviewId];
+		if (
+			currentTranslation?.language === language &&
+			currentTranslation.updatedAt === review.updated_at
+		) {
+			setVisibleTranslatedReviewIds((current) => ({
+				...current,
+				[reviewId]: !current[reviewId],
+			}));
+			return;
+		}
+
+		setReviewActionError("");
+		setTranslatingReviewId(reviewId);
+
+		try {
+			const response = await fetch(
+				`${API_BASE_URL}/recipes/${id}/reviews/${reviewId}/translate`,
+				{
+					headers: {
+						"X-Language": language,
+					},
+					credentials: "include",
+				},
+			);
+
+			if (!response.ok) {
+				setReviewActionError(
+					t("recipePage.translateReviewError", { status: response.status }),
+				);
+				return;
+			}
+
+			const body: unknown = await response.json();
+			const parsed = ReviewTranslationResponseSchema.safeParse(body);
+
+			if (!parsed.success) {
+				setReviewActionError(
+					t("recipePage.translateReviewError", { status: "unknown" }),
+				);
+				return;
+			}
+
+			setTranslatedReviewBodies((current) => ({
+				...current,
+				[parsed.data.data.review_id]: {
+					body: parsed.data.data.translated_body,
+					language,
+					updatedAt: review.updated_at,
+				},
+			}));
+			setVisibleTranslatedReviewIds((current) => ({
+				...current,
+				[parsed.data.data.review_id]: true,
+			}));
+		} catch (error) {
+			console.error(error);
+			setReviewActionError(
+				t("recipePage.translateReviewError", { status: "unknown" }),
+			);
+		} finally {
+			setTranslatingReviewId(null);
 		}
 	};
 
@@ -520,6 +668,8 @@ const RecipePage = () => {
 			.then(({ errorStatus, reviews }) => {
 				setReviewsErrorStatus(errorStatus);
 				setReviews(reviews);
+				setTranslatedReviewBodies({});
+				setVisibleTranslatedReviewIds({});
 			})
 			.finally(() => {
 				setAreReviewsLoading(false);
@@ -787,7 +937,9 @@ const RecipePage = () => {
 									className="recipe-page-detail-item"
 								>
 									<p className="text-body3">
-										{ingredient.name}, {ingredient.amount} {ingredient.unit}
+										{ingredient.name}{", "} 
+										{ingredient.amount}{" "}
+										{formatIngredientUnit(ingredient.unit, language)}
 									</p>
 								</li>
 							))}
@@ -849,6 +1001,17 @@ const RecipePage = () => {
 									const canDeleteReview =
 										currentUserId !== null &&
 										review.author_id === currentUserId;
+									const translatedReview = translatedReviewBodies[review.id];
+									const isReviewTranslated =
+										translatedReview?.language === language &&
+										translatedReview.updatedAt === review.updated_at &&
+										visibleTranslatedReviewIds[review.id] === true;
+									const isReviewTranslating = translatingReviewId === review.id;
+									const canTranslateReview =
+										review.source_language !== language;
+									const reviewBody = isReviewTranslated
+										? (translatedReview?.body ?? review.body)
+										: review.body;
 
 									return (
 										<li key={review.id} className="recipe-page-review-card">
@@ -866,7 +1029,7 @@ const RecipePage = () => {
 												</div>
 											</div>
 											<div className="recipe-page-review-body">
-												<p className="text-body3">{review.body}</p>
+												<p className="text-body3">{reviewBody}</p>
 												<div className="recipe-page-review-action">
 													{canDeleteReview && (
 														<IconButton
@@ -882,6 +1045,24 @@ const RecipePage = () => {
 													)}
 												</div>
 											</div>
+											{canTranslateReview ? (
+												<div className="recipe-page-review-translate-row">
+													<TextIconButton
+														size="body3"
+														className="recipe-page-review-translate"
+														disabled={isReviewTranslating}
+														selected={isReviewTranslated}
+														onClick={() => translateReview(review.id)}
+													>
+														<Translate aria-hidden="true" />
+														{isReviewTranslating
+															? t("recipePage.translatingReview")
+															: isReviewTranslated
+																? t("recipePage.showOriginalReview")
+																: t("recipePage.translateReview")}
+													</TextIconButton>
+												</div>
+											) : null}
 										</li>
 									);
 								})}
