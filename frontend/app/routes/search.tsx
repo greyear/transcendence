@@ -139,7 +139,7 @@ const SearchPage = () => {
 	const typeParam = rawType === "users" ? "users" : "recipes";
 	const sort = searchParams.get("sort") ?? "";
 	const limit = parseLimit(searchParams.get("limit"));
-	const aiEnabled = searchParams.get("ai") !== "0";
+	const aiEnabled = searchParams.get("ai") === "1";
 	const isAiSearch = typeParam === "recipes" && aiEnabled;
 
 	const rawPage = Number(searchParams.get("page") ?? "1");
@@ -380,9 +380,9 @@ const SearchPage = () => {
 	const handleAiToggle = () => {
 		const params = new URLSearchParams(searchParams);
 		if (aiEnabled) {
-			params.set("ai", "0");
-		} else {
 			params.delete("ai");
+		} else {
+			params.set("ai", "1");
 		}
 		navigate(`/search?${params.toString()}`);
 	};
