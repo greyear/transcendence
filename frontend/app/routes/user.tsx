@@ -8,7 +8,7 @@ import {
 	useParams,
 } from "react-router";
 import { z } from "zod";
-import userPhoto from "~/assets/images/user-photo.jpg";
+import userPhoto from "~/assets/images/default-avatar.jpeg";
 import "~/assets/styles/userProfile.scss";
 import "~/assets/styles/recipesGrid.scss";
 import { MainButton } from "~/components/buttons/MainButton";
