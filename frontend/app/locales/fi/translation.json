@@ -79,7 +79,8 @@
 		"empty": "Reseptejä ei löytynyt.",
 		"error": "Reseptien haku epäonnistui (tila: {{status}}).",
 		"signInRequired": "Kirjaudu sisään nähdäksesi tämän listan.",
-		"favoritesForbidden": "Tämän käyttäjän suosikit näkyvät vain vastavuoroisille seuraajille."
+		"favoritesForbidden": "Tämän käyttäjän suosikit näkyvät vain vastavuoroisille seuraajille.",
+		"archivedLabel": "Arkistoitu"
 	},
 	"recipePage": {
 		"loading": "Ladataan...",
@@ -119,7 +120,9 @@
 		"pictureUploadFailedWarning": "Resepti luotiin, mutta kuvan lataus epäonnistui. Käytössä on oletuskuva — voit yrittää lisätä kuvan myöhemmin uudelleen.",
 		"modify": "Muokkaa",
 		"delete": "Poista",
-		"ratingDisplayLabel": "Arvosana {{rating}} viidestä tähdestä, {{count}} arvostelijaa"
+		"ratingDisplayLabel": "Arvosana {{rating}} viidestä tähdestä, {{count}} arvostelijaa",
+		"forbiddenTitle": "Tämän reseptin salaisuuksia ei voi jakaa",
+		"backToRecipes": "Takaisin resepteihin"
 	},
 	"ratingModal": {
 		"title": "Arvioi tämä resepti",
@@ -326,6 +329,7 @@
 		"addIngredient": "+ Lisää aines",
 		"addStep": "+ Lisää vaihe",
 		"addPhoto": "Lisää kuva",
+		"photoSizeError": "Kuvan koko saa olla enintään 5 MB",
 		"recipePreview": "Reseptin esikatselu",
 		"submitButton": "Luo",
 		"submittingButton": "Luodaan...",

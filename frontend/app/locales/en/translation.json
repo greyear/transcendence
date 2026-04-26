@@ -79,7 +79,8 @@
 		"empty": "No recipes found.",
 		"error": "Failed to fetch recipes (status: {{status}}).",
 		"signInRequired": "Sign in to view this list.",
-		"favoritesForbidden": "This user's favorites are only visible to mutual followers."
+		"favoritesForbidden": "This user's favorites are only visible to mutual followers.",
+		"archivedLabel": "Archived"
 	},
 	"recipePage": {
 		"loading": "Loading...",
@@ -119,7 +120,9 @@
 		"pictureUploadFailedWarning": "Recipe created, but the photo could not be uploaded. A default image is being used — you can try adding a photo again later.",
 		"modify": "Modify",
 		"delete": "Delete",
-		"ratingDisplayLabel": "Rated {{rating}} out of 5 stars by {{count}} reviewers"
+		"ratingDisplayLabel": "Rated {{rating}} out of 5 stars by {{count}} reviewers",
+		"forbiddenTitle": "The secrets of this recipe cannot be shared",
+		"backToRecipes": "Back to recipes"
 	},
 	"ratingModal": {
 		"title": "Rate this recipe",
@@ -326,6 +329,7 @@
 		"addIngredient": "+ Add ingredient",
 		"addStep": "+ Add step",
 		"addPhoto": "Add a photo",
+		"photoSizeError": "Photo size must be 5 MB or less",
 		"recipePreview": "Recipe preview",
 		"submitButton": "Create",
 		"submittingButton": "Creating...",

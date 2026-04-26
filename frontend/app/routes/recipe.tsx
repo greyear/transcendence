@@ -12,6 +12,7 @@ import { z } from "zod";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.scss";
 import { IconButton } from "~/components/buttons/IconButton";
+import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { NotFoundView } from "~/components/NotFoundView";
@@ -64,6 +65,7 @@ type Recipe = {
 	created_at: string | null;
 	updated_at: string | null;
 	instructions: string[];
+	status: string | null;
 };
 
 const RecipeIngredientSchema = z.object({
@@ -103,6 +105,7 @@ const RecipeSchema = z.object({
 	created_at: z.string().nullable().optional().default(null),
 	updated_at: z.string().nullable().optional().default(null),
 	instructions: z.array(z.string()).optional().default([]),
+	status: z.string().nullable().optional().default(null),
 });
 
 const RecipeResponseSchema = z.object({
@@ -196,6 +199,9 @@ const fetchRecipeReviews = async (
 			credentials: "include",
 		});
 		if (!response.ok) {
+			if (response.status === 404) {
+				return { errorStatus: null, reviews: [] };
+			}
 			return { errorStatus: response.status, reviews: [] };
 		}
 
@@ -771,6 +777,19 @@ const RecipePage = () => {
 		return <p className="recipe-page-status">{t("recipePage.loading")}</p>;
 	}
 
+	if (errorStatus === 403) {
+		return (
+			<div className="recipe-page-forbidden">
+				<p className="recipe-page-forbidden-title text-body2">
+					{t("recipePage.forbiddenTitle")}
+				</p>
+				<MainButton to="/recipes" variant="primary">
+					{t("recipePage.backToRecipes")}
+				</MainButton>
+			</div>
+		);
+	}
+
 	if (errorStatus === 404) {
 		return <NotFoundView />;
 	}
@@ -791,6 +810,7 @@ const RecipePage = () => {
 	const recipeImageSrc = resolveMediaUrl(recipe.picture_url) ?? recipeImg;
 	const createdAt = formatRecipeDateTime(recipe.created_at, language);
 	const isAuthor = recipe.author_id === currentUserId && currentUserId !== null;
+	const isArchived = recipe.status === "archived";
 
 	const instructionsWithKeys = recipe.instructions.map((instruction) => {
 		const occurrenceCount = (instructionOccurrences.get(instruction) ?? 0) + 1;
@@ -867,12 +887,14 @@ const RecipePage = () => {
 						</IconButton>
 					</>
 				)}
-				<FavoriteButton
-					isFavorited={isFavorited}
-					disabled={isFavoritePending}
-					onClick={handleFavoriteClick}
-				/>
-				{isAuthor && (
+				{!isArchived && (
+					<FavoriteButton
+						isFavorited={isFavorited}
+						disabled={isFavoritePending}
+						onClick={handleFavoriteClick}
+					/>
+				)}
+				{isAuthor && !isArchived && (
 					<IconButton
 						className="recipe-action delete-recipe"
 						disabled={deletingRecipe}
