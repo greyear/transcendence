@@ -316,24 +316,32 @@ const RecipesPage = () => {
 				}
 			/>
 
-			<SearchField
-				placeholder={t("common.searchPlaceholder")}
-				onSubmit={handleSearch}
-			/>
+			{!isScoped ? (
+				<SearchField
+					placeholder={t("common.searchPlaceholder")}
+					onSubmit={handleSearch}
+				/>
+			) : null}
 
 			{!isScoped && isAuthenticated ? renderTabBar() : null}
 
-			<div className="recipes-page-controls">
-				<SortMenu options={sortOptions} value={sortValue} onChange={setSort} />
-
-				{!isScoped && tab === "all" && (
-					<CategoryFilterMenu
-						categories={categories}
-						values={filterValues}
-						onApply={handleFilterApply}
+			{!isScoped ? (
+				<div className="recipes-page-controls">
+					<SortMenu
+						options={sortOptions}
+						value={sortValue}
+						onChange={setSort}
 					/>
-				)}
-			</div>
+
+					{tab === "all" && (
+						<CategoryFilterMenu
+							categories={categories}
+							values={filterValues}
+							onApply={handleFilterApply}
+						/>
+					)}
+				</div>
+			) : null}
 
 			{mode === "favoritesOf" &&
 			(!isAuthResolved || isMutualFollower === null) ? (
