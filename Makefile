@@ -83,6 +83,17 @@ db-reset:
 db-seed:
 	@echo "Waiting for core-db..."
 	@until docker exec core-postgres pg_isready -U core_user -d core_db >/dev/null 2>&1; do sleep 1; done
+	@echo "Waiting for core-db healthcheck to become healthy..."
+	@health_waited=0; \
+	until [ "`docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}starting{{end}}' core-postgres 2>/dev/null`" = "healthy" ]; do \
+		if [ $$health_waited -ge 120 ]; then \
+			echo "✗ core-db healthcheck timeout."; \
+			echo "Inspect logs: docker-compose logs --tail=200 core-db"; \
+			exit 1; \
+		fi; \
+		sleep 1; \
+		health_waited=$$((health_waited + 1)); \
+	done
 	@echo "Waiting for schema initialization (users/recipes/recipe_media)..."
 	@schema_waited=0; \
 	until [ "`docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT (to_regclass('public.users') IS NOT NULL) AND (to_regclass('public.recipes') IS NOT NULL) AND (to_regclass('public.recipe_media') IS NOT NULL);\" | tr -d '[:space:]'`" = "t" ]; do \
@@ -95,9 +106,24 @@ db-seed:
 		schema_waited=$$((schema_waited + 1)); \
 	done
 	@echo "Applying users + recipes + reviews seeds via docker-compose..."
-	@docker-compose exec -T core-db psql -v ON_ERROR_STOP=1 -U core_user -d core_db -f /docker-entrypoint-initdb.d/03-seed-users.sql
-	@docker-compose exec -T core-db psql -v ON_ERROR_STOP=1 -U core_user -d core_db -f /docker-entrypoint-initdb.d/04-seed-recipes.sql
-	@docker-compose exec -T core-db psql -v ON_ERROR_STOP=1 -U core_user -d core_db -f /docker-entrypoint-initdb.d/05-seed-reviews.sql
+	@run_seed_sql() { \
+		seed_file="$$1"; \
+		seed_name="$$2"; \
+		seed_try=0; \
+		until docker-compose exec -T core-db psql -v ON_ERROR_STOP=1 -U core_user -d core_db -f "$$seed_file"; do \
+			seed_try=$$((seed_try + 1)); \
+			if [ $$seed_try -ge 10 ]; then \
+				echo "✗ Failed to apply $$seed_name after $$seed_try attempts."; \
+				echo "Inspect logs: docker-compose logs --tail=200 core-db"; \
+				exit 1; \
+			fi; \
+			echo "core-db not ready while applying $$seed_name, retrying ($$seed_try/10)..."; \
+			sleep 2; \
+		done; \
+	}; \
+	run_seed_sql /docker-entrypoint-initdb.d/03-seed-users.sql users; \
+	run_seed_sql /docker-entrypoint-initdb.d/04-seed-recipes.sql recipes; \
+	run_seed_sql /docker-entrypoint-initdb.d/05-seed-reviews.sql reviews
 	@echo "Seed counts:"
 	@echo "  users:   `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM users;\" | tr -d '[:space:]'`"
 	@echo "  recipes: `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM recipes;\" | tr -d '[:space:]'`"
