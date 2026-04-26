@@ -153,7 +153,8 @@
 		"searching": "Haetaan reseptejä...",
 		"error": "Haku epäonnistui. Yritä uudelleen.",
 		"aiSummaryOn": "Tekoälytiivistelmä käytössä",
-		"aiSummaryOff": "Tekoälytiivistelmä poissa käytöstä"
+		"aiSummaryOff": "Tekoälytiivistelmä poissa käytöstä",
+		"aiDisclaimer": "Tekoälyn luoma tiivistelmä. Voi olla epätarkka — tarkista aina koko resepti."
 	},
 	"usersPage": {
 		"title": "Käyttäjät",
