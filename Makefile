@@ -13,7 +13,7 @@ help:
 	@echo "  make logs-db    - View database logs (core-db and auth-db)"
 	@echo "  make db-status  - Check running containers and their health status"
 	@echo "  make db-reset   - Reset only databases (keep app containers)"
-	@echo "  make db-seed    - Re-run users/recipes seeds in running core-db"
+	@echo "  make db-seed    - Re-run users/recipes/reviews seeds in running core-db"
 	@echo ""
 	@echo "Local development (without Docker):"
 	@echo "  make dev-api         - Start api-gateway locally (auto-installs deps if needed)"
@@ -94,7 +94,7 @@ db-seed:
 		sleep 1; \
 		schema_waited=$$((schema_waited + 1)); \
 	done
-	@echo "Applying users + recipes seeds via docker-compose..."
+	@echo "Applying users + recipes + reviews seeds via docker-compose..."
 	@run_seed() { \
 		file="$$1"; \
 		attempts=0; \
@@ -111,10 +111,12 @@ db-seed:
 		done; \
 	}; \
 	run_seed /docker-entrypoint-initdb.d/03-seed-users.sql; \
-	run_seed /docker-entrypoint-initdb.d/04-seed-recipes.sql
+	run_seed /docker-entrypoint-initdb.d/04-seed-recipes.sql; \
+	run_seed /docker-entrypoint-initdb.d/05-seed-reviews.sql
 	@echo "Seed counts:"
 	@echo "  users:   `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM users;\" | tr -d '[:space:]'`"
 	@echo "  recipes: `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM recipes;\" | tr -d '[:space:]'`"
+	@echo "  reviews: `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM recipe_reviews;\" | tr -d '[:space:]'`"
 	@echo "✓ Seeds applied"
 
 check-node:

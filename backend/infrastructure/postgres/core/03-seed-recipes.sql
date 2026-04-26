@@ -8,7 +8,7 @@ INSERT INTO users (id, username, role, status)
 VALUES (1, 'demo_chef', 'user', 'offline')
 ON CONFLICT (id) DO NOTHING;
 
-WITH seeded_recipes(title, description, instructions, servings, spiciness, status) AS (
+WITH seeded_recipes(title, description, instructions, servings, spiciness, status, cook_time) AS (
 VALUES
 
 -- 1
@@ -24,7 +24,7 @@ VALUES
     'Pour egg mixture over pasta, tossing quickly and adding pasta water to create a creamy sauce',
     'Serve immediately with extra Parmesan and black pepper'
   ],
-  2, 1, 'published'
+  2, 1, 'published', 25
 ),
 
 -- 2
@@ -40,7 +40,7 @@ VALUES
     'Add grilled chicken and simmer for another 10 minutes',
     'Garnish with fresh cilantro and serve with basmati rice or naan'
   ],
-  4, 2, 'published'
+  4, 2, 'published', 90
 ),
 
 -- 3
@@ -56,7 +56,7 @@ VALUES
     'Spread avocado on toast, top with poached egg',
     'Season with salt, pepper, and chilli flakes'
   ],
-  1, 0, 'published'
+  1, 0, 'published', 10
 ),
 
 -- 4
@@ -72,7 +72,7 @@ VALUES
     'Top with croutons and shaved Parmesan',
     'Serve immediately'
   ],
-  4, 0, 'published'
+  4, 0, 'published', 15
 ),
 
 -- 5
@@ -88,7 +88,7 @@ VALUES
     'Top with shredded cheese, diced tomato, lettuce, sour cream, and salsa',
     'Serve with lime wedges'
   ],
-  4, 2, 'published'
+  4, 2, 'published', 20
 ),
 
 -- 6
@@ -105,7 +105,7 @@ VALUES
     'Continue adding stock for 18–20 minutes until rice is al dente',
     'Finish with butter and Parmesan, season with salt and pepper'
   ],
-  4, 0, 'published'
+  4, 0, 'published', 30
 ),
 
 -- 7
@@ -121,7 +121,7 @@ VALUES
     'Top with a block or crumbled feta cheese',
     'Toss gently and serve'
   ],
-  4, 0, 'published'
+  4, 0, 'published', 10
 ),
 
 -- 8
@@ -136,7 +136,7 @@ VALUES
     'Spoon batter into small rounds and cook 2–3 minutes per side',
     'Serve with fresh berries and a drizzle of honey'
   ],
-  2, 0, 'published'
+  2, 0, 'published', 15
 ),
 
 -- 9
@@ -153,7 +153,7 @@ VALUES
     'Remove lemongrass and galangal before serving',
     'Garnish with fresh coriander and serve hot'
   ],
-  2, 3, 'published'
+  2, 3, 'published', 20
 ),
 
 -- 10
@@ -170,7 +170,7 @@ VALUES
     'Bake for 8–10 minutes until crust is charred and cheese is bubbling',
     'Top with fresh basil leaves and a drizzle of olive oil'
   ],
-  2, 0, 'published'
+  2, 0, 'published', 20
 ),
 
 -- 11
@@ -186,7 +186,7 @@ VALUES
     'Cover and cook on low heat until egg whites are set but yolks are runny (about 8 minutes)',
     'Garnish with feta, fresh parsley, and serve with crusty bread'
   ],
-  2, 2, 'published'
+  2, 2, 'published', 20
 ),
 
 -- 12
@@ -202,7 +202,7 @@ VALUES
     'Baste salmon with the melted butter for 1 minute',
     'Serve immediately with steamed vegetables and lemon wedges'
   ],
-  2, 0, 'published'
+  2, 0, 'published', 15
 ),
 
 -- 13
@@ -218,7 +218,7 @@ VALUES
     'Return tofu to the wok and pour sauce over everything',
     'Toss until sauce thickens, serve over steamed rice'
   ],
-  3, 1, 'published'
+  3, 1, 'published', 15
 ),
 
 -- 14
@@ -235,7 +235,7 @@ VALUES
     'Top with a toasted baguette slice and a thick layer of grated gruyère',
     'Broil until cheese is bubbly and golden'
   ],
-  4, 0, 'published'
+  4, 0, 'published', 60
 ),
 
 -- 15
@@ -250,7 +250,7 @@ VALUES
     'Drizzle with honey and sprinkle with chia seeds',
     'Serve immediately'
   ],
-  1, 0, 'published'
+  1, 0, 'published', 10
 ),
 
 -- 16
@@ -266,7 +266,7 @@ VALUES
     'Adjust seasoning and simmer another 5 minutes',
     'Serve with a dollop of sour cream and fresh dill'
   ],
-  6, 0, 'published'
+  6, 0, 'published', 45
 ),
 
 -- 17
@@ -283,7 +283,7 @@ VALUES
     'Add grilled chicken and simmer for 10 more minutes',
     'Finish with a knob of butter, garnish with cream and coriander'
   ],
-  4, 1, 'published'
+  4, 1, 'published', 120
 ),
 
 -- 18
@@ -299,7 +299,7 @@ VALUES
     'Season with salt, pepper, and lemon juice',
     'Drizzle with olive oil and serve with warm bread'
   ],
-  6, 1, 'published'
+  6, 1, 'published', 35
 ),
 
 -- 19
@@ -316,7 +316,7 @@ VALUES
     'Bake for exactly 12 minutes — edges should be set but centre should jiggle',
     'Run a knife around the edge, invert onto plates, and serve immediately with vanilla ice cream'
   ],
-  4, 0, 'published'
+  4, 0, 'published', 25
 ),
 
 -- 20
@@ -332,7 +332,7 @@ VALUES
     'Top with fresh berries, banana slices, and a handful of granola',
     'Enjoy cold or gently warm in the microwave'
   ],
-  1, 0, 'published'
+  1, 0, 'published', 5
 )
 ),
 available_authors AS (
@@ -349,6 +349,7 @@ seeded_recipes_ranked AS (
     sr.servings,
     sr.spiciness,
     sr.status,
+    sr.cook_time,
     row_number() OVER (ORDER BY sr.title) AS rn
   FROM seeded_recipes sr
 ),
@@ -419,6 +420,7 @@ recipes_with_authors AS (
     COALESCE(lrs.instructions_ru, srr.instructions) AS instructions_ru,
     srr.servings,
     srr.spiciness,
+    srr.cook_time,
     aa.id AS author_id,
     srr.status,
     COALESCE(lrt.title_fi, srr.title) AS title_fi,
@@ -435,7 +437,7 @@ recipes_with_authors AS (
   LEFT JOIN localized_recipe_texts lrt ON lrt.title_en = srr.title
   LEFT JOIN localized_recipe_steps lrs ON lrs.title_en = srr.title
 )
-INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status, rating_avg, rating_count)
+INSERT INTO recipes (title, description, instructions, servings, spiciness, author_id, status, cook_time, rating_avg, rating_count)
 SELECT
   jsonb_build_object('en', v.title, 'fi', v.title_fi, 'ru', v.title_ru),
   CASE
@@ -451,6 +453,7 @@ SELECT
   v.spiciness,
   v.author_id,
   v.status,
+  v.cook_time,
   -- Ratings are derived from recipe_ratings; start seeds with no ratings.
   NULL AS rating_avg,
   0 AS rating_count
