@@ -411,6 +411,7 @@
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Recipe title is required",
+		"titleMax": "Recipe title must be at most {{count}} characters",
 		"descriptionRequired": "Description is required",
 		"descriptionMax": "Description must be at most {{count}} characters",
 		"servingsRequired": "Servings is required",

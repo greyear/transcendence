@@ -411,6 +411,7 @@
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Reseptin nimi on pakollinen",
+		"titleMax": "Reseptin nimi saa olla enintään {{count}} merkkiä",
 		"descriptionRequired": "Kuvaus on pakollinen",
 		"descriptionMax": "Kuvaus saa olla enintään {{count}} merkkiä",
 		"servingsRequired": "Annokset on pakollinen",

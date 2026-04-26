@@ -45,6 +45,7 @@ export const meta: MetaFunction = () => [
 	},
 ];
 
+const TITLE_MAX = 256;
 const DESCRIPTION_MAX = 128;
 const MAX_RECIPE_PHOTO_SIZE_BYTES = 5 * 1024 * 1024;
 
@@ -94,7 +95,10 @@ const buildRecipeFormSchema = (t: TFunction) => {
 		.positive(v("ingredientRequired"));
 
 	return z.object({
-		title: z.string().min(1, v("titleRequired")),
+		title: z
+			.string()
+			.min(1, v("titleRequired"))
+			.max(TITLE_MAX, v("titleMax", { count: TITLE_MAX })),
 		description: z
 			.string()
 			.min(1, v("descriptionRequired"))
@@ -550,6 +554,7 @@ const RecipeCreate = () => {
 						id="recipe-title"
 						placeholder={t("recipeCreatePage.recipeTitlePlaceholder")}
 						floatingLabel={false}
+						maxLength={TITLE_MAX}
 						required
 						value={form.title}
 						onChange={setText("title")}

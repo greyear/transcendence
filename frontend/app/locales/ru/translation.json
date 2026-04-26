@@ -413,6 +413,7 @@
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Название рецепта обязательно",
+		"titleMax": "Название рецепта не должно превышать {{count}} символов",
 		"descriptionRequired": "Описание обязательно",
 		"descriptionMax": "Описание не должно превышать {{count}} символов",
 		"servingsRequired": "Количество порций обязательно",
