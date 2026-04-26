@@ -15,6 +15,7 @@ type RecipeCardResponse = {
 	picture_url: string | null;
 	description: string | null;
 	rating_avg: number | null;
+	status: string | null;
 };
 
 export const RecipesTabSchema = z.enum(["all", "my", "saved"]);
@@ -44,6 +45,7 @@ const RecipeListItemSchema = z
 		description: z.string().nullable(),
 		rating_avg: z.coerce.number().nullable().optional(),
 		picture_url: z.string().nullable().optional(),
+		status: z.string().nullable().optional(),
 	})
 	.transform((row) => ({
 		id: row.id,
@@ -51,6 +53,7 @@ const RecipeListItemSchema = z
 		description: row.description,
 		rating_avg: row.rating_avg ?? null,
 		picture_url: row.picture_url ?? null,
+		status: row.status ?? null,
 	}));
 
 const RecipeListResponseSchema = z.object({
@@ -303,7 +306,7 @@ export const RecipesGrid = ({
 	return (
 		<ul className="recipe-card-list">
 			{pageRecipes.map(
-				({ id, title, description, rating_avg, picture_url }) => (
+				({ id, title, description, rating_avg, picture_url, status }) => (
 					<li key={id}>
 						<RecipeCard
 							id={id}
@@ -316,6 +319,7 @@ export const RecipesGrid = ({
 								isFavoritesLoading || pendingFavoriteIds.has(id)
 							}
 							onFavoriteClick={handleFavoriteClick}
+							isArchived={status === "archived"}
 						/>
 					</li>
 				),

@@ -64,6 +64,7 @@ type Recipe = {
 	created_at: string | null;
 	updated_at: string | null;
 	instructions: string[];
+	status: string | null;
 };
 
 const RecipeIngredientSchema = z.object({
@@ -103,6 +104,7 @@ const RecipeSchema = z.object({
 	created_at: z.string().nullable().optional().default(null),
 	updated_at: z.string().nullable().optional().default(null),
 	instructions: z.array(z.string()).optional().default([]),
+	status: z.string().nullable().optional().default(null),
 });
 
 const RecipeResponseSchema = z.object({
@@ -196,6 +198,9 @@ const fetchRecipeReviews = async (
 			credentials: "include",
 		});
 		if (!response.ok) {
+			if (response.status === 404) {
+				return { errorStatus: null, reviews: [] };
+			}
 			return { errorStatus: response.status, reviews: [] };
 		}
 
@@ -791,6 +796,7 @@ const RecipePage = () => {
 	const recipeImageSrc = resolveMediaUrl(recipe.picture_url) ?? recipeImg;
 	const createdAt = formatRecipeDateTime(recipe.created_at, language);
 	const isAuthor = recipe.author_id === currentUserId && currentUserId !== null;
+	const isArchived = recipe.status === "archived";
 
 	const instructionsWithKeys = recipe.instructions.map((instruction) => {
 		const occurrenceCount = (instructionOccurrences.get(instruction) ?? 0) + 1;
@@ -867,12 +873,14 @@ const RecipePage = () => {
 						</IconButton>
 					</>
 				)}
-				<FavoriteButton
-					isFavorited={isFavorited}
-					disabled={isFavoritePending}
-					onClick={handleFavoriteClick}
-				/>
-				{isAuthor && (
+				{!isArchived && (
+					<FavoriteButton
+						isFavorited={isFavorited}
+						disabled={isFavoritePending}
+						onClick={handleFavoriteClick}
+					/>
+				)}
+				{isAuthor && !isArchived && (
 					<IconButton
 						className="recipe-action delete-recipe"
 						disabled={deletingRecipe}

@@ -1,5 +1,6 @@
 import "../../assets/styles/recipeCard.scss";
 import { StarSolid } from "iconoir-react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import recipeImg from "../../assets/images/vegetable-side-dishes.jpg";
@@ -14,6 +15,7 @@ type RecipeCardProps = {
 	isFavoritePending?: boolean;
 	onFavoriteClick: (recipeId: number) => void;
 	pictureUrl?: string | null;
+	isArchived?: boolean;
 };
 
 export const RecipeCard = ({
@@ -25,7 +27,9 @@ export const RecipeCard = ({
 	isFavoritePending,
 	onFavoriteClick,
 	pictureUrl,
+	isArchived,
 }: RecipeCardProps) => {
+	const { t } = useTranslation();
 	const imageSrc = resolveMediaUrl(pictureUrl) ?? recipeImg;
 
 	return (
@@ -35,7 +39,14 @@ export const RecipeCard = ({
 				<div className="recipe-card-container">
 					<div className="recipe-card-content-column">
 						<header className="recipe-card-header">
-							<h3 className="text-label">{title}</h3>
+							<h3 className="text-label">
+								{title}
+								{isArchived && (
+									<span className="recipe-card-archived-badge text-caption-s">
+										{t("recipesGrid.archivedLabel")}
+									</span>
+								)}
+							</h3>
 							{description ? (
 								<p className="text-caption-s">{description}</p>
 							) : null}
@@ -47,15 +58,17 @@ export const RecipeCard = ({
 									<StarSolid aria-hidden="true" />
 								</div>
 							) : null}
-							<FavoriteButton
-								isFavorited={isFavorited}
-								disabled={isFavoritePending}
-								onClick={(event) => {
-									event.preventDefault();
-									event.stopPropagation();
-									onFavoriteClick(id);
-								}}
-							/>
+							{!isArchived && (
+								<FavoriteButton
+									isFavorited={isFavorited}
+									disabled={isFavoritePending}
+									onClick={(event) => {
+										event.preventDefault();
+										event.stopPropagation();
+										onFavoriteClick(id);
+									}}
+								/>
+							)}
 						</footer>
 					</div>
 				</div>
