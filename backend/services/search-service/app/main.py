@@ -609,7 +609,10 @@ def refresh_search_documents_if_stale(results: list[dict[str, Any]]) -> None:
                     continue
 
                 latest_source_updated_at = parse_core_timestamp(recipe["updated_at"])
-                if latest_source_updated_at > indexed_source_updated_at:
+                picture_url_backfill_needed = (
+                    result.get("picture_url") is None and recipe.get("picture_url") is not None
+                )
+                if latest_source_updated_at > indexed_source_updated_at or picture_url_backfill_needed:
                     upsert_search_document(connection, recipe)
     finally:
         _maintenance_lock.release()
