@@ -59,6 +59,7 @@ export const RecipeInstructionItem = ({
 					onChange={onChange}
 					placeholder={t("recipeCreatePage.instructionPlaceholder")}
 					required
+					maxLength={1000}
 					rows={1}
 					aria-label={t("recipeCreateAria.stepDescription", { number })}
 				/>
