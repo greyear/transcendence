@@ -20,8 +20,10 @@ export type LayoutOutletContext = {
 	showNotice: (message: string) => void;
 };
 
-const SessionResponseSchema = z.object({ authenticated: z.boolean() });
-const ProfileResponseSchema = z.object({ data: z.object({ id: z.number() }) });
+const SessionResponseSchema = z.discriminatedUnion("authenticated", [
+	z.object({ authenticated: z.literal(true), user_id: z.number() }),
+	z.object({ authenticated: z.literal(false) }),
+]);
 
 const Layout = () => {
 	const { t } = useTranslation();
@@ -61,22 +63,7 @@ const Layout = () => {
 				return;
 			}
 
-			const profileResponse = await fetch(`${API_BASE_URL}/profile`, {
-				credentials: "include",
-			});
-			if (!profileResponse.ok) {
-				resetAuthState();
-				return;
-			}
-
-			const profileBody: unknown = await profileResponse.json();
-			const parsedProfile = ProfileResponseSchema.safeParse(profileBody);
-			if (!parsedProfile.success) {
-				resetAuthState();
-				return;
-			}
-
-			setCurrentUserId(parsedProfile.data.data.id);
+			setCurrentUserId(parsedSession.data.user_id);
 			setIsAuthenticated(true);
 		} catch {
 			resetAuthState();
