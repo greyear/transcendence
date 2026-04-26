@@ -72,7 +72,6 @@ const recipeCategorySchema = z.object({
 	category_type_name: z.string().trim().min(1).max(64),
 });
 
-// TODO: add endpoint for autocomplete ingredients - returns list of { ingredient_id, name } matching search query
 const createRecipeIngredientInputSchema = z.object({
 	ingredient_id: positiveIntSchema,
 	amount: z.coerce.number().positive(),
