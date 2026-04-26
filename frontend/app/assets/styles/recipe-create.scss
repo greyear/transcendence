@@ -273,6 +273,15 @@
 	color: var(--text-primary);
 }
 
+.recipe-add-button:disabled {
+	cursor: not-allowed;
+	opacity: 0.45;
+}
+
+.recipe-create-hint {
+	color: var(--text-secondary);
+}
+
 /* Error */
 
 .recipe-create-error {

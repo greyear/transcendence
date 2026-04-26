@@ -70,6 +70,13 @@
 	color: var(--text-secondary);
 }
 
+.recipe-page-hero-text h1,
+.recipe-page-hero-text p,
+.recipe-page-detail-item p {
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
 .recipe-page-actions {
 	display: flex;
 	flex-wrap: wrap;
@@ -266,6 +273,9 @@
 
 .recipe-page-detail-item p {
 	color: var(--text-secondary);
+	margin: 0;
+	max-width: 100%;
+	white-space: pre-wrap;
 }
 
 .recipe-page-reviews-list {

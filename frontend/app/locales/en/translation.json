@@ -411,6 +411,7 @@
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Recipe title is required",
+		"titleMax": "Recipe title must be at most {{count}} characters",
 		"descriptionRequired": "Description is required",
 		"descriptionMax": "Description must be at most {{count}} characters",
 		"servingsRequired": "Servings is required",
@@ -430,7 +431,10 @@
 		"ingredientsMin": "At least one ingredient is required",
 		"ingredientsUnique": "Ingredients must be unique",
 		"stepRequired": "Step text is required",
+		"stepMax": "Step text must be at most {{count}} characters",
 		"instructionsMin": "At least one instruction step is required",
+		"instructionsMax": "Use at most {{count}} instruction steps",
+		"instructionsTotalMax": "Instruction steps must be at most {{count}} characters in total",
 		"cookTimePositive": "Cook time must be greater than 0"
 	}
 }

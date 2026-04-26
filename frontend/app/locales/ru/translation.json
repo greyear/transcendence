@@ -413,6 +413,7 @@
 	},
 	"recipeCreateValidation": {
 		"titleRequired": "Название рецепта обязательно",
+		"titleMax": "Название рецепта не должно превышать {{count}} символов",
 		"descriptionRequired": "Описание обязательно",
 		"descriptionMax": "Описание не должно превышать {{count}} символов",
 		"servingsRequired": "Количество порций обязательно",
@@ -432,7 +433,10 @@
 		"ingredientsMin": "Требуется хотя бы один ингредиент",
 		"ingredientsUnique": "Ингредиенты должны быть уникальными",
 		"stepRequired": "Текст шага обязателен",
+		"stepMax": "Текст шага не должен превышать {{count}} символов",
 		"instructionsMin": "Требуется хотя бы один шаг",
+		"instructionsMax": "Используйте не больше {{count}} шагов",
+		"instructionsTotalMax": "Общая длина шагов не должна превышать {{count}} символов",
 		"cookTimePositive": "Время приготовления должно быть больше 0"
 	}
 }
