@@ -96,7 +96,7 @@ db-seed:
 	done
 	@echo "Waiting for schema initialization (users/recipes/recipe_media)..."
 	@schema_waited=0; \
-	until [ "`docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT (to_regclass('public.users') IS NOT NULL) AND (to_regclass('public.recipes') IS NOT NULL) AND (to_regclass('public.recipe_media') IS NOT NULL);\" | tr -d '[:space:]'`" = "t" ]; do \
+	until [ "`docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT (to_regclass('public.users') IS NOT NULL) AND (to_regclass('public.recipes') IS NOT NULL) AND (to_regclass('public.recipe_media') IS NOT NULL);\" 2>/dev/null | tr -d '[:space:]'`" = "t" ]; do \
 		if [ $$schema_waited -ge 120 ]; then \
 			echo "✗ Schema init timeout. core-db init scripts likely failed."; \
 			echo "Inspect logs: docker-compose logs --tail=200 core-db"; \
@@ -110,14 +110,15 @@ db-seed:
 		seed_file="$$1"; \
 		seed_name="$$2"; \
 		seed_try=0; \
+		seed_max_retries=20; \
 		until docker-compose exec -T core-db psql -q -v ON_ERROR_STOP=1 -U core_user -d core_db -f "$$seed_file"; do \
 			seed_try=$$((seed_try + 1)); \
-			if [ $$seed_try -ge 10 ]; then \
+			if [ $$seed_try -ge $$seed_max_retries ]; then \
 				echo "✗ Failed to apply $$seed_name after $$seed_try attempts."; \
 				echo "Inspect logs: docker-compose logs --tail=200 core-db"; \
 				exit 1; \
 			fi; \
-			echo "core-db not ready while applying $$seed_name, retrying ($$seed_try/10)..."; \
+			echo "core-db not ready while applying $$seed_name, retrying ($$seed_try/$$seed_max_retries)..."; \
 			sleep 2; \
 		done; \
 	}; \
