@@ -12,6 +12,7 @@ import { z } from "zod";
 import recipeImg from "../assets/images/vegetable-side-dishes.jpg";
 import "../assets/styles/recipe.scss";
 import { IconButton } from "~/components/buttons/IconButton";
+import { MainButton } from "~/components/buttons/MainButton";
 import { TextIconButton } from "~/components/buttons/TextIconButton";
 import { ConfirmationModal } from "~/components/ConfirmationModal";
 import { NotFoundView } from "~/components/NotFoundView";
@@ -774,6 +775,19 @@ const RecipePage = () => {
 
 	if (isLoading) {
 		return <p className="recipe-page-status">{t("recipePage.loading")}</p>;
+	}
+
+	if (errorStatus === 403) {
+		return (
+			<div className="recipe-page-forbidden">
+				<p className="recipe-page-forbidden-title text-body2">
+					{t("recipePage.forbiddenTitle")}
+				</p>
+				<MainButton to="/recipes" variant="primary">
+					{t("recipePage.backToRecipes")}
+				</MainButton>
+			</div>
+		);
 	}
 
 	if (errorStatus === 404) {

@@ -120,7 +120,9 @@
 		"pictureUploadFailedWarning": "Resepti luotiin, mutta kuvan lataus epäonnistui. Käytössä on oletuskuva — voit yrittää lisätä kuvan myöhemmin uudelleen.",
 		"modify": "Muokkaa",
 		"delete": "Poista",
-		"ratingDisplayLabel": "Arvosana {{rating}} viidestä tähdestä, {{count}} arvostelijaa"
+		"ratingDisplayLabel": "Arvosana {{rating}} viidestä tähdestä, {{count}} arvostelijaa",
+		"forbiddenTitle": "Tämän reseptin salaisuuksia ei voi jakaa",
+		"backToRecipes": "Takaisin resepteihin"
 	},
 	"ratingModal": {
 		"title": "Arvioi tämä resepti",

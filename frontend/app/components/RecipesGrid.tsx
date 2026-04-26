@@ -225,6 +225,7 @@ export const RecipesGrid = ({
 						description: row.description,
 						picture_url: row.picture_url,
 						rating_avg: null,
+						status: null,
 					}));
 				} else {
 					const parsed = RecipeListResponseSchema.safeParse(body);

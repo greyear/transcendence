@@ -1,3 +1,5 @@
+@use 'mixins' as *;
+
 .recipe-page {
 	display: flex;
 	flex-direction: column;
@@ -9,6 +11,19 @@
 	color: var(--text-secondary);
 	margin: 0;
 	padding: var(--space-m) 0;
+}
+
+.recipe-page-forbidden {
+	@include flex-col-center;
+	justify-content: center;
+	flex: 1;
+	text-align: center;
+	gap: var(--space-l);
+}
+
+.recipe-page-forbidden-title {
+	color: var(--text-secondary);
+	margin: 0;
 }
 
 .recipe-page-warning {
