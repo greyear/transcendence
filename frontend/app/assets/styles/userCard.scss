@@ -54,6 +54,8 @@
 	@include flex-col-center;
 	margin-top: calc(var(--user-card-photo-size) / 2);
 	gap: var(--space-s);
+	width: 100%;
+	min-width: 0;
 
 	h3 {
 		text-align: center;
