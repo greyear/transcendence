@@ -327,6 +327,7 @@
 		"addIngredient": "+ Добавить ингредиент",
 		"addStep": "+ Добавить шаг",
 		"addPhoto": "Добавить фото",
+		"photoSizeError": "Размер фото должен быть не более 5 МБ",
 		"recipePreview": "Превью рецепта",
 		"submitButton": "Создать",
 		"submittingButton": "Создание...",

@@ -325,6 +325,7 @@
 		"addIngredient": "+ Add ingredient",
 		"addStep": "+ Add step",
 		"addPhoto": "Add a photo",
+		"photoSizeError": "Photo size must be 5 MB or less",
 		"recipePreview": "Recipe preview",
 		"submitButton": "Create",
 		"submittingButton": "Creating...",

@@ -46,6 +46,7 @@ export const meta: MetaFunction = () => [
 ];
 
 const DESCRIPTION_MAX = 128;
+const MAX_RECIPE_PHOTO_SIZE_BYTES = 5 * 1024 * 1024;
 
 type NumOrEmpty = number | "";
 
@@ -193,6 +194,7 @@ const RecipeCreate = () => {
 		useOutletContext<LayoutOutletContext>();
 	const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 	const [photoFile, setPhotoFile] = useState<File | null>(null);
+	const [photoError, setPhotoError] = useState<string>("");
 	const [form, setForm] = useState<FormState>(initialForm);
 	const [ingredients, setIngredients] = useState<IngredientRow[]>(() => [
 		{ id: `${baseId}-i0`, ingredientId: null, amount: "", unit: "" },
@@ -222,6 +224,20 @@ const RecipeCreate = () => {
 			URL.revokeObjectURL(photoPreview);
 		};
 	}, [photoPreview]);
+
+	useEffect(() => {
+		if (!photoError) {
+			return;
+		}
+
+		const timeoutId = window.setTimeout(() => {
+			setPhotoError("");
+		}, 5_000);
+
+		return () => {
+			window.clearTimeout(timeoutId);
+		};
+	}, [photoError]);
 
 	useEffect(() => {
 		if (!isAuthResolved) {
@@ -378,8 +394,20 @@ const RecipeCreate = () => {
 		if (!file) {
 			return;
 		}
+
+		if (file.size > MAX_RECIPE_PHOTO_SIZE_BYTES) {
+			if (event.target) {
+				event.target.value = "";
+			}
+			setPhotoError(t("recipeCreatePage.photoSizeError"));
+			setPhotoFile(null);
+			setPhotoPreview(null);
+			return;
+		}
+
 		setPhotoFile(file);
 		setPhotoPreview(URL.createObjectURL(file));
+		setPhotoError("");
 	};
 
 	const uploadPicture = async (
@@ -530,6 +558,7 @@ const RecipeCreate = () => {
 				<RecipePhotoUpload
 					photoPreview={photoPreview}
 					onChange={handlePhotoChange}
+					error={photoError}
 				/>
 
 				<RecipeFormField
