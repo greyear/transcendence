@@ -262,7 +262,7 @@ const heartbeatHandler = async (
 			headers: getInternalHeaders(req),
 			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 		});
-		res.status(200).json({ ok: response.ok });
+		res.status(200).json({ ok: response.status !== 401 });
 	} catch (error) {
 		if (isTimeoutError(error)) {
 			res.status(504).json({ error: "Gateway Timeout" });

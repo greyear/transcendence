@@ -508,7 +508,9 @@ const SearchPage = () => {
 				<>
 					{aiEnabled && results.type === "recipes" && results.summary && (
 						<div className="search-page__ai-summary">
-							<p className="search-page__ai-disclaimer">{t("searchPage.aiDisclaimer")}</p>
+							<p className="search-page__ai-disclaimer">
+								{t("searchPage.aiDisclaimer")}
+							</p>
 							<p className="search-page__summary">{results.summary}</p>
 						</div>
 					)}
