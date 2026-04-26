@@ -110,7 +110,7 @@ db-seed:
 		seed_file="$$1"; \
 		seed_name="$$2"; \
 		seed_try=0; \
-		until docker-compose exec -T core-db psql -v ON_ERROR_STOP=1 -U core_user -d core_db -f "$$seed_file"; do \
+		until docker-compose exec -T core-db psql -q -v ON_ERROR_STOP=1 -U core_user -d core_db -f "$$seed_file"; do \
 			seed_try=$$((seed_try + 1)); \
 			if [ $$seed_try -ge 10 ]; then \
 				echo "✗ Failed to apply $$seed_name after $$seed_try attempts."; \
@@ -124,10 +124,6 @@ db-seed:
 	run_seed_sql /docker-entrypoint-initdb.d/03-seed-users.sql users; \
 	run_seed_sql /docker-entrypoint-initdb.d/04-seed-recipes.sql recipes; \
 	run_seed_sql /docker-entrypoint-initdb.d/05-seed-reviews.sql reviews
-	@echo "Seed counts:"
-	@echo "  users:   `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM users;\" | tr -d '[:space:]'`"
-	@echo "  recipes: `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM recipes;\" | tr -d '[:space:]'`"
-	@echo "  reviews: `docker exec core-postgres psql -U core_user -d core_db -tAc \"SELECT COUNT(*) FROM recipe_reviews;\" | tr -d '[:space:]'`"
 	@echo "✓ Seeds applied"
 
 check-node:
