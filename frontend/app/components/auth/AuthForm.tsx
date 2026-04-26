@@ -259,6 +259,10 @@ export const AuthForm = ({
 			const authError = await readAuthError(response);
 
 			if (!response.ok) {
+				if (mode === "login" && response.status === 401) {
+					setError(t("authModal.invalidCredentials"));
+					return;
+				}
 				setError(authError ?? t("authModal.genericError"));
 				return;
 			}

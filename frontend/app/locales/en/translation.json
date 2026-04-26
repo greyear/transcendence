@@ -216,6 +216,7 @@
 		"passwordLabel": "Password",
 		"passwordRequirements": "Use 8-64 characters, including uppercase, lowercase, a number, and a special character.",
 		"genericError": "Sign in failed. Please try again.",
+		"invalidCredentials": "Invalid email or password.",
 		"networkError": "The request could not reach the server. This may be a local network or CORS issue.",
 		"submittingButton": "Signing in...",
 		"signupButton": "Sign Up",
