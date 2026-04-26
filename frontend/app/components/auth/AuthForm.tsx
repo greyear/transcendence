@@ -57,6 +57,8 @@ type AuthFormProps = {
 const GOOGLE_IDENTITY_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
 const GOOGLE_BUTTON_MIN_WIDTH = 240;
 const GOOGLE_BUTTON_MAX_WIDTH = 400;
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_MAX_LENGTH = 64;
 const GOOGLE_CLIENT_ID_PLACEHOLDER =
 	"123456789012-abc123def456gh789ijklmn0pqrstuvw.apps.googleusercontent.com";
 
@@ -368,8 +370,8 @@ export const AuthForm = ({
 						autoComplete={
 							mode === "login" ? "current-password" : "new-password"
 						}
-						minLength={mode === "signup" ? 8 : undefined}
-						maxLength={mode === "signup" ? 64 : undefined}
+						minLength={PASSWORD_MIN_LENGTH}
+						maxLength={PASSWORD_MAX_LENGTH}
 						pattern={
 							mode === "signup"
 								? "(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,64}"
