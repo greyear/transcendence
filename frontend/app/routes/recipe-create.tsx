@@ -8,7 +8,7 @@ import {
 	useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { type MetaFunction, useNavigate, useOutletContext } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
 import { z } from "zod";
 import { MainButton } from "~/components/buttons/MainButton";
 import { InputField } from "~/components/inputs/InputField";
@@ -33,16 +33,24 @@ import { RecipeInstructionSection } from "~/components/recipe/RecipeInstructionS
 import { RecipePhotoUpload } from "~/components/recipe/RecipePhotoUpload";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
+import i18next from "~/i18next.server";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import "../assets/styles/recipe-create.scss";
+import type { Route } from "./+types/recipe-create";
 
-export const meta: MetaFunction = () => [
-	{ title: "Add a recipe — Transcendence" },
-	{
-		name: "description",
-		content:
-			"Share your recipe with the community. Add ingredients, instructions, and a photo to publish your dish.",
-	},
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const t = await i18next.getFixedT(request);
+	return {
+		meta: {
+			title: t("pageTitles.recipeCreate"),
+			description: t("pageDescriptions.recipeCreate"),
+		},
+	};
+};
+
+export const meta: Route.MetaFunction = ({ data }) => [
+	{ title: data?.meta.title },
+	{ name: "description", content: data?.meta.description },
 ];
 
 const DESCRIPTION_MAX = 128;

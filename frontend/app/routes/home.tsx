@@ -7,18 +7,26 @@ import { useScreenSize } from "~/composables/useScreenSize";
 import "../assets/styles/home.scss";
 import { NavArrowLeft, NavArrowRight } from "iconoir-react";
 import { useTranslation } from "react-i18next";
-import { type MetaFunction, useOutletContext } from "react-router";
+import { useOutletContext } from "react-router";
 import heroImage from "~/assets/images/hero-image.jpg";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
+import i18next from "~/i18next.server";
 import type { LayoutOutletContext } from "~/layouts/layout";
+import type { Route } from "./+types/home";
 
-export const meta: MetaFunction = () => [
-	{ title: "Home — Transcendence" },
-	{
-		name: "description",
-		content:
-			"A place for food lovers. Explore new recipes, share your own, and connect with the cooking community.",
-	},
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const t = await i18next.getFixedT(request);
+	return {
+		meta: {
+			title: t("pageTitles.home"),
+			description: t("pageDescriptions.home"),
+		},
+	};
+};
+
+export const meta: Route.MetaFunction = ({ data }) => [
+	{ title: data?.meta.title },
+	{ name: "description", content: data?.meta.description },
 ];
 
 const HomePage = () => {

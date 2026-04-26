@@ -3,6 +3,23 @@
 		"alreadyFollowing": "Seurasit tätä käyttäjää jo.",
 		"alreadyFavorited": "Tämä resepti on jo suosikeissasi."
 	},
+	"siteMeta": {
+		"title": "Transcendence — Ruoanlaittoyhteisö",
+		"description": "Löydä ja jaa parhaita reseptejä yhteisömme kanssa.",
+		"ogTitle": "Transcendence-reseptit"
+	},
+	"pageDescriptions": {
+		"home": "Paikka ruoan ystäville. Tutustu uusiin resepteihin, jaa omiasi ja liity ruoanlaittoyhteisöön.",
+		"recipes": "Selaa yhteisön reseptien koko valikoimaa. Suodata keittiön, ainesosien ja arvostelujen mukaan löytääksesi seuraavan annoksesi.",
+		"search": "Etsi reseptejä ja kokkeja Transcendence-yhteisöstä nimen, ainesosan tai kategorian perusteella.",
+		"profile": "Hallinnoi Transcendence-profiiliasi, reseptejäsi, suosikkejasi ja tilisi asetuksia.",
+		"recipeCreate": "Jaa reseptisi yhteisön kanssa. Lisää ainesosat, ohjeet ja kuva julkaistaksesi annoksesi.",
+		"user": "Katso tämän kokin profiili, reseptit ja arvostelut Transcendence-palvelussa.",
+		"users": "Tutustu muihin yhteisön kokkeihin, selaa heidän profiilejaan ja seuraa suosikkikokkejasi.",
+		"recipe": "Katso koko resepti ainesosineen, vaiheittaisine ohjeineen ja yhteisön arvosteluineen.",
+		"terms": "Käyttöehdot, jotka koskevat Transcendence-alustan käyttöäsi.",
+		"privacy": "Miten Transcendence kerää, käyttää ja suojaa henkilötietojasi."
+	},
 	"pageTitles": {
 		"home": "Etusivu — Transcendence",
 		"recipes": "Reseptit — Transcendence",

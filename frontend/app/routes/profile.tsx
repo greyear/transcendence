@@ -2,7 +2,7 @@ import { NavArrowDown } from "iconoir-react";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { type MetaFunction, useNavigate, useOutletContext } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
 import { z } from "zod";
 import defaultAvatar from "~/assets/images/default-avatar.jpeg";
 import "~/assets/styles/profile.scss";
@@ -15,15 +15,23 @@ import { NotFoundView } from "~/components/NotFoundView";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
+import i18next from "~/i18next.server";
 import type { LayoutOutletContext } from "~/layouts/layout";
+import type { Route } from "./+types/profile";
 
-export const meta: MetaFunction = () => [
-	{ title: "My profile — Transcendence" },
-	{
-		name: "description",
-		content:
-			"Manage your Transcendence profile, recipes, favorites, and account settings.",
-	},
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const t = await i18next.getFixedT(request);
+	return {
+		meta: {
+			title: t("pageTitles.profile"),
+			description: t("pageDescriptions.profile"),
+		},
+	};
+};
+
+export const meta: Route.MetaFunction = ({ data }) => [
+	{ title: data?.meta.title },
+	{ name: "description", content: data?.meta.description },
 ];
 
 type AuthUserData = {

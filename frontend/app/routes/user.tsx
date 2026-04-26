@@ -1,12 +1,7 @@
 import { NavArrowRight } from "iconoir-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-	type MetaFunction,
-	Navigate,
-	useOutletContext,
-	useParams,
-} from "react-router";
+import { Navigate, useOutletContext, useParams } from "react-router";
 import { z } from "zod";
 import userPhoto from "~/assets/images/default-avatar.jpeg";
 import "~/assets/styles/userProfile.scss";
@@ -21,14 +16,23 @@ import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import { useRelationSet } from "~/composables/useRelationSet";
 import { useScreenSize } from "~/composables/useScreenSize";
+import i18next from "~/i18next.server";
 import type { LayoutOutletContext } from "~/layouts/layout";
+import type { Route } from "./+types/user";
 
-export const meta: MetaFunction = () => [
-	{ title: "Profile — Transcendence" },
-	{
-		name: "description",
-		content: "View this cook's profile, recipes, and reviews on Transcendence.",
-	},
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const t = await i18next.getFixedT(request);
+	return {
+		meta: {
+			title: t("pageTitles.userLoading"),
+			description: t("pageDescriptions.user"),
+		},
+	};
+};
+
+export const meta: Route.MetaFunction = ({ data }) => [
+	{ title: data?.meta.title },
+	{ name: "description", content: data?.meta.description },
 ];
 
 const UserResponseSchema = z.object({

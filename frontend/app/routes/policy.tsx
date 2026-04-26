@@ -1,15 +1,22 @@
 import { useTranslation } from "react-i18next";
-import type { MetaFunction } from "react-router";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
+import i18next from "~/i18next.server";
 import "~/assets/styles/legal.scss";
+import type { Route } from "./+types/policy";
 
-export const meta: MetaFunction = () => [
-	{ title: "Privacy Policy — Transcendence" },
-	{
-		name: "description",
-		content:
-			"How Transcendence collects, uses, and protects your personal data.",
-	},
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const t = await i18next.getFixedT(request);
+	return {
+		meta: {
+			title: t("pageTitles.privacy"),
+			description: t("pageDescriptions.privacy"),
+		},
+	};
+};
+
+export const meta: Route.MetaFunction = ({ data }) => [
+	{ title: data?.meta.title },
+	{ name: "description", content: data?.meta.description },
 ];
 
 const PrivacyPolicyPage = () => {

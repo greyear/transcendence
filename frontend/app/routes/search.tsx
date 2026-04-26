@@ -1,12 +1,7 @@
 import { Sparks } from "iconoir-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-	type MetaFunction,
-	useNavigate,
-	useOutletContext,
-	useSearchParams,
-} from "react-router";
+import { useNavigate, useOutletContext, useSearchParams } from "react-router";
 import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
 import {
@@ -33,14 +28,22 @@ import { useCategoryMap } from "~/composables/useCategoryMap";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
 import { useRelationSet } from "~/composables/useRelationSet";
 import { useSortOptions } from "~/composables/useSortOptions";
+import i18next from "~/i18next.server";
+import type { Route } from "./+types/search";
 
-export const meta: MetaFunction = () => [
-	{ title: "Search — Transcendence" },
-	{
-		name: "description",
-		content:
-			"Search recipes and cooks across the Transcendence community by name, ingredient, or category.",
-	},
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const t = await i18next.getFixedT(request);
+	return {
+		meta: {
+			title: t("pageTitles.search"),
+			description: t("pageDescriptions.search"),
+		},
+	};
+};
+
+export const meta: Route.MetaFunction = ({ data }) => [
+	{ title: data?.meta.title },
+	{ name: "description", content: data?.meta.description },
 ];
 
 const FILTER_PARAM_BY_TYPE: Record<CategoryTypeCode, string> = {

@@ -3,6 +3,23 @@
 		"alreadyFollowing": "You were already following this user.",
 		"alreadyFavorited": "This recipe is already in your favorites."
 	},
+	"siteMeta": {
+		"title": "Transcendence — Cooking Community",
+		"description": "Discover and share the best recipes with our community.",
+		"ogTitle": "Transcendence Recipes"
+	},
+	"pageDescriptions": {
+		"home": "A place for food lovers. Explore new recipes, share your own, and connect with the cooking community.",
+		"recipes": "Browse the full catalog of community recipes. Filter by cuisine, ingredients, and ratings to find your next dish.",
+		"search": "Search recipes and cooks across the Transcendence community by name, ingredient, or category.",
+		"profile": "Manage your Transcendence profile, recipes, favorites, and account settings.",
+		"recipeCreate": "Share your recipe with the community. Add ingredients, instructions, and a photo to publish your dish.",
+		"user": "View this cook's profile, recipes, and reviews on Transcendence.",
+		"users": "Discover other cooks in the community, browse their profiles, and follow the chefs you love.",
+		"recipe": "View the full recipe with ingredients, step-by-step instructions, and community reviews.",
+		"terms": "The terms and conditions that govern your use of the Transcendence platform.",
+		"privacy": "How Transcendence collects, uses, and protects your personal data."
+	},
 	"pageTitles": {
 		"home": "Home — Transcendence",
 		"recipes": "Recipes — Transcendence",

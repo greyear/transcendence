@@ -1,15 +1,22 @@
 import { useTranslation } from "react-i18next";
-import type { MetaFunction } from "react-router";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
+import i18next from "~/i18next.server";
 import "~/assets/styles/legal.scss";
+import type { Route } from "./+types/terms";
 
-export const meta: MetaFunction = () => [
-	{ title: "Terms and Conditions — Transcendence" },
-	{
-		name: "description",
-		content:
-			"The terms and conditions that govern your use of the Transcendence platform.",
-	},
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const t = await i18next.getFixedT(request);
+	return {
+		meta: {
+			title: t("pageTitles.terms"),
+			description: t("pageDescriptions.terms"),
+		},
+	};
+};
+
+export const meta: Route.MetaFunction = ({ data }) => [
+	{ title: data?.meta.title },
+	{ name: "description", content: data?.meta.description },
 ];
 
 const TermsPage = () => {

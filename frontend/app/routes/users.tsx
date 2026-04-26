@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-	type MetaFunction,
-	useNavigate,
-	useOutletContext,
-	useSearchParams,
-} from "react-router";
+import { useNavigate, useOutletContext, useSearchParams } from "react-router";
 import { FilterList } from "~/components/FilterList";
 import { SearchField } from "~/components/inputs/SearchField";
 import { PageHeader } from "~/components/PageHeader";
@@ -23,15 +18,23 @@ import {
 	PER_PAGE_OPTIONS,
 	usePerPageParam,
 } from "~/composables/usePerPageParam";
+import i18next from "~/i18next.server";
 import type { LayoutOutletContext } from "~/layouts/layout";
+import type { Route } from "./+types/users";
 
-export const meta: MetaFunction = () => [
-	{ title: "Users — Transcendence" },
-	{
-		name: "description",
-		content:
-			"Discover other cooks in the community, browse their profiles, and follow the chefs you love.",
-	},
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const t = await i18next.getFixedT(request);
+	return {
+		meta: {
+			title: t("pageTitles.users"),
+			description: t("pageDescriptions.users"),
+		},
+	};
+};
+
+export const meta: Route.MetaFunction = ({ data }) => [
+	{ title: data?.meta.title },
+	{ name: "description", content: data?.meta.description },
 ];
 
 const PER_PAGE_MENU_OPTIONS = PER_PAGE_OPTIONS.map((n) => ({

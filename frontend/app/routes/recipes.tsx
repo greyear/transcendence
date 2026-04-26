@@ -2,7 +2,6 @@ import { NavArrowLeft } from "iconoir-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-	type MetaFunction,
 	Navigate,
 	useNavigate,
 	useOutletContext,
@@ -37,15 +36,23 @@ import {
 } from "~/composables/usePerPageParam";
 import { useSortOptions } from "~/composables/useSortOptions";
 import { useSortParam } from "~/composables/useSortParam";
+import i18next from "~/i18next.server";
 import type { LayoutOutletContext } from "~/layouts/layout";
+import type { Route } from "./+types/recipes";
 
-export const meta: MetaFunction = () => [
-	{ title: "Recipes — Transcendence" },
-	{
-		name: "description",
-		content:
-			"Browse the full catalog of community recipes. Filter by cuisine, ingredients, and ratings to find your next dish.",
-	},
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const t = await i18next.getFixedT(request);
+	return {
+		meta: {
+			title: t("pageTitles.recipes"),
+			description: t("pageDescriptions.recipes"),
+		},
+	};
+};
+
+export const meta: Route.MetaFunction = ({ data }) => [
+	{ title: data?.meta.title },
+	{ name: "description", content: data?.meta.description },
 ];
 
 const FILTER_PARAM_BY_TYPE: Record<string, string> = {

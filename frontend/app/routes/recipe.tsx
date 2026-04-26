@@ -2,7 +2,6 @@ import { FireFlame, Reports, StarSolid, Translate, Trash } from "iconoir-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-	type MetaFunction,
 	useLocation,
 	useNavigate,
 	useOutletContext,
@@ -21,17 +20,25 @@ import { ReviewModal } from "~/components/review/reviewModal";
 import { API_BASE_URL } from "~/composables/apiBaseUrl";
 import { resolveMediaUrl } from "~/composables/resolveMediaUrl";
 import { useDocumentTitle } from "~/composables/useDocumentTitle";
+import i18next from "~/i18next.server";
 import type { LayoutOutletContext } from "~/layouts/layout";
 import { FavoriteRecipesResponseSchema } from "~/schemas/favorites";
 import { FavoriteButton } from "../components/buttons/FavoriteButton";
+import type { Route } from "./+types/recipe";
 
-export const meta: MetaFunction = () => [
-	{ title: "Recipe — Transcendence" },
-	{
-		name: "description",
-		content:
-			"View the full recipe with ingredients, step-by-step instructions, and community reviews.",
-	},
+export const loader = async ({ request }: Route.LoaderArgs) => {
+	const t = await i18next.getFixedT(request);
+	return {
+		meta: {
+			title: t("pageTitles.recipeLoading"),
+			description: t("pageDescriptions.recipe"),
+		},
+	};
+};
+
+export const meta: Route.MetaFunction = ({ data }) => [
+	{ title: data?.meta.title },
+	{ name: "description", content: data?.meta.description },
 ];
 
 type RecipeIngredient = {
