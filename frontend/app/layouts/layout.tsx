@@ -25,6 +25,8 @@ const SessionResponseSchema = z.discriminatedUnion("authenticated", [
 	z.object({ authenticated: z.literal(false) }),
 ]);
 
+const HeartbeatResponseSchema = z.object({ ok: z.boolean() });
+
 const Layout = () => {
 	const { t } = useTranslation();
 	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -96,8 +98,12 @@ const Layout = () => {
 					method: "POST",
 					credentials: "include",
 				});
-				if (response.status === 401) {
-					resetAuthState();
+				if (response.ok) {
+					const body: unknown = await response.json();
+					const parsed = HeartbeatResponseSchema.safeParse(body);
+					if (parsed.success && !parsed.data.ok) {
+						resetAuthState();
+					}
 				}
 			} catch (error) {
 				if (import.meta.env.DEV) {
