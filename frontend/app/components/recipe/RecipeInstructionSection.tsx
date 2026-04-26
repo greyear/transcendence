@@ -8,6 +8,8 @@ import {
 } from "~/components/recipe/RecipeInstructionItem";
 import { RecipeSortableList } from "~/components/recipe/RecipeSortableList";
 
+const MAX_INSTRUCTIONS = 50;
+
 type RecipeInstructionSectionProps = {
 	rows: InstructionRow[];
 	onChange: (rows: InstructionRow[]) => void;
@@ -29,6 +31,10 @@ export const RecipeInstructionSection = ({
 	};
 
 	const handleAdd = () => {
+		if (rows.length >= MAX_INSTRUCTIONS) {
+			return;
+		}
+
 		onChange([...rows, createInstruction()]);
 	};
 
@@ -39,6 +45,8 @@ export const RecipeInstructionSection = ({
 	const handleChange = (id: string, value: string) => {
 		onChange(rows.map((r) => (r.id === id ? { ...r, text: value } : r)));
 	};
+
+	const isAddDisabled = rows.length >= MAX_INSTRUCTIONS;
 
 	return (
 		<section
@@ -78,9 +86,21 @@ export const RecipeInstructionSection = ({
 				type="button"
 				className="recipe-add-button text-body3"
 				onClick={handleAdd}
+				disabled={isAddDisabled}
+				aria-describedby={isAddDisabled ? "instructions-max-note" : undefined}
 			>
 				{t("recipeCreatePage.addStep")}
 			</button>
+			{isAddDisabled ? (
+				<p
+					id="instructions-max-note"
+					className="recipe-create-hint text-caption-s"
+				>
+					{t("recipeCreateValidation.instructionsMax", {
+						count: MAX_INSTRUCTIONS,
+					})}
+				</p>
+			) : null}
 		</section>
 	);
 };

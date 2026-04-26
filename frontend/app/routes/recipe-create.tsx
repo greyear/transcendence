@@ -47,6 +47,9 @@ export const meta: MetaFunction = () => [
 
 const TITLE_MAX = 256;
 const DESCRIPTION_MAX = 128;
+const INSTRUCTION_TEXT_MAX = 1000;
+const INSTRUCTIONS_MAX = 50;
+const INSTRUCTIONS_TOTAL_MAX = 10000;
 const MAX_RECIPE_PHOTO_SIZE_BYTES = 5 * 1024 * 1024;
 
 type NumOrEmpty = number | "";
@@ -97,10 +100,12 @@ const buildRecipeFormSchema = (t: TFunction) => {
 	return z.object({
 		title: z
 			.string()
+			.trim()
 			.min(1, v("titleRequired"))
 			.max(TITLE_MAX, v("titleMax", { count: TITLE_MAX })),
 		description: z
 			.string()
+			.trim()
 			.min(1, v("descriptionRequired"))
 			.max(DESCRIPTION_MAX, v("descriptionMax", { count: DESCRIPTION_MAX })),
 		servings: servingsSchema,
@@ -111,7 +116,7 @@ const buildRecipeFormSchema = (t: TFunction) => {
 				z.object({
 					ingredientId: ingredientIdSchema,
 					amount: amountSchema,
-					unit: z.string().min(1, v("unitRequired")),
+					unit: z.string().trim().min(1, v("unitRequired")),
 				}),
 			)
 			.min(1, v("ingredientsMin"))
@@ -121,8 +126,26 @@ const buildRecipeFormSchema = (t: TFunction) => {
 				v("ingredientsUnique"),
 			),
 		instructions: z
-			.array(z.object({ text: z.string().min(1, v("stepRequired")) }))
-			.min(1, v("instructionsMin")),
+			.array(
+				z.object({
+					text: z
+						.string()
+						.trim()
+						.min(1, v("stepRequired"))
+						.max(
+							INSTRUCTION_TEXT_MAX,
+							v("stepMax", { count: INSTRUCTION_TEXT_MAX }),
+						),
+				}),
+			)
+			.min(1, v("instructionsMin"))
+			.max(INSTRUCTIONS_MAX, v("instructionsMax", { count: INSTRUCTIONS_MAX }))
+			.refine(
+				(steps) =>
+					steps.reduce((total, step) => total + step.text.length, 0) <=
+					INSTRUCTIONS_TOTAL_MAX,
+				v("instructionsTotalMax", { count: INSTRUCTIONS_TOTAL_MAX }),
+			),
 		categoryIds: z.array(z.number().int().positive()),
 	});
 };

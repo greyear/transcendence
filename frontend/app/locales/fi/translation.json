@@ -431,7 +431,10 @@
 		"ingredientsMin": "Vähintään yksi aines vaaditaan",
 		"ingredientsUnique": "Ainesten tulee olla yksilöllisiä",
 		"stepRequired": "Vaiheen teksti on pakollinen",
+		"stepMax": "Vaiheen teksti saa olla enintään {{count}} merkkiä",
 		"instructionsMin": "Vähintään yksi ohjevaihe vaaditaan",
+		"instructionsMax": "Käytä enintään {{count}} ohjevaihetta",
+		"instructionsTotalMax": "Ohjevaiheet saavat olla yhteensä enintään {{count}} merkkiä",
 		"cookTimePositive": "Valmistusajan tulee olla suurempi kuin 0"
 	}
 }
