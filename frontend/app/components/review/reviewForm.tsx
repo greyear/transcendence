@@ -82,7 +82,6 @@ export const ReviewForm = ({
 			await onSuccess?.();
 			onClose?.();
 		} catch (submitError) {
-			console.error(submitError);
 			setError(
 				submitError instanceof TypeError
 					? t("reviewModal.networkError")

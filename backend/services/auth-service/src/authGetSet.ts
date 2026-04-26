@@ -178,7 +178,7 @@ authGetSet.get("/session", (req: Request, res: Response) => {
 		res.status(200).json({ authenticated: false });
 		return;
 	}
-	res.status(200).json({ authenticated: true });
+	res.status(200).json({ authenticated: true, user_id: decodedToken.userId });
 });
 
 /*

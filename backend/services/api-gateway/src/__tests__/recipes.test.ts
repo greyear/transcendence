@@ -759,12 +759,17 @@ describe("API Gateway - Recipes Routes", () => {
 		});
 	});
 
-	it("should reject GET /users/me/favorites without authentication", async () => {
+	it("should return empty list for GET /users/me/favorites without authentication", async () => {
+		fetchSpy.mockResolvedValueOnce({
+			ok: false,
+			status: 401,
+			json: async () => ({ error: "Invalid or expired token" }),
+		} as unknown as Response);
+
 		const response = await request(app).get("/users/me/favorites");
 
-		expect(response.status).toBe(401);
-		expect(response.body).toEqual({ error: "Authentication required" });
-		expect(fetchSpy).not.toHaveBeenCalled();
+		expect(response.status).toBe(200);
+		expect(response.body).toEqual({ data: [] });
 	});
 
 	it("should validate token and proxy GET /users/me/favorites to core-service", async () => {

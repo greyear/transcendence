@@ -20,8 +20,12 @@ export type LayoutOutletContext = {
 	showNotice: (message: string) => void;
 };
 
-const SessionResponseSchema = z.object({ authenticated: z.boolean() });
-const AuthMeResponseSchema = z.object({ id: z.number() });
+const SessionResponseSchema = z.discriminatedUnion("authenticated", [
+	z.object({ authenticated: z.literal(true), user_id: z.number() }),
+	z.object({ authenticated: z.literal(false) }),
+]);
+
+const HeartbeatResponseSchema = z.object({ ok: z.boolean() });
 
 const Layout = () => {
 	const { t } = useTranslation();
@@ -61,22 +65,7 @@ const Layout = () => {
 				return;
 			}
 
-			const meResponse = await fetch(`${API_BASE_URL}/auth/me`, {
-				credentials: "include",
-			});
-			if (!meResponse.ok) {
-				resetAuthState();
-				return;
-			}
-
-			const meBody: unknown = await meResponse.json();
-			const parsedMe = AuthMeResponseSchema.safeParse(meBody);
-			if (!parsedMe.success) {
-				resetAuthState();
-				return;
-			}
-
-			setCurrentUserId(parsedMe.data.id);
+			setCurrentUserId(parsedSession.data.user_id);
 			setIsAuthenticated(true);
 		} catch {
 			resetAuthState();
@@ -109,11 +98,17 @@ const Layout = () => {
 					method: "POST",
 					credentials: "include",
 				});
-				if (response.status === 401) {
-					resetAuthState();
+				if (response.ok) {
+					const body: unknown = await response.json();
+					const parsed = HeartbeatResponseSchema.safeParse(body);
+					if (parsed.success && !parsed.data.ok) {
+						resetAuthState();
+					}
 				}
 			} catch (error) {
-				console.error(`Heartbeat failed: ${error}`);
+				if (import.meta.env.DEV) {
+					console.error(`Heartbeat failed: ${error}`);
+				}
 			}
 		};
 

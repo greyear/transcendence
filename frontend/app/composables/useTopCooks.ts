@@ -25,7 +25,6 @@ export const useTopCooks = () => {
 		fetch(`${API_BASE_URL}/users`)
 			.then((res) => {
 				if (!res.ok) {
-					console.error(`Failed to fetch users: ${res.status}`);
 					setErrorStatus(res.status);
 					return null;
 				}
@@ -37,7 +36,6 @@ export const useTopCooks = () => {
 				}
 				const parsed = TopCooksResponseSchema.safeParse(body);
 				if (!parsed.success) {
-					console.error("Unexpected /users response shape", parsed.error);
 					setErrorStatus("unknown");
 					return;
 				}
@@ -46,8 +44,7 @@ export const useTopCooks = () => {
 				);
 				setCookList(sorted);
 			})
-			.catch((error: unknown) => {
-				console.error(error);
+			.catch(() => {
 				setErrorStatus("unknown");
 			})
 			.finally(() => {

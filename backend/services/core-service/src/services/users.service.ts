@@ -172,6 +172,19 @@ export const getUserById = async (
 					) THEN true
 					ELSE false
 				END AS is_following,
+				CASE
+					WHEN $2::int IS NOT NULL
+						AND EXISTS (
+							SELECT 1 FROM followers f
+							WHERE f.user_id = $2 AND f.followed_id = u.id
+						)
+						AND EXISTS (
+							SELECT 1 FROM followers f
+							WHERE f.user_id = u.id AND f.followed_id = $2
+						)
+					THEN true
+					ELSE false
+				END AS is_mutual_follower,
 				(
 					SELECT COUNT(*)::int
 					FROM recipes r2

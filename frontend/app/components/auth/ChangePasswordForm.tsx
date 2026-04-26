@@ -83,7 +83,9 @@ export const ChangePasswordForm = ({
 			setConfirmPassword("");
 			onSuccess?.();
 		} catch (submitError) {
-			console.error(submitError);
+			if (import.meta.env.DEV) {
+				console.error(submitError);
+			}
 			setError(
 				submitError instanceof TypeError
 					? t("authModal.networkError")

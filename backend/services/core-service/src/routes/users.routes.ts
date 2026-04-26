@@ -294,8 +294,19 @@ const followUserHandler = async (
 
 		const result = await followUser(req.userId, validation.value);
 		if (!result.success) {
-			const error: CustomError = new Error();
+			if (result.reason === "already-followed") {
+				res.status(200).json({
+					data: {
+						follower_id: req.userId,
+						followed_id: validation.value,
+					},
+					message: "User already followed",
+					created: false,
+				});
+				return;
+			}
 
+			const error: CustomError = new Error();
 			switch (result.reason) {
 				case "self-follow":
 					error.message = "Cannot follow yourself";
@@ -305,12 +316,7 @@ const followUserHandler = async (
 					error.message = "User not found";
 					error.statusCode = 404;
 					break;
-				case "already-followed":
-					error.message = "User is already followed";
-					error.statusCode = 409;
-					break;
 			}
-
 			throw error;
 		}
 
@@ -320,6 +326,7 @@ const followUserHandler = async (
 				followed_id: validation.value,
 			},
 			message: "User followed",
+			created: true,
 		});
 	} catch (error) {
 		next(error);

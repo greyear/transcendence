@@ -210,27 +210,31 @@ authRouter.post(
 
 			console.info(`[auth-service] login:start email=${email}`);
 
-			const userDocument = await userModel.findOne({ email });
+			// All "this credential pair didn't work" branches collapse into one
+			// response. Differentiating between "no such user", "Google-only
+			// account", and "wrong password" leaks which emails are registered
+			// (enumeration). The Google-only hint is intentionally dropped — the
+			// account holder can still discover their sign-in method by trying the
+			// Google button.
+			const invalidCredentials = () => {
+				res.status(401).json({ error: "Invalid email or password" });
+			};
 
+			const userDocument = await userModel.findOne({ email });
 			if (!userDocument) {
-				res.status(404).json({ error: "User not found" });
+				invalidCredentials();
 				return;
 			}
 
-			// Check if user is a Google-only account
-			const googleID = userDocument.get("googleID");
-			if (googleID) {
-				res.status(401).json({
-					error:
-						"This account uses Google Sign-In only. Please use the Google login option.",
-				});
+			if (userDocument.get("googleID")) {
+				invalidCredentials();
 				return;
 			}
 
 			const gotHash = userDocument.get("passwordHash");
 			const passwordMatch = await help.comparePassword(password, gotHash);
 			if (!passwordMatch) {
-				res.status(401).json({ error: "Password mismatch" });
+				invalidCredentials();
 				return;
 			}
 

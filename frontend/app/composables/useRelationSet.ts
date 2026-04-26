@@ -41,6 +41,8 @@ const IdListResponseSchema = z.object({
 	data: z.array(z.object({ id: z.number() })),
 });
 
+const ToggleResponseSchema = z.object({ created: z.boolean() });
+
 const updateSetMember = (
 	current: Set<number>,
 	id: number,
@@ -124,8 +126,7 @@ export const useRelationSet = ({
 					return fetched;
 				});
 			})
-			.catch((error: unknown) => {
-				console.error(error);
+			.catch(() => {
 				if (!ignore) {
 					setIds((prev) => {
 						const next = new Set<number>();
@@ -166,21 +167,16 @@ export const useRelationSet = ({
 				method: shouldBeMember ? "POST" : "DELETE",
 				credentials: "include",
 			});
-			// 409 on POST = already a member; 409 on DELETE = already absent. Both
-			// mean the server already reflects the requested state, so we keep the
-			// optimistic update instead of rolling back. This is load-bearing for
-			// the guest → login replay: if the user was already following before
-			// logging out, clicking Follow as a guest and logging in will POST once
-			// more and come back 409. Rolling back here would flip the button to
-			// "Follow" even though the relationship exists on the server.
-			if (!res.ok && res.status !== 409) {
+			if (!res.ok) {
 				setIds((prev) => updateSetMember(prev, id, !shouldBeMember));
+			} else if (isReplay && shouldBeMember) {
+				const body: unknown = await res.json();
+				const parsed = ToggleResponseSchema.safeParse(body);
+				if (parsed.success && !parsed.data.created) {
+					onAlreadyMember?.(id);
+				}
 			}
-			if (isReplay && shouldBeMember && res.status === 409) {
-				onAlreadyMember?.(id);
-			}
-		} catch (error) {
-			console.error(error);
+		} catch {
 			setIds((prev) => updateSetMember(prev, id, !shouldBeMember));
 		} finally {
 			setPendingIds((prev) => {

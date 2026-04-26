@@ -80,6 +80,7 @@ const ScopedUserResponseSchema = z.object({
 	data: z.object({
 		id: z.number(),
 		username: z.string(),
+		is_mutual_follower: z.boolean().default(false),
 	}),
 });
 
@@ -113,10 +114,14 @@ const RecipesPage = () => {
 		mode === "favoritesOf" ? scopedFavoritesOf : scopedUserId;
 
 	const [scopedUsername, setScopedUsername] = useState<string | null>(null);
+	const [isMutualFollower, setIsMutualFollower] = useState<boolean | null>(
+		null,
+	);
 
 	useEffect(() => {
 		if (scopedSubjectId === null) {
 			setScopedUsername(null);
+			setIsMutualFollower(null);
 			return;
 		}
 		let ignore = false;
@@ -129,16 +134,18 @@ const RecipesPage = () => {
 				}
 				const body: unknown = await res.json();
 				const parsed = ScopedUserResponseSchema.safeParse(body);
-				return parsed.success ? parsed.data.data.username : null;
+				return parsed.success ? parsed.data.data : null;
 			})
-			.then((username) => {
+			.then((userData) => {
 				if (!ignore) {
-					setScopedUsername(username);
+					setScopedUsername(userData?.username ?? null);
+					setIsMutualFollower(userData?.is_mutual_follower ?? false);
 				}
 			})
 			.catch(() => {
 				if (!ignore) {
 					setScopedUsername(null);
+					setIsMutualFollower(false);
 				}
 			});
 		return () => {
@@ -328,7 +335,8 @@ const RecipesPage = () => {
 				)}
 			</div>
 
-			{mode === "favoritesOf" && !isAuthResolved ? (
+			{mode === "favoritesOf" &&
+			(!isAuthResolved || isMutualFollower === null) ? (
 				<p className="recipes-grid-status">{t("recipesGrid.loading")}</p>
 			) : (
 				<RecipesGrid
@@ -348,6 +356,9 @@ const RecipesPage = () => {
 						mode === "favoritesOf"
 							? (scopedFavoritesOf ?? undefined)
 							: undefined
+					}
+					canViewFavorites={
+						mode === "favoritesOf" ? (isMutualFollower ?? undefined) : undefined
 					}
 				/>
 			)}

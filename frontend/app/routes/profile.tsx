@@ -139,9 +139,7 @@ const ProfilePage = () => {
 				}
 				setAuthUser(parsed.data);
 			})
-			.catch((error: unknown) => {
-				console.error(error);
-			})
+			.catch(() => {})
 			.finally(() => {
 				if (!ignore) setIsAuthUserLoading(false);
 			});
@@ -192,11 +190,10 @@ const ProfilePage = () => {
 				setProfile(parsed.data.data);
 				setUsername(parsed.data.data.username);
 			})
-			.catch((error: unknown) => {
+			.catch(() => {
 				if (!ignore) {
 					setErrorStatus("unknown");
 				}
-				console.error(error);
 			})
 			.finally(() => {
 				if (!ignore) {
@@ -317,8 +314,7 @@ const ProfilePage = () => {
 			setIsAvatarPickerOpen(false);
 			setAvatarPreviewUrl(null);
 			setProfileMessage(t("profilePage.saveSuccess"));
-		} catch (error) {
-			console.error(error);
+		} catch {
 			setProfileError(t("profilePage.saveError"));
 		} finally {
 			setIsSaving(false);
@@ -351,8 +347,7 @@ const ProfilePage = () => {
 
 			resetAuthState();
 			navigate("/", { replace: true });
-		} catch (error) {
-			console.error(error);
+		} catch {
 			setProfileError(t("profilePage.errorDeletingProfile"));
 		} finally {
 			setIsDeletingAccount(false);
@@ -374,8 +369,7 @@ const ProfilePage = () => {
 
 			resetAuthState();
 			navigate("/", { replace: true });
-		} catch (error) {
-			console.error(error);
+		} catch {
 			setProfileError(t("profilePage.errorLoggingOut"));
 		}
 	};

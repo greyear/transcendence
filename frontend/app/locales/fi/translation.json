@@ -216,6 +216,7 @@
 		"passwordLabel": "Salasana",
 		"passwordRequirements": "Käytä 8-64 merkkiä ja sisällytä iso kirjain, pieni kirjain, numero sekä erikoismerkki.",
 		"genericError": "Kirjautuminen epäonnistui. Yritä uudelleen.",
+		"invalidCredentials": "Virheellinen sähköposti tai salasana.",
 		"networkError": "Pyyntö ei tavoittanut palvelinta. Syynä voi olla paikallinen verkko- tai CORS-ongelma.",
 		"submittingButton": "Kirjaudutaan...",
 		"signupButton": "Luo tili",

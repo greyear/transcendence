@@ -1,6 +1,11 @@
 import "~/assets/styles/rating.scss";
 import { StarSolid, Xmark } from "iconoir-react";
-import { type FormEvent, type RefObject, useEffect, useState } from "react";
+import {
+	type RefObject,
+	type SyntheticEvent,
+	useEffect,
+	useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { IconButton } from "~/components/buttons/IconButton";
@@ -51,7 +56,7 @@ export const RatingForm = ({
 		return parsed.data;
 	};
 
-	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (event: SyntheticEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
 		if (rating === 0 || isDeleting) {
@@ -99,7 +104,6 @@ export const RatingForm = ({
 			await onSuccess?.();
 			onClose?.();
 		} catch (submitError) {
-			console.error(submitError);
 			setError(
 				submitError instanceof TypeError
 					? t("ratingModal.networkError")
@@ -137,7 +141,6 @@ export const RatingForm = ({
 			await onSuccess?.();
 			onClose?.();
 		} catch (deleteError) {
-			console.error(deleteError);
 			setError(
 				deleteError instanceof TypeError
 					? t("ratingModal.networkError")

@@ -169,7 +169,9 @@ export const AuthForm = ({
 				setPassword("");
 				onSuccess?.();
 			} catch (googleError) {
-				console.error(googleError);
+				if (import.meta.env.DEV) {
+					console.error(googleError);
+				}
 				setError(
 					googleError instanceof TypeError
 						? t("authModal.networkError")
@@ -217,7 +219,9 @@ export const AuthForm = ({
 				setIsGoogleReady(true);
 			})
 			.catch((scriptError) => {
-				console.error(scriptError);
+				if (import.meta.env.DEV) {
+					console.error(scriptError);
+				}
 				if (isCurrent) {
 					setError(t("authModal.googleUnavailable"));
 				}
@@ -255,6 +259,10 @@ export const AuthForm = ({
 			const authError = await readAuthError(response);
 
 			if (!response.ok) {
+				if (mode === "login" && response.status === 401) {
+					setError(t("authModal.invalidCredentials"));
+					return;
+				}
 				setError(authError ?? t("authModal.genericError"));
 				return;
 			}
@@ -268,7 +276,9 @@ export const AuthForm = ({
 			setPassword("");
 			onSuccess?.();
 		} catch (submitError) {
-			console.error(submitError);
+			if (import.meta.env.DEV) {
+				console.error(submitError);
+			}
 			setError(
 				submitError instanceof TypeError
 					? t("authModal.networkError")

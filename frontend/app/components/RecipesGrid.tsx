@@ -32,6 +32,7 @@ type RecipesGridProps = {
 	onLoad?: (totalCount: number) => void;
 	userId?: number;
 	favoritesOfUserId?: number;
+	canViewFavorites?: boolean;
 	tab?: RecipesTab;
 };
 
@@ -110,6 +111,7 @@ export const RecipesGrid = ({
 	filters,
 	userId,
 	favoritesOfUserId,
+	canViewFavorites,
 	tab = "all",
 }: RecipesGridProps) => {
 	const { t, i18n } = useTranslation();
@@ -136,6 +138,8 @@ export const RecipesGrid = ({
 	// Resolution order: favoritesOfUserId > userId > tab. The first two pin the
 	// list to a foreign subject; tabs are only viewer-scoped.
 	const isScoped = favoritesOfUserId !== undefined || userId !== undefined;
+	const isFavoritesForbidden =
+		favoritesOfUserId !== undefined && canViewFavorites === false;
 	const isAuthGated =
 		!isAuthenticated &&
 		(favoritesOfUserId !== undefined || (!isScoped && tabRequiresAuth(tab)));
@@ -164,6 +168,14 @@ export const RecipesGrid = ({
 			onLoadRef.current?.(0);
 			setIsLoading(false);
 			setErrorStatus("auth-required");
+			return;
+		}
+
+		if (isFavoritesForbidden) {
+			setRecipeList([]);
+			onLoadRef.current?.(0);
+			setIsLoading(false);
+			setErrorStatus(403);
 			return;
 		}
 
@@ -243,8 +255,7 @@ export const RecipesGrid = ({
 				onLoadRef.current?.(allRecipes.length);
 				setRecipeList(allRecipes);
 			})
-			.catch((error: unknown) => {
-				console.error(error);
+			.catch(() => {
 				setErrorStatus("unknown");
 			})
 			.finally(() => {
@@ -255,6 +266,7 @@ export const RecipesGrid = ({
 		favoritesOfUserId,
 		tab,
 		isAuthGated,
+		isFavoritesForbidden,
 		language,
 		isServerPaginated,
 		page,
