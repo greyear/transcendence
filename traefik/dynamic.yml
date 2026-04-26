@@ -6,12 +6,27 @@ http:
         - websecure
       tls: {}
       service: gateway
+    gateway-on-frontend:
+      rule: "(Host(`localhost`) || Host(`127.0.0.1`)) && PathPrefix(`/api`)"
+      entryPoints:
+        - websecure-frontend
+      tls: {}
+      service: gateway
+      middlewares:
+        - api-strip-prefix
+      priority: 100
     frontend-https:
       rule: "Host(`localhost`) || Host(`127.0.0.1`)"
       entryPoints:
         - websecure-frontend
       tls: {}
       service: frontend
+
+  middlewares:
+    api-strip-prefix:
+      stripPrefix:
+        prefixes:
+          - /api
 
   services:
     gateway:
