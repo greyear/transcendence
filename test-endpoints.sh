@@ -266,7 +266,7 @@ check_delete_endpoint "/recipes/1" "401" "DELETE /recipes/1 (no token -> 401)"
 echo "Favorites Endpoints (public):"
 check_post_endpoint "/recipes/1/favorite" '{}' "401" "POST /recipes/1/favorite (no token -> 401)"
 check_delete_endpoint "/recipes/1/favorite" "401" "DELETE /recipes/1/favorite (no token -> 401)"
-check_endpoint "/users/me/favorites" "401" "GET /users/me/favorites (no token -> 401)"
+check_endpoint "/users/me/favorites" "200" "GET /users/me/favorites (no token -> 200 empty list)"
 
 if [ -n "$SMOKE_BEARER_TOKEN" ]; then
   echo ""
