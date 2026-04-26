@@ -131,6 +131,8 @@ export const ChangePasswordForm = ({
 						label={t("changePasswordModal.oldPassword")}
 						name="current-password"
 						autoComplete="current-password"
+						minLength={8}
+						maxLength={64}
 						required
 						value={oldPassword}
 						onChange={(event) => setOldPassword(event.target.value)}
@@ -158,6 +160,8 @@ export const ChangePasswordForm = ({
 						label={t("changePasswordModal.confirmPassword")}
 						name="confirm-password"
 						autoComplete="new-password"
+						minLength={8}
+						maxLength={64}
 						required
 						value={confirmPassword}
 						onChange={(event) => setConfirmPassword(event.target.value)}
