@@ -1,5 +1,9 @@
-import { type RequestHandler, Router } from "express";
-import { optionalAuth, requireAuth } from "../middleware/auth.js";
+import { type NextFunction, type RequestHandler, type Response, Router } from "express";
+import {
+	type AuthenticatedRequest,
+	optionalAuth,
+	requireAuth,
+} from "../middleware/auth.js";
 import { getInternalHeaders } from "../utils/internalHeaders.js";
 import {
 	CORE_SERVICE_TIMEOUT_MS,
@@ -114,7 +118,15 @@ const getMyRecipesHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
-const getMyFavoritesHandler: RequestHandler = async (req, res, _next) => {
+const getMyFavoritesHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	_next: NextFunction,
+): Promise<void> => {
+	if (!req.userId) {
+		res.status(200).json({ data: [] });
+		return;
+	}
 	try {
 		const response = await fetch(
 			withForwardedQuery(req, "/users/me/favorites"),
@@ -235,15 +247,22 @@ const unfollowUserHandler: RequestHandler = async (req, res, _next) => {
 	}
 };
 
-const heartbeatHandler: RequestHandler = async (req, res, _next) => {
+const heartbeatHandler = async (
+	req: AuthenticatedRequest,
+	res: Response,
+	_next: NextFunction,
+): Promise<void> => {
+	if (!req.userId) {
+		res.status(200).json({ ok: false });
+		return;
+	}
 	try {
 		const response = await fetch(`${CORE_SERVICE_URL}/users/me/heartbeat`, {
 			method: "POST",
 			headers: getInternalHeaders(req),
 			signal: createTimeoutSignal(CORE_SERVICE_TIMEOUT_MS),
 		});
-		const data = await response.json();
-		res.status(response.status).json(data);
+		res.status(200).json({ ok: response.ok });
 	} catch (error) {
 		if (isTimeoutError(error)) {
 			res.status(504).json({ error: "Gateway Timeout" });
@@ -332,10 +351,10 @@ const getMyFriendsHandler: RequestHandler = async (req, res, _next) => {
 };
 
 // Register more specific routes FIRST, then less specific
-usersRouter.post("/me/heartbeat", requireAuth, heartbeatHandler);
+usersRouter.post("/me/heartbeat", optionalAuth, heartbeatHandler);
 // /me/recipes is most specific
 usersRouter.get("/me/recipes", requireAuth, getMyRecipesHandler);
-usersRouter.get("/me/favorites", requireAuth, getMyFavoritesHandler);
+usersRouter.get("/me/favorites", optionalAuth, getMyFavoritesHandler);
 usersRouter.get("/me/followers", requireAuth, getMyFollowersHandler);
 usersRouter.get("/me/following", requireAuth, getMyFollowingHandler);
 usersRouter.get("/me/friends", requireAuth, getMyFriendsHandler);
