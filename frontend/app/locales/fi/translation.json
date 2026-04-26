@@ -326,6 +326,7 @@
 		"addIngredient": "+ Lisää aines",
 		"addStep": "+ Lisää vaihe",
 		"addPhoto": "Lisää kuva",
+		"photoSizeError": "Kuvan koko saa olla enintään 5 MB",
 		"recipePreview": "Reseptin esikatselu",
 		"submitButton": "Luo",
 		"submittingButton": "Luodaan...",
