@@ -399,13 +399,14 @@ describe("Users Routes", () => {
 			});
 		});
 
-		it("should return 409 when already followed", async () => {
+		it("should return 200 with created:false when already followed", async () => {
 			const response = await request(app)
 				.post("/users/10004/follow")
 				.set("X-User-Id", "10003");
 
-			expect(response.status).toBe(409);
-			expect(response.body).toHaveProperty("error");
+			expect(response.status).toBe(200);
+			expect(response.body).toHaveProperty("created", false);
+			expect(response.body).toHaveProperty("data");
 		});
 
 		it("should return 401 when user is not authenticated", async () => {
