@@ -20,6 +20,9 @@ import { z } from "zod";
  */
 const MAX_SIGNED_INT = 2147483647;
 const MAX_REVIEW_BODY_LENGTH = 1000;
+const MAX_INSTRUCTION_STEPS = 50;
+const MAX_INSTRUCTION_STEP_LENGTH = 1000;
+const MAX_INSTRUCTIONS_TOTAL_CHARS = 10000;
 
 /**
  * Positive Integer schema
@@ -83,7 +86,16 @@ const createRecipeCategoryIdSchema = positiveIntSchema;
 const createRecipeInputSchema = z.object({
 	title: z.string().trim().min(1).max(256),
 	description: z.string().trim().max(5000).nullable(),
-	instructions: z.array(z.string().trim().min(1)).min(1),
+	instructions: z
+		.array(z.string().trim().min(1).max(MAX_INSTRUCTION_STEP_LENGTH))
+		.min(1)
+		.max(MAX_INSTRUCTION_STEPS)
+		.refine(
+			(steps) =>
+				steps.reduce((total, step) => total + step.length, 0) <=
+				MAX_INSTRUCTIONS_TOTAL_CHARS,
+			"Instructions are too long in total",
+		),
 	servings: positiveIntSchema,
 	spiciness: z.coerce.number().int().min(0).max(3),
 	ingredients: z
