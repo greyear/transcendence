@@ -489,22 +489,20 @@ const SearchPage = () => {
 				ariaLabel={t("ariaLabels.searchFilter")}
 			/>
 
-			<div className="search-page-controls">
-				{typeParam === "recipes" && (
-					<>
-						<SortMenu
-							options={sortOptions}
-							value={sort}
-							onChange={handleSortChange}
-						/>
-						<CategoryFilterMenu
-							categories={categories}
-							values={filterValues}
-							onApply={handleFilterApply}
-						/>
-					</>
-				)}
-			</div>
+			{typeParam === "recipes" && !isAiSearch && (
+				<div className="search-page-controls">
+					<SortMenu
+						options={sortOptions}
+						value={sort}
+						onChange={handleSortChange}
+					/>
+					<CategoryFilterMenu
+						categories={categories}
+						values={filterValues}
+						onApply={handleFilterApply}
+					/>
+				</div>
+			)}
 
 			{isLoading && (
 				<p className="search-page__status">{t("searchPage.searching")}</p>
@@ -517,7 +515,10 @@ const SearchPage = () => {
 			{!isLoading && !hasError && results && (
 				<>
 					{aiEnabled && results.type === "recipes" && results.summary && (
-						<p className="search-page__summary">{results.summary}</p>
+						<div className="search-page__ai-summary">
+							<p className="search-page__ai-disclaimer">{t("searchPage.aiDisclaimer")}</p>
+							<p className="search-page__summary">{results.summary}</p>
+						</div>
 					)}
 
 					{results.data.length === 0 ? (

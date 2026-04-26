@@ -156,7 +156,8 @@
 		"searching": "Searching recipes...",
 		"error": "Search failed. Please try again.",
 		"aiSummaryOn": "AI summary on",
-		"aiSummaryOff": "AI summary off"
+		"aiSummaryOff": "AI summary off",
+		"aiDisclaimer": "AI-generated summary. May be inaccurate - always check the full recipe."
 	},
 	"usersPage": {
 		"title": "Users",
