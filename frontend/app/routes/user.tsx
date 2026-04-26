@@ -38,6 +38,7 @@ const UserResponseSchema = z.object({
 		avatar: z.string().nullable(),
 		status: z.enum(["online", "offline"]),
 		is_following: z.boolean(),
+		is_mutual_follower: z.boolean().default(false),
 		recipes_count: z.number(),
 	}),
 });
@@ -114,10 +115,10 @@ const UserPage = () => {
 	const isFollowing = profile ? followingIds.has(profile.id) : false;
 	const isFollowPending = profile ? pendingFollowIds.has(profile.id) : false;
 
-	// Re-run on auth change: both `/users/:id` (viewer-scoped is_following +
-	// presence) and `/users/:id/favorites` (403 to non-mutual-followers) depend
-	// on the viewer. Without this, logging in/out on the page leaves the follow
-	// button and gated favorites section showing stale guest-mode data.
+	// Re-run on auth change: `/users/:id` (viewer-scoped is_following + presence
+	// + is_mutual_follower) and, when applicable, `/users/:id/favorites` depend
+	// on the viewer. Without this, logging in/out leaves the follow button and
+	// gated favorites section showing stale guest-mode data.
 	useEffect(() => {
 		if (!id || isOwnProfile) {
 			return;
@@ -130,21 +131,10 @@ const UserPage = () => {
 		setProfile(null);
 		setFavorites(null);
 
-		const profileRequest = fetch(`${API_BASE_URL}/users/${id}`, {
+		fetch(`${API_BASE_URL}/users/${id}`, {
 			credentials: "include",
-		});
-		// Favorites require auth (401) and mutual-follow (403). Skip the request
-		// entirely for guests so we don't generate a guaranteed-failure network
-		// call on every guest page view.
-		const favoritesRequest = isAuthenticated
-			? fetch(`${API_BASE_URL}/users/${id}/favorites`, {
-					credentials: "include",
-					headers: { "X-Language": language },
-				})
-			: Promise.resolve(null);
-
-		Promise.all([profileRequest, favoritesRequest])
-			.then(async ([profileRes, favoritesRes]) => {
+		})
+			.then(async (profileRes) => {
 				if (ignore) {
 					return;
 				}
@@ -161,17 +151,32 @@ const UserPage = () => {
 					return;
 				}
 
-				setProfile(parsedProfile.data.data);
+				const profileData = parsedProfile.data.data;
+				setProfile(profileData);
 
-				if (favoritesRes?.ok) {
+				if (!isAuthenticated || !profileData.is_mutual_follower) {
+					return;
+				}
+
+				const favoritesRes = await fetch(
+					`${API_BASE_URL}/users/${id}/favorites`,
+					{
+						credentials: "include",
+						headers: { "X-Language": language },
+					},
+				);
+
+				if (ignore) {
+					return;
+				}
+
+				if (favoritesRes.ok) {
 					const favoritesBody: unknown = await favoritesRes.json();
 					const parsedFavorites =
 						FavoritesResponseSchema.safeParse(favoritesBody);
 					setFavorites(
 						parsedFavorites.success ? parsedFavorites.data.data : [],
 					);
-				} else {
-					setFavorites(null);
 				}
 			})
 			.catch((error: unknown) => {
@@ -238,11 +243,9 @@ const UserPage = () => {
 				/>
 				<div className="user-profile-identity">
 					<h1 id="user-profile-name">{profile.username}</h1>
-					{/* Presence is only meaningful between mutual followers. The backend
-					    already enforces this boundary on GET /users/:id/favorites (403
-					    for non-mutual viewers), so `favorites !== null` is a trustworthy
-					    signal that the viewer is a mutual follower. */}
-					{favorites !== null ? (
+					{/* Presence is only meaningful between mutual followers — show it only
+					    when the backend explicitly reports is_mutual_follower: true. */}
+					{profile.is_mutual_follower ? (
 						<p className={`user-profile-status text-body3 ${profile.status}`}>
 							{t(`userProfilePage.${profile.status}`)}
 						</p>

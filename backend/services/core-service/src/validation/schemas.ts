@@ -374,6 +374,7 @@ export const userProfileSchema = z.object({
 	avatar: z.string().nullable(),
 	status: userPresenceStatusSchema,
 	is_following: z.boolean(),
+	is_mutual_follower: z.boolean(),
 	recipes_count: z.coerce.number().int().min(0),
 });
 
